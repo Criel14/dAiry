@@ -1,18 +1,19 @@
-import { app, BrowserWindow } from "electron";
-import { createRequire } from "node:module";
+import { app, BrowserWindow, Menu } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-createRequire(import.meta.url);
 const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname$1, "..");
+const APP_ICON_NAME = process.platform === "win32" ? "app.ico" : "app.png";
+const APP_ICON_PATH = path.join(process.env.APP_ROOT, "build", "icons", APP_ICON_NAME);
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
 process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
 let win;
 function createWindow() {
+  Menu.setApplicationMenu(null);
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
+    icon: APP_ICON_PATH,
     webPreferences: {
       preload: path.join(__dirname$1, "preload.mjs")
     }
