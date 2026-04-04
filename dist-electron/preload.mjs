@@ -1,10 +1,1 @@
-"use strict";
-const electron = require("electron");
-const dairyApi = {
-  getAppBootstrap: () => electron.ipcRenderer.invoke("app:get-bootstrap"),
-  chooseWorkspace: () => electron.ipcRenderer.invoke("workspace:choose"),
-  readJournalEntry: (input) => electron.ipcRenderer.invoke("journal:read-entry", input),
-  createJournalEntry: (input) => electron.ipcRenderer.invoke("journal:create-entry", input),
-  saveJournalEntry: (input) => electron.ipcRenderer.invoke("journal:save-entry", input)
-};
-electron.contextBridge.exposeInMainWorld("dairy", dairyApi);
+"use strict";const e=require("electron"),n={getAppBootstrap:()=>e.ipcRenderer.invoke("app:get-bootstrap"),chooseWorkspace:()=>e.ipcRenderer.invoke("workspace:choose"),readJournalEntry:r=>e.ipcRenderer.invoke("journal:read-entry",r),createJournalEntry:r=>e.ipcRenderer.invoke("journal:create-entry",r),saveJournalEntry:r=>e.ipcRenderer.invoke("journal:save-entry",r)};e.contextBridge.exposeInMainWorld("dairy",n);

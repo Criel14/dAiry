@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 
 const props = defineProps<{
@@ -34,11 +35,9 @@ const selectedDate = computed(() => dayjs(props.modelValue))
 
 const calendarDays = computed(() => {
   const monthStart = visibleMonth.value.startOf('month')
-  // dayjs 的 day() 里周日是 0，这里转成“周一开头”的月历布局。
   const leadingOffset = (monthStart.day() + 6) % 7
   const gridStart = monthStart.subtract(leadingOffset, 'day')
 
-  // 固定生成 6 行 * 7 列，布局稳定，切月时不会因为行数变化跳动。
   return Array.from({ length: 42 }, (_, index) => {
     const currentDate = gridStart.add(index, 'day')
     return {
@@ -95,30 +94,22 @@ function getDayAriaLabel(dateText: string) {
   <section class="calendar-panel">
     <header class="calendar-toolbar">
       <div class="calendar-switches">
-        <button class="toolbar-button" type="button" title="上一年" @click="shiftYear(-1)">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M11.8 5.5 7.3 10l4.5 4.5M16 5.5 11.5 10 16 14.5" />
-          </svg>
+        <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftYear(-1)">
+          <Icon class="toolbar-icon" icon="lucide:chevrons-left" aria-hidden="true" />
         </button>
-        <button class="toolbar-button" type="button" title="上个月" @click="shiftMonth(-1)">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M12.5 5.5 8 10l4.5 4.5" />
-          </svg>
+        <button class="toolbar-button" type="button" title="上个月" aria-label="上个月" @click="shiftMonth(-1)">
+          <Icon class="toolbar-icon" icon="lucide:chevron-left" aria-hidden="true" />
         </button>
       </div>
 
       <strong class="calendar-title">{{ monthTitle }}</strong>
 
       <div class="calendar-switches calendar-switches--end">
-        <button class="toolbar-button" type="button" title="下个月" @click="shiftMonth(1)">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="m7.5 5.5 4.5 4.5-4.5 4.5" />
-          </svg>
+        <button class="toolbar-button" type="button" title="下个月" aria-label="下个月" @click="shiftMonth(1)">
+          <Icon class="toolbar-icon" icon="lucide:chevron-right" aria-hidden="true" />
         </button>
-        <button class="toolbar-button" type="button" title="下一年" @click="shiftYear(1)">
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="m4 5.5 4.5 4.5L4 14.5M8.2 5.5l4.5 4.5-4.5 4.5" />
-          </svg>
+        <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftYear(1)">
+          <Icon class="toolbar-icon" icon="lucide:chevrons-right" aria-hidden="true" />
         </button>
       </div>
     </header>
@@ -198,18 +189,15 @@ function getDayAriaLabel(dateText: string) {
   transform: translateY(-1px);
 }
 
-.toolbar-button svg {
+.toolbar-icon {
   width: 1rem;
   height: 1rem;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-  fill: none;
 }
 
 .today-button {
   min-height: 2.25rem;
+  justify-self: start;
+  padding: 0 1rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
@@ -288,11 +276,6 @@ function getDayAriaLabel(dateText: string) {
   border-color: #d7c68a;
   color: #4f4630;
   box-shadow: none;
-}
-
-.today-button {
-  justify-self: start;
-  padding: 0 1rem;
 }
 
 @media (max-width: 640px) {
