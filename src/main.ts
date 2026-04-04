@@ -1,10 +1,9 @@
 import { createApp } from 'vue'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
 import './style.css'
 import App from './App.vue'
 
-createApp(App).mount('#app').$nextTick(() => {
-  // Use contextBridge
-  window.ipcRenderer.on('main-process-message', (_event, message) => {
-    console.log(message)
-  })
-})
+dayjs.locale('zh-cn')
+
+createApp(App).mount('#app')

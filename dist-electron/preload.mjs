@@ -1,22 +1,10 @@
 "use strict";
 const electron = require("electron");
-electron.contextBridge.exposeInMainWorld("ipcRenderer", {
-  on(...args) {
-    const [channel, listener] = args;
-    return electron.ipcRenderer.on(channel, (event, ...args2) => listener(event, ...args2));
-  },
-  off(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.off(channel, ...omit);
-  },
-  send(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.send(channel, ...omit);
-  },
-  invoke(...args) {
-    const [channel, ...omit] = args;
-    return electron.ipcRenderer.invoke(channel, ...omit);
-  }
-  // You can expose other APTs you need here.
-  // ...
-});
+const dairyApi = {
+  getAppBootstrap: () => electron.ipcRenderer.invoke("app:get-bootstrap"),
+  chooseWorkspace: () => electron.ipcRenderer.invoke("workspace:choose"),
+  readJournalEntry: (input) => electron.ipcRenderer.invoke("journal:read-entry", input),
+  createJournalEntry: (input) => electron.ipcRenderer.invoke("journal:create-entry", input),
+  saveJournalEntry: (input) => electron.ipcRenderer.invoke("journal:save-entry", input)
+};
+electron.contextBridge.exposeInMainWorld("dairy", dairyApi);
