@@ -76,7 +76,7 @@ function handlePreviewClick(event: MouseEvent) {
 
   <section v-else-if="viewState === 'today-empty'" class="empty-state">
     <h3>今天还没有写日记</h3>
-    <p>可以先创建一个空白的 <code>.md</code> 文件，然后开始记录今天。</p>
+    <p>新建日记，然后开始记录吧</p>
     <button class="primary-button" type="button" :disabled="isCreatingEntry" @click="$emit('createEntry')">
       {{ isCreatingEntry ? '正在创建...' : '新建日记' }}
     </button>
@@ -84,12 +84,12 @@ function handlePreviewClick(event: MouseEvent) {
 
   <section v-else-if="viewState === 'history-empty'" class="empty-state">
     <h3>这一天没有写日记</h3>
-    <p>是不是忘记了呢...</p>
+    <p>也许是忘记了呢...</p>
   </section>
 
   <section v-else-if="viewState === 'future-empty'" class="empty-state">
     <h3>这一天还没有到来</h3>
-    <p>你没有时光机...</p>
+    <p>想要有时光机...</p>
   </section>
 
   <section v-else-if="viewState === 'error'" class="empty-state empty-state--error">
