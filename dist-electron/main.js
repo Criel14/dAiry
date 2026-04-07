@@ -1,159 +1,222 @@
-import { app as i, BrowserWindow as m, Menu as R, ipcMain as c, dialog as y } from "electron";
-import { readFile as E, mkdir as p, writeFile as f } from "node:fs/promises";
-import { fileURLToPath as j } from "node:url";
-import r from "node:path";
-const P = r.dirname(j(import.meta.url));
-process.env.APP_ROOT = r.join(P, "..");
-const T = process.platform === "win32" ? "app.ico" : "app.png", D = r.join(process.env.APP_ROOT, "build", "icons", T), l = {
+import { app as l, BrowserWindow as A, Menu as T, ipcMain as i, dialog as O } from "electron";
+import { readFile as E, mkdir as P, writeFile as v } from "node:fs/promises";
+import { fileURLToPath as I } from "node:url";
+import o from "node:path";
+const j = o.dirname(I(import.meta.url));
+process.env.APP_ROOT = o.join(j, "..");
+const M = process.platform === "win32" ? "app.ico" : "app.png", S = o.join(process.env.APP_ROOT, "build", "icons", M), s = {
   getBootstrap: "app:get-bootstrap",
+  setJournalHeatmapEnabled: "app:set-journal-heatmap-enabled",
   chooseWorkspace: "workspace:choose",
   readJournalEntry: "journal:read-entry",
   createJournalEntry: "journal:create-entry",
-  saveJournalEntry: "journal:save-entry"
-}, O = {
+  saveJournalEntry: "journal:save-entry",
+  getJournalMonthActivity: "journal:get-month-activity"
+}, b = {
   lastOpenedWorkspace: null,
   recentWorkspaces: [],
   ui: {
-    theme: "system"
+    theme: "system",
+    journalHeatmapEnabled: !1
   }
-}, u = process.env.VITE_DEV_SERVER_URL, x = r.join(process.env.APP_ROOT, "dist-electron"), _ = r.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = u ? r.join(process.env.APP_ROOT, "public") : _;
-let a;
-function v() {
-  return r.join(i.getPath("userData"), "config.json");
+}, g = process.env.VITE_DEV_SERVER_URL, tt = o.join(process.env.APP_ROOT, "dist-electron"), k = o.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = g ? o.join(process.env.APP_ROOT, "public") : k;
+let c;
+function J() {
+  return o.join(l.getPath("userData"), "config.json");
 }
-function C(t) {
-  var s, h, g;
-  if (!t || typeof t != "object")
-    return O;
-  const e = t, n = Array.isArray(e.recentWorkspaces) ? e.recentWorkspaces.filter((W) => typeof W == "string") : [], o = ((s = e.ui) == null ? void 0 : s.theme) === "light" || ((h = e.ui) == null ? void 0 : h.theme) === "dark" || ((g = e.ui) == null ? void 0 : g.theme) === "system" ? e.ui.theme : "system";
+function H(e) {
+  var u, p, h, d;
+  if (!e || typeof e != "object")
+    return b;
+  const t = e, n = Array.isArray(t.recentWorkspaces) ? t.recentWorkspaces.filter((y) => typeof y == "string") : [], r = ((u = t.ui) == null ? void 0 : u.theme) === "light" || ((p = t.ui) == null ? void 0 : p.theme) === "dark" || ((h = t.ui) == null ? void 0 : h.theme) === "system" ? t.ui.theme : "system", a = ((d = t.ui) == null ? void 0 : d.journalHeatmapEnabled) === !0;
   return {
-    lastOpenedWorkspace: typeof e.lastOpenedWorkspace == "string" ? e.lastOpenedWorkspace : null,
+    lastOpenedWorkspace: typeof t.lastOpenedWorkspace == "string" ? t.lastOpenedWorkspace : null,
     recentWorkspaces: n,
     ui: {
-      theme: o
+      theme: r,
+      journalHeatmapEnabled: a
     }
   };
 }
 async function w() {
   try {
-    const t = await E(v(), "utf-8");
-    return C(JSON.parse(t));
-  } catch (t) {
-    if (t.code === "ENOENT")
-      return O;
-    throw t;
+    const e = await E(J(), "utf-8");
+    return H(JSON.parse(e));
+  } catch (e) {
+    if (e.code === "ENOENT")
+      return b;
+    throw e;
   }
 }
-async function I(t) {
-  await p(i.getPath("userData"), { recursive: !0 }), await f(v(), JSON.stringify(t, null, 2), "utf-8");
+async function W(e) {
+  await P(l.getPath("userData"), { recursive: !0 }), await v(J(), JSON.stringify(e, null, 2), "utf-8");
 }
-function N(t, e) {
+async function V(e) {
+  const t = await w(), n = {
+    ...t,
+    ui: {
+      ...t.ui,
+      journalHeatmapEnabled: e.enabled
+    }
+  };
+  return await W(n), n;
+}
+function F(e, t) {
   const n = [
-    t,
-    ...e.recentWorkspaces.filter((o) => o !== t)
+    e,
+    ...t.recentWorkspaces.filter((r) => r !== e)
   ];
   return {
-    ...e,
-    lastOpenedWorkspace: t,
+    ...t,
+    lastOpenedWorkspace: e,
     recentWorkspaces: n.slice(0, 8)
   };
 }
-function J(t) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(t))
+function L(e) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e))
     throw new Error("日期格式无效，必须为 YYYY-MM-DD。");
 }
-function d({ workspacePath: t, date: e }) {
-  J(e);
-  const [n, o] = e.split("-");
-  return r.join(t, "journal", n, o, `${e}.md`);
+function Y(e) {
+  if (!/^\d{4}-\d{2}$/.test(e))
+    throw new Error("月份格式无效，必须为 YYYY-MM。");
 }
-async function A(t) {
-  const e = d(t);
+function C(e, t) {
+  L(t);
+  const [n, r] = t.split("-");
+  return o.join(e, "journal", n, r, `${t}.md`);
+}
+function _({ workspacePath: e, date: t }) {
+  return C(e, t);
+}
+function x(e) {
+  return e.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+}
+function $(e) {
+  const t = x(e).trim();
+  return t ? t.replace(/\s+/g, "").length : 0;
+}
+function U(e) {
+  Y(e);
+  const [t, n] = e.split("-"), r = Number(t), a = Number(n);
+  return new Date(r, a, 0).getDate();
+}
+async function D(e) {
+  const t = _(e);
   try {
-    const n = await E(e, "utf-8");
+    const n = await E(t, "utf-8");
     return {
       status: "ready",
-      filePath: e,
+      filePath: t,
       content: n
     };
   } catch (n) {
     if (n.code === "ENOENT")
       return {
         status: "missing",
-        filePath: e,
+        filePath: t,
         content: null
       };
     throw n;
   }
 }
-async function S(t) {
-  const e = d(t);
-  await p(r.dirname(e), { recursive: !0 });
+async function B(e) {
+  const t = _(e);
+  await P(o.dirname(t), { recursive: !0 });
   try {
-    await f(e, "", { encoding: "utf-8", flag: "wx" });
+    await v(t, "", { encoding: "utf-8", flag: "wx" });
   } catch (n) {
     if (n.code !== "EEXIST")
       throw n;
   }
-  return A(t);
+  return D(e);
 }
-async function b(t) {
-  const e = d(t);
-  return await p(r.dirname(e), { recursive: !0 }), await f(e, t.content, "utf-8"), {
-    filePath: e,
+async function q(e) {
+  const t = _(e);
+  return await P(o.dirname(t), { recursive: !0 }), await v(t, e.content, "utf-8"), {
+    filePath: t,
     savedAt: (/* @__PURE__ */ new Date()).toISOString()
   };
 }
-function L() {
-  c.handle(l.getBootstrap, async () => ({ config: await w() })), c.handle(l.chooseWorkspace, async () => {
-    const t = await w(), e = {
+async function z(e) {
+  const { workspacePath: t, month: n } = e, r = U(n), [a, u] = n.split("-"), p = await Promise.all(
+    Array.from({ length: r }, async (h, d) => {
+      const y = String(d + 1).padStart(2, "0"), m = `${a}-${u}-${y}`, R = C(t, m);
+      try {
+        const f = await E(R, "utf-8");
+        return {
+          date: m,
+          hasEntry: !0,
+          wordCount: $(f)
+        };
+      } catch (f) {
+        if (f.code === "ENOENT")
+          return {
+            date: m,
+            hasEntry: !1,
+            wordCount: 0
+          };
+        throw f;
+      }
+    })
+  );
+  return {
+    month: n,
+    days: p
+  };
+}
+function G() {
+  i.handle(s.getBootstrap, async () => ({ config: await w() })), i.handle(
+    s.setJournalHeatmapEnabled,
+    (e, t) => V(t)
+  ), i.handle(s.chooseWorkspace, async () => {
+    const e = await w(), t = {
       title: "选择日记目录",
       buttonLabel: "选择这个目录",
       properties: ["openDirectory"]
-    }, n = a ? await y.showOpenDialog(a, e) : await y.showOpenDialog(e);
+    }, n = c ? await O.showOpenDialog(c, t) : await O.showOpenDialog(t);
     if (n.canceled || n.filePaths.length === 0)
       return {
         canceled: !0,
         workspacePath: null,
-        config: t
+        config: e
       };
-    const o = n.filePaths[0], s = N(o, t);
-    return await I(s), {
+    const r = n.filePaths[0], a = F(r, e);
+    return await W(a), {
       canceled: !1,
-      workspacePath: o,
-      config: s
+      workspacePath: r,
+      config: a
     };
-  }), c.handle(l.readJournalEntry, (t, e) => A(e)), c.handle(l.createJournalEntry, (t, e) => S(e)), c.handle(
-    l.saveJournalEntry,
-    (t, e) => b(e)
-  );
+  }), i.handle(s.readJournalEntry, (e, t) => D(t)), i.handle(s.createJournalEntry, (e, t) => B(t)), i.handle(
+    s.saveJournalEntry,
+    (e, t) => q(t)
+  ), i.handle(s.getJournalMonthActivity, (e, t) => z(t));
 }
-function k() {
-  R.setApplicationMenu(null), a = new m({
+function N() {
+  T.setApplicationMenu(null), c = new A({
     width: 1440,
     height: 900,
     minWidth: 1080,
     minHeight: 720,
-    icon: D,
+    icon: S,
     title: "dAiry",
     backgroundColor: "#f7f7f4",
     webPreferences: {
-      preload: r.join(P, "preload.mjs")
+      preload: o.join(j, "preload.mjs")
     }
-  }), u ? a.loadURL(u) : a.loadFile(r.join(_, "index.html"));
+  }), g ? c.loadURL(g) : c.loadFile(o.join(k, "index.html"));
 }
-i.on("window-all-closed", () => {
-  process.platform !== "darwin" && (i.quit(), a = null);
+l.on("window-all-closed", () => {
+  process.platform !== "darwin" && (l.quit(), c = null);
 });
-i.on("activate", () => {
-  m.getAllWindows().length === 0 && k();
+l.on("activate", () => {
+  A.getAllWindows().length === 0 && N();
 });
-i.whenReady().then(() => {
-  L(), k();
+l.whenReady().then(() => {
+  G(), N();
 });
 export {
-  x as MAIN_DIST,
-  _ as RENDERER_DIST,
-  u as VITE_DEV_SERVER_URL
+  tt as MAIN_DIST,
+  k as RENDERER_DIST,
+  g as VITE_DEV_SERVER_URL
 };

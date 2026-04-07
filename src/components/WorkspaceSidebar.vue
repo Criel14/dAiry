@@ -5,6 +5,7 @@ import JournalCalendar from './JournalCalendar.vue'
 defineProps<{
   workspacePath: string | null
   selectedDate: string
+  isJournalHeatmapEnabled: boolean
 }>()
 
 defineEmits<{
@@ -61,6 +62,8 @@ defineEmits<{
 
       <JournalCalendar
         :model-value="selectedDate"
+        :workspace-path="workspacePath"
+        :is-heatmap-enabled="isJournalHeatmapEnabled"
         @update:model-value="$emit('selectDate', $event)"
       />
     </div>

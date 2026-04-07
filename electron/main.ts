@@ -5,8 +5,12 @@ import path from 'node:path'
 import type {
   AppBootstrap,
   AppConfig,
+  JournalDayActivity,
   JournalEntryQuery,
   JournalEntryReadResult,
+  JournalHeatmapPreferenceInput,
+  JournalMonthActivityQuery,
+  JournalMonthActivityResult,
   JournalEntryWriteResult,
   WorkspaceSelectionResult,
 } from '../src/types/dairy'
@@ -20,10 +24,12 @@ const APP_ICON_PATH = path.join(process.env.APP_ROOT, 'build', 'icons', APP_ICON
 
 const IPC_CHANNELS = {
   getBootstrap: 'app:get-bootstrap',
+  setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
   chooseWorkspace: 'workspace:choose',
   readJournalEntry: 'journal:read-entry',
   createJournalEntry: 'journal:create-entry',
   saveJournalEntry: 'journal:save-entry',
+  getJournalMonthActivity: 'journal:get-month-activity',
 } as const
 
 const DEFAULT_APP_CONFIG: AppConfig = {
@@ -31,6 +37,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   recentWorkspaces: [],
   ui: {
     theme: 'system',
+    journalHeatmapEnabled: false,
   },
 }
 
@@ -61,6 +68,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
     config.ui?.theme === 'light' || config.ui?.theme === 'dark' || config.ui?.theme === 'system'
       ? config.ui.theme
       : 'system'
+  const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
 
   return {
     lastOpenedWorkspace:
@@ -68,6 +76,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
     recentWorkspaces,
     ui: {
       theme,
+      journalHeatmapEnabled,
     },
   }
 }
@@ -88,6 +97,22 @@ async function readAppConfig(): Promise<AppConfig> {
 async function writeAppConfig(config: AppConfig) {
   await mkdir(app.getPath('userData'), { recursive: true })
   await writeFile(getConfigFilePath(), JSON.stringify(config, null, 2), 'utf-8')
+}
+
+async function setJournalHeatmapEnabled(
+  input: JournalHeatmapPreferenceInput,
+): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      journalHeatmapEnabled: input.enabled,
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
 }
 
 function buildWorkspaceConfig(workspacePath: string, currentConfig: AppConfig) {
@@ -111,12 +136,47 @@ function assertValidDate(dateText: string) {
   }
 }
 
-function resolveJournalEntryPath({ workspacePath, date }: JournalEntryQuery) {
+function assertValidMonth(monthText: string) {
+  if (!/^\d{4}-\d{2}$/.test(monthText)) {
+    throw new Error('月份格式无效，必须为 YYYY-MM。')
+  }
+}
+
+function resolveJournalEntryFilePath(workspacePath: string, date: string) {
   assertValidDate(date)
 
   const [year, month] = date.split('-')
   // 当前版本按用户最新要求固定为 workspace/journal/YYYY/MM/YYYY-MM-DD.md。
   return path.join(workspacePath, 'journal', year, month, `${date}.md`)
+}
+
+function resolveJournalEntryPath({ workspacePath, date }: JournalEntryQuery) {
+  return resolveJournalEntryFilePath(workspacePath, date)
+}
+
+function stripFrontmatter(content: string) {
+  return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '')
+}
+
+function countJournalWords(content: string) {
+  const bodyContent = stripFrontmatter(content).trim()
+
+  if (!bodyContent) {
+    return 0
+  }
+
+  // V1 先使用“去除空白后的字符数”作为字数近似，足够稳定也更适合中文日记。
+  return bodyContent.replace(/\s+/g, '').length
+}
+
+function getDaysInMonth(monthText: string) {
+  assertValidMonth(monthText)
+
+  const [yearText, monthValueText] = monthText.split('-')
+  const year = Number(yearText)
+  const monthValue = Number(monthValueText)
+
+  return new Date(year, monthValue, 0).getDate()
 }
 
 async function readJournalEntry(input: JournalEntryQuery): Promise<JournalEntryReadResult> {
@@ -173,6 +233,46 @@ async function saveJournalEntry(
   }
 }
 
+async function getJournalMonthActivity(
+  input: JournalMonthActivityQuery,
+): Promise<JournalMonthActivityResult> {
+  const { workspacePath, month } = input
+  const totalDays = getDaysInMonth(month)
+  const [year, monthValue] = month.split('-')
+
+  const days = await Promise.all(
+    Array.from({ length: totalDays }, async (_value, index): Promise<JournalDayActivity> => {
+      const day = String(index + 1).padStart(2, '0')
+      const date = `${year}-${monthValue}-${day}`
+      const filePath = resolveJournalEntryFilePath(workspacePath, date)
+
+      try {
+        const content = await readFile(filePath, 'utf-8')
+        return {
+          date,
+          hasEntry: true,
+          wordCount: countJournalWords(content),
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          return {
+            date,
+            hasEntry: false,
+            wordCount: 0,
+          }
+        }
+
+        throw error
+      }
+    }),
+  )
+
+  return {
+    month,
+    days,
+  }
+}
+
 function registerIpcHandlers() {
   // 主进程把“配置、目录选择、文件读写”集中在这里统一注册，
   // 渲染层只关心调用结果，不直接接触 Node 文件系统能力。
@@ -180,6 +280,13 @@ function registerIpcHandlers() {
     const config = await readAppConfig()
     return { config }
   })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setJournalHeatmapEnabled,
+    (_event, input: JournalHeatmapPreferenceInput) => {
+      return setJournalHeatmapEnabled(input)
+    },
+  )
 
   ipcMain.handle(IPC_CHANNELS.chooseWorkspace, async (): Promise<WorkspaceSelectionResult> => {
     const currentConfig = await readAppConfig()
@@ -225,6 +332,10 @@ function registerIpcHandlers() {
       return saveJournalEntry(input)
     },
   )
+
+  ipcMain.handle(IPC_CHANNELS.getJournalMonthActivity, (_event, input: JournalMonthActivityQuery) => {
+    return getJournalMonthActivity(input)
+  })
 }
 
 function createWindow() {

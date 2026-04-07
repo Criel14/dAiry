@@ -9,6 +9,8 @@ const dairyApi: DairyApi = {
   readJournalEntry: (input) => ipcRenderer.invoke('journal:read-entry', input),
   createJournalEntry: (input) => ipcRenderer.invoke('journal:create-entry', input),
   saveJournalEntry: (input) => ipcRenderer.invoke('journal:save-entry', input),
+  getJournalMonthActivity: (input) => ipcRenderer.invoke('journal:get-month-activity', input),
+  setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
 }
 
 contextBridge.exposeInMainWorld('dairy', dairyApi)

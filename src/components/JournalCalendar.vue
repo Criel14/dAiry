@@ -2,9 +2,12 @@
 import { computed, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
+import type { JournalDayActivity } from '../types/dairy'
 
 const props = defineProps<{
   modelValue: string
+  workspacePath: string | null
+  isHeatmapEnabled: boolean
 }>()
 
 const emit = defineEmits<{
@@ -13,6 +16,9 @@ const emit = defineEmits<{
 
 const weekLabels = ['一', '二', '三', '四', '五', '六', '日']
 const visibleMonth = ref(dayjs(props.modelValue).startOf('month'))
+const isLoadingActivity = ref(false)
+const monthActivityMap = ref<Record<string, JournalDayActivity>>({})
+let activityLoadSequence = 0
 
 watch(
   () => props.modelValue,
@@ -32,6 +38,7 @@ watch(
 
 const monthTitle = computed(() => visibleMonth.value.format('YYYY 年 M 月'))
 const selectedDate = computed(() => dayjs(props.modelValue))
+const visibleMonthKey = computed(() => visibleMonth.value.format('YYYY-MM'))
 
 const calendarDays = computed(() => {
   const monthStart = visibleMonth.value.startOf('month')
@@ -47,9 +54,48 @@ const calendarDays = computed(() => {
       isToday: currentDate.isSame(dayjs(), 'day'),
       isSelected: currentDate.isSame(selectedDate.value, 'day'),
       isWeekend: currentDate.day() === 0 || currentDate.day() === 6,
+      activity: monthActivityMap.value[currentDate.format('YYYY-MM-DD')] ?? null,
     }
   })
 })
+
+watch(
+  [visibleMonthKey, () => props.workspacePath, () => props.isHeatmapEnabled],
+  async ([month, workspacePath, heatmapEnabled]) => {
+    if (!workspacePath || !heatmapEnabled) {
+      monthActivityMap.value = {}
+      isLoadingActivity.value = false
+      return
+    }
+
+    const currentLoad = ++activityLoadSequence
+    isLoadingActivity.value = true
+
+    try {
+      const result = await window.dairy.getJournalMonthActivity({
+        workspacePath,
+        month,
+      })
+
+      if (currentLoad !== activityLoadSequence) {
+        return
+      }
+
+      monthActivityMap.value = Object.fromEntries(result.days.map((day) => [day.date, day]))
+    } catch {
+      if (currentLoad !== activityLoadSequence) {
+        return
+      }
+
+      monthActivityMap.value = {}
+    } finally {
+      if (currentLoad === activityLoadSequence) {
+        isLoadingActivity.value = false
+      }
+    }
+  },
+  { immediate: true },
+)
 
 function shiftMonth(amount: number) {
   visibleMonth.value = visibleMonth.value.add(amount, 'month')
@@ -69,24 +115,88 @@ function goToToday() {
   emit('update:modelValue', today.format('YYYY-MM-DD'))
 }
 
+function getHeatLevel(wordCount: number) {
+  if (wordCount >= 700) {
+    return 4
+  }
+
+  if (wordCount >= 400) {
+    return 3
+  }
+
+  if (wordCount >= 150) {
+    return 2
+  }
+
+  if (wordCount > 0) {
+    return 1
+  }
+
+  return 0
+}
+
 function getDayButtonClass(day: {
   isCurrentMonth: boolean
   isToday: boolean
   isSelected: boolean
   isWeekend: boolean
+  activity: JournalDayActivity | null
 }) {
+  const heatLevel =
+    props.isHeatmapEnabled && day.isCurrentMonth && day.activity
+      ? getHeatLevel(day.activity.wordCount)
+      : 0
+
   return {
     'calendar-day': true,
     'calendar-day--outside': !day.isCurrentMonth,
     'calendar-day--today': day.isToday,
     'calendar-day--selected': day.isSelected,
     'calendar-day--weekend': day.isWeekend,
+    'calendar-day--heat-1': heatLevel === 1,
+    'calendar-day--heat-2': heatLevel === 2,
+    'calendar-day--heat-3': heatLevel === 3,
+    'calendar-day--heat-4': heatLevel === 4,
   }
 }
 
-function getDayAriaLabel(dateText: string) {
+function getDayAriaLabel(dateText: string, activity: JournalDayActivity | null) {
   const date = dayjs(dateText)
-  return date.isValid() ? date.format('YYYY 年 M 月 D 日 dddd') : dateText
+  if (!date.isValid()) {
+    return dateText
+  }
+
+  if (!props.isHeatmapEnabled || !activity?.hasEntry) {
+    return date.format('YYYY 年 M 月 D 日 dddd')
+  }
+
+  if (activity.wordCount > 0) {
+    return `${date.format('YYYY 年 M 月 D 日 dddd')}，${activity.wordCount} 字`
+  }
+
+  return `${date.format('YYYY 年 M 月 D 日 dddd')}，已创建空白日记`
+}
+
+function getDayTitle(day: {
+  key: string
+  isCurrentMonth: boolean
+  activity: JournalDayActivity | null
+}) {
+  if (!props.isHeatmapEnabled || !day.isCurrentMonth) {
+    return ''
+  }
+
+  const dateText = dayjs(day.key).format('M 月 D 日')
+
+  if (!day.activity?.hasEntry) {
+    return `${dateText}：没有日记`
+  }
+
+  if (day.activity.wordCount > 0) {
+    return `${dateText}：${day.activity.wordCount} 字`
+  }
+
+  return `${dateText}：已创建空白日记`
 }
 </script>
 
@@ -125,7 +235,8 @@ function getDayAriaLabel(dateText: string) {
         v-for="day in calendarDays"
         :key="day.key"
         :class="getDayButtonClass(day)"
-        :aria-label="getDayAriaLabel(day.key)"
+        :aria-label="getDayAriaLabel(day.key, day.activity)"
+        :title="getDayTitle(day)"
         type="button"
         @click="selectDate(day.key)"
       >
@@ -236,6 +347,7 @@ function getDayAriaLabel(dateText: string) {
 }
 
 .calendar-day {
+  position: relative;
   aspect-ratio: 1 / 1;
   min-height: 2.65rem;
   padding: 0;
@@ -271,11 +383,33 @@ function getDayAriaLabel(dateText: string) {
   border-color: #d8c991;
 }
 
+.calendar-day--heat-1 {
+  background: #f8f2df;
+  border-color: #e8dcc0;
+}
+
+.calendar-day--heat-2 {
+  background: #f3e7c4;
+  border-color: #dfcea1;
+}
+
+.calendar-day--heat-3 {
+  background: #ead89f;
+  border-color: #cfb574;
+  color: #54472d;
+}
+
+.calendar-day--heat-4 {
+  background: #ddc170;
+  border-color: #b89648;
+  color: #47391f;
+}
+
 .calendar-day--selected {
-  background: #f3e8bf;
-  border-color: #d7c68a;
-  color: #4f4630;
-  box-shadow: none;
+  border-width: 2px;
+  border-color: #766543;
+  color: #3d382d;
+  font-weight: 600;
 }
 
 @media (max-width: 640px) {

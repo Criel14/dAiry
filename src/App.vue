@@ -21,8 +21,11 @@ const editorMode = ref<EditorMode>('source')
 const editorContent = ref('')
 const savedContent = ref('')
 const statusMessage = ref('')
+const heatmapSaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
+const isSavingJournalHeatmap = ref(false)
+const isJournalHeatmapEnabled = ref(false)
 const lastSavedAt = ref<string | null>(null)
 let loadSequence = 0
 
@@ -84,6 +87,7 @@ async function bootstrapApp() {
 
 function syncConfigState(config: AppConfig) {
   workspacePath.value = config.lastOpenedWorkspace
+  isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
 }
 
 function resetTransientState() {
@@ -207,7 +211,13 @@ async function loadEntryForDate(dateText: string) {
   }
 
   const currentLoad = ++loadSequence
-  viewState.value = 'loading'
+  const shouldShowLoadingState =
+    viewState.value === 'loading' || viewState.value === 'error' || viewState.value === 'no-workspace'
+
+  if (shouldShowLoadingState) {
+    viewState.value = 'loading'
+  }
+
   statusMessage.value = ''
 
   try {
@@ -292,6 +302,25 @@ function openSettingsPage() {
 function openJournalPage() {
   rightPanel.value = 'journal'
 }
+
+async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
+  isSavingJournalHeatmap.value = true
+  heatmapSaveMessage.value = ''
+
+  try {
+    const nextConfig = await window.dairy.setJournalHeatmapEnabled({
+      enabled: nextValue,
+    })
+
+    syncConfigState(nextConfig)
+    heatmapSaveMessage.value = nextValue ? '已开启字数热力图。' : '已关闭字数热力图。'
+  } catch (error) {
+    heatmapSaveMessage.value =
+      error instanceof Error ? error.message : '保存显示设置失败，请稍后重试。'
+  } finally {
+    isSavingJournalHeatmap.value = false
+  }
+}
 </script>
 
 <template>
@@ -299,6 +328,7 @@ function openJournalPage() {
     <WorkspaceSidebar
       :workspace-path="workspacePath"
       :selected-date="selectedDate"
+      :is-journal-heatmap-enabled="isJournalHeatmapEnabled"
       @choose-workspace="handleChooseWorkspace"
       @open-settings="openSettingsPage"
       @select-date="handleSelectDate"
@@ -323,6 +353,10 @@ function openJournalPage() {
       <SettingsPanel
         v-if="rightPanel === 'settings'"
         :workspace-path="workspacePath"
+        :journal-heatmap-enabled="isJournalHeatmapEnabled"
+        :is-saving-journal-heatmap="isSavingJournalHeatmap"
+        :heatmap-save-message="heatmapSaveMessage"
+        @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
       />
 
       <JournalEditorPanel
