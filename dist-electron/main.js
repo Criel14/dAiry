@@ -1,222 +1,323 @@
-import { app as l, BrowserWindow as A, Menu as T, ipcMain as i, dialog as O } from "electron";
-import { readFile as E, mkdir as P, writeFile as v } from "node:fs/promises";
-import { fileURLToPath as I } from "node:url";
-import o from "node:path";
-const j = o.dirname(I(import.meta.url));
-process.env.APP_ROOT = o.join(j, "..");
-const M = process.platform === "win32" ? "app.ico" : "app.png", S = o.join(process.env.APP_ROOT, "build", "icons", M), s = {
+import { app, BrowserWindow, Menu, dialog, ipcMain } from "electron";
+import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+const __dirname$1 = path.dirname(fileURLToPath(import.meta.url));
+process.env.APP_ROOT = path.join(__dirname$1, "..");
+const APP_ICON_NAME = process.platform === "win32" ? "app.ico" : "app.png";
+const APP_ICON_PATH = path.join(process.env.APP_ROOT, "build", "icons", APP_ICON_NAME);
+const IPC_CHANNELS = {
   getBootstrap: "app:get-bootstrap",
   setJournalHeatmapEnabled: "app:set-journal-heatmap-enabled",
+  setWindowDirtyState: "app:set-window-dirty-state",
   chooseWorkspace: "workspace:choose",
   readJournalEntry: "journal:read-entry",
   createJournalEntry: "journal:create-entry",
   saveJournalEntry: "journal:save-entry",
   getJournalMonthActivity: "journal:get-month-activity"
-}, b = {
+};
+const DEFAULT_APP_CONFIG = {
   lastOpenedWorkspace: null,
   recentWorkspaces: [],
   ui: {
     theme: "system",
-    journalHeatmapEnabled: !1
+    journalHeatmapEnabled: false
   }
-}, g = process.env.VITE_DEV_SERVER_URL, tt = o.join(process.env.APP_ROOT, "dist-electron"), k = o.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = g ? o.join(process.env.APP_ROOT, "public") : k;
-let c;
-function J() {
-  return o.join(l.getPath("userData"), "config.json");
+};
+const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
+const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
+const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, "public") : RENDERER_DIST;
+let win;
+let isWindowDirty = false;
+let isForceClosingWindow = false;
+function getConfigFilePath() {
+  return path.join(app.getPath("userData"), "config.json");
 }
-function H(e) {
-  var u, p, h, d;
-  if (!e || typeof e != "object")
-    return b;
-  const t = e, n = Array.isArray(t.recentWorkspaces) ? t.recentWorkspaces.filter((y) => typeof y == "string") : [], r = ((u = t.ui) == null ? void 0 : u.theme) === "light" || ((p = t.ui) == null ? void 0 : p.theme) === "dark" || ((h = t.ui) == null ? void 0 : h.theme) === "system" ? t.ui.theme : "system", a = ((d = t.ui) == null ? void 0 : d.journalHeatmapEnabled) === !0;
+function normalizeAppConfig(rawValue) {
+  var _a, _b, _c, _d;
+  if (!rawValue || typeof rawValue !== "object") {
+    return DEFAULT_APP_CONFIG;
+  }
+  const config = rawValue;
+  const recentWorkspaces = Array.isArray(config.recentWorkspaces) ? config.recentWorkspaces.filter((item) => typeof item === "string") : [];
+  const theme = ((_a = config.ui) == null ? void 0 : _a.theme) === "light" || ((_b = config.ui) == null ? void 0 : _b.theme) === "dark" || ((_c = config.ui) == null ? void 0 : _c.theme) === "system" ? config.ui.theme : "system";
+  const journalHeatmapEnabled = ((_d = config.ui) == null ? void 0 : _d.journalHeatmapEnabled) === true;
   return {
-    lastOpenedWorkspace: typeof t.lastOpenedWorkspace == "string" ? t.lastOpenedWorkspace : null,
-    recentWorkspaces: n,
+    lastOpenedWorkspace: typeof config.lastOpenedWorkspace === "string" ? config.lastOpenedWorkspace : null,
+    recentWorkspaces,
     ui: {
-      theme: r,
-      journalHeatmapEnabled: a
+      theme,
+      journalHeatmapEnabled
     }
   };
 }
-async function w() {
+async function readAppConfig() {
   try {
-    const e = await E(J(), "utf-8");
-    return H(JSON.parse(e));
-  } catch (e) {
-    if (e.code === "ENOENT")
-      return b;
-    throw e;
+    const fileContent = await readFile(getConfigFilePath(), "utf-8");
+    return normalizeAppConfig(JSON.parse(fileContent));
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return DEFAULT_APP_CONFIG;
+    }
+    throw error;
   }
 }
-async function W(e) {
-  await P(l.getPath("userData"), { recursive: !0 }), await v(J(), JSON.stringify(e, null, 2), "utf-8");
+async function writeAppConfig(config) {
+  await mkdir(app.getPath("userData"), { recursive: true });
+  await writeFile(getConfigFilePath(), JSON.stringify(config, null, 2), "utf-8");
 }
-async function V(e) {
-  const t = await w(), n = {
-    ...t,
+async function setJournalHeatmapEnabled(input) {
+  const currentConfig = await readAppConfig();
+  const nextConfig = {
+    ...currentConfig,
     ui: {
-      ...t.ui,
-      journalHeatmapEnabled: e.enabled
+      ...currentConfig.ui,
+      journalHeatmapEnabled: input.enabled
     }
   };
-  return await W(n), n;
+  await writeAppConfig(nextConfig);
+  return nextConfig;
 }
-function F(e, t) {
-  const n = [
-    e,
-    ...t.recentWorkspaces.filter((r) => r !== e)
+function buildWorkspaceConfig(workspacePath, currentConfig) {
+  const nextRecentWorkspaces = [
+    workspacePath,
+    ...currentConfig.recentWorkspaces.filter((item) => item !== workspacePath)
   ];
   return {
-    ...t,
-    lastOpenedWorkspace: e,
-    recentWorkspaces: n.slice(0, 8)
+    ...currentConfig,
+    lastOpenedWorkspace: workspacePath,
+    recentWorkspaces: nextRecentWorkspaces.slice(0, 8)
   };
 }
-function L(e) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(e))
+function assertValidDate(dateText) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) {
     throw new Error("日期格式无效，必须为 YYYY-MM-DD。");
+  }
 }
-function Y(e) {
-  if (!/^\d{4}-\d{2}$/.test(e))
+function assertValidMonth(monthText) {
+  if (!/^\d{4}-\d{2}$/.test(monthText)) {
     throw new Error("月份格式无效，必须为 YYYY-MM。");
+  }
 }
-function C(e, t) {
-  L(t);
-  const [n, r] = t.split("-");
-  return o.join(e, "journal", n, r, `${t}.md`);
+function resolveJournalEntryFilePath(workspacePath, date) {
+  assertValidDate(date);
+  const [year, month] = date.split("-");
+  return path.join(workspacePath, "journal", year, month, `${date}.md`);
 }
-function _({ workspacePath: e, date: t }) {
-  return C(e, t);
+function resolveJournalEntryPath({ workspacePath, date }) {
+  return resolveJournalEntryFilePath(workspacePath, date);
 }
-function x(e) {
-  return e.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+function stripFrontmatter(content) {
+  return content.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
 }
-function $(e) {
-  const t = x(e).trim();
-  return t ? t.replace(/\s+/g, "").length : 0;
+function countJournalWords(content) {
+  const bodyContent = stripFrontmatter(content).trim();
+  if (!bodyContent) {
+    return 0;
+  }
+  return bodyContent.replace(/\s+/g, "").length;
 }
-function U(e) {
-  Y(e);
-  const [t, n] = e.split("-"), r = Number(t), a = Number(n);
-  return new Date(r, a, 0).getDate();
+function getDaysInMonth(monthText) {
+  assertValidMonth(monthText);
+  const [yearText, monthValueText] = monthText.split("-");
+  const year = Number(yearText);
+  const monthValue = Number(monthValueText);
+  return new Date(year, monthValue, 0).getDate();
 }
-async function D(e) {
-  const t = _(e);
+async function readJournalEntry(input) {
+  const filePath = resolveJournalEntryPath(input);
   try {
-    const n = await E(t, "utf-8");
+    const content = await readFile(filePath, "utf-8");
     return {
       status: "ready",
-      filePath: t,
-      content: n
+      filePath,
+      content
     };
-  } catch (n) {
-    if (n.code === "ENOENT")
+  } catch (error) {
+    if (error.code === "ENOENT") {
       return {
         status: "missing",
-        filePath: t,
+        filePath,
         content: null
       };
-    throw n;
+    }
+    throw error;
   }
 }
-async function B(e) {
-  const t = _(e);
-  await P(o.dirname(t), { recursive: !0 });
+async function createJournalEntry(input) {
+  const filePath = resolveJournalEntryPath(input);
+  await mkdir(path.dirname(filePath), { recursive: true });
   try {
-    await v(t, "", { encoding: "utf-8", flag: "wx" });
-  } catch (n) {
-    if (n.code !== "EEXIST")
-      throw n;
+    await writeFile(filePath, "", { encoding: "utf-8", flag: "wx" });
+  } catch (error) {
+    if (error.code !== "EEXIST") {
+      throw error;
+    }
   }
-  return D(e);
+  return readJournalEntry(input);
 }
-async function q(e) {
-  const t = _(e);
-  return await P(o.dirname(t), { recursive: !0 }), await v(t, e.content, "utf-8"), {
-    filePath: t,
+async function saveJournalEntry(input) {
+  const filePath = resolveJournalEntryPath(input);
+  await mkdir(path.dirname(filePath), { recursive: true });
+  await writeFile(filePath, input.content, "utf-8");
+  return {
+    filePath,
     savedAt: (/* @__PURE__ */ new Date()).toISOString()
   };
 }
-async function z(e) {
-  const { workspacePath: t, month: n } = e, r = U(n), [a, u] = n.split("-"), p = await Promise.all(
-    Array.from({ length: r }, async (h, d) => {
-      const y = String(d + 1).padStart(2, "0"), m = `${a}-${u}-${y}`, R = C(t, m);
+async function getJournalMonthActivity(input) {
+  const { workspacePath, month } = input;
+  const totalDays = getDaysInMonth(month);
+  const [year, monthValue] = month.split("-");
+  const days = await Promise.all(
+    Array.from({ length: totalDays }, async (_value, index) => {
+      const day = String(index + 1).padStart(2, "0");
+      const date = `${year}-${monthValue}-${day}`;
+      const filePath = resolveJournalEntryFilePath(workspacePath, date);
       try {
-        const f = await E(R, "utf-8");
+        const content = await readFile(filePath, "utf-8");
         return {
-          date: m,
-          hasEntry: !0,
-          wordCount: $(f)
+          date,
+          hasEntry: true,
+          wordCount: countJournalWords(content)
         };
-      } catch (f) {
-        if (f.code === "ENOENT")
+      } catch (error) {
+        if (error.code === "ENOENT") {
           return {
-            date: m,
-            hasEntry: !1,
+            date,
+            hasEntry: false,
             wordCount: 0
           };
-        throw f;
+        }
+        throw error;
       }
     })
   );
   return {
-    month: n,
-    days: p
+    month,
+    days
   };
 }
-function G() {
-  i.handle(s.getBootstrap, async () => ({ config: await w() })), i.handle(
-    s.setJournalHeatmapEnabled,
-    (e, t) => V(t)
-  ), i.handle(s.chooseWorkspace, async () => {
-    const e = await w(), t = {
+function registerIpcHandlers() {
+  ipcMain.handle(IPC_CHANNELS.getBootstrap, async () => {
+    const config = await readAppConfig();
+    return { config };
+  });
+  ipcMain.handle(
+    IPC_CHANNELS.setJournalHeatmapEnabled,
+    (_event, input) => {
+      return setJournalHeatmapEnabled(input);
+    }
+  );
+  ipcMain.handle(IPC_CHANNELS.setWindowDirtyState, (_event, input) => {
+    isWindowDirty = input.isDirty;
+  });
+  ipcMain.handle(IPC_CHANNELS.chooseWorkspace, async () => {
+    const currentConfig = await readAppConfig();
+    const dialogOptions = {
       title: "选择日记目录",
       buttonLabel: "选择这个目录",
       properties: ["openDirectory"]
-    }, n = c ? await O.showOpenDialog(c, t) : await O.showOpenDialog(t);
-    if (n.canceled || n.filePaths.length === 0)
-      return {
-        canceled: !0,
-        workspacePath: null,
-        config: e
-      };
-    const r = n.filePaths[0], a = F(r, e);
-    return await W(a), {
-      canceled: !1,
-      workspacePath: r,
-      config: a
     };
-  }), i.handle(s.readJournalEntry, (e, t) => D(t)), i.handle(s.createJournalEntry, (e, t) => B(t)), i.handle(
-    s.saveJournalEntry,
-    (e, t) => q(t)
-  ), i.handle(s.getJournalMonthActivity, (e, t) => z(t));
+    const result = win ? await dialog.showOpenDialog(win, dialogOptions) : await dialog.showOpenDialog(dialogOptions);
+    if (result.canceled || result.filePaths.length === 0) {
+      return {
+        canceled: true,
+        workspacePath: null,
+        config: currentConfig
+      };
+    }
+    const workspacePath = result.filePaths[0];
+    const nextConfig = buildWorkspaceConfig(workspacePath, currentConfig);
+    await writeAppConfig(nextConfig);
+    return {
+      canceled: false,
+      workspacePath,
+      config: nextConfig
+    };
+  });
+  ipcMain.handle(IPC_CHANNELS.readJournalEntry, (_event, input) => {
+    return readJournalEntry(input);
+  });
+  ipcMain.handle(IPC_CHANNELS.createJournalEntry, (_event, input) => {
+    return createJournalEntry(input);
+  });
+  ipcMain.handle(
+    IPC_CHANNELS.saveJournalEntry,
+    (_event, input) => {
+      return saveJournalEntry(input);
+    }
+  );
+  ipcMain.handle(IPC_CHANNELS.getJournalMonthActivity, (_event, input) => {
+    return getJournalMonthActivity(input);
+  });
 }
-function N() {
-  T.setApplicationMenu(null), c = new A({
+function createWindow() {
+  Menu.setApplicationMenu(null);
+  isWindowDirty = false;
+  isForceClosingWindow = false;
+  win = new BrowserWindow({
     width: 1440,
     height: 900,
     minWidth: 1080,
     minHeight: 720,
-    icon: S,
+    icon: APP_ICON_PATH,
     title: "dAiry",
     backgroundColor: "#f7f7f4",
     webPreferences: {
-      preload: o.join(j, "preload.mjs")
+      preload: path.join(__dirname$1, "preload.mjs")
     }
-  }), g ? c.loadURL(g) : c.loadFile(o.join(k, "index.html"));
+  });
+  if (VITE_DEV_SERVER_URL) {
+    void win.loadURL(VITE_DEV_SERVER_URL);
+  } else {
+    void win.loadFile(path.join(RENDERER_DIST, "index.html"));
+  }
+  win.on("close", async (event) => {
+    if (isForceClosingWindow || !isWindowDirty || !win) {
+      return;
+    }
+    event.preventDefault();
+    const { response } = await dialog.showMessageBox(win, {
+      type: "warning",
+      buttons: ["仍然关闭", "取消"],
+      defaultId: 1,
+      cancelId: 1,
+      title: "还有未保存内容",
+      message: "当前内容还没有保存。",
+      detail: "如果现在关闭窗口，未保存的修改将会丢失。",
+      noLink: true
+    });
+    if (response !== 0) {
+      return;
+    }
+    isForceClosingWindow = true;
+    win.close();
+  });
+  win.on("closed", () => {
+    isWindowDirty = false;
+    isForceClosingWindow = false;
+    win = null;
+  });
 }
-l.on("window-all-closed", () => {
-  process.platform !== "darwin" && (l.quit(), c = null);
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+    win = null;
+  }
 });
-l.on("activate", () => {
-  A.getAllWindows().length === 0 && N();
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
-l.whenReady().then(() => {
-  G(), N();
+app.whenReady().then(() => {
+  registerIpcHandlers();
+  createWindow();
 });
 export {
-  tt as MAIN_DIST,
-  k as RENDERER_DIST,
-  g as VITE_DEV_SERVER_URL
+  MAIN_DIST,
+  RENDERER_DIST,
+  VITE_DEV_SERVER_URL
 };

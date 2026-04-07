@@ -12,6 +12,7 @@ import type {
   JournalMonthActivityQuery,
   JournalMonthActivityResult,
   JournalEntryWriteResult,
+  WindowDirtyStateInput,
   WorkspaceSelectionResult,
 } from '../src/types/dairy'
 
@@ -25,6 +26,7 @@ const APP_ICON_PATH = path.join(process.env.APP_ROOT, 'build', 'icons', APP_ICON
 const IPC_CHANNELS = {
   getBootstrap: 'app:get-bootstrap',
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
+  setWindowDirtyState: 'app:set-window-dirty-state',
   chooseWorkspace: 'workspace:choose',
   readJournalEntry: 'journal:read-entry',
   createJournalEntry: 'journal:create-entry',
@@ -50,6 +52,8 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   : RENDERER_DIST
 
 let win: BrowserWindow | null
+let isWindowDirty = false
+let isForceClosingWindow = false
 
 function getConfigFilePath() {
   return path.join(app.getPath('userData'), 'config.json')
@@ -288,6 +292,10 @@ function registerIpcHandlers() {
     },
   )
 
+  ipcMain.handle(IPC_CHANNELS.setWindowDirtyState, (_event, input: WindowDirtyStateInput) => {
+    isWindowDirty = input.isDirty
+  })
+
   ipcMain.handle(IPC_CHANNELS.chooseWorkspace, async (): Promise<WorkspaceSelectionResult> => {
     const currentConfig = await readAppConfig()
     const dialogOptions: OpenDialogOptions = {
@@ -341,6 +349,9 @@ function registerIpcHandlers() {
 function createWindow() {
   Menu.setApplicationMenu(null)
 
+  isWindowDirty = false
+  isForceClosingWindow = false
+
   win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -359,6 +370,38 @@ function createWindow() {
   } else {
     void win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
+
+  win.on('close', async (event) => {
+    if (isForceClosingWindow || !isWindowDirty || !win) {
+      return
+    }
+
+    event.preventDefault()
+
+    const { response } = await dialog.showMessageBox(win, {
+      type: 'warning',
+      buttons: ['仍然关闭', '取消'],
+      defaultId: 1,
+      cancelId: 1,
+      title: '还有未保存内容',
+      message: '当前内容还没有保存。',
+      detail: '如果现在关闭窗口，未保存的修改将会丢失。',
+      noLink: true,
+    })
+
+    if (response !== 0) {
+      return
+    }
+
+    isForceClosingWindow = true
+    win.close()
+  })
+
+  win.on('closed', () => {
+    isWindowDirty = false
+    isForceClosingWindow = false
+    win = null
+  })
 }
 
 app.on('window-all-closed', () => {

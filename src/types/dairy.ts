@@ -53,6 +53,10 @@ export interface JournalHeatmapPreferenceInput {
   enabled: boolean
 }
 
+export interface WindowDirtyStateInput {
+  isDirty: boolean
+}
+
 export interface DairyApi {
   getAppBootstrap: () => Promise<AppBootstrap>
   chooseWorkspace: () => Promise<WorkspaceSelectionResult>
@@ -63,4 +67,5 @@ export interface DairyApi {
     input: JournalMonthActivityQuery,
   ) => Promise<JournalMonthActivityResult>
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
+  setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
 }

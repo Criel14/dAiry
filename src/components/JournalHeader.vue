@@ -4,6 +4,7 @@ import type { EditorMode } from '../types/ui'
 
 defineProps<{
   selectedDateText: string
+  isSelectedDateToday: boolean
   isDirty: boolean
   saveMetaText: string
   editorMode: EditorMode
@@ -23,6 +24,7 @@ defineEmits<{
         <h2 class="editor-title">
           {{ selectedDateText }}<span v-if="isDirty" class="editor-dirty-mark">*</span>
         </h2>
+        <span v-if="isSelectedDateToday" class="today-badge">今天</span>
       </div>
       <p class="editor-description">简单地写下今天的心情与发生的事情吧</p>
     </div>
@@ -94,6 +96,20 @@ defineEmits<{
   margin: 0;
   font-size: 1.8rem;
   color: var(--color-text-main);
+}
+
+.today-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0 0.65rem;
+  border: 1px solid #d7c68a;
+  border-radius: 10px;
+  background: #f8f1d9;
+  color: #6b5b38;
+  font-size: 0.82rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .editor-dirty-mark {

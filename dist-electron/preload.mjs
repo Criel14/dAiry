@@ -1,1 +1,13 @@
-"use strict";const r=require("electron"),n={getAppBootstrap:()=>r.ipcRenderer.invoke("app:get-bootstrap"),chooseWorkspace:()=>r.ipcRenderer.invoke("workspace:choose"),readJournalEntry:e=>r.ipcRenderer.invoke("journal:read-entry",e),createJournalEntry:e=>r.ipcRenderer.invoke("journal:create-entry",e),saveJournalEntry:e=>r.ipcRenderer.invoke("journal:save-entry",e),getJournalMonthActivity:e=>r.ipcRenderer.invoke("journal:get-month-activity",e),setJournalHeatmapEnabled:e=>r.ipcRenderer.invoke("app:set-journal-heatmap-enabled",e)};r.contextBridge.exposeInMainWorld("dairy",n);
+"use strict";
+const electron = require("electron");
+const dairyApi = {
+  getAppBootstrap: () => electron.ipcRenderer.invoke("app:get-bootstrap"),
+  chooseWorkspace: () => electron.ipcRenderer.invoke("workspace:choose"),
+  readJournalEntry: (input) => electron.ipcRenderer.invoke("journal:read-entry", input),
+  createJournalEntry: (input) => electron.ipcRenderer.invoke("journal:create-entry", input),
+  saveJournalEntry: (input) => electron.ipcRenderer.invoke("journal:save-entry", input),
+  getJournalMonthActivity: (input) => electron.ipcRenderer.invoke("journal:get-month-activity", input),
+  setJournalHeatmapEnabled: (input) => electron.ipcRenderer.invoke("app:set-journal-heatmap-enabled", input),
+  setWindowDirtyState: (input) => electron.ipcRenderer.invoke("app:set-window-dirty-state", input)
+};
+electron.contextBridge.exposeInMainWorld("dairy", dairyApi);

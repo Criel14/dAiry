@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import WorkspaceSidebar from './components/WorkspaceSidebar.vue'
 import JournalHeader from './components/JournalHeader.vue'
@@ -31,6 +31,7 @@ let loadSequence = 0
 
 const todayText = computed(() => dayjs().format('YYYY-MM-DD'))
 const selectedDateText = computed(() => dayjs(selectedDate.value).format('YYYY 年 M 月 D 日 dddd'))
+const isSelectedDateToday = computed(() => selectedDate.value === todayText.value)
 const hasWorkspace = computed(() => Boolean(workspacePath.value))
 const isDirty = computed(() => viewState.value === 'ready' && editorContent.value !== savedContent.value)
 const canCreateTodayEntry = computed(
@@ -57,13 +58,16 @@ const saveMetaText = computed(() => {
   return ''
 })
 
-onMounted(async () => {
-  window.addEventListener('beforeunload', handleBeforeUnload)
-  await bootstrapApp()
-})
+watch(
+  isDirty,
+  (value) => {
+    void window.dairy.setWindowDirtyState({ isDirty: value })
+  },
+  { immediate: true },
+)
 
-onBeforeUnmount(() => {
-  window.removeEventListener('beforeunload', handleBeforeUnload)
+onMounted(async () => {
+  await bootstrapApp()
 })
 
 async function bootstrapApp() {
@@ -95,15 +99,6 @@ function resetTransientState() {
   savedContent.value = ''
   statusMessage.value = ''
   lastSavedAt.value = null
-}
-
-function handleBeforeUnload(event: BeforeUnloadEvent) {
-  if (!isDirty.value) {
-    return
-  }
-
-  event.preventDefault()
-  event.returnValue = ''
 }
 
 function getDateRelation(dateText: string) {
@@ -338,6 +333,7 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
       <JournalHeader
         v-if="rightPanel === 'journal'"
         :selected-date-text="selectedDateText"
+        :is-selected-date-today="isSelectedDateToday"
         :is-dirty="isDirty"
         :save-meta-text="saveMetaText"
         :editor-mode="editorMode"
