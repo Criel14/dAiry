@@ -21,7 +21,6 @@ defineEmits<{
       <div class="brand-block">
         <p class="brand-kicker">Local Writing Space</p>
         <h1 class="brand-title">dAiry</h1>
-        <p class="brand-subtitle">先把写日记这件事变得顺手，再慢慢加入 AI 帮助。</p>
       </div>
 
       <section class="workspace-card">

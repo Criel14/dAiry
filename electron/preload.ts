@@ -8,9 +8,16 @@ const dairyApi: DairyApi = {
   chooseWorkspace: () => ipcRenderer.invoke('workspace:choose'),
   readJournalEntry: (input) => ipcRenderer.invoke('journal:read-entry', input),
   createJournalEntry: (input) => ipcRenderer.invoke('journal:create-entry', input),
-  saveJournalEntry: (input) => ipcRenderer.invoke('journal:save-entry', input),
+  saveJournalEntryBody: (input) => ipcRenderer.invoke('journal:save-entry-body', input),
+  saveJournalEntryMetadata: (input) => ipcRenderer.invoke('journal:save-entry-metadata', input),
   getJournalMonthActivity: (input) => ipcRenderer.invoke('journal:get-month-activity', input),
+  getWorkspaceTags: (workspacePath) => ipcRenderer.invoke('workspace:get-tags', workspacePath),
+  getWorkspaceWeatherOptions: (workspacePath) =>
+    ipcRenderer.invoke('workspace:get-weather-options', workspacePath),
+  getWorkspaceLocationOptions: (workspacePath) =>
+    ipcRenderer.invoke('workspace:get-location-options', workspacePath),
   setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
+  setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),
 }
 

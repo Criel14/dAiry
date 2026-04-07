@@ -9,10 +9,13 @@ defineProps<{
   saveMetaText: string
   editorMode: EditorMode
   isJournalReady: boolean
+  canSaveEntry: boolean
+  isSavingEntry: boolean
 }>()
 
 defineEmits<{
   'update:editorMode': [mode: EditorMode]
+  saveEntry: []
 }>()
 </script>
 
@@ -32,30 +35,41 @@ defineEmits<{
     <div class="editor-actions">
       <span class="save-meta">{{ saveMetaText }}</span>
 
-      <div class="editor-view-modes" role="tablist" aria-label="编辑区视图切换">
+      <div class="editor-action-row">
         <button
-          class="view-mode-button"
-          :class="{ 'view-mode-button--active': editorMode === 'source' }"
+          class="save-button"
           type="button"
-          title="源码视图"
-          aria-label="源码视图"
-          :disabled="!isJournalReady"
-          @click="$emit('update:editorMode', 'source')"
+          :disabled="!canSaveEntry"
+          @click="$emit('saveEntry')"
         >
-          <Icon class="view-mode-icon" icon="lucide:code-xml" aria-hidden="true" />
+          {{ isSavingEntry ? '正在保存' : '保存正文' }}
         </button>
 
-        <button
-          class="view-mode-button"
-          :class="{ 'view-mode-button--active': editorMode === 'preview' }"
-          type="button"
-          title="阅读视图"
-          aria-label="阅读视图"
-          :disabled="!isJournalReady"
-          @click="$emit('update:editorMode', 'preview')"
-        >
-          <Icon class="view-mode-icon" icon="lucide:eye" aria-hidden="true" />
-        </button>
+        <div class="editor-view-modes" role="tablist" aria-label="编辑区视图切换">
+          <button
+            class="view-mode-button"
+            :class="{ 'view-mode-button--active': editorMode === 'source' }"
+            type="button"
+            title="源码视图"
+            aria-label="源码视图"
+            :disabled="!isJournalReady"
+            @click="$emit('update:editorMode', 'source')"
+          >
+            <Icon class="view-mode-icon" icon="lucide:code-xml" aria-hidden="true" />
+          </button>
+
+          <button
+            class="view-mode-button"
+            :class="{ 'view-mode-button--active': editorMode === 'preview' }"
+            type="button"
+            title="阅读视图"
+            aria-label="阅读视图"
+            :disabled="!isJournalReady"
+            @click="$emit('update:editorMode', 'preview')"
+          >
+            <Icon class="view-mode-icon" icon="lucide:eye" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </div>
   </header>
@@ -67,8 +81,6 @@ defineEmits<{
   gap: 1rem;
   align-items: flex-start;
   justify-content: space-between;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-border);
 }
 
 .editor-heading {
@@ -132,10 +144,43 @@ defineEmits<{
   align-self: stretch;
 }
 
+.editor-action-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
 .save-meta {
   min-height: 1.2rem;
   font-size: 0.84rem;
   color: var(--color-text-soft);
+}
+
+.save-button {
+  min-height: 2.35rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #f5ebc3;
+  color: #4f4630;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.save-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+}
+
+.save-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
 }
 
 .editor-view-modes {
@@ -196,11 +241,8 @@ defineEmits<{
     align-items: stretch;
   }
 
-  .editor-actions {
-    justify-content: flex-start;
-  }
-
-  .editor-view-modes {
+  .editor-action-row {
+    flex-wrap: wrap;
     justify-content: flex-start;
   }
 }

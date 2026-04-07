@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import type { FrontmatterVisibilityConfig } from '../types/dairy'
+
 defineProps<{
   workspacePath: string | null
   journalHeatmapEnabled: boolean
   isSavingJournalHeatmap: boolean
   heatmapSaveMessage: string
+  frontmatterVisibility: FrontmatterVisibilityConfig
+  isSavingFrontmatterVisibility: boolean
+  frontmatterVisibilitySaveMessage: string
 }>()
 
 defineEmits<{
   'update:journalHeatmapEnabled': [value: boolean]
+  'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
 }>()
 </script>
 
@@ -16,7 +22,7 @@ defineEmits<{
     <section class="settings-card">
       <span class="panel-label">工作区目录</span>
       <strong class="panel-value">{{ workspacePath ?? '还没有选择目录' }}</strong>
-      <p class="panel-description">这里后续会逐步放入主题、模型、保存偏好等设置项。</p>
+      <p class="panel-description">这里会逐步放入主题、模型、保存偏好等设置项。</p>
     </section>
 
     <section class="settings-card">
@@ -46,6 +52,123 @@ defineEmits<{
         {{ heatmapSaveMessage }}
       </p>
     </section>
+
+    <section class="settings-card">
+      <span class="panel-label">日记信息展示</span>
+      <p class="panel-description">
+        这里控制右侧“日记信息”模块里展示哪些 frontmatter 字段。
+      </p>
+
+      <div class="settings-grid">
+        <div class="setting-row setting-row--compact">
+          <div class="setting-copy">
+            <strong class="panel-value">天气</strong>
+            <p class="panel-description">显示天气输入与候选天气库。</p>
+          </div>
+
+          <button
+            class="switch-button"
+            :class="{ 'switch-button--active': frontmatterVisibility.weather }"
+            type="button"
+            :disabled="isSavingFrontmatterVisibility"
+            :aria-pressed="frontmatterVisibility.weather"
+            aria-label="切换天气显示"
+            @click="
+              $emit('update:frontmatterVisibility', {
+                ...frontmatterVisibility,
+                weather: !frontmatterVisibility.weather,
+              })
+            "
+          >
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb" />
+            </span>
+          </button>
+        </div>
+
+        <div class="setting-row setting-row--compact">
+          <div class="setting-copy">
+            <strong class="panel-value">地点</strong>
+            <p class="panel-description">显示地点输入与常用地点候选。</p>
+          </div>
+
+          <button
+            class="switch-button"
+            :class="{ 'switch-button--active': frontmatterVisibility.location }"
+            type="button"
+            :disabled="isSavingFrontmatterVisibility"
+            :aria-pressed="frontmatterVisibility.location"
+            aria-label="切换地点显示"
+            @click="
+              $emit('update:frontmatterVisibility', {
+                ...frontmatterVisibility,
+                location: !frontmatterVisibility.location,
+              })
+            "
+          >
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb" />
+            </span>
+          </button>
+        </div>
+
+        <div class="setting-row setting-row--compact">
+          <div class="setting-copy">
+            <strong class="panel-value">一句话总结</strong>
+            <p class="panel-description">显示当前日记的一句话总结字段。</p>
+          </div>
+
+          <button
+            class="switch-button"
+            :class="{ 'switch-button--active': frontmatterVisibility.summary }"
+            type="button"
+            :disabled="isSavingFrontmatterVisibility"
+            :aria-pressed="frontmatterVisibility.summary"
+            aria-label="切换总结显示"
+            @click="
+              $emit('update:frontmatterVisibility', {
+                ...frontmatterVisibility,
+                summary: !frontmatterVisibility.summary,
+              })
+            "
+          >
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb" />
+            </span>
+          </button>
+        </div>
+
+        <div class="setting-row setting-row--compact">
+          <div class="setting-copy">
+            <strong class="panel-value">Tags</strong>
+            <p class="panel-description">显示标签输入器与标签库候选。</p>
+          </div>
+
+          <button
+            class="switch-button"
+            :class="{ 'switch-button--active': frontmatterVisibility.tags }"
+            type="button"
+            :disabled="isSavingFrontmatterVisibility"
+            :aria-pressed="frontmatterVisibility.tags"
+            aria-label="切换标签显示"
+            @click="
+              $emit('update:frontmatterVisibility', {
+                ...frontmatterVisibility,
+                tags: !frontmatterVisibility.tags,
+              })
+            "
+          >
+            <span class="switch-track" aria-hidden="true">
+              <span class="switch-thumb" />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <p v-if="frontmatterVisibilitySaveMessage" class="setting-feedback">
+        {{ frontmatterVisibilitySaveMessage }}
+      </p>
+    </section>
   </section>
 </template>
 
@@ -55,11 +178,14 @@ defineEmits<{
   gap: 1rem;
   align-content: start;
   min-height: 0;
+  max-height: 100%;
   padding: 1.5rem;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: #fffef9;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
 }
 
 .settings-card {
@@ -89,11 +215,21 @@ defineEmits<{
   line-height: 1.7;
 }
 
+.settings-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
 .setting-row {
   display: flex;
   gap: 1rem;
   align-items: center;
   justify-content: space-between;
+}
+
+.setting-row--compact {
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .setting-copy {
@@ -162,6 +298,30 @@ defineEmits<{
   margin: 0;
   color: var(--color-text-soft);
   font-size: 0.88rem;
+}
+
+.settings-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.settings-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
+  background-clip: padding-box;
+}
+
+.settings-panel::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
+  background-clip: padding-box;
+}
+
+.settings-panel::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 @media (max-width: 768px) {

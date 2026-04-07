@@ -1,31 +1,106 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import WorkspaceSidebar from './components/WorkspaceSidebar.vue'
 import JournalHeader from './components/JournalHeader.vue'
 import SettingsHeader from './components/SettingsHeader.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 import JournalEditorPanel from './components/JournalEditorPanel.vue'
+import JournalMetadataPanel from './components/JournalMetadataPanel.vue'
 import type {
   AppConfig,
+  FrontmatterVisibilityConfig,
+  JournalEntryMetadata,
   JournalEntryReadResult,
+  JournalFrontmatter,
   WorkspaceSelectionResult,
 } from './types/dairy'
 import type { EditorMode, RightPanel, ViewState } from './types/ui'
 
+function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
+  return {
+    weather: true,
+    location: true,
+    summary: true,
+    tags: true,
+  }
+}
+
+function createEmptyMetadata(): JournalEntryMetadata {
+  return {
+    weather: '',
+    location: '',
+    summary: '',
+    tags: [],
+  }
+}
+
+function cloneMetadata(metadata: JournalEntryMetadata): JournalEntryMetadata {
+  return {
+    weather: metadata.weather,
+    location: metadata.location,
+    summary: metadata.summary,
+    tags: [...metadata.tags],
+  }
+}
+
+function normalizeMetadata(metadata: JournalEntryMetadata): JournalEntryMetadata {
+  const uniqueTags = new Set<string>()
+
+  for (const tag of metadata.tags) {
+    const normalizedTag = tag.trim()
+    if (!normalizedTag) {
+      continue
+    }
+
+    uniqueTags.add(normalizedTag)
+  }
+
+  return {
+    weather: metadata.weather.trim(),
+    location: metadata.location.trim(),
+    summary: metadata.summary.trim(),
+    tags: [...uniqueTags],
+  }
+}
+
+function metadataToSnapshot(metadata: JournalEntryMetadata) {
+  return JSON.stringify(normalizeMetadata(metadata))
+}
+
+function frontmatterToMetadata(frontmatter: JournalFrontmatter): JournalEntryMetadata {
+  return {
+    weather: frontmatter.weather,
+    location: frontmatter.location,
+    summary: frontmatter.summary,
+    tags: [...frontmatter.tags],
+  }
+}
+
 const selectedDate = ref(dayjs().format('YYYY-MM-DD'))
 const workspacePath = ref<string | null>(null)
+const workspaceLocationOptions = ref<string[]>([])
+const workspaceWeatherOptions = ref<string[]>([])
+const workspaceTags = ref<string[]>([])
 const viewState = ref<ViewState>('loading')
 const rightPanel = ref<RightPanel>('journal')
 const editorMode = ref<EditorMode>('source')
 const editorContent = ref('')
 const savedContent = ref('')
+const frontmatter = ref<JournalFrontmatter | null>(null)
+const metadataDraft = ref<JournalEntryMetadata>(createEmptyMetadata())
+const savedMetadataSnapshot = ref(metadataToSnapshot(createEmptyMetadata()))
 const statusMessage = ref('')
+const metadataStatusMessage = ref('')
 const heatmapSaveMessage = ref('')
+const frontmatterVisibilitySaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
+const isSavingMetadata = ref(false)
 const isSavingJournalHeatmap = ref(false)
+const isSavingFrontmatterVisibility = ref(false)
 const isJournalHeatmapEnabled = ref(false)
+const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
 const lastSavedAt = ref<string | null>(null)
 let loadSequence = 0
 
@@ -33,17 +108,38 @@ const todayText = computed(() => dayjs().format('YYYY-MM-DD'))
 const selectedDateText = computed(() => dayjs(selectedDate.value).format('YYYY 年 M 月 D 日 dddd'))
 const isSelectedDateToday = computed(() => selectedDate.value === todayText.value)
 const hasWorkspace = computed(() => Boolean(workspacePath.value))
-const isDirty = computed(() => viewState.value === 'ready' && editorContent.value !== savedContent.value)
+const isBodyDirty = computed(
+  () => viewState.value === 'ready' && editorContent.value !== savedContent.value,
+)
+const isMetadataDirty = computed(
+  () =>
+    viewState.value === 'ready' &&
+    metadataToSnapshot(metadataDraft.value) !== savedMetadataSnapshot.value,
+)
+const isDirty = computed(() => isBodyDirty.value || isMetadataDirty.value)
 const canCreateTodayEntry = computed(
   () => hasWorkspace.value && viewState.value === 'today-empty' && !isCreatingEntry.value,
 )
 const isJournalReady = computed(() => viewState.value === 'ready')
+const canSaveEntry = computed(
+  () => viewState.value === 'ready' && isBodyDirty.value && !isSavingEntry.value,
+)
+const canSaveMetadata = computed(
+  () => viewState.value === 'ready' && isMetadataDirty.value && !isSavingMetadata.value,
+)
+const hasVisibleMetadataFields = computed(
+  () =>
+    frontmatterVisibility.value.weather ||
+    frontmatterVisibility.value.location ||
+    frontmatterVisibility.value.summary ||
+    frontmatterVisibility.value.tags,
+)
 const saveMetaText = computed(() => {
   if (viewState.value !== 'ready') {
     return ''
   }
 
-  if (isSavingEntry.value) {
+  if (isSavingEntry.value || isSavingMetadata.value) {
     return '正在保存...'
   }
 
@@ -67,7 +163,12 @@ watch(
 )
 
 onMounted(async () => {
+  window.addEventListener('keydown', handleWindowKeydown)
   await bootstrapApp()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleWindowKeydown)
 })
 
 async function bootstrapApp() {
@@ -79,11 +180,19 @@ async function bootstrapApp() {
     syncConfigState(bootstrap.config)
 
     if (!workspacePath.value) {
+      workspaceLocationOptions.value = []
+      workspaceWeatherOptions.value = []
+      workspaceTags.value = []
       applyNoWorkspaceState()
       return
     }
 
-    await loadEntryForDate(selectedDate.value)
+    await Promise.all([
+      loadWorkspaceLocationOptions(),
+      loadWorkspaceWeatherOptions(),
+      loadWorkspaceTags(),
+      loadEntryForDate(selectedDate.value),
+    ])
   } catch (error) {
     applyErrorState(error)
   }
@@ -92,12 +201,19 @@ async function bootstrapApp() {
 function syncConfigState(config: AppConfig) {
   workspacePath.value = config.lastOpenedWorkspace
   isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
+  frontmatterVisibility.value = {
+    ...config.ui.frontmatterVisibility,
+  }
 }
 
 function resetTransientState() {
   editorContent.value = ''
   savedContent.value = ''
+  frontmatter.value = null
+  metadataDraft.value = createEmptyMetadata()
+  savedMetadataSnapshot.value = metadataToSnapshot(createEmptyMetadata())
   statusMessage.value = ''
+  metadataStatusMessage.value = ''
   lastSavedAt.value = null
 }
 
@@ -135,10 +251,21 @@ function applyMissingEntryState(dateText: string) {
 }
 
 function applyReadyState(entry: JournalEntryReadResult) {
+  if (entry.status !== 'ready' || !entry.frontmatter) {
+    return
+  }
+
+  const nextMetadata = frontmatterToMetadata(entry.frontmatter)
+
   viewState.value = 'ready'
-  editorContent.value = entry.content ?? ''
-  savedContent.value = entry.content ?? ''
+  editorContent.value = entry.body ?? ''
+  savedContent.value = entry.body ?? ''
+  frontmatter.value = entry.frontmatter
+  metadataDraft.value = cloneMetadata(nextMetadata)
+  savedMetadataSnapshot.value = metadataToSnapshot(nextMetadata)
   statusMessage.value = ''
+  metadataStatusMessage.value = ''
+  lastSavedAt.value = entry.frontmatter.updatedAt
 }
 
 function applyErrorState(error: unknown) {
@@ -153,6 +280,49 @@ async function confirmDiscardChanges() {
   }
 
   return window.confirm('当前内容还没有保存，继续切换会丢失修改。要继续吗？')
+}
+
+async function loadWorkspaceTags() {
+  if (!workspacePath.value) {
+    workspaceTags.value = []
+    return
+  }
+
+  try {
+    workspaceTags.value = await window.dairy.getWorkspaceTags(workspacePath.value)
+  } catch {
+    workspaceTags.value = []
+  }
+}
+
+async function loadWorkspaceWeatherOptions() {
+  if (!workspacePath.value) {
+    workspaceWeatherOptions.value = []
+    return
+  }
+
+  try {
+    workspaceWeatherOptions.value = await window.dairy.getWorkspaceWeatherOptions(
+      workspacePath.value,
+    )
+  } catch {
+    workspaceWeatherOptions.value = []
+  }
+}
+
+async function loadWorkspaceLocationOptions() {
+  if (!workspacePath.value) {
+    workspaceLocationOptions.value = []
+    return
+  }
+
+  try {
+    workspaceLocationOptions.value = await window.dairy.getWorkspaceLocationOptions(
+      workspacePath.value,
+    )
+  } catch {
+    workspaceLocationOptions.value = []
+  }
 }
 
 async function handleSelectDate(nextDate: string) {
@@ -188,7 +358,12 @@ async function handleChooseWorkspace() {
 
     applyWorkspaceSelection(result)
     selectedDate.value = todayText.value
-    await loadEntryForDate(selectedDate.value)
+    await Promise.all([
+      loadWorkspaceLocationOptions(),
+      loadWorkspaceWeatherOptions(),
+      loadWorkspaceTags(),
+      loadEntryForDate(selectedDate.value),
+    ])
   } catch (error) {
     applyErrorState(error)
   }
@@ -214,6 +389,7 @@ async function loadEntryForDate(dateText: string) {
   }
 
   statusMessage.value = ''
+  metadataStatusMessage.value = ''
 
   try {
     const result = await window.dairy.readJournalEntry({
@@ -254,6 +430,11 @@ async function handleCreateEntry() {
     })
 
     applyReadyState(result)
+    await Promise.all([
+      loadWorkspaceLocationOptions(),
+      loadWorkspaceWeatherOptions(),
+      loadWorkspaceTags(),
+    ])
     statusMessage.value = '已经创建今天的日记，可以开始写了。'
   } catch (error) {
     applyErrorState(error)
@@ -263,27 +444,108 @@ async function handleCreateEntry() {
 }
 
 async function handleSaveEntry() {
-  if (!workspacePath.value || viewState.value !== 'ready' || !isDirty.value) {
+  if (!workspacePath.value || viewState.value !== 'ready' || !isBodyDirty.value) {
     return
   }
 
   isSavingEntry.value = true
 
   try {
-    const result = await window.dairy.saveJournalEntry({
+    const result = await window.dairy.saveJournalEntryBody({
       workspacePath: workspacePath.value,
       date: selectedDate.value,
-      content: editorContent.value,
+      body: editorContent.value,
     })
 
     savedContent.value = editorContent.value
     lastSavedAt.value = result.savedAt
-    statusMessage.value = '保存成功。'
+    statusMessage.value = '正文已保存。'
+
+    if (frontmatter.value) {
+      frontmatter.value = {
+        ...frontmatter.value,
+        updatedAt: result.savedAt,
+      }
+    }
   } catch (error) {
-    statusMessage.value = error instanceof Error ? error.message : '保存失败，请稍后重试。'
+    statusMessage.value = error instanceof Error ? error.message : '保存正文失败，请稍后重试。'
   } finally {
     isSavingEntry.value = false
   }
+}
+
+async function handleSaveMetadata() {
+  if (!workspacePath.value || viewState.value !== 'ready' || !isMetadataDirty.value) {
+    return
+  }
+
+  isSavingMetadata.value = true
+
+  try {
+    const normalizedMetadata = normalizeMetadata(metadataDraft.value)
+    const result = await window.dairy.saveJournalEntryMetadata({
+      workspacePath: workspacePath.value,
+      date: selectedDate.value,
+      metadata: normalizedMetadata,
+    })
+
+    metadataDraft.value = cloneMetadata(normalizedMetadata)
+    savedMetadataSnapshot.value = metadataToSnapshot(normalizedMetadata)
+    lastSavedAt.value = result.savedAt
+    metadataStatusMessage.value = '日记信息已保存。'
+
+    if (frontmatter.value) {
+      frontmatter.value = {
+        ...frontmatter.value,
+        ...normalizedMetadata,
+        updatedAt: result.savedAt,
+      }
+    }
+
+    await Promise.all([
+      loadWorkspaceLocationOptions(),
+      loadWorkspaceWeatherOptions(),
+      loadWorkspaceTags(),
+    ])
+  } catch (error) {
+    metadataStatusMessage.value =
+      error instanceof Error ? error.message : '保存日记信息失败，请稍后重试。'
+  } finally {
+    isSavingMetadata.value = false
+  }
+}
+
+async function handleSaveAll() {
+  if (!workspacePath.value || viewState.value !== 'ready') {
+    return
+  }
+
+  if (isSavingEntry.value || isSavingMetadata.value) {
+    return
+  }
+
+  if (isMetadataDirty.value) {
+    await handleSaveMetadata()
+  }
+
+  if (isBodyDirty.value) {
+    await handleSaveEntry()
+  }
+}
+
+function handleWindowKeydown(event: KeyboardEvent) {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+    event.preventDefault()
+    void handleSaveAll()
+  }
+}
+
+function handleUpdateMetadata(nextMetadata: JournalEntryMetadata) {
+  metadataDraft.value = cloneMetadata({
+    ...nextMetadata,
+    tags: [...new Set(nextMetadata.tags.map((tag) => tag.trim()).filter(Boolean))],
+  })
+  metadataStatusMessage.value = ''
 }
 
 function setEditorMode(mode: EditorMode) {
@@ -316,6 +578,25 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
     isSavingJournalHeatmap.value = false
   }
 }
+
+async function handleUpdateFrontmatterVisibility(nextVisibility: FrontmatterVisibilityConfig) {
+  isSavingFrontmatterVisibility.value = true
+  frontmatterVisibilitySaveMessage.value = ''
+
+  try {
+    const nextConfig = await window.dairy.setFrontmatterVisibility({
+      visibility: nextVisibility,
+    })
+
+    syncConfigState(nextConfig)
+    frontmatterVisibilitySaveMessage.value = '日记信息展示设置已保存。'
+  } catch (error) {
+    frontmatterVisibilitySaveMessage.value =
+      error instanceof Error ? error.message : '保存日记信息展示设置失败，请稍后重试。'
+  } finally {
+    isSavingFrontmatterVisibility.value = false
+  }
+}
 </script>
 
 <template>
@@ -330,21 +611,36 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
     />
 
     <main class="editor-shell">
-      <JournalHeader
-        v-if="rightPanel === 'journal'"
-        :selected-date-text="selectedDateText"
-        :is-selected-date-today="isSelectedDateToday"
-        :is-dirty="isDirty"
-        :save-meta-text="saveMetaText"
-        :editor-mode="editorMode"
-        :is-journal-ready="isJournalReady"
-        @update:editor-mode="setEditorMode"
-      />
+      <section v-if="rightPanel === 'journal'" class="journal-top">
+        <JournalHeader
+          :selected-date-text="selectedDateText"
+          :is-selected-date-today="isSelectedDateToday"
+          :is-dirty="isDirty"
+          :save-meta-text="saveMetaText"
+          :editor-mode="editorMode"
+          :is-journal-ready="isJournalReady"
+          :can-save-entry="canSaveEntry"
+          :is-saving-entry="isSavingEntry"
+          @update:editor-mode="setEditorMode"
+          @save-entry="handleSaveEntry"
+        />
 
-      <SettingsHeader
-        v-else
-        @back="openJournalPage"
-      />
+        <JournalMetadataPanel
+          v-if="viewState === 'ready' && frontmatter && hasVisibleMetadataFields"
+          :metadata="metadataDraft"
+          :visibility="frontmatterVisibility"
+          :suggested-location-options="workspaceLocationOptions"
+          :suggested-weather-options="workspaceWeatherOptions"
+          :suggested-tags="workspaceTags"
+          :is-saving="isSavingMetadata"
+          :can-save="canSaveMetadata"
+          :status-message="metadataStatusMessage"
+          @update:metadata="handleUpdateMetadata"
+          @save="handleSaveMetadata"
+        />
+      </section>
+
+      <SettingsHeader v-else @back="openJournalPage" />
 
       <SettingsPanel
         v-if="rightPanel === 'settings'"
@@ -352,7 +648,11 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
         :journal-heatmap-enabled="isJournalHeatmapEnabled"
         :is-saving-journal-heatmap="isSavingJournalHeatmap"
         :heatmap-save-message="heatmapSaveMessage"
+        :frontmatter-visibility="frontmatterVisibility"
+        :is-saving-frontmatter-visibility="isSavingFrontmatterVisibility"
+        :frontmatter-visibility-save-message="frontmatterVisibilitySaveMessage"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
+        @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
       />
 
       <JournalEditorPanel
@@ -366,7 +666,7 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
         @create-entry="handleCreateEntry"
         @choose-workspace="handleChooseWorkspace"
         @reload-entry="loadEntryForDate(selectedDate)"
-        @save-shortcut="handleSaveEntry"
+        @save-shortcut="handleSaveAll"
       />
     </main>
   </div>
@@ -387,6 +687,13 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
   padding: 2rem;
   min-height: 0;
   overflow: hidden;
+}
+
+.journal-top {
+  display: grid;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
 }
 
 @media (max-width: 960px) {

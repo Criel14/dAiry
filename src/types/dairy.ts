@@ -4,7 +4,15 @@ export interface AppConfig {
   ui: {
     theme: 'system' | 'light' | 'dark'
     journalHeatmapEnabled: boolean
+    frontmatterVisibility: FrontmatterVisibilityConfig
   }
+}
+
+export interface FrontmatterVisibilityConfig {
+  weather: boolean
+  location: boolean
+  summary: boolean
+  tags: boolean
 }
 
 export interface AppBootstrap {
@@ -22,15 +30,36 @@ export interface JournalEntryQuery {
   date: string
 }
 
+export interface JournalEntryMetadata {
+  weather: string
+  location: string
+  summary: string
+  tags: string[]
+}
+
+export interface JournalFrontmatter extends JournalEntryMetadata {
+  createdAt: string
+  updatedAt: string
+}
+
 export interface JournalEntryReadResult {
   status: 'ready' | 'missing'
   filePath: string
-  content: string | null
+  frontmatter: JournalFrontmatter | null
+  body: string | null
 }
 
 export interface JournalEntryWriteResult {
   filePath: string
   savedAt: string
+}
+
+export interface JournalEntryBodySaveInput extends JournalEntryQuery {
+  body: string
+}
+
+export interface JournalEntryMetadataSaveInput extends JournalEntryQuery {
+  metadata: JournalEntryMetadata
 }
 
 export interface JournalMonthActivityQuery {
@@ -53,6 +82,10 @@ export interface JournalHeatmapPreferenceInput {
   enabled: boolean
 }
 
+export interface FrontmatterVisibilityInput {
+  visibility: FrontmatterVisibilityConfig
+}
+
 export interface WindowDirtyStateInput {
   isDirty: boolean
 }
@@ -62,10 +95,17 @@ export interface DairyApi {
   chooseWorkspace: () => Promise<WorkspaceSelectionResult>
   readJournalEntry: (input: JournalEntryQuery) => Promise<JournalEntryReadResult>
   createJournalEntry: (input: JournalEntryQuery) => Promise<JournalEntryReadResult>
-  saveJournalEntry: (input: JournalEntryQuery & { content: string }) => Promise<JournalEntryWriteResult>
+  saveJournalEntryBody: (input: JournalEntryBodySaveInput) => Promise<JournalEntryWriteResult>
+  saveJournalEntryMetadata: (
+    input: JournalEntryMetadataSaveInput,
+  ) => Promise<JournalEntryWriteResult>
   getJournalMonthActivity: (
     input: JournalMonthActivityQuery,
   ) => Promise<JournalMonthActivityResult>
+  getWorkspaceTags: (workspacePath: string) => Promise<string[]>
+  getWorkspaceWeatherOptions: (workspacePath: string) => Promise<string[]>
+  getWorkspaceLocationOptions: (workspacePath: string) => Promise<string[]>
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
+  setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
 }
