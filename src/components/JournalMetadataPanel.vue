@@ -37,7 +37,6 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   <section class="metadata-panel">
     <header class="metadata-header">
       <div>
-        <p class="metadata-kicker">Frontmatter</p>
         <h3 class="metadata-title">日记信息</h3>
       </div>
 
@@ -101,7 +100,7 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
           </label>
 
           <div v-if="visibility.tags" class="field">
-            <span class="field-label">Tags</span>
+            <span class="field-label">标签</span>
             <TagInput
               :model-value="metadata.tags"
               :suggestions="suggestedTags"
@@ -138,7 +137,6 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   justify-content: space-between;
 }
 
-.metadata-kicker,
 .field-label,
 .group-title {
   margin: 0;
@@ -149,7 +147,7 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
 }
 
 .metadata-title {
-  margin: 0.2rem 0 0;
+  margin: 0;
   color: var(--color-text-main);
   font-size: 1.15rem;
 }

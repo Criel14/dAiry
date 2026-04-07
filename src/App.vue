@@ -26,6 +26,21 @@ function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
   }
 }
 
+function normalizeStringList(values: string[]) {
+  const uniqueValues = new Set<string>()
+
+  for (const value of values) {
+    const normalizedValue = value.trim()
+    if (!normalizedValue) {
+      continue
+    }
+
+    uniqueValues.add(normalizedValue)
+  }
+
+  return [...uniqueValues]
+}
+
 function createEmptyMetadata(): JournalEntryMetadata {
   return {
     weather: '',
@@ -94,11 +109,13 @@ const statusMessage = ref('')
 const metadataStatusMessage = ref('')
 const heatmapSaveMessage = ref('')
 const frontmatterVisibilitySaveMessage = ref('')
+const workspaceLibrariesSaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
 const isSavingMetadata = ref(false)
 const isSavingJournalHeatmap = ref(false)
 const isSavingFrontmatterVisibility = ref(false)
+const isSavingWorkspaceLibraries = ref(false)
 const isJournalHeatmapEnabled = ref(false)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
 const lastSavedAt = ref<string | null>(null)
@@ -597,6 +614,50 @@ async function handleUpdateFrontmatterVisibility(nextVisibility: FrontmatterVisi
     isSavingFrontmatterVisibility.value = false
   }
 }
+
+async function handleSaveWorkspaceLibraries(input: {
+  tags: string[]
+  weatherOptions: string[]
+  locationOptions: string[]
+}) {
+  if (!workspacePath.value) {
+    return
+  }
+
+  isSavingWorkspaceLibraries.value = true
+  workspaceLibrariesSaveMessage.value = ''
+
+  try {
+    const normalizedTags = normalizeStringList(input.tags)
+    const normalizedWeatherOptions = normalizeStringList(input.weatherOptions)
+    const normalizedLocationOptions = normalizeStringList(input.locationOptions)
+
+    const [nextTags, nextWeatherOptions, nextLocationOptions] = await Promise.all([
+      window.dairy.setWorkspaceTags({
+        workspacePath: workspacePath.value,
+        items: normalizedTags,
+      }),
+      window.dairy.setWorkspaceWeatherOptions({
+        workspacePath: workspacePath.value,
+        items: normalizedWeatherOptions,
+      }),
+      window.dairy.setWorkspaceLocationOptions({
+        workspacePath: workspacePath.value,
+        items: normalizedLocationOptions,
+      }),
+    ])
+
+    workspaceTags.value = nextTags
+    workspaceWeatherOptions.value = nextWeatherOptions
+    workspaceLocationOptions.value = nextLocationOptions
+    workspaceLibrariesSaveMessage.value = '候选词库已保存。'
+  } catch (error) {
+    workspaceLibrariesSaveMessage.value =
+      error instanceof Error ? error.message : '保存候选词库失败，请稍后重试。'
+  } finally {
+    isSavingWorkspaceLibraries.value = false
+  }
+}
 </script>
 
 <template>
@@ -651,8 +712,14 @@ async function handleUpdateFrontmatterVisibility(nextVisibility: FrontmatterVisi
         :frontmatter-visibility="frontmatterVisibility"
         :is-saving-frontmatter-visibility="isSavingFrontmatterVisibility"
         :frontmatter-visibility-save-message="frontmatterVisibilitySaveMessage"
+        :workspace-tags="workspaceTags"
+        :workspace-weather-options="workspaceWeatherOptions"
+        :workspace-location-options="workspaceLocationOptions"
+        :is-saving-workspace-libraries="isSavingWorkspaceLibraries"
+        :workspace-libraries-save-message="workspaceLibrariesSaveMessage"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
+        @save-workspace-libraries="handleSaveWorkspaceLibraries"
       />
 
       <JournalEditorPanel

@@ -15,6 +15,9 @@ const IPC_CHANNELS = {
   getWorkspaceTags: "workspace:get-tags",
   getWorkspaceWeatherOptions: "workspace:get-weather-options",
   getWorkspaceLocationOptions: "workspace:get-location-options",
+  setWorkspaceTags: "workspace:set-tags",
+  setWorkspaceWeatherOptions: "workspace:set-weather-options",
+  setWorkspaceLocationOptions: "workspace:set-location-options",
   readJournalEntry: "journal:read-entry",
   createJournalEntry: "journal:create-entry",
   saveJournalEntryBody: "journal:save-entry-body",
@@ -605,6 +608,13 @@ async function getWorkspaceTags(workspacePath) {
   const library = await readWorkspaceTagLibrary(workspacePath);
   return library.tags;
 }
+async function setWorkspaceTags(input) {
+  const nextLibrary = normalizeWorkspaceTagLibrary({
+    tags: input.items
+  });
+  await writeWorkspaceTagLibrary(input.workspacePath, nextLibrary);
+  return nextLibrary.tags;
+}
 async function readWorkspaceWeatherLibrary(workspacePath) {
   const weatherLibraryPath = getWorkspaceWeatherLibraryPath(workspacePath);
   try {
@@ -641,6 +651,13 @@ async function getWorkspaceWeatherOptions(workspacePath) {
   const library = await readWorkspaceWeatherLibrary(workspacePath);
   return library.items;
 }
+async function setWorkspaceWeatherOptions(input) {
+  const nextLibrary = normalizeWorkspaceWeatherLibrary({
+    items: input.items
+  });
+  await writeWorkspaceWeatherLibrary(input.workspacePath, nextLibrary);
+  return nextLibrary.items;
+}
 async function readWorkspaceLocationLibrary(workspacePath) {
   const locationLibraryPath = getWorkspaceLocationLibraryPath(workspacePath);
   try {
@@ -676,6 +693,13 @@ async function mergeWorkspaceLocationOptions(workspacePath, items) {
 async function getWorkspaceLocationOptions(workspacePath) {
   const library = await readWorkspaceLocationLibrary(workspacePath);
   return library.items;
+}
+async function setWorkspaceLocationOptions(input) {
+  const nextLibrary = normalizeWorkspaceLocationLibrary({
+    items: input.items
+  });
+  await writeWorkspaceLocationLibrary(input.workspacePath, nextLibrary);
+  return nextLibrary.items;
 }
 function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.getBootstrap, async () => {
@@ -724,12 +748,27 @@ function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.getWorkspaceTags, (_event, workspacePath) => {
     return getWorkspaceTags(workspacePath);
   });
+  ipcMain.handle(IPC_CHANNELS.setWorkspaceTags, (_event, input) => {
+    return setWorkspaceTags(input);
+  });
   ipcMain.handle(IPC_CHANNELS.getWorkspaceWeatherOptions, (_event, workspacePath) => {
     return getWorkspaceWeatherOptions(workspacePath);
   });
+  ipcMain.handle(
+    IPC_CHANNELS.setWorkspaceWeatherOptions,
+    (_event, input) => {
+      return setWorkspaceWeatherOptions(input);
+    }
+  );
   ipcMain.handle(IPC_CHANNELS.getWorkspaceLocationOptions, (_event, workspacePath) => {
     return getWorkspaceLocationOptions(workspacePath);
   });
+  ipcMain.handle(
+    IPC_CHANNELS.setWorkspaceLocationOptions,
+    (_event, input) => {
+      return setWorkspaceLocationOptions(input);
+    }
+  );
   ipcMain.handle(IPC_CHANNELS.readJournalEntry, (_event, input) => {
     return readJournalEntry(input);
   });

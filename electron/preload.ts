@@ -16,6 +16,9 @@ const dairyApi: DairyApi = {
     ipcRenderer.invoke('workspace:get-weather-options', workspacePath),
   getWorkspaceLocationOptions: (workspacePath) =>
     ipcRenderer.invoke('workspace:get-location-options', workspacePath),
+  setWorkspaceTags: (input) => ipcRenderer.invoke('workspace:set-tags', input),
+  setWorkspaceWeatherOptions: (input) => ipcRenderer.invoke('workspace:set-weather-options', input),
+  setWorkspaceLocationOptions: (input) => ipcRenderer.invoke('workspace:set-location-options', input),
   setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),

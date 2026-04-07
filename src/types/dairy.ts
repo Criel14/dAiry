@@ -86,6 +86,11 @@ export interface FrontmatterVisibilityInput {
   visibility: FrontmatterVisibilityConfig
 }
 
+export interface WorkspaceStringListInput {
+  workspacePath: string
+  items: string[]
+}
+
 export interface WindowDirtyStateInput {
   isDirty: boolean
 }
@@ -105,6 +110,9 @@ export interface DairyApi {
   getWorkspaceTags: (workspacePath: string) => Promise<string[]>
   getWorkspaceWeatherOptions: (workspacePath: string) => Promise<string[]>
   getWorkspaceLocationOptions: (workspacePath: string) => Promise<string[]>
+  setWorkspaceTags: (input: WorkspaceStringListInput) => Promise<string[]>
+  setWorkspaceWeatherOptions: (input: WorkspaceStringListInput) => Promise<string[]>
+  setWorkspaceLocationOptions: (input: WorkspaceStringListInput) => Promise<string[]>
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import StringListEditor from './StringListEditor.vue'
 import type { FrontmatterVisibilityConfig } from '../types/dairy'
 
-defineProps<{
+const props = defineProps<{
   workspacePath: string | null
   journalHeatmapEnabled: boolean
   isSavingJournalHeatmap: boolean
@@ -9,28 +11,71 @@ defineProps<{
   frontmatterVisibility: FrontmatterVisibilityConfig
   isSavingFrontmatterVisibility: boolean
   frontmatterVisibilitySaveMessage: string
+  workspaceTags: string[]
+  workspaceWeatherOptions: string[]
+  workspaceLocationOptions: string[]
+  isSavingWorkspaceLibraries: boolean
+  workspaceLibrariesSaveMessage: string
 }>()
 
 defineEmits<{
   'update:journalHeatmapEnabled': [value: boolean]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
+  saveWorkspaceLibraries: [
+    value: {
+      tags: string[]
+      weatherOptions: string[]
+      locationOptions: string[]
+    },
+  ]
 }>()
+
+const draftTags = ref<string[]>([])
+const draftWeatherOptions = ref<string[]>([])
+const draftLocationOptions = ref<string[]>([])
+
+watch(
+  () => props.workspaceTags,
+  (value) => {
+    draftTags.value = [...value]
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.workspaceWeatherOptions,
+  (value) => {
+    draftWeatherOptions.value = [...value]
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.workspaceLocationOptions,
+  (value) => {
+    draftLocationOptions.value = [...value]
+  },
+  { immediate: true },
+)
+
+const hasWorkspace = computed(() => Boolean(props.workspacePath))
+const isWorkspaceLibrariesDirty = computed(() => {
+  return (
+    JSON.stringify(draftTags.value) !== JSON.stringify(props.workspaceTags) ||
+    JSON.stringify(draftWeatherOptions.value) !== JSON.stringify(props.workspaceWeatherOptions) ||
+    JSON.stringify(draftLocationOptions.value) !== JSON.stringify(props.workspaceLocationOptions)
+  )
+})
 </script>
 
 <template>
   <section class="settings-panel">
     <section class="settings-card">
-      <span class="panel-label">工作区目录</span>
-      <strong class="panel-value">{{ workspacePath ?? '还没有选择目录' }}</strong>
-      <p class="panel-description">这里会逐步放入主题、模型、保存偏好等设置项。</p>
-    </section>
-
-    <section class="settings-card">
       <span class="panel-label">日历显示</span>
       <div class="setting-row">
         <div class="setting-copy">
           <strong class="panel-value">字数热力图</strong>
-          <p class="panel-description">开启后，月历会按当天日记字数显示深浅变化。</p>
+          <p class="panel-description">开启后，月历会按当天日记字数显示深浅变化</p>
         </div>
 
         <button
@@ -55,15 +100,13 @@ defineEmits<{
 
     <section class="settings-card">
       <span class="panel-label">日记信息展示</span>
-      <p class="panel-description">
-        这里控制右侧“日记信息”模块里展示哪些 frontmatter 字段。
-      </p>
+      <p class="panel-description">调整日记所包含的基础信息</p>
 
       <div class="settings-grid">
         <div class="setting-row setting-row--compact">
           <div class="setting-copy">
             <strong class="panel-value">天气</strong>
-            <p class="panel-description">显示天气输入与候选天气库。</p>
+            <p class="panel-description">记录每天的天气情况</p>
           </div>
 
           <button
@@ -89,7 +132,7 @@ defineEmits<{
         <div class="setting-row setting-row--compact">
           <div class="setting-copy">
             <strong class="panel-value">地点</strong>
-            <p class="panel-description">显示地点输入与常用地点候选。</p>
+            <p class="panel-description">记录你写日记时所在的地点</p>
           </div>
 
           <button
@@ -115,7 +158,7 @@ defineEmits<{
         <div class="setting-row setting-row--compact">
           <div class="setting-copy">
             <strong class="panel-value">一句话总结</strong>
-            <p class="panel-description">显示当前日记的一句话总结字段。</p>
+            <p class="panel-description">为每天的日记写一份简单的总结，便于做月度和年度总结</p>
           </div>
 
           <button
@@ -140,8 +183,8 @@ defineEmits<{
 
         <div class="setting-row setting-row--compact">
           <div class="setting-copy">
-            <strong class="panel-value">Tags</strong>
-            <p class="panel-description">显示标签输入器与标签库候选。</p>
+            <strong class="panel-value">标签</strong>
+            <p class="panel-description">为每天的日记写上关键词，便于做月度和年度总结</p>
           </div>
 
           <button
@@ -167,6 +210,68 @@ defineEmits<{
 
       <p v-if="frontmatterVisibilitySaveMessage" class="setting-feedback">
         {{ frontmatterVisibilitySaveMessage }}
+      </p>
+    </section>
+
+    <section class="settings-card">
+      <span class="panel-label">候选词库</span>
+      <p class="panel-description">
+        维护天气、地点和标签的常用候选项，方便快速选择
+      </p>
+
+      <div v-if="hasWorkspace" class="library-grid">
+        <div class="library-item">
+          <strong class="panel-value">天气库</strong>
+          <StringListEditor
+            v-model="draftWeatherOptions"
+            :disabled="isSavingWorkspaceLibraries"
+            placeholder="输入天气后回车"
+            empty-text="还没有天气候选，点击添加开始维护。"
+          />
+        </div>
+
+        <div class="library-item">
+          <strong class="panel-value">地点库</strong>
+          <StringListEditor
+            v-model="draftLocationOptions"
+            :disabled="isSavingWorkspaceLibraries"
+            placeholder="输入地点后回车"
+            empty-text="还没有地点候选，点击添加开始维护。"
+          />
+        </div>
+
+        <div class="library-item">
+          <strong class="panel-value">标签库</strong>
+          <StringListEditor
+            v-model="draftTags"
+            :disabled="isSavingWorkspaceLibraries"
+            placeholder="输入标签后回车"
+            empty-text="还没有标签候选，点击添加开始维护。"
+          />
+        </div>
+
+        <div class="library-actions">
+          <button
+            class="save-button"
+            type="button"
+            :disabled="!isWorkspaceLibrariesDirty || isSavingWorkspaceLibraries"
+            @click="
+              $emit('saveWorkspaceLibraries', {
+                tags: draftTags,
+                weatherOptions: draftWeatherOptions,
+                locationOptions: draftLocationOptions,
+              })
+            "
+          >
+            {{ isSavingWorkspaceLibraries ? '正在保存词库' : '保存词库' }}
+          </button>
+        </div>
+      </div>
+
+      <p v-else class="panel-description">请先选择工作区目录，再维护候选词库。</p>
+
+      <p v-if="workspaceLibrariesSaveMessage" class="setting-feedback">
+        {{ workspaceLibrariesSaveMessage }}
       </p>
     </section>
   </section>
@@ -215,7 +320,8 @@ defineEmits<{
   line-height: 1.7;
 }
 
-.settings-grid {
+.settings-grid,
+.library-grid {
   display: grid;
   gap: 0.85rem;
 }
@@ -232,9 +338,21 @@ defineEmits<{
   border-top: 1px solid var(--color-border-soft);
 }
 
-.setting-copy {
+.setting-copy,
+.library-item {
   display: grid;
   gap: 0.35rem;
+}
+
+.library-item {
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.library-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
 }
 
 .switch-button {
@@ -294,6 +412,33 @@ defineEmits<{
   transform: translateX(1.2rem);
 }
 
+.save-button {
+  min-height: 2.4rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #f5ebc3;
+  color: #4f4630;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.save-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+}
+
+.save-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+}
+
 .setting-feedback {
   margin: 0;
   color: var(--color-text-soft);
@@ -330,7 +475,8 @@ defineEmits<{
     align-items: stretch;
   }
 
-  .switch-button {
+  .switch-button,
+  .library-actions {
     justify-content: center;
   }
 }

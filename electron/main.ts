@@ -19,6 +19,7 @@ import type {
   JournalMonthActivityQuery,
   JournalMonthActivityResult,
   WindowDirtyStateInput,
+  WorkspaceStringListInput,
   WorkspaceSelectionResult,
 } from '../src/types/dairy'
 
@@ -38,6 +39,9 @@ const IPC_CHANNELS = {
   getWorkspaceTags: 'workspace:get-tags',
   getWorkspaceWeatherOptions: 'workspace:get-weather-options',
   getWorkspaceLocationOptions: 'workspace:get-location-options',
+  setWorkspaceTags: 'workspace:set-tags',
+  setWorkspaceWeatherOptions: 'workspace:set-weather-options',
+  setWorkspaceLocationOptions: 'workspace:set-location-options',
   readJournalEntry: 'journal:read-entry',
   createJournalEntry: 'journal:create-entry',
   saveJournalEntryBody: 'journal:save-entry-body',
@@ -789,6 +793,16 @@ async function getWorkspaceTags(workspacePath: string) {
   return library.tags
 }
 
+async function setWorkspaceTags(input: WorkspaceStringListInput) {
+  const nextLibrary = normalizeWorkspaceTagLibrary({
+    version: 1,
+    tags: input.items,
+  })
+
+  await writeWorkspaceTagLibrary(input.workspacePath, nextLibrary)
+  return nextLibrary.tags
+}
+
 async function readWorkspaceWeatherLibrary(
   workspacePath: string,
 ): Promise<WorkspaceWeatherLibrary> {
@@ -839,6 +853,16 @@ async function getWorkspaceWeatherOptions(workspacePath: string) {
   return library.items
 }
 
+async function setWorkspaceWeatherOptions(input: WorkspaceStringListInput) {
+  const nextLibrary = normalizeWorkspaceWeatherLibrary({
+    version: 1,
+    items: input.items,
+  })
+
+  await writeWorkspaceWeatherLibrary(input.workspacePath, nextLibrary)
+  return nextLibrary.items
+}
+
 async function readWorkspaceLocationLibrary(
   workspacePath: string,
 ): Promise<WorkspaceLocationLibrary> {
@@ -887,6 +911,16 @@ async function mergeWorkspaceLocationOptions(workspacePath: string, items: strin
 async function getWorkspaceLocationOptions(workspacePath: string) {
   const library = await readWorkspaceLocationLibrary(workspacePath)
   return library.items
+}
+
+async function setWorkspaceLocationOptions(input: WorkspaceStringListInput) {
+  const nextLibrary = normalizeWorkspaceLocationLibrary({
+    version: 1,
+    items: input.items,
+  })
+
+  await writeWorkspaceLocationLibrary(input.workspacePath, nextLibrary)
+  return nextLibrary.items
 }
 
 function registerIpcHandlers() {
@@ -947,13 +981,31 @@ function registerIpcHandlers() {
     return getWorkspaceTags(workspacePath)
   })
 
+  ipcMain.handle(IPC_CHANNELS.setWorkspaceTags, (_event, input: WorkspaceStringListInput) => {
+    return setWorkspaceTags(input)
+  })
+
   ipcMain.handle(IPC_CHANNELS.getWorkspaceWeatherOptions, (_event, workspacePath: string) => {
     return getWorkspaceWeatherOptions(workspacePath)
   })
 
+  ipcMain.handle(
+    IPC_CHANNELS.setWorkspaceWeatherOptions,
+    (_event, input: WorkspaceStringListInput) => {
+      return setWorkspaceWeatherOptions(input)
+    },
+  )
+
   ipcMain.handle(IPC_CHANNELS.getWorkspaceLocationOptions, (_event, workspacePath: string) => {
     return getWorkspaceLocationOptions(workspacePath)
   })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setWorkspaceLocationOptions,
+    (_event, input: WorkspaceStringListInput) => {
+      return setWorkspaceLocationOptions(input)
+    },
+  )
 
   ipcMain.handle(IPC_CHANNELS.readJournalEntry, (_event, input: JournalEntryQuery) => {
     return readJournalEntry(input)
