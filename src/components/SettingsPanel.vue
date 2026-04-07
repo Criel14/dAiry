@@ -106,7 +106,7 @@ const isWorkspaceLibrariesDirty = computed(() => {
         <div class="setting-row setting-row--compact">
           <div class="setting-copy">
             <strong class="panel-value">天气</strong>
-            <p class="panel-description">记录每天的天气情况</p>
+            <p class="panel-description">记录你写日记时的天气情况</p>
           </div>
 
           <button
@@ -216,7 +216,7 @@ const isWorkspaceLibrariesDirty = computed(() => {
     <section class="settings-card">
       <span class="panel-label">候选词库</span>
       <p class="panel-description">
-        维护天气、地点和标签的常用候选项，方便快速选择
+        编辑天气、地点、标签的常用候选项，方便快速选择
       </p>
 
       <div v-if="hasWorkspace" class="library-grid">

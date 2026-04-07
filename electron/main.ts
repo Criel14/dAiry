@@ -98,6 +98,10 @@ const DEFAULT_WEATHER_OPTIONS = [
   '雾',
 ]
 
+const DEFAULT_LOCATION_OPTIONS = ['学校', '公司', '家']
+
+const DEFAULT_TAG_OPTIONS = ['上班', '加班', '原神', '杀戮尖塔']
+
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
@@ -156,7 +160,8 @@ function normalizeFrontmatterVisibility(
 async function readAppConfig(): Promise<AppConfig> {
   try {
     const fileContent = await readFile(getConfigFilePath(), 'utf-8')
-    return normalizeAppConfig(JSON.parse(fileContent))
+    const normalizedConfig = normalizeAppConfig(JSON.parse(fileContent))
+    return sanitizeAppConfig(normalizedConfig)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return DEFAULT_APP_CONFIG
@@ -169,6 +174,45 @@ async function readAppConfig(): Promise<AppConfig> {
 async function writeAppConfig(config: AppConfig) {
   await mkdir(app.getPath('userData'), { recursive: true })
   await writeFile(getConfigFilePath(), JSON.stringify(config, null, 2), 'utf-8')
+}
+
+async function isExistingDirectory(targetPath: string) {
+  try {
+    const targetStat = await stat(targetPath)
+    return targetStat.isDirectory()
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return false
+    }
+
+    throw error
+  }
+}
+
+async function sanitizeAppConfig(config: AppConfig): Promise<AppConfig> {
+  const validRecentWorkspaces: string[] = []
+
+  for (const workspacePath of config.recentWorkspaces) {
+    if (await isExistingDirectory(workspacePath)) {
+      validRecentWorkspaces.push(workspacePath)
+    }
+  }
+
+  const lastOpenedWorkspace =
+    config.lastOpenedWorkspace && (await isExistingDirectory(config.lastOpenedWorkspace))
+      ? config.lastOpenedWorkspace
+      : null
+
+  const nextRecentWorkspaces =
+    lastOpenedWorkspace && !validRecentWorkspaces.includes(lastOpenedWorkspace)
+      ? [lastOpenedWorkspace, ...validRecentWorkspaces]
+      : validRecentWorkspaces
+
+  return {
+    ...config,
+    lastOpenedWorkspace,
+    recentWorkspaces: nextRecentWorkspaces,
+  }
 }
 
 async function setJournalHeatmapEnabled(
@@ -327,7 +371,7 @@ function normalizeWorkspaceTagLibrary(rawValue: unknown): WorkspaceTagLibrary {
   if (!rawValue || typeof rawValue !== 'object') {
     return {
       version: 1,
-      tags: [],
+      tags: [...DEFAULT_TAG_OPTIONS],
     }
   }
 
@@ -360,7 +404,7 @@ function normalizeWorkspaceLocationLibrary(rawValue: unknown): WorkspaceLocation
   if (!rawValue || typeof rawValue !== 'object') {
     return {
       version: 1,
-      items: [],
+      items: [...DEFAULT_LOCATION_OPTIONS],
     }
   }
 
@@ -758,7 +802,7 @@ async function readWorkspaceTagLibrary(workspacePath: string): Promise<Workspace
       const initialTags = await collectWorkspaceTagsFromJournalFiles(workspacePath)
       const nextLibrary = normalizeWorkspaceTagLibrary({
         version: 1,
-        tags: initialTags,
+        tags: [...DEFAULT_TAG_OPTIONS, ...initialTags],
       })
       await writeWorkspaceTagLibrary(workspacePath, nextLibrary)
       return nextLibrary
@@ -875,7 +919,7 @@ async function readWorkspaceLocationLibrary(
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       const nextLibrary = normalizeWorkspaceLocationLibrary({
         version: 1,
-        items: [],
+        items: DEFAULT_LOCATION_OPTIONS,
       })
       await writeWorkspaceLocationLibrary(workspacePath, nextLibrary)
       return nextLibrary

@@ -29,9 +29,9 @@ defineEmits<{
             <span class="workspace-label">当前目录</span>
             <strong
               class="workspace-path"
-              :title="workspacePath ?? '请选择一个目录开始记日记'"
+              :title="workspacePath ?? '请选择一个目录'"
             >
-              {{ workspacePath ?? '请选择一个目录开始记日记' }}
+              {{ workspacePath ?? '请选择一个目录' }}
             </strong>
           </div>
 

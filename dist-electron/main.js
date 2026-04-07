@@ -55,6 +55,8 @@ const DEFAULT_WEATHER_OPTIONS = [
   "大雪",
   "雾"
 ];
+const DEFAULT_LOCATION_OPTIONS = ["学校", "公司", "家"];
+const DEFAULT_TAG_OPTIONS = ["上班", "加班", "原神", "杀戮尖塔"];
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const MAIN_DIST = path.join(process.env.APP_ROOT, "dist-electron");
 const RENDERER_DIST = path.join(process.env.APP_ROOT, "dist");
@@ -96,7 +98,8 @@ function normalizeFrontmatterVisibility(rawValue) {
 async function readAppConfig() {
   try {
     const fileContent = await readFile(getConfigFilePath(), "utf-8");
-    return normalizeAppConfig(JSON.parse(fileContent));
+    const normalizedConfig = normalizeAppConfig(JSON.parse(fileContent));
+    return sanitizeAppConfig(normalizedConfig);
   } catch (error) {
     if (error.code === "ENOENT") {
       return DEFAULT_APP_CONFIG;
@@ -107,6 +110,32 @@ async function readAppConfig() {
 async function writeAppConfig(config) {
   await mkdir(app.getPath("userData"), { recursive: true });
   await writeFile(getConfigFilePath(), JSON.stringify(config, null, 2), "utf-8");
+}
+async function isExistingDirectory(targetPath) {
+  try {
+    const targetStat = await stat(targetPath);
+    return targetStat.isDirectory();
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      return false;
+    }
+    throw error;
+  }
+}
+async function sanitizeAppConfig(config) {
+  const validRecentWorkspaces = [];
+  for (const workspacePath of config.recentWorkspaces) {
+    if (await isExistingDirectory(workspacePath)) {
+      validRecentWorkspaces.push(workspacePath);
+    }
+  }
+  const lastOpenedWorkspace = config.lastOpenedWorkspace && await isExistingDirectory(config.lastOpenedWorkspace) ? config.lastOpenedWorkspace : null;
+  const nextRecentWorkspaces = lastOpenedWorkspace && !validRecentWorkspaces.includes(lastOpenedWorkspace) ? [lastOpenedWorkspace, ...validRecentWorkspaces] : validRecentWorkspaces;
+  return {
+    ...config,
+    lastOpenedWorkspace,
+    recentWorkspaces: nextRecentWorkspaces
+  };
 }
 async function setJournalHeatmapEnabled(input) {
   const currentConfig = await readAppConfig();
@@ -225,7 +254,7 @@ function normalizeWorkspaceTagLibrary(rawValue) {
   if (!rawValue || typeof rawValue !== "object") {
     return {
       version: 1,
-      tags: []
+      tags: [...DEFAULT_TAG_OPTIONS]
     };
   }
   const value = rawValue;
@@ -253,7 +282,7 @@ function normalizeWorkspaceLocationLibrary(rawValue) {
   if (!rawValue || typeof rawValue !== "object") {
     return {
       version: 1,
-      items: []
+      items: [...DEFAULT_LOCATION_OPTIONS]
     };
   }
   const value = rawValue;
@@ -580,7 +609,7 @@ async function readWorkspaceTagLibrary(workspacePath) {
     if (error.code === "ENOENT") {
       const initialTags = await collectWorkspaceTagsFromJournalFiles(workspacePath);
       const nextLibrary = normalizeWorkspaceTagLibrary({
-        tags: initialTags
+        tags: [...DEFAULT_TAG_OPTIONS, ...initialTags]
       });
       await writeWorkspaceTagLibrary(workspacePath, nextLibrary);
       return nextLibrary;
@@ -666,7 +695,7 @@ async function readWorkspaceLocationLibrary(workspacePath) {
   } catch (error) {
     if (error.code === "ENOENT") {
       const nextLibrary = normalizeWorkspaceLocationLibrary({
-        items: []
+        items: DEFAULT_LOCATION_OPTIONS
       });
       await writeWorkspaceLocationLibrary(workspacePath, nextLibrary);
       return nextLibrary;

@@ -68,7 +68,7 @@ function handlePreviewClick(event: MouseEvent) {
 
   <section v-else-if="viewState === 'no-workspace'" class="empty-state">
     <h3>请选择一个目录开始记录</h3>
-    <p>先在左上角选择日记目录，dAiry 会在里面按年、月整理你的日记文件。</p>
+    <p>选择一个目录开始记录，dAiry 会在里面按年、月整理你的日记文件。</p>
     <button class="primary-button" type="button" @click="$emit('chooseWorkspace')">
       选择目录
     </button>
