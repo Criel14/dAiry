@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import SettingsInfoTip from './SettingsInfoTip.vue'
 import StringListEditor from './StringListEditor.vue'
 import type { FrontmatterVisibilityConfig } from '../types/dairy'
+
+type SettingsSectionId = 'appearance' | 'display' | 'libraries' | 'workspace'
+
+interface SettingsSectionItem {
+  id: SettingsSectionId
+  label: string
+}
 
 const props = defineProps<{
   workspacePath: string | null
@@ -30,6 +38,14 @@ defineEmits<{
   ]
 }>()
 
+const settingsSections: SettingsSectionItem[] = [
+  { id: 'appearance', label: '外观' },
+  { id: 'display', label: '编辑器' },
+  { id: 'libraries', label: '词库' },
+  { id: 'workspace', label: '工作区' },
+]
+
+const activeSectionId = ref<SettingsSectionId>('appearance')
 const draftTags = ref<string[]>([])
 const draftWeatherOptions = ref<string[]>([])
 const draftLocationOptions = ref<string[]>([])
@@ -70,224 +86,370 @@ const isWorkspaceLibrariesDirty = computed(() => {
 
 <template>
   <section class="settings-panel">
-    <section class="settings-card">
-      <span class="panel-label">日历显示</span>
-      <div class="setting-row">
-        <div class="setting-copy">
-          <strong class="panel-value">字数热力图</strong>
-          <p class="panel-description">开启后，月历会按当天日记字数显示深浅变化</p>
-        </div>
+    <aside class="settings-nav">
+      <div class="settings-nav-header">
+        <h3 class="settings-nav-title">设置</h3>
+      </div>
 
+      <nav class="settings-nav-list" aria-label="设置分组">
         <button
-          class="switch-button"
-          :class="{ 'switch-button--active': journalHeatmapEnabled }"
+          v-for="section in settingsSections"
+          :key="section.id"
+          class="settings-nav-item"
+          :class="{ 'settings-nav-item--active': activeSectionId === section.id }"
           type="button"
-          :disabled="isSavingJournalHeatmap"
-          :aria-pressed="journalHeatmapEnabled"
-          :aria-label="journalHeatmapEnabled ? '关闭字数热力图' : '开启字数热力图'"
-          @click="$emit('update:journalHeatmapEnabled', !journalHeatmapEnabled)"
+          @click="activeSectionId = section.id"
         >
-          <span class="switch-track" aria-hidden="true">
-            <span class="switch-thumb" />
-          </span>
+          <span class="settings-nav-item-label">{{ section.label }}</span>
         </button>
+      </nav>
+    </aside>
+
+    <div class="settings-content">
+      <div v-if="activeSectionId === 'appearance'" class="settings-section">
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">日历显示</span>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-copy">
+              <div class="setting-title-row">
+                <strong class="panel-value">字数热力图</strong>
+                <SettingsInfoTip text="按照以下的字数划分等级: 0, 1~149, 151~399, 400~699, 700+, 颜色由浅到深" />
+              </div>
+              <p class="panel-description">开启后，月历会按当天日记字数显示深浅变化。</p>
+            </div>
+
+            <button
+              class="switch-button"
+              :class="{ 'switch-button--active': journalHeatmapEnabled }"
+              type="button"
+              :disabled="isSavingJournalHeatmap"
+              :aria-pressed="journalHeatmapEnabled"
+              :aria-label="journalHeatmapEnabled ? '关闭字数热力图' : '开启字数热力图'"
+              @click="$emit('update:journalHeatmapEnabled', !journalHeatmapEnabled)"
+            >
+              <span class="switch-track" aria-hidden="true">
+                <span class="switch-thumb" />
+              </span>
+            </button>
+          </div>
+
+          <p v-if="heatmapSaveMessage" class="setting-feedback">
+            {{ heatmapSaveMessage }}
+          </p>
+        </section>
       </div>
 
-      <p v-if="heatmapSaveMessage" class="setting-feedback">
-        {{ heatmapSaveMessage }}
-      </p>
-    </section>
+      <div v-else-if="activeSectionId === 'display'" class="settings-section">
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">日记信息展示</span>
+            <SettingsInfoTip text="通过 markdown 的 frontmatter 实现每个日记文件的元数据管理" />
+          </div>
+          <p class="panel-description">调整日记所包含的基础信息。</p>
 
-    <section class="settings-card">
-      <span class="panel-label">日记信息展示</span>
-      <p class="panel-description">调整日记所包含的基础信息</p>
+          <div class="settings-grid">
+            <div class="setting-row setting-row--compact">
+              <div class="setting-copy">
+                <div class="setting-title-row">
+                  <strong class="panel-value">天气</strong>
+                  <SettingsInfoTip text="本应用无法直接获取天气信息" />
+                </div>
+                <p class="panel-description">记录你写日记时的天气情况。</p>
+              </div>
 
-      <div class="settings-grid">
-        <div class="setting-row setting-row--compact">
-          <div class="setting-copy">
-            <strong class="panel-value">天气</strong>
-            <p class="panel-description">记录你写日记时的天气情况</p>
+              <button
+                class="switch-button"
+                :class="{ 'switch-button--active': frontmatterVisibility.weather }"
+                type="button"
+                :disabled="isSavingFrontmatterVisibility"
+                :aria-pressed="frontmatterVisibility.weather"
+                aria-label="切换天气显示"
+                @click="
+                  $emit('update:frontmatterVisibility', {
+                    ...frontmatterVisibility,
+                    weather: !frontmatterVisibility.weather,
+                  })
+                "
+              >
+                <span class="switch-track" aria-hidden="true">
+                  <span class="switch-thumb" />
+                </span>
+              </button>
+            </div>
+
+            <div class="setting-row setting-row--compact">
+              <div class="setting-copy">
+                <div class="setting-title-row">
+                  <strong class="panel-value">地点</strong>
+                  <SettingsInfoTip text="本应用无法直接获取定位信息" />
+                </div>
+                <p class="panel-description">记录你写日记时所在的地点。</p>
+              </div>
+
+              <button
+                class="switch-button"
+                :class="{ 'switch-button--active': frontmatterVisibility.location }"
+                type="button"
+                :disabled="isSavingFrontmatterVisibility"
+                :aria-pressed="frontmatterVisibility.location"
+                aria-label="切换地点显示"
+                @click="
+                  $emit('update:frontmatterVisibility', {
+                    ...frontmatterVisibility,
+                    location: !frontmatterVisibility.location,
+                  })
+                "
+              >
+                <span class="switch-track" aria-hidden="true">
+                  <span class="switch-thumb" />
+                </span>
+              </button>
+            </div>
+
+            <div class="setting-row setting-row--compact">
+              <div class="setting-copy">
+                <div class="setting-title-row">
+                  <strong class="panel-value">一句话总结</strong>
+                </div>
+                <p class="panel-description">为每天的日记生成一份简短总结，方便后续做月度和年度整理。</p>
+              </div>
+
+              <button
+                class="switch-button"
+                :class="{ 'switch-button--active': frontmatterVisibility.summary }"
+                type="button"
+                :disabled="isSavingFrontmatterVisibility"
+                :aria-pressed="frontmatterVisibility.summary"
+                aria-label="切换总结显示"
+                @click="
+                  $emit('update:frontmatterVisibility', {
+                    ...frontmatterVisibility,
+                    summary: !frontmatterVisibility.summary,
+                  })
+                "
+              >
+                <span class="switch-track" aria-hidden="true">
+                  <span class="switch-thumb" />
+                </span>
+              </button>
+            </div>
+
+            <div class="setting-row setting-row--compact">
+              <div class="setting-copy">
+                <div class="setting-title-row">
+                  <strong class="panel-value">标签</strong>
+                </div>
+                <p class="panel-description">为每天的日记补上关键词，方便后续筛选和总结。</p>
+              </div>
+
+              <button
+                class="switch-button"
+                :class="{ 'switch-button--active': frontmatterVisibility.tags }"
+                type="button"
+                :disabled="isSavingFrontmatterVisibility"
+                :aria-pressed="frontmatterVisibility.tags"
+                aria-label="切换标签显示"
+                @click="
+                  $emit('update:frontmatterVisibility', {
+                    ...frontmatterVisibility,
+                    tags: !frontmatterVisibility.tags,
+                  })
+                "
+              >
+                <span class="switch-track" aria-hidden="true">
+                  <span class="switch-thumb" />
+                </span>
+              </button>
+            </div>
           </div>
 
-          <button
-            class="switch-button"
-            :class="{ 'switch-button--active': frontmatterVisibility.weather }"
-            type="button"
-            :disabled="isSavingFrontmatterVisibility"
-            :aria-pressed="frontmatterVisibility.weather"
-            aria-label="切换天气显示"
-            @click="
-              $emit('update:frontmatterVisibility', {
-                ...frontmatterVisibility,
-                weather: !frontmatterVisibility.weather,
-              })
-            "
-          >
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb" />
-            </span>
-          </button>
-        </div>
-
-        <div class="setting-row setting-row--compact">
-          <div class="setting-copy">
-            <strong class="panel-value">地点</strong>
-            <p class="panel-description">记录你写日记时所在的地点</p>
-          </div>
-
-          <button
-            class="switch-button"
-            :class="{ 'switch-button--active': frontmatterVisibility.location }"
-            type="button"
-            :disabled="isSavingFrontmatterVisibility"
-            :aria-pressed="frontmatterVisibility.location"
-            aria-label="切换地点显示"
-            @click="
-              $emit('update:frontmatterVisibility', {
-                ...frontmatterVisibility,
-                location: !frontmatterVisibility.location,
-              })
-            "
-          >
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb" />
-            </span>
-          </button>
-        </div>
-
-        <div class="setting-row setting-row--compact">
-          <div class="setting-copy">
-            <strong class="panel-value">一句话总结</strong>
-            <p class="panel-description">为每天的日记写一份简单的总结，便于做月度和年度总结</p>
-          </div>
-
-          <button
-            class="switch-button"
-            :class="{ 'switch-button--active': frontmatterVisibility.summary }"
-            type="button"
-            :disabled="isSavingFrontmatterVisibility"
-            :aria-pressed="frontmatterVisibility.summary"
-            aria-label="切换总结显示"
-            @click="
-              $emit('update:frontmatterVisibility', {
-                ...frontmatterVisibility,
-                summary: !frontmatterVisibility.summary,
-              })
-            "
-          >
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb" />
-            </span>
-          </button>
-        </div>
-
-        <div class="setting-row setting-row--compact">
-          <div class="setting-copy">
-            <strong class="panel-value">标签</strong>
-            <p class="panel-description">为每天的日记写上关键词，便于做月度和年度总结</p>
-          </div>
-
-          <button
-            class="switch-button"
-            :class="{ 'switch-button--active': frontmatterVisibility.tags }"
-            type="button"
-            :disabled="isSavingFrontmatterVisibility"
-            :aria-pressed="frontmatterVisibility.tags"
-            aria-label="切换标签显示"
-            @click="
-              $emit('update:frontmatterVisibility', {
-                ...frontmatterVisibility,
-                tags: !frontmatterVisibility.tags,
-              })
-            "
-          >
-            <span class="switch-track" aria-hidden="true">
-              <span class="switch-thumb" />
-            </span>
-          </button>
-        </div>
+          <p v-if="frontmatterVisibilitySaveMessage" class="setting-feedback">
+            {{ frontmatterVisibilitySaveMessage }}
+          </p>
+        </section>
       </div>
 
-      <p v-if="frontmatterVisibilitySaveMessage" class="setting-feedback">
-        {{ frontmatterVisibilitySaveMessage }}
-      </p>
-    </section>
+      <div v-else-if="activeSectionId === 'libraries'" class="settings-section">
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">候选词库</span>
+            <SettingsInfoTip text="词库保存在当前日记目录中，删除目录将丢失词库数据" />
+          </div>
+          <p class="panel-description">维护天气、地点和标签候选词，让元数据输入更方便。</p>
 
-    <section class="settings-card">
-      <span class="panel-label">候选词库</span>
-      <p class="panel-description">
-        编辑天气、地点、标签的常用候选项，方便快速选择
-      </p>
+          <div v-if="hasWorkspace" class="library-grid">
+            <div class="library-item">
+              <div class="setting-title-row">
+                <strong class="panel-value">天气词库</strong>
+              </div>
+              <StringListEditor
+                v-model="draftWeatherOptions"
+                :disabled="isSavingWorkspaceLibraries"
+                placeholder="输入天气后回车"
+                empty-text="还没有天气候选词，点击添加开始维护。"
+              />
+            </div>
 
-      <div v-if="hasWorkspace" class="library-grid">
-        <div class="library-item">
-          <strong class="panel-value">天气库</strong>
-          <StringListEditor
-            v-model="draftWeatherOptions"
-            :disabled="isSavingWorkspaceLibraries"
-            placeholder="输入天气后回车"
-            empty-text="还没有天气候选，点击添加开始维护。"
-          />
-        </div>
+            <div class="library-item">
+              <div class="setting-title-row">
+                <strong class="panel-value">地点词库</strong>
+              </div>
+              <StringListEditor
+                v-model="draftLocationOptions"
+                :disabled="isSavingWorkspaceLibraries"
+                placeholder="输入地点后回车"
+                empty-text="还没有地点候选词，点击添加开始维护。"
+              />
+            </div>
 
-        <div class="library-item">
-          <strong class="panel-value">地点库</strong>
-          <StringListEditor
-            v-model="draftLocationOptions"
-            :disabled="isSavingWorkspaceLibraries"
-            placeholder="输入地点后回车"
-            empty-text="还没有地点候选，点击添加开始维护。"
-          />
-        </div>
+            <div class="library-item">
+              <div class="setting-title-row">
+                <strong class="panel-value">标签词库</strong>
+              </div>
+              <StringListEditor
+                v-model="draftTags"
+                :disabled="isSavingWorkspaceLibraries"
+                placeholder="输入标签后回车"
+                empty-text="还没有标签候选词，点击添加开始维护。"
+              />
+            </div>
 
-        <div class="library-item">
-          <strong class="panel-value">标签库</strong>
-          <StringListEditor
-            v-model="draftTags"
-            :disabled="isSavingWorkspaceLibraries"
-            placeholder="输入标签后回车"
-            empty-text="还没有标签候选，点击添加开始维护。"
-          />
-        </div>
+            <div class="library-actions">
+              <button
+                class="save-button"
+                type="button"
+                :disabled="!isWorkspaceLibrariesDirty || isSavingWorkspaceLibraries"
+                @click="
+                  $emit('saveWorkspaceLibraries', {
+                    tags: draftTags,
+                    weatherOptions: draftWeatherOptions,
+                    locationOptions: draftLocationOptions,
+                  })
+                "
+              >
+                {{ isSavingWorkspaceLibraries ? '正在保存词库' : '保存词库' }}
+              </button>
+            </div>
+          </div>
 
-        <div class="library-actions">
-          <button
-            class="save-button"
-            type="button"
-            :disabled="!isWorkspaceLibrariesDirty || isSavingWorkspaceLibraries"
-            @click="
-              $emit('saveWorkspaceLibraries', {
-                tags: draftTags,
-                weatherOptions: draftWeatherOptions,
-                locationOptions: draftLocationOptions,
-              })
-            "
-          >
-            {{ isSavingWorkspaceLibraries ? '正在保存词库' : '保存词库' }}
-          </button>
-        </div>
+          <p v-else class="panel-description">请先选择工作区目录，再维护候选词库。</p>
+
+          <p v-if="workspaceLibrariesSaveMessage" class="setting-feedback">
+            {{ workspaceLibrariesSaveMessage }}
+          </p>
+        </section>
       </div>
 
-      <p v-else class="panel-description">请先选择工作区目录，再维护候选词库。</p>
+      <div v-else class="settings-section">
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">当前工作区</span>
+            <SettingsInfoTip text="工作区是你选择的日记根目录，日记文件和工作区相关配置都会围绕它组织" />
+          </div>
 
-      <p v-if="workspaceLibrariesSaveMessage" class="setting-feedback">
-        {{ workspaceLibrariesSaveMessage }}
-      </p>
-    </section>
+          <div class="workspace-summary">
+            <div class="workspace-summary-copy">
+              <strong class="panel-value">{{ workspacePath ?? '暂未选择工作区' }}</strong>
+              <p class="panel-description">
+                {{
+                  workspacePath
+                    ? '当前目录已接入日记读写流程。'
+                    : '先选择一个工作区目录，后续工作区级设置才能真正生效。'
+                }}
+              </p>
+            </div>
+
+            <span class="workspace-status" :class="{ 'workspace-status--ready': hasWorkspace }">
+              {{ hasWorkspace ? '已连接' : '未连接' }}
+            </span>
+          </div>
+        </section>
+      </div>
+    </div>
   </section>
 </template>
 
 <style scoped>
 .settings-panel {
   display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
   gap: 1rem;
   align-content: start;
   min-height: 0;
   max-height: 100%;
-  padding: 1.5rem;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: #fffef9;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.settings-nav {
+  position: relative;
+  z-index: 0;
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+  padding: 1.2rem;
+  min-height: 0;
+  border-right: 1px solid var(--color-border);
+}
+
+.settings-nav-header {
+  padding-bottom: 0.15rem;
+}
+
+.settings-nav-title {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.2rem;
+}
+
+.settings-nav-list {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  text-align: left;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.settings-nav-item:hover {
+  transform: translateY(-1px);
+  background: rgba(245, 235, 195, 0.28);
+}
+
+.settings-nav-item--active {
+  background: #f4ead1;
+}
+
+.settings-nav-item-label {
+  color: var(--color-text-main);
+  font-size: 0.96rem;
+  font-weight: 600;
+}
+
+.settings-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-height: 0;
+  padding: 1.5rem;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #d8ccb0 transparent;
@@ -300,6 +462,19 @@ const isWorkspaceLibrariesDirty = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface);
+}
+
+.settings-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel-heading,
+.setting-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
 }
 
 .panel-label {
@@ -340,7 +515,8 @@ const isWorkspaceLibrariesDirty = computed(() => {
 }
 
 .setting-copy,
-.library-item {
+.library-item,
+.workspace-summary-copy {
   display: grid;
   gap: 0.35rem;
 }
@@ -348,6 +524,32 @@ const isWorkspaceLibrariesDirty = computed(() => {
 .library-item {
   padding-top: 0.85rem;
   border-top: 1px solid var(--color-border-soft);
+}
+
+.workspace-summary {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.workspace-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.9rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: #f4efe1;
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.workspace-status--ready {
+  border-color: #d7c68a;
+  background: #f8f1d9;
+  color: #6b5b38;
 }
 
 .library-actions {
@@ -446,32 +648,57 @@ const isWorkspaceLibrariesDirty = computed(() => {
   font-size: 0.88rem;
 }
 
-.settings-panel::-webkit-scrollbar {
+.settings-content::-webkit-scrollbar {
   width: 10px;
 }
 
-.settings-panel::-webkit-scrollbar-track {
+.settings-content::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.settings-panel::-webkit-scrollbar-thumb {
+.settings-content::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
   background: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
   background-clip: padding-box;
 }
 
-.settings-panel::-webkit-scrollbar-thumb:hover {
+.settings-content::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
   background-clip: padding-box;
 }
 
-.settings-panel::-webkit-scrollbar-corner {
+.settings-content::-webkit-scrollbar-corner {
   background: transparent;
 }
 
+@media (max-width: 1080px) {
+  .settings-panel {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .settings-nav-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .settings-nav {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
 @media (max-width: 768px) {
-  .setting-row {
+  .settings-content {
+    padding: 1rem;
+  }
+
+  .settings-nav-list {
+    grid-template-columns: 1fr;
+  }
+
+  .setting-row,
+  .workspace-summary {
     flex-direction: column;
     align-items: stretch;
   }
