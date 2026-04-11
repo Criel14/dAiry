@@ -304,10 +304,10 @@ const isWorkspaceLibrariesDirty = computed(() => {
 
 .panel-label {
   margin: 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-main);
 }
 
 .panel-value {
@@ -317,6 +317,7 @@ const isWorkspaceLibrariesDirty = computed(() => {
 .panel-description {
   margin: 0;
   color: var(--color-text-subtle);
+  font-size: 0.9rem;
   line-height: 1.7;
 }
 
