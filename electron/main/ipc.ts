@@ -1,0 +1,152 @@
+import { dialog, ipcMain, type OpenDialogOptions } from 'electron'
+import type {
+  AppBootstrap,
+  DayStartHourPreferenceInput,
+  FrontmatterVisibilityInput,
+  JournalEntryBodySaveInput,
+  JournalEntryMetadataSaveInput,
+  JournalEntryQuery,
+  JournalHeatmapPreferenceInput,
+  JournalMonthActivityQuery,
+  WindowDirtyStateInput,
+  WorkspaceSelectionResult,
+  WorkspaceStringListInput,
+} from '../../src/types/dairy'
+import {
+  buildWorkspaceConfig,
+  readAppConfig,
+  setDayStartHour,
+  setFrontmatterVisibility,
+  setJournalHeatmapEnabled,
+  writeAppConfig,
+} from './app-config'
+import { IPC_CHANNELS } from './constants'
+import {
+  createJournalEntry,
+  getJournalMonthActivity,
+  readJournalEntry,
+  saveJournalEntryBody,
+  saveJournalEntryMetadata,
+} from './journal-service'
+import { getMainWindow, setWindowDirtyState } from './window'
+import {
+  getWorkspaceLocationOptions,
+  getWorkspaceTags,
+  getWorkspaceWeatherOptions,
+  setWorkspaceLocationOptions,
+  setWorkspaceTags,
+  setWorkspaceWeatherOptions,
+} from './workspace-libraries'
+
+export function registerIpcHandlers() {
+  ipcMain.handle(IPC_CHANNELS.getBootstrap, async (): Promise<AppBootstrap> => {
+    const config = await readAppConfig()
+    return { config }
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setJournalHeatmapEnabled,
+    (_event, input: JournalHeatmapPreferenceInput) => {
+      return setJournalHeatmapEnabled(input)
+    },
+  )
+
+  ipcMain.handle(IPC_CHANNELS.setDayStartHour, (_event, input: DayStartHourPreferenceInput) => {
+    return setDayStartHour(input)
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setFrontmatterVisibility,
+    (_event, input: FrontmatterVisibilityInput) => {
+      return setFrontmatterVisibility(input)
+    },
+  )
+
+  ipcMain.handle(IPC_CHANNELS.setWindowDirtyState, (_event, input: WindowDirtyStateInput) => {
+    setWindowDirtyState(input.isDirty)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.chooseWorkspace, async (): Promise<WorkspaceSelectionResult> => {
+    const currentConfig = await readAppConfig()
+    const dialogOptions: OpenDialogOptions = {
+      title: '选择日记目录',
+      buttonLabel: '选择这个目录',
+      properties: ['openDirectory'],
+    }
+    const win = getMainWindow()
+    const result = win
+      ? await dialog.showOpenDialog(win, dialogOptions)
+      : await dialog.showOpenDialog(dialogOptions)
+
+    if (result.canceled || result.filePaths.length === 0) {
+      return {
+        canceled: true,
+        workspacePath: null,
+        config: currentConfig,
+      }
+    }
+
+    const workspacePath = result.filePaths[0]
+    const nextConfig = buildWorkspaceConfig(workspacePath, currentConfig)
+    await writeAppConfig(nextConfig)
+
+    return {
+      canceled: false,
+      workspacePath,
+      config: nextConfig,
+    }
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getWorkspaceTags, (_event, workspacePath: string) => {
+    return getWorkspaceTags(workspacePath)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.setWorkspaceTags, (_event, input: WorkspaceStringListInput) => {
+    return setWorkspaceTags(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getWorkspaceWeatherOptions, (_event, workspacePath: string) => {
+    return getWorkspaceWeatherOptions(workspacePath)
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setWorkspaceWeatherOptions,
+    (_event, input: WorkspaceStringListInput) => {
+      return setWorkspaceWeatherOptions(input)
+    },
+  )
+
+  ipcMain.handle(IPC_CHANNELS.getWorkspaceLocationOptions, (_event, workspacePath: string) => {
+    return getWorkspaceLocationOptions(workspacePath)
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setWorkspaceLocationOptions,
+    (_event, input: WorkspaceStringListInput) => {
+      return setWorkspaceLocationOptions(input)
+    },
+  )
+
+  ipcMain.handle(IPC_CHANNELS.readJournalEntry, (_event, input: JournalEntryQuery) => {
+    return readJournalEntry(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.createJournalEntry, (_event, input: JournalEntryQuery) => {
+    return createJournalEntry(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.saveJournalEntryBody, (_event, input: JournalEntryBodySaveInput) => {
+    return saveJournalEntryBody(input)
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.saveJournalEntryMetadata,
+    (_event, input: JournalEntryMetadataSaveInput) => {
+      return saveJournalEntryMetadata(input)
+    },
+  )
+
+  ipcMain.handle(IPC_CHANNELS.getJournalMonthActivity, (_event, input: JournalMonthActivityQuery) => {
+    return getJournalMonthActivity(input)
+  })
+}

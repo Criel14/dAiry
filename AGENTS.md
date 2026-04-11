@@ -49,6 +49,7 @@ dAiry/
 
   electron/
     main.ts
+    main/
     preload.ts
     electron-env.d.ts
 
@@ -70,7 +71,8 @@ dAiry/
 - `src/components/SettingsPanel.vue`：当前设置页主体，负责显示类设置、写作时间设置与候选词库维护
 - `src/types/`：渲染进程与主进程共享的类型定义
 - `src/utils/`：预留给后续可复用工具函数，当前保持轻量即可
-- `electron/main.ts`：Electron 主进程入口
+- `electron/main.ts`：Electron 主进程入口，负责应用启动与模块组装
+- `electron/main/`：主进程模块目录，按 `配置 / IPC / 窗口 / 日记 / 工作区词库` 等职责拆分
 - `electron/preload.ts`：渲染进程与主进程之间的安全桥接层
 - `public/`：静态资源
 - `vite.config.ts`：Vite 与 Electron 集成配置
@@ -543,6 +545,7 @@ git push origin main
 - 当前首页已经包含目录选择、自定义月历、正文编辑 / 预览、元数据编辑和完整设置页
 - 当前通过 `src/types/dairy.ts` 维护渲染进程与主进程共享类型
 - 当前通过 `src/types/ui.ts` 维护渲染层 UI 状态类型
+- 当前 `electron/main.ts` 已精简为启动入口，主进程逻辑按职责拆分在 `electron/main/` 目录下
 - 当前设置页已经落地 `字数热力图`、`新一天开始时间`、`日记信息展示`、`候选词库`、`工作区状态`
 - 当前“今天”的判定会受应用配置中的 `ui.dayStartHour` 影响，而不是固定按自然日 `0` 点切换
 - `electron-builder.json5` 仍含有脚手架默认值，例如 `appId` 和 `productName`
