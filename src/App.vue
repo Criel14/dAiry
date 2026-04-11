@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import WorkspaceSidebar from './components/WorkspaceSidebar.vue'
@@ -92,7 +92,11 @@ function frontmatterToMetadata(frontmatter: JournalFrontmatter): JournalEntryMet
   }
 }
 
-const selectedDate = ref(dayjs().format('YYYY-MM-DD'))
+function getJournalDateText(hour: number, baseDate = dayjs()) {
+  return baseDate.subtract(hour, 'hour').format('YYYY-MM-DD')
+}
+
+const selectedDate = ref(getJournalDateText(0))
 const workspacePath = ref<string | null>(null)
 const workspaceLocationOptions = ref<string[]>([])
 const workspaceWeatherOptions = ref<string[]>([])
@@ -108,20 +112,23 @@ const savedMetadataSnapshot = ref(metadataToSnapshot(createEmptyMetadata()))
 const statusMessage = ref('')
 const metadataStatusMessage = ref('')
 const heatmapSaveMessage = ref('')
+const dayStartHourSaveMessage = ref('')
 const frontmatterVisibilitySaveMessage = ref('')
 const workspaceLibrariesSaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
 const isSavingMetadata = ref(false)
 const isSavingJournalHeatmap = ref(false)
+const isSavingDayStartHour = ref(false)
 const isSavingFrontmatterVisibility = ref(false)
 const isSavingWorkspaceLibraries = ref(false)
 const isJournalHeatmapEnabled = ref(false)
+const dayStartHour = ref(0)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
 const lastSavedAt = ref<string | null>(null)
 let loadSequence = 0
 
-const todayText = computed(() => dayjs().format('YYYY-MM-DD'))
+const todayText = computed(() => getJournalDateText(dayStartHour.value))
 const selectedDateText = computed(() => dayjs(selectedDate.value).format('YYYY 年 M 月 D 日 dddd'))
 const isSelectedDateToday = computed(() => selectedDate.value === todayText.value)
 const hasWorkspace = computed(() => Boolean(workspacePath.value))
@@ -195,6 +202,7 @@ async function bootstrapApp() {
   try {
     const bootstrap = await window.dairy.getAppBootstrap()
     syncConfigState(bootstrap.config)
+    selectedDate.value = todayText.value
 
     if (!workspacePath.value) {
       workspaceLocationOptions.value = []
@@ -218,6 +226,7 @@ async function bootstrapApp() {
 function syncConfigState(config: AppConfig) {
   workspacePath.value = config.lastOpenedWorkspace
   isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
+  dayStartHour.value = config.ui.dayStartHour
   frontmatterVisibility.value = {
     ...config.ui.frontmatterVisibility,
   }
@@ -596,6 +605,37 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
   }
 }
 
+async function handleUpdateDayStartHour(nextValue: number) {
+  const wasSelectedToday = isSelectedDateToday.value
+  isSavingDayStartHour.value = true
+  dayStartHourSaveMessage.value = ''
+
+  try {
+    const nextConfig = await window.dairy.setDayStartHour({
+      hour: nextValue,
+    })
+
+    syncConfigState(nextConfig)
+
+    if (wasSelectedToday) {
+      selectedDate.value = todayText.value
+    }
+
+    if (workspacePath.value) {
+      await loadEntryForDate(selectedDate.value)
+    } else {
+      applyNoWorkspaceState()
+    }
+
+    dayStartHourSaveMessage.value = '新一天开始时间已保存。'
+  } catch (error) {
+    dayStartHourSaveMessage.value =
+      error instanceof Error ? error.message : '保存新一天开始时间失败，请稍后重试。'
+  } finally {
+    isSavingDayStartHour.value = false
+  }
+}
+
 async function handleUpdateFrontmatterVisibility(nextVisibility: FrontmatterVisibilityConfig) {
   isSavingFrontmatterVisibility.value = true
   frontmatterVisibilitySaveMessage.value = ''
@@ -665,6 +705,7 @@ async function handleSaveWorkspaceLibraries(input: {
     <WorkspaceSidebar
       :workspace-path="workspacePath"
       :selected-date="selectedDate"
+      :today-date="todayText"
       :is-journal-heatmap-enabled="isJournalHeatmapEnabled"
       @choose-workspace="handleChooseWorkspace"
       @open-settings="openSettingsPage"
@@ -709,6 +750,9 @@ async function handleSaveWorkspaceLibraries(input: {
         :journal-heatmap-enabled="isJournalHeatmapEnabled"
         :is-saving-journal-heatmap="isSavingJournalHeatmap"
         :heatmap-save-message="heatmapSaveMessage"
+        :day-start-hour="dayStartHour"
+        :is-saving-day-start-hour="isSavingDayStartHour"
+        :day-start-hour-save-message="dayStartHourSaveMessage"
         :frontmatter-visibility="frontmatterVisibility"
         :is-saving-frontmatter-visibility="isSavingFrontmatterVisibility"
         :frontmatter-visibility-save-message="frontmatterVisibilitySaveMessage"
@@ -718,6 +762,7 @@ async function handleSaveWorkspaceLibraries(input: {
         :is-saving-workspace-libraries="isSavingWorkspaceLibraries"
         :workspace-libraries-save-message="workspaceLibrariesSaveMessage"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
+        @update:day-start-hour="handleUpdateDayStartHour"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
       />

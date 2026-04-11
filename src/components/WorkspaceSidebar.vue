@@ -1,10 +1,11 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { Icon } from '@iconify/vue'
 import JournalCalendar from './JournalCalendar.vue'
 
 defineProps<{
   workspacePath: string | null
   selectedDate: string
+  todayDate: string
   isJournalHeatmapEnabled: boolean
 }>()
 
@@ -61,6 +62,7 @@ defineEmits<{
 
       <JournalCalendar
         :model-value="selectedDate"
+        :today-date="todayDate"
         :workspace-path="workspacePath"
         :is-heatmap-enabled="isJournalHeatmapEnabled"
         @update:model-value="$emit('selectDate', $event)"

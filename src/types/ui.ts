@@ -1,4 +1,4 @@
-export type ViewState =
+﻿export type ViewState =
   | 'no-workspace'
   | 'loading'
   | 'ready'

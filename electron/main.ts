@@ -1,10 +1,11 @@
-import { app, BrowserWindow, Menu, dialog, ipcMain, type OpenDialogOptions } from 'electron'
+﻿import { app, BrowserWindow, Menu, dialog, ipcMain, type OpenDialogOptions } from 'electron'
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import type {
   AppBootstrap,
   AppConfig,
+  DayStartHourPreferenceInput,
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
   JournalDayActivity,
@@ -33,6 +34,7 @@ const APP_ICON_PATH = path.join(process.env.APP_ROOT, 'build', 'icons', APP_ICON
 const IPC_CHANNELS = {
   getBootstrap: 'app:get-bootstrap',
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
+  setDayStartHour: 'app:set-day-start-hour',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
   chooseWorkspace: 'workspace:choose',
@@ -55,6 +57,7 @@ const DEFAULT_APP_CONFIG: AppConfig = {
   ui: {
     theme: 'system',
     journalHeatmapEnabled: false,
+    dayStartHour: 0,
     frontmatterVisibility: {
       weather: true,
       location: true,
@@ -132,6 +135,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       ? config.ui.theme
       : 'system'
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
+  const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
 
   return {
@@ -141,9 +145,22 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
     ui: {
       theme,
       journalHeatmapEnabled,
+      dayStartHour,
       frontmatterVisibility,
     },
   }
+}
+
+function normalizeDayStartHour(rawValue: unknown) {
+  if (typeof rawValue !== 'number' || !Number.isInteger(rawValue)) {
+    return 0
+  }
+
+  if (rawValue < 0 || rawValue > 6) {
+    return 0
+  }
+
+  return rawValue
 }
 
 function normalizeFrontmatterVisibility(
@@ -224,6 +241,20 @@ async function setJournalHeatmapEnabled(
     ui: {
       ...currentConfig.ui,
       journalHeatmapEnabled: input.enabled,
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+async function setDayStartHour(input: DayStartHourPreferenceInput): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      dayStartHour: normalizeDayStartHour(input.hour),
     },
   }
 
@@ -981,6 +1012,13 @@ function registerIpcHandlers() {
   )
 
   ipcMain.handle(
+    IPC_CHANNELS.setDayStartHour,
+    (_event, input: DayStartHourPreferenceInput) => {
+      return setDayStartHour(input)
+    },
+  )
+
+  ipcMain.handle(
     IPC_CHANNELS.setFrontmatterVisibility,
     (_event, input: FrontmatterVisibilityInput) => {
       return setFrontmatterVisibility(input)
@@ -1150,3 +1188,4 @@ app.whenReady().then(() => {
   registerIpcHandlers()
   createWindow()
 })
+

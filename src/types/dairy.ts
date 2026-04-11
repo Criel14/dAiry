@@ -1,9 +1,10 @@
-export interface AppConfig {
+﻿export interface AppConfig {
   lastOpenedWorkspace: string | null
   recentWorkspaces: string[]
   ui: {
     theme: 'system' | 'light' | 'dark'
     journalHeatmapEnabled: boolean
+    dayStartHour: number
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
 }
@@ -86,6 +87,10 @@ export interface FrontmatterVisibilityInput {
   visibility: FrontmatterVisibilityConfig
 }
 
+export interface DayStartHourPreferenceInput {
+  hour: number
+}
+
 export interface WorkspaceStringListInput {
   workspacePath: string
   items: string[]
@@ -114,6 +119,7 @@ export interface DairyApi {
   setWorkspaceWeatherOptions: (input: WorkspaceStringListInput) => Promise<string[]>
   setWorkspaceLocationOptions: (input: WorkspaceStringListInput) => Promise<string[]>
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
+  setDayStartHour: (input: DayStartHourPreferenceInput) => Promise<AppConfig>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
 }

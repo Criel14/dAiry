@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
@@ -6,6 +6,7 @@ import type { JournalDayActivity } from '../types/dairy'
 
 const props = defineProps<{
   modelValue: string
+  todayDate: string
   workspacePath: string | null
   isHeatmapEnabled: boolean
 }>()
@@ -38,6 +39,10 @@ watch(
 
 const monthTitle = computed(() => visibleMonth.value.format('YYYY 年 M 月'))
 const selectedDate = computed(() => dayjs(props.modelValue))
+const todayDate = computed(() => {
+  const parsedDate = dayjs(props.todayDate)
+  return parsedDate.isValid() ? parsedDate : dayjs()
+})
 const visibleMonthKey = computed(() => visibleMonth.value.format('YYYY-MM'))
 
 const calendarDays = computed(() => {
@@ -51,7 +56,7 @@ const calendarDays = computed(() => {
       key: currentDate.format('YYYY-MM-DD'),
       label: currentDate.date(),
       isCurrentMonth: currentDate.month() === visibleMonth.value.month(),
-      isToday: currentDate.isSame(dayjs(), 'day'),
+      isToday: currentDate.isSame(todayDate.value, 'day'),
       isSelected: currentDate.isSame(selectedDate.value, 'day'),
       isWeekend: currentDate.day() === 0 || currentDate.day() === 6,
       activity: monthActivityMap.value[currentDate.format('YYYY-MM-DD')] ?? null,
@@ -110,9 +115,8 @@ function selectDate(dateText: string) {
 }
 
 function goToToday() {
-  const today = dayjs()
-  visibleMonth.value = today.startOf('month')
-  emit('update:modelValue', today.format('YYYY-MM-DD'))
+  visibleMonth.value = todayDate.value.startOf('month')
+  emit('update:modelValue', todayDate.value.format('YYYY-MM-DD'))
 }
 
 function getHeatLevel(wordCount: number) {

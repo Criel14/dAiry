@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+﻿import { contextBridge, ipcRenderer } from 'electron'
 import type { DairyApi } from '../src/types/dairy'
 
 // preload 只暴露明确的业务接口，不把整个 ipcRenderer 敞开给渲染进程。
@@ -20,6 +20,7 @@ const dairyApi: DairyApi = {
   setWorkspaceWeatherOptions: (input) => ipcRenderer.invoke('workspace:set-weather-options', input),
   setWorkspaceLocationOptions: (input) => ipcRenderer.invoke('workspace:set-location-options', input),
   setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
+  setDayStartHour: (input) => ipcRenderer.invoke('app:set-day-start-hour', input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),
 }

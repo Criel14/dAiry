@@ -1,12 +1,13 @@
-import { app as g, BrowserWindow as z, Menu as ft, dialog as T, ipcMain as s } from "electron";
-import { readFile as A, mkdir as m, writeFile as h, stat as $, readdir as yt } from "node:fs/promises";
-import { fileURLToPath as pt } from "node:url";
+import { app as m, BrowserWindow as H, Menu as pt, dialog as C, ipcMain as s } from "electron";
+import { readFile as v, mkdir as h, writeFile as w, stat as z, readdir as gt } from "node:fs/promises";
+import { fileURLToPath as mt } from "node:url";
 import o from "node:path";
-const H = o.dirname(pt(import.meta.url));
-process.env.APP_ROOT = o.join(H, "..");
-const gt = process.platform === "win32" ? "app.ico" : "app.png", mt = o.join(process.env.APP_ROOT, "build", "icons", gt), i = {
+const $ = o.dirname(mt(import.meta.url));
+process.env.APP_ROOT = o.join($, "..");
+const ht = process.platform === "win32" ? "app.ico" : "app.png", wt = o.join(process.env.APP_ROOT, "build", "icons", ht), i = {
   getBootstrap: "app:get-bootstrap",
   setJournalHeatmapEnabled: "app:set-journal-heatmap-enabled",
+  setDayStartHour: "app:set-day-start-hour",
   setFrontmatterVisibility: "app:set-frontmatter-visibility",
   setWindowDirtyState: "app:set-window-dirty-state",
   chooseWorkspace: "workspace:choose",
@@ -27,6 +28,7 @@ const gt = process.platform === "win32" ? "app.ico" : "app.png", mt = o.join(pro
   ui: {
     theme: "system",
     journalHeatmapEnabled: !1,
+    dayStartHour: 0,
     frontmatterVisibility: {
       weather: !0,
       location: !0,
@@ -34,7 +36,7 @@ const gt = process.platform === "win32" ? "app.ico" : "app.png", mt = o.join(pro
       tags: !0
     }
   }
-}, ht = {
+}, Wt = {
   weather: "",
   location: "",
   summary: "",
@@ -49,28 +51,32 @@ const gt = process.platform === "win32" ? "app.ico" : "app.png", mt = o.join(pro
   "小雪",
   "大雪",
   "雾"
-], B = ["学校", "公司", "家"], U = ["上班", "加班", "原神", "杀戮尖塔"], C = process.env.VITE_DEV_SERVER_URL, Kt = o.join(process.env.APP_ROOT, "dist-electron"), q = o.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = C ? o.join(process.env.APP_ROOT, "public") : q;
-let l, L = !1, k = !1;
+], B = ["学校", "公司", "家"], U = ["上班", "加班", "原神", "杀戮尖塔"], J = process.env.VITE_DEV_SERVER_URL, Vt = o.join(process.env.APP_ROOT, "dist-electron"), q = o.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = J ? o.join(process.env.APP_ROOT, "public") : q;
+let l, D = !1, S = !1;
 function G() {
-  return o.join(g.getPath("userData"), "config.json");
+  return o.join(m.getPath("userData"), "config.json");
 }
-function wt(t) {
-  var u, d, f, b, y;
+function Ot(t) {
+  var d, y, k, p, L, f;
   if (!t || typeof t != "object")
     return Y;
-  const e = t, r = Array.isArray(e.recentWorkspaces) ? e.recentWorkspaces.filter((S) => typeof S == "string") : [], n = ((u = e.ui) == null ? void 0 : u.theme) === "light" || ((d = e.ui) == null ? void 0 : d.theme) === "dark" || ((f = e.ui) == null ? void 0 : f.theme) === "system" ? e.ui.theme : "system", a = ((b = e.ui) == null ? void 0 : b.journalHeatmapEnabled) === !0, c = Z((y = e.ui) == null ? void 0 : y.frontmatterVisibility);
+  const e = t, r = Array.isArray(e.recentWorkspaces) ? e.recentWorkspaces.filter((yt) => typeof yt == "string") : [], n = ((d = e.ui) == null ? void 0 : d.theme) === "light" || ((y = e.ui) == null ? void 0 : y.theme) === "dark" || ((k = e.ui) == null ? void 0 : k.theme) === "system" ? e.ui.theme : "system", a = ((p = e.ui) == null ? void 0 : p.journalHeatmapEnabled) === !0, c = Z((L = e.ui) == null ? void 0 : L.dayStartHour), u = K((f = e.ui) == null ? void 0 : f.frontmatterVisibility);
   return {
     lastOpenedWorkspace: typeof e.lastOpenedWorkspace == "string" ? e.lastOpenedWorkspace : null,
     recentWorkspaces: r,
     ui: {
       theme: n,
       journalHeatmapEnabled: a,
-      frontmatterVisibility: c
+      dayStartHour: c,
+      frontmatterVisibility: u
     }
   };
 }
 function Z(t) {
+  return typeof t != "number" || !Number.isInteger(t) || t < 0 || t > 6 ? 0 : t;
+}
+function K(t) {
   return {
     weather: (t == null ? void 0 : t.weather) !== !1,
     location: (t == null ? void 0 : t.location) !== !1,
@@ -78,29 +84,29 @@ function Z(t) {
     tags: (t == null ? void 0 : t.tags) !== !1
   };
 }
-async function N() {
+async function O() {
   try {
-    const t = await A(G(), "utf-8"), e = wt(JSON.parse(t));
-    return Wt(e);
+    const t = await v(G(), "utf-8"), e = Ot(JSON.parse(t));
+    return Et(e);
   } catch (t) {
     if (t.code === "ENOENT")
       return Y;
     throw t;
   }
 }
-async function I(t) {
-  await m(g.getPath("userData"), { recursive: !0 }), await h(G(), JSON.stringify(t, null, 2), "utf-8");
+async function N(t) {
+  await h(m.getPath("userData"), { recursive: !0 }), await w(G(), JSON.stringify(t, null, 2), "utf-8");
 }
 async function R(t) {
   try {
-    return (await $(t)).isDirectory();
+    return (await z(t)).isDirectory();
   } catch (e) {
     if (e.code === "ENOENT")
       return !1;
     throw e;
   }
 }
-async function Wt(t) {
+async function Et(t) {
   const e = [];
   for (const a of t.recentWorkspaces)
     await R(a) && e.push(a);
@@ -111,27 +117,37 @@ async function Wt(t) {
     recentWorkspaces: n
   };
 }
-async function Ot(t) {
-  const e = await N(), r = {
+async function bt(t) {
+  const e = await O(), r = {
     ...e,
     ui: {
       ...e.ui,
       journalHeatmapEnabled: t.enabled
     }
   };
-  return await I(r), r;
+  return await N(r), r;
 }
-async function Et(t) {
-  const e = await N(), r = {
+async function At(t) {
+  const e = await O(), r = {
     ...e,
     ui: {
       ...e.ui,
-      frontmatterVisibility: Z(t.visibility)
+      dayStartHour: Z(t.hour)
     }
   };
-  return await I(r), r;
+  return await N(r), r;
 }
-function At(t, e) {
+async function vt(t) {
+  const e = await O(), r = {
+    ...e,
+    ui: {
+      ...e.ui,
+      frontmatterVisibility: K(t.visibility)
+    }
+  };
+  return await N(r), r;
+}
+function kt(t, e) {
   const r = [
     t,
     ...e.recentWorkspaces.filter((n) => n !== t)
@@ -142,35 +158,35 @@ function At(t, e) {
     recentWorkspaces: r.slice(0, 8)
   };
 }
-function bt(t) {
+function Lt(t) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(t))
     throw new Error("日期格式无效，必须为 YYYY-MM-DD。");
 }
-function vt(t) {
+function St(t) {
   if (!/^\d{4}-\d{2}$/.test(t))
     throw new Error("月份格式无效，必须为 YYYY-MM。");
 }
-function K(t, e) {
-  bt(e);
+function X(t, e) {
+  Lt(e);
   const [r, n] = e.split("-");
   return o.join(t, "journal", r, n, `${e}.md`);
 }
-function D({ workspacePath: t, date: e }) {
-  return K(t, e);
+function _({ workspacePath: t, date: e }) {
+  return X(t, e);
 }
-function w(t) {
+function W(t) {
   return o.join(t, ".dairy");
 }
-function X(t) {
-  return o.join(w(t), "tags.json");
-}
 function Q(t) {
-  return o.join(w(t), "weather.json");
+  return o.join(W(t), "tags.json");
 }
 function V(t) {
-  return o.join(w(t), "locations.json");
+  return o.join(W(t), "weather.json");
 }
-function _(t) {
+function tt(t) {
+  return o.join(W(t), "locations.json");
+}
+function P(t) {
   if (!Array.isArray(t))
     return [];
   const e = /* @__PURE__ */ new Set();
@@ -182,27 +198,27 @@ function _(t) {
   }
   return [...e];
 }
-function tt(t) {
+function et(t) {
   return {
     weather: typeof (t == null ? void 0 : t.weather) == "string" ? t.weather.trim() : "",
     location: typeof (t == null ? void 0 : t.location) == "string" ? t.location.trim() : "",
     summary: typeof (t == null ? void 0 : t.summary) == "string" ? t.summary.trim() : "",
-    tags: _(t == null ? void 0 : t.tags)
+    tags: P(t == null ? void 0 : t.tags)
   };
 }
-function et(t, e) {
+function rt(t, e) {
   const r = (/* @__PURE__ */ new Date()).toISOString();
   return {
-    ...tt(t),
+    ...et(t),
     createdAt: typeof (t == null ? void 0 : t.createdAt) == "string" && t.createdAt.trim() ? t.createdAt : (e == null ? void 0 : e.createdAt) ?? r,
     updatedAt: typeof (t == null ? void 0 : t.updatedAt) == "string" && t.updatedAt.trim() ? t.updatedAt : (e == null ? void 0 : e.updatedAt) ?? (e == null ? void 0 : e.createdAt) ?? r
   };
 }
-function rt() {
+function nt() {
   const t = (/* @__PURE__ */ new Date()).toISOString();
-  return et(
+  return rt(
     {
-      ...ht,
+      ...Wt,
       createdAt: t,
       updatedAt: t
     },
@@ -212,38 +228,38 @@ function rt() {
     }
   );
 }
-function W(t) {
+function E(t) {
   return !t || typeof t != "object" ? {
     version: 1,
     tags: [...U]
   } : {
     version: 1,
-    tags: _(t.tags).sort((r, n) => r.localeCompare(n, "zh-Hans-CN"))
+    tags: P(t.tags).sort((r, n) => r.localeCompare(n, "zh-Hans-CN"))
   };
 }
-function O(t) {
+function b(t) {
   return !t || typeof t != "object" ? {
     version: 1,
     items: [...j]
   } : {
     version: 1,
-    items: _(t.items ?? j).sort(
+    items: P(t.items ?? j).sort(
       (r, n) => r.localeCompare(n, "zh-Hans-CN")
     )
   };
 }
-function E(t) {
+function A(t) {
   return !t || typeof t != "object" ? {
     version: 1,
     items: [...B]
   } : {
     version: 1,
-    items: _(t.items).sort(
+    items: P(t.items).sort(
       (r, n) => r.localeCompare(n, "zh-Hans-CN")
     )
   };
 }
-function kt(t) {
+function Dt(t) {
   const e = t.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/);
   return e ? {
     frontmatterText: e[1],
@@ -253,7 +269,7 @@ function kt(t) {
     body: t
   };
 }
-function J(t) {
+function I(t) {
   const e = t.trim();
   if (!e)
     return "";
@@ -265,16 +281,16 @@ function J(t) {
     }
   return e.startsWith("'") && e.endsWith("'") ? e.slice(1, -1).replace(/''/g, "'") : e;
 }
-function Lt(t) {
+function Nt(t) {
   const e = t.trim();
   if (e === "[]")
     return [];
   if (!e.startsWith("[") || !e.endsWith("]"))
     return [];
   const r = e.slice(1, -1).trim();
-  return r ? r.split(",").map((n) => J(n)) : [];
+  return r ? r.split(",").map((n) => I(n)) : [];
 }
-function Nt(t) {
+function _t(t) {
   const e = {};
   let r = null;
   for (const n of t.split(/\r?\n/)) {
@@ -282,8 +298,8 @@ function Nt(t) {
       continue;
     const a = n.match(/^\s*-\s*(.*)$/);
     if (a && r === "tags") {
-      const f = e.tags ?? [];
-      e.tags = [...f, J(a[1])];
+      const y = e.tags ?? [];
+      e.tags = [...y, I(a[1])];
       continue;
     }
     const c = n.match(/^([A-Za-z][A-Za-z0-9]*):(?:\s*(.*))?$/);
@@ -297,79 +313,79 @@ function Nt(t) {
         e.tags = [], r = "tags";
         continue;
       }
-      e.tags = Lt(d);
+      e.tags = Nt(d);
       continue;
     }
-    (u === "createdAt" || u === "updatedAt" || u === "weather" || u === "location" || u === "summary") && (e[u] = J(d));
+    (u === "createdAt" || u === "updatedAt" || u === "weather" || u === "location" || u === "summary") && (e[u] = I(d));
   }
   return e;
 }
-function p(t) {
+function g(t) {
   return JSON.stringify(t);
 }
-function Dt(t) {
+function Pt(t) {
   const e = [
     "---",
-    `createdAt: ${p(t.createdAt)}`,
-    `updatedAt: ${p(t.updatedAt)}`,
-    `weather: ${p(t.weather)}`,
-    `location: ${p(t.location)}`,
-    `summary: ${p(t.summary)}`
+    `createdAt: ${g(t.createdAt)}`,
+    `updatedAt: ${g(t.updatedAt)}`,
+    `weather: ${g(t.weather)}`,
+    `location: ${g(t.location)}`,
+    `summary: ${g(t.summary)}`
   ];
   if (t.tags.length === 0)
     e.push("tags: []");
   else {
     e.push("tags:");
     for (const r of t.tags)
-      e.push(`  - ${p(r)}`);
+      e.push(`  - ${g(r)}`);
   }
   return e.push("---"), e.join(`
 `);
 }
-function nt(t, e) {
+function at(t, e) {
   const r = e.replace(/\r\n/g, `
 `);
-  return `${Dt(t)}
+  return `${Pt(t)}
 ${r}`;
 }
-async function P(t) {
-  const [e, r] = await Promise.all([A(t, "utf-8"), $(t)]), { frontmatterText: n, body: a } = kt(e), c = n ? Nt(n) : null;
+async function T(t) {
+  const [e, r] = await Promise.all([v(t, "utf-8"), z(t)]), { frontmatterText: n, body: a } = Dt(e), c = n ? _t(n) : null;
   return {
-    frontmatter: et(c, {
+    frontmatter: rt(c, {
       createdAt: r.birthtime.toISOString(),
       updatedAt: r.mtime.toISOString()
     }),
     body: a
   };
 }
-async function at(t) {
+async function ot(t) {
   try {
-    return await P(t);
+    return await T(t);
   } catch (e) {
     if (e.code === "ENOENT")
       return {
-        frontmatter: rt(),
+        frontmatter: nt(),
         body: ""
       };
     throw e;
   }
 }
-async function ot(t, e, r) {
-  await m(o.dirname(t), { recursive: !0 }), await h(t, nt(e, r), "utf-8");
+async function st(t, e, r) {
+  await h(o.dirname(t), { recursive: !0 }), await w(t, at(e, r), "utf-8");
 }
-function _t(t) {
+function Tt(t) {
   const e = t.trim();
   return e ? e.replace(/\s+/g, "").length : 0;
 }
-function Pt(t) {
-  vt(t);
+function Ct(t) {
+  St(t);
   const [e, r] = t.split("-"), n = Number(e), a = Number(r);
   return new Date(n, a, 0).getDate();
 }
-async function st(t) {
-  const e = D(t);
+async function it(t) {
+  const e = _(t);
   try {
-    const r = await P(e);
+    const r = await T(e);
     return {
       status: "ready",
       filePath: e,
@@ -387,11 +403,11 @@ async function st(t) {
     throw r;
   }
 }
-async function St(t) {
-  const e = D(t);
-  await m(o.dirname(e), { recursive: !0 });
+async function jt(t) {
+  const e = _(t);
+  await h(o.dirname(e), { recursive: !0 });
   try {
-    await h(e, nt(rt(), ""), {
+    await w(e, at(nt(), ""), {
       encoding: "utf-8",
       flag: "wx"
     });
@@ -399,11 +415,11 @@ async function St(t) {
     if (r.code !== "EEXIST")
       throw r;
   }
-  return st(t);
+  return it(t);
 }
-async function Tt(t) {
-  const e = D(t), r = await at(e), n = (/* @__PURE__ */ new Date()).toISOString();
-  return await ot(
+async function Jt(t) {
+  const e = _(t), r = await ot(e), n = (/* @__PURE__ */ new Date()).toISOString();
+  return await st(
     e,
     {
       ...r.frontmatter,
@@ -415,9 +431,9 @@ async function Tt(t) {
     savedAt: n
   };
 }
-async function jt(t) {
-  const e = D(t), r = await at(e), n = (/* @__PURE__ */ new Date()).toISOString(), a = tt(t.metadata);
-  return await ot(
+async function It(t) {
+  const e = _(t), r = await ot(e), n = (/* @__PURE__ */ new Date()).toISOString(), a = et(t.metadata);
+  return await st(
     e,
     {
       ...r.frontmatter,
@@ -425,10 +441,10 @@ async function jt(t) {
       updatedAt: n
     },
     r.body
-  ), await It(t.workspacePath, a.tags), await xt(
+  ), await Mt(t.workspacePath, a.tags), await zt(
     t.workspacePath,
     a.weather ? [a.weather] : []
-  ), await $t(
+  ), await Bt(
     t.workspacePath,
     a.location ? [a.location] : []
   ), {
@@ -436,25 +452,25 @@ async function jt(t) {
     savedAt: n
   };
 }
-async function Ct(t) {
-  const { workspacePath: e, month: r } = t, n = Pt(r), [a, c] = r.split("-"), u = await Promise.all(
-    Array.from({ length: n }, async (d, f) => {
-      const b = String(f + 1).padStart(2, "0"), y = `${a}-${c}-${b}`, S = K(e, y);
+async function xt(t) {
+  const { workspacePath: e, month: r } = t, n = Ct(r), [a, c] = r.split("-"), u = await Promise.all(
+    Array.from({ length: n }, async (d, y) => {
+      const k = String(y + 1).padStart(2, "0"), p = `${a}-${c}-${k}`, L = X(e, p);
       try {
-        const v = await P(S);
+        const f = await T(L);
         return {
-          date: y,
+          date: p,
           hasEntry: !0,
-          wordCount: _t(v.body)
+          wordCount: Tt(f.body)
         };
-      } catch (v) {
-        if (v.code === "ENOENT")
+      } catch (f) {
+        if (f.code === "ENOENT")
           return {
-            date: y,
+            date: p,
             hasEntry: !1,
             wordCount: 0
           };
-        throw v;
+        throw f;
       }
     })
   );
@@ -463,13 +479,13 @@ async function Ct(t) {
     days: u
   };
 }
-async function it(t) {
+async function ct(t) {
   try {
-    const e = await yt(t, { withFileTypes: !0 });
+    const e = await gt(t, { withFileTypes: !0 });
     return (await Promise.all(
       e.map(async (n) => {
         const a = o.join(t, n.name);
-        return n.isDirectory() ? it(a) : n.isFile() && n.name.toLowerCase().endsWith(".md") ? [a] : [];
+        return n.isDirectory() ? ct(a) : n.isFile() && n.name.toLowerCase().endsWith(".md") ? [a] : [];
       })
     )).flat();
   } catch (e) {
@@ -478,11 +494,11 @@ async function it(t) {
     throw e;
   }
 }
-async function Jt(t) {
-  const e = o.join(t, "journal"), r = await it(e), n = /* @__PURE__ */ new Set();
+async function Ft(t) {
+  const e = o.join(t, "journal"), r = await ct(e), n = /* @__PURE__ */ new Set();
   for (const a of r)
     try {
-      const c = await P(a);
+      const c = await T(a);
       for (const u of c.frontmatter.tags)
         n.add(u);
     } catch (c) {
@@ -492,53 +508,91 @@ async function Jt(t) {
     }
   return [...n].sort((a, c) => a.localeCompare(c, "zh-Hans-CN"));
 }
-async function ct(t) {
-  const e = X(t);
+async function ut(t) {
+  const e = Q(t);
   try {
-    const r = await A(e, "utf-8");
-    return W(JSON.parse(r));
+    const r = await v(e, "utf-8");
+    return E(JSON.parse(r));
   } catch (r) {
     if (r.code === "ENOENT") {
-      const n = await Jt(t), a = W({
+      const n = await Ft(t), a = E({
         tags: [...U, ...n]
       });
-      return await F(t, a), a;
+      return await x(t, a), a;
+    }
+    throw r;
+  }
+}
+async function x(t, e) {
+  const r = W(t);
+  await h(r, { recursive: !0 }), await w(
+    Q(t),
+    JSON.stringify(E(e), null, 2),
+    "utf-8"
+  );
+}
+async function Mt(t, e) {
+  const r = await ut(t), n = E({
+    tags: [...r.tags, ...e]
+  });
+  await x(t, n);
+}
+async function Rt(t) {
+  return (await ut(t)).tags;
+}
+async function Ht(t) {
+  const e = E({
+    tags: t.items
+  });
+  return await x(t.workspacePath, e), e.tags;
+}
+async function lt(t) {
+  const e = V(t);
+  try {
+    const r = await v(e, "utf-8");
+    return b(JSON.parse(r));
+  } catch (r) {
+    if (r.code === "ENOENT") {
+      const n = b({
+        items: j
+      });
+      return await F(t, n), n;
     }
     throw r;
   }
 }
 async function F(t, e) {
-  const r = w(t);
-  await m(r, { recursive: !0 }), await h(
-    X(t),
-    JSON.stringify(W(e), null, 2),
+  const r = W(t);
+  await h(r, { recursive: !0 }), await w(
+    V(t),
+    JSON.stringify(b(e), null, 2),
     "utf-8"
   );
 }
-async function It(t, e) {
-  const r = await ct(t), n = W({
-    tags: [...r.tags, ...e]
+async function zt(t, e) {
+  const r = await lt(t), n = b({
+    items: [...r.items, ...e]
   });
   await F(t, n);
 }
-async function Ft(t) {
-  return (await ct(t)).tags;
+async function $t(t) {
+  return (await lt(t)).items;
 }
-async function Mt(t) {
-  const e = W({
-    tags: t.items
+async function Yt(t) {
+  const e = b({
+    items: t.items
   });
-  return await F(t.workspacePath, e), e.tags;
+  return await F(t.workspacePath, e), e.items;
 }
-async function ut(t) {
-  const e = Q(t);
+async function dt(t) {
+  const e = tt(t);
   try {
-    const r = await A(e, "utf-8");
-    return O(JSON.parse(r));
+    const r = await v(e, "utf-8");
+    return A(JSON.parse(r));
   } catch (r) {
     if (r.code === "ENOENT") {
-      const n = O({
-        items: j
+      const n = A({
+        items: B
       });
       return await M(t, n), n;
     }
@@ -546,121 +600,86 @@ async function ut(t) {
   }
 }
 async function M(t, e) {
-  const r = w(t);
-  await m(r, { recursive: !0 }), await h(
-    Q(t),
-    JSON.stringify(O(e), null, 2),
+  const r = W(t);
+  await h(r, { recursive: !0 }), await w(
+    tt(t),
+    JSON.stringify(A(e), null, 2),
     "utf-8"
   );
 }
-async function xt(t, e) {
-  const r = await ut(t), n = O({
+async function Bt(t, e) {
+  const r = await dt(t), n = A({
     items: [...r.items, ...e]
   });
   await M(t, n);
 }
-async function Rt(t) {
-  return (await ut(t)).items;
+async function Ut(t) {
+  return (await dt(t)).items;
 }
-async function zt(t) {
-  const e = O({
+async function qt(t) {
+  const e = A({
     items: t.items
   });
   return await M(t.workspacePath, e), e.items;
 }
-async function lt(t) {
-  const e = V(t);
-  try {
-    const r = await A(e, "utf-8");
-    return E(JSON.parse(r));
-  } catch (r) {
-    if (r.code === "ENOENT") {
-      const n = E({
-        items: B
-      });
-      return await x(t, n), n;
-    }
-    throw r;
-  }
-}
-async function x(t, e) {
-  const r = w(t);
-  await m(r, { recursive: !0 }), await h(
-    V(t),
-    JSON.stringify(E(e), null, 2),
-    "utf-8"
-  );
-}
-async function $t(t, e) {
-  const r = await lt(t), n = E({
-    items: [...r.items, ...e]
-  });
-  await x(t, n);
-}
-async function Ht(t) {
-  return (await lt(t)).items;
-}
-async function Yt(t) {
-  const e = E({
-    items: t.items
-  });
-  return await x(t.workspacePath, e), e.items;
-}
-function Bt() {
-  s.handle(i.getBootstrap, async () => ({ config: await N() })), s.handle(
+function Gt() {
+  s.handle(i.getBootstrap, async () => ({ config: await O() })), s.handle(
     i.setJournalHeatmapEnabled,
-    (t, e) => Ot(e)
+    (t, e) => bt(e)
+  ), s.handle(
+    i.setDayStartHour,
+    (t, e) => At(e)
   ), s.handle(
     i.setFrontmatterVisibility,
-    (t, e) => Et(e)
+    (t, e) => vt(e)
   ), s.handle(i.setWindowDirtyState, (t, e) => {
-    L = e.isDirty;
+    D = e.isDirty;
   }), s.handle(i.chooseWorkspace, async () => {
-    const t = await N(), e = {
+    const t = await O(), e = {
       title: "选择日记目录",
       buttonLabel: "选择这个目录",
       properties: ["openDirectory"]
-    }, r = l ? await T.showOpenDialog(l, e) : await T.showOpenDialog(e);
+    }, r = l ? await C.showOpenDialog(l, e) : await C.showOpenDialog(e);
     if (r.canceled || r.filePaths.length === 0)
       return {
         canceled: !0,
         workspacePath: null,
         config: t
       };
-    const n = r.filePaths[0], a = At(n, t);
-    return await I(a), {
+    const n = r.filePaths[0], a = kt(n, t);
+    return await N(a), {
       canceled: !1,
       workspacePath: n,
       config: a
     };
-  }), s.handle(i.getWorkspaceTags, (t, e) => Ft(e)), s.handle(i.setWorkspaceTags, (t, e) => Mt(e)), s.handle(i.getWorkspaceWeatherOptions, (t, e) => Rt(e)), s.handle(
+  }), s.handle(i.getWorkspaceTags, (t, e) => Rt(e)), s.handle(i.setWorkspaceTags, (t, e) => Ht(e)), s.handle(i.getWorkspaceWeatherOptions, (t, e) => $t(e)), s.handle(
     i.setWorkspaceWeatherOptions,
-    (t, e) => zt(e)
-  ), s.handle(i.getWorkspaceLocationOptions, (t, e) => Ht(e)), s.handle(
-    i.setWorkspaceLocationOptions,
     (t, e) => Yt(e)
-  ), s.handle(i.readJournalEntry, (t, e) => st(e)), s.handle(i.createJournalEntry, (t, e) => St(e)), s.handle(i.saveJournalEntryBody, (t, e) => Tt(e)), s.handle(
+  ), s.handle(i.getWorkspaceLocationOptions, (t, e) => Ut(e)), s.handle(
+    i.setWorkspaceLocationOptions,
+    (t, e) => qt(e)
+  ), s.handle(i.readJournalEntry, (t, e) => it(e)), s.handle(i.createJournalEntry, (t, e) => jt(e)), s.handle(i.saveJournalEntryBody, (t, e) => Jt(e)), s.handle(
     i.saveJournalEntryMetadata,
-    (t, e) => jt(e)
-  ), s.handle(i.getJournalMonthActivity, (t, e) => Ct(e));
+    (t, e) => It(e)
+  ), s.handle(i.getJournalMonthActivity, (t, e) => xt(e));
 }
-function dt() {
-  ft.setApplicationMenu(null), L = !1, k = !1, l = new z({
+function ft() {
+  pt.setApplicationMenu(null), D = !1, S = !1, l = new H({
     width: 1440,
     height: 1e3,
     minWidth: 1080,
     minHeight: 720,
-    icon: mt,
+    icon: wt,
     title: "dAiry",
     backgroundColor: "#f7f7f4",
     webPreferences: {
-      preload: o.join(H, "preload.mjs")
+      preload: o.join($, "preload.mjs")
     }
-  }), C ? l.loadURL(C) : l.loadFile(o.join(q, "index.html")), l.on("close", async (t) => {
-    if (k || !L || !l)
+  }), J ? l.loadURL(J) : l.loadFile(o.join(q, "index.html")), l.on("close", async (t) => {
+    if (S || !D || !l)
       return;
     t.preventDefault();
-    const { response: e } = await T.showMessageBox(l, {
+    const { response: e } = await C.showMessageBox(l, {
       type: "warning",
       buttons: ["仍然关闭", "取消"],
       defaultId: 1,
@@ -670,22 +689,22 @@ function dt() {
       detail: "如果现在关闭窗口，未保存的修改将会丢失。",
       noLink: !0
     });
-    e === 0 && (k = !0, l.close());
+    e === 0 && (S = !0, l.close());
   }), l.on("closed", () => {
-    L = !1, k = !1, l = null;
+    D = !1, S = !1, l = null;
   });
 }
-g.on("window-all-closed", () => {
-  process.platform !== "darwin" && (g.quit(), l = null);
+m.on("window-all-closed", () => {
+  process.platform !== "darwin" && (m.quit(), l = null);
 });
-g.on("activate", () => {
-  z.getAllWindows().length === 0 && dt();
+m.on("activate", () => {
+  H.getAllWindows().length === 0 && ft();
 });
-g.whenReady().then(() => {
-  Bt(), dt();
+m.whenReady().then(() => {
+  Gt(), ft();
 });
 export {
-  Kt as MAIN_DIST,
+  Vt as MAIN_DIST,
   q as RENDERER_DIST,
-  C as VITE_DEV_SERVER_URL
+  J as VITE_DEV_SERVER_URL
 };

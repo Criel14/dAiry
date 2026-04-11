@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import SettingsInfoTip from './SettingsInfoTip.vue'
 import StringListEditor from './StringListEditor.vue'
@@ -16,6 +16,9 @@ const props = defineProps<{
   journalHeatmapEnabled: boolean
   isSavingJournalHeatmap: boolean
   heatmapSaveMessage: string
+  dayStartHour: number
+  isSavingDayStartHour: boolean
+  dayStartHourSaveMessage: string
   frontmatterVisibility: FrontmatterVisibilityConfig
   isSavingFrontmatterVisibility: boolean
   frontmatterVisibilitySaveMessage: string
@@ -26,8 +29,9 @@ const props = defineProps<{
   workspaceLibrariesSaveMessage: string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   'update:journalHeatmapEnabled': [value: boolean]
+  'update:dayStartHour': [value: number]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
   saveWorkspaceLibraries: [
     value: {
@@ -45,6 +49,7 @@ const settingsSections: SettingsSectionItem[] = [
   { id: 'workspace', label: '工作区' },
 ]
 
+const dayStartHourOptions = [0, 1, 2, 3, 4, 5, 6]
 const activeSectionId = ref<SettingsSectionId>('appearance')
 const draftTags = ref<string[]>([])
 const draftWeatherOptions = ref<string[]>([])
@@ -82,6 +87,15 @@ const isWorkspaceLibrariesDirty = computed(() => {
     JSON.stringify(draftLocationOptions.value) !== JSON.stringify(props.workspaceLocationOptions)
   )
 })
+
+function handleDayStartHourChange(event: Event) {
+  const target = event.target
+  if (!(target instanceof HTMLSelectElement)) {
+    return
+  }
+
+  emit('update:dayStartHour', Number(target.value))
+}
 </script>
 
 <template>
@@ -143,6 +157,39 @@ const isWorkspaceLibrariesDirty = computed(() => {
       </div>
 
       <div v-else-if="activeSectionId === 'display'" class="settings-section">
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">写作时间</span>
+          </div>
+          <p class="panel-description">根据你的作息时间做出调整。</p>
+
+          <div class="setting-row setting-row--compact">
+            <div class="setting-copy">
+              <div class="setting-title-row">
+                <strong class="panel-value">新一天开始时间</strong>
+                <SettingsInfoTip text="设置后，在这个时间之前写的内容仍归到前一天。" />
+              </div>
+              <p class="panel-description">可选范围为 0 点到 6 点，将凌晨的时间也划在前一天。</p>
+            </div>
+
+            <select
+              class="setting-select"
+              :value="dayStartHour"
+              :disabled="isSavingDayStartHour"
+              aria-label="选择新一天开始时间"
+              @change="handleDayStartHourChange"
+            >
+              <option v-for="hour in dayStartHourOptions" :key="hour" :value="hour">
+                {{ hour }} 点
+              </option>
+            </select>
+          </div>
+
+          <p v-if="dayStartHourSaveMessage" class="setting-feedback">
+            {{ dayStartHourSaveMessage }}
+          </p>
+        </section>
+
         <section class="settings-card">
           <div class="panel-heading">
             <span class="panel-label">日记信息展示</span>
@@ -558,6 +605,23 @@ const isWorkspaceLibrariesDirty = computed(() => {
   padding-top: 0.5rem;
 }
 
+.setting-select {
+  min-width: 7.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fffdf8;
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.setting-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .switch-button {
   display: inline-flex;
   align-items: center;
@@ -707,5 +771,10 @@ const isWorkspaceLibrariesDirty = computed(() => {
   .library-actions {
     justify-content: center;
   }
+
+  .setting-select {
+    width: 100%;
+  }
+
 }
 </style>
