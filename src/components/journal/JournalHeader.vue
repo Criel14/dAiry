@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import type { EditorMode } from '../types/ui'
+import type { EditorMode } from '../../types/ui'
 
 defineProps<{
   selectedDateText: string

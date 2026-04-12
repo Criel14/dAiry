@@ -38,7 +38,7 @@
 
 ```text
 dAiry/
-  src/
+ src/
     main.ts
     App.vue
     style.css
@@ -46,6 +46,10 @@ dAiry/
     assets/
     utils/
     components/
+      form/
+      journal/
+      settings/
+      workspace/
 
   electron/
     main.ts
@@ -66,10 +70,14 @@ dAiry/
 
 - `src/`：渲染进程代码，负责界面、状态、交互
 - `src/App.vue`：当前首页主容器，负责左侧导航、右侧日记区与设置页切换
-- `src/components/JournalCalendar.vue`：当前自定义月历组件
-- `src/components/JournalEditorPanel.vue`：当前正文编辑与 Markdown 预览面板
-- `src/components/JournalMetadataPanel.vue`：当前日记信息面板，负责元数据编辑与“自动整理”触发
-- `src/components/SettingsPanel.vue`：当前设置页主体，负责显示类设置、写作时间设置、候选词库维护与大模型配置
+- `src/components/journal/`：日记主流程相关组件目录，当前包含月历、顶部栏、正文编辑与元数据面板
+- `src/components/journal/JournalCalendar.vue`：当前自定义月历组件
+- `src/components/journal/JournalEditorPanel.vue`：当前正文编辑与 Markdown 预览面板
+- `src/components/journal/JournalMetadataPanel.vue`：当前日记信息面板，负责元数据编辑与“自动整理”触发
+- `src/components/settings/`：设置页相关组件目录，包含设置页主体、设置页头和分组子组件
+- `src/components/settings/SettingsPanel.vue`：当前设置页主体，负责分组切换与设置项容器编排
+- `src/components/form/`：表单输入类复用组件目录，当前包含字符串列表、候选输入和标签输入
+- `src/components/workspace/`：工作区侧栏相关组件目录
 - `src/types/`：渲染进程与主进程共享的类型定义
 - `src/utils/`：预留给后续可复用工具函数，当前保持轻量即可
 - `electron/main.ts`：Electron 主进程入口，负责应用启动与模块组装

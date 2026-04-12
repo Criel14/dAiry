@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import MarkdownIt from 'markdown-it'
-import type { EditorMode, ViewState } from '../types/ui'
+import type { EditorMode, ViewState } from '../../types/ui'
 
 const markdown = new MarkdownIt({
   html: false,

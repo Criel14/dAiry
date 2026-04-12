@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
-import TagInput from './TagInput.vue'
-import SuggestionInput from './SuggestionInput.vue'
-import type { FrontmatterVisibilityConfig, JournalEntryMetadata } from '../types/dairy'
+import TagInput from '../form/TagInput.vue'
+import SuggestionInput from '../form/SuggestionInput.vue'
+import type { FrontmatterVisibilityConfig, JournalEntryMetadata } from '../../types/dairy'
 
 const props = defineProps<{
   metadata: JournalEntryMetadata

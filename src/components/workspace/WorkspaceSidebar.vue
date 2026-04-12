@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import JournalCalendar from './JournalCalendar.vue'
+import JournalCalendar from '../journal/JournalCalendar.vue'
 
 defineProps<{
   workspacePath: string | null

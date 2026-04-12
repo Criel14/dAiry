@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
-import WorkspaceSidebar from './components/WorkspaceSidebar.vue'
-import JournalHeader from './components/JournalHeader.vue'
-import SettingsHeader from './components/SettingsHeader.vue'
-import SettingsPanel from './components/SettingsPanel.vue'
-import JournalEditorPanel from './components/JournalEditorPanel.vue'
-import JournalMetadataPanel from './components/JournalMetadataPanel.vue'
+import WorkspaceSidebar from './components/workspace/WorkspaceSidebar.vue'
+import JournalHeader from './components/journal/JournalHeader.vue'
+import SettingsHeader from './components/settings/SettingsHeader.vue'
+import SettingsPanel from './components/settings/SettingsPanel.vue'
+import JournalEditorPanel from './components/journal/JournalEditorPanel.vue'
+import JournalMetadataPanel from './components/journal/JournalMetadataPanel.vue'
 import type {
   AiSettings,
   AiSettingsStatus,
