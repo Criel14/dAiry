@@ -14,16 +14,23 @@ const props = defineProps<{
   isSaving: boolean
   canSave: boolean
   statusMessage: string
+  isGeneratingInsights: boolean
+  canGenerateInsights: boolean
+  insightsStatusMessage: string
 }>()
 
 const emit = defineEmits<{
   'update:metadata': [value: JournalEntryMetadata]
   save: []
+  generateInsights: []
 }>()
 
 const isCollapsed = ref(true)
 const showRecordSection = computed(() => props.visibility.weather || props.visibility.location)
 const showContentSection = computed(() => props.visibility.summary || props.visibility.tags)
+const generateButtonText = computed(() =>
+  props.isGeneratingInsights ? '正在整理' : '自动整理',
+)
 
 function updateField(field: keyof JournalEntryMetadata, value: string | string[]) {
   emit('update:metadata', {
@@ -63,7 +70,7 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
             <SuggestionInput
               :model-value="metadata.weather"
               :suggestions="suggestedWeatherOptions"
-              :disabled="isSaving"
+              :disabled="isSaving || isGeneratingInsights"
               placeholder="选择常见天气，或手动输入"
               toggle-aria-label="切换天气候选"
               @update:model-value="updateField('weather', $event)"
@@ -75,7 +82,7 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
             <SuggestionInput
               :model-value="metadata.location"
               :suggestions="suggestedLocationOptions"
-              :disabled="isSaving"
+              :disabled="isSaving || isGeneratingInsights"
               placeholder="选择常用地点，或手动输入"
               toggle-aria-label="切换地点候选"
               @update:model-value="updateField('location', $event)"
@@ -85,7 +92,12 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
       </section>
 
       <section v-if="showContentSection" class="metadata-card">
-        <p class="group-title">内容整理</p>
+        <div class="content-header">
+          <p class="group-title">内容整理</p>
+          <span v-if="insightsStatusMessage" class="metadata-feedback metadata-feedback--warm">
+            {{ insightsStatusMessage }}
+          </span>
+        </div>
 
         <div class="field-grid field-grid--stacked">
           <label v-if="visibility.summary" class="field">
@@ -93,8 +105,9 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
             <textarea
               class="field-input field-textarea"
               :value="metadata.summary"
+              :disabled="isSaving || isGeneratingInsights"
               rows="2"
-              placeholder="先手动填写，后续这里可以接 AI 生成"
+              placeholder="可手动填写，也可以点击“自动整理”生成"
               @input="updateField('summary', ($event.target as HTMLTextAreaElement).value)"
             />
           </label>
@@ -104,7 +117,7 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
             <TagInput
               :model-value="metadata.tags"
               :suggestions="suggestedTags"
-              :disabled="isSaving"
+              :disabled="isSaving || isGeneratingInsights"
               @update:model-value="updateField('tags', $event)"
             />
           </div>
@@ -113,6 +126,15 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
     </div>
 
     <footer v-if="!isCollapsed" class="metadata-footer">
+      <button
+        class="ghost-button"
+        type="button"
+        :disabled="!canGenerateInsights"
+        @click="$emit('generateInsights')"
+      >
+        {{ generateButtonText }}
+      </button>
+
       <button class="save-button" type="button" :disabled="!canSave" @click="$emit('save')">
         {{ isSaving ? '正在保存信息' : '保存信息' }}
       </button>
@@ -152,15 +174,21 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   font-size: 1.15rem;
 }
 
-.metadata-header-actions {
+.metadata-header-actions,
+.content-header {
   display: flex;
   gap: 0.7rem;
   align-items: center;
+  justify-content: space-between;
 }
 
 .metadata-feedback {
   color: var(--color-text-soft);
   font-size: 0.88rem;
+}
+
+.metadata-feedback--warm {
+  color: #8a7242;
 }
 
 .ghost-button,
@@ -191,12 +219,13 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   color: #4f4630;
 }
 
-.ghost-button:hover,
+.ghost-button:hover:not(:disabled),
 .save-button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
 }
 
+.ghost-button:disabled,
 .save-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -252,6 +281,11 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   border-color: var(--color-border-strong);
 }
 
+.field-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .field-textarea {
   min-height: 5rem;
   resize: vertical;
@@ -259,6 +293,7 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
 
 .metadata-footer {
   display: flex;
+  gap: 0.75rem;
   justify-content: flex-end;
 }
 
@@ -270,13 +305,11 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
 
 @media (max-width: 768px) {
   .metadata-header,
-  .metadata-header-actions {
+  .metadata-header-actions,
+  .content-header,
+  .metadata-footer {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .metadata-footer {
-    justify-content: stretch;
   }
 }
 </style>

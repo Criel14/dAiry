@@ -3,11 +3,14 @@ import type {
   AppBootstrap,
   DayStartHourPreferenceInput,
   FrontmatterVisibilityInput,
+  GenerateDailyInsightsInput,
   JournalEntryBodySaveInput,
   JournalEntryMetadataSaveInput,
   JournalEntryQuery,
   JournalHeatmapPreferenceInput,
   JournalMonthActivityQuery,
+  SaveAiApiKeyInput,
+  SaveAiSettingsInput,
   WindowDirtyStateInput,
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
@@ -20,6 +23,9 @@ import {
   setJournalHeatmapEnabled,
   writeAppConfig,
 } from './app-config'
+import { getAiSettingsStatus, saveAiSettings } from './ai-config'
+import { saveAiApiKey } from './ai-secrets'
+import { generateDailyInsights } from './ai'
 import { IPC_CHANNELS } from './constants'
 import {
   createJournalEntry,
@@ -42,6 +48,18 @@ export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.getBootstrap, async (): Promise<AppBootstrap> => {
     const config = await readAppConfig()
     return { config }
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getAiSettingsStatus, () => {
+    return getAiSettingsStatus()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.saveAiSettings, (_event, input: SaveAiSettingsInput) => {
+    return saveAiSettings(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.saveAiApiKey, (_event, input: SaveAiApiKeyInput) => {
+    return saveAiApiKey(input)
   })
 
   ipcMain.handle(
@@ -148,5 +166,9 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.getJournalMonthActivity, (_event, input: JournalMonthActivityQuery) => {
     return getJournalMonthActivity(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.generateDailyInsights, (_event, input: GenerateDailyInsightsInput) => {
+    return generateDailyInsights(input)
   })
 }

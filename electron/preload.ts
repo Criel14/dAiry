@@ -5,12 +5,16 @@ import type { DairyApi } from '../src/types/dairy'
 // 这样后面排查权限边界或审计能力时会轻松很多。
 const dairyApi: DairyApi = {
   getAppBootstrap: () => ipcRenderer.invoke('app:get-bootstrap'),
+  getAiSettingsStatus: () => ipcRenderer.invoke('app:get-ai-settings-status'),
+  saveAiSettings: (input) => ipcRenderer.invoke('app:save-ai-settings', input),
+  saveAiApiKey: (input) => ipcRenderer.invoke('app:save-ai-api-key', input),
   chooseWorkspace: () => ipcRenderer.invoke('workspace:choose'),
   readJournalEntry: (input) => ipcRenderer.invoke('journal:read-entry', input),
   createJournalEntry: (input) => ipcRenderer.invoke('journal:create-entry', input),
   saveJournalEntryBody: (input) => ipcRenderer.invoke('journal:save-entry-body', input),
   saveJournalEntryMetadata: (input) => ipcRenderer.invoke('journal:save-entry-metadata', input),
   getJournalMonthActivity: (input) => ipcRenderer.invoke('journal:get-month-activity', input),
+  generateDailyInsights: (input) => ipcRenderer.invoke('journal:generate-daily-insights', input),
   getWorkspaceTags: (workspacePath) => ipcRenderer.invoke('workspace:get-tags', workspacePath),
   getWorkspaceWeatherOptions: (workspacePath) =>
     ipcRenderer.invoke('workspace:get-weather-options', workspacePath),

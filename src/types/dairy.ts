@@ -1,4 +1,19 @@
-﻿export interface AppConfig {
+export type AiProviderType = 'openai' | 'deepseek' | 'alibaba' | 'openai-compatible'
+
+export interface AiSettings {
+  providerType: AiProviderType
+  baseURL: string
+  model: string
+  timeoutMs: number
+}
+
+export interface AiSettingsStatus {
+  settings: AiSettings
+  hasApiKey: boolean
+  isConfigured: boolean
+}
+
+export interface AppConfig {
   lastOpenedWorkspace: string | null
   recentWorkspaces: string[]
   ui: {
@@ -7,6 +22,7 @@
     dayStartHour: number
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
+  ai: AiSettings
 }
 
 export interface FrontmatterVisibilityConfig {
@@ -96,6 +112,32 @@ export interface WorkspaceStringListInput {
   items: string[]
 }
 
+export interface SaveAiSettingsInput {
+  providerType: AiProviderType
+  baseURL: string
+  model: string
+  timeoutMs: number
+}
+
+export interface SaveAiApiKeyInput {
+  providerType: AiProviderType
+  apiKey: string
+}
+
+export interface GenerateDailyInsightsInput {
+  workspacePath: string
+  date: string
+  body: string
+  workspaceTags: string[]
+}
+
+export interface GenerateDailyInsightsResult {
+  summary: string
+  tags: string[]
+  existingTags: string[]
+  newTags: string[]
+}
+
 export interface WindowDirtyStateInput {
   isDirty: boolean
 }
@@ -121,5 +163,11 @@ export interface DairyApi {
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
   setDayStartHour: (input: DayStartHourPreferenceInput) => Promise<AppConfig>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
+  getAiSettingsStatus: () => Promise<AiSettingsStatus>
+  saveAiSettings: (input: SaveAiSettingsInput) => Promise<AiSettingsStatus>
+  saveAiApiKey: (input: SaveAiApiKeyInput) => Promise<AiSettingsStatus>
+  generateDailyInsights: (
+    input: GenerateDailyInsightsInput,
+  ) => Promise<GenerateDailyInsightsResult>
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
 }

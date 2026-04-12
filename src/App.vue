@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import WorkspaceSidebar from './components/WorkspaceSidebar.vue'
@@ -8,6 +8,8 @@ import SettingsPanel from './components/SettingsPanel.vue'
 import JournalEditorPanel from './components/JournalEditorPanel.vue'
 import JournalMetadataPanel from './components/JournalMetadataPanel.vue'
 import type {
+  AiSettings,
+  AiSettingsStatus,
   AppConfig,
   FrontmatterVisibilityConfig,
   JournalEntryMetadata,
@@ -23,6 +25,19 @@ function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
     location: true,
     summary: true,
     tags: true,
+  }
+}
+
+function createDefaultAiSettingsStatus(): AiSettingsStatus {
+  return {
+    settings: {
+      providerType: 'openai-compatible',
+      baseURL: 'https://api.openai.com/v1',
+      model: 'gpt-4.1-mini',
+      timeoutMs: 30000,
+    },
+    hasApiKey: false,
+    isConfigured: false,
   }
 }
 
@@ -111,20 +126,27 @@ const metadataDraft = ref<JournalEntryMetadata>(createEmptyMetadata())
 const savedMetadataSnapshot = ref(metadataToSnapshot(createEmptyMetadata()))
 const statusMessage = ref('')
 const metadataStatusMessage = ref('')
+const dailyInsightsStatusMessage = ref('')
 const heatmapSaveMessage = ref('')
 const dayStartHourSaveMessage = ref('')
 const frontmatterVisibilitySaveMessage = ref('')
 const workspaceLibrariesSaveMessage = ref('')
+const aiSettingsSaveMessage = ref('')
+const aiApiKeySaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
 const isSavingMetadata = ref(false)
+const isGeneratingDailyInsights = ref(false)
 const isSavingJournalHeatmap = ref(false)
 const isSavingDayStartHour = ref(false)
 const isSavingFrontmatterVisibility = ref(false)
 const isSavingWorkspaceLibraries = ref(false)
+const isSavingAiSettings = ref(false)
+const isSavingAiApiKey = ref(false)
 const isJournalHeatmapEnabled = ref(false)
 const dayStartHour = ref(0)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
+const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
 const lastSavedAt = ref<string | null>(null)
 let loadSequence = 0
 
@@ -146,10 +168,26 @@ const canCreateTodayEntry = computed(
 )
 const isJournalReady = computed(() => viewState.value === 'ready')
 const canSaveEntry = computed(
-  () => viewState.value === 'ready' && isBodyDirty.value && !isSavingEntry.value,
+  () =>
+    viewState.value === 'ready' &&
+    isBodyDirty.value &&
+    !isSavingEntry.value &&
+    !isGeneratingDailyInsights.value,
 )
 const canSaveMetadata = computed(
-  () => viewState.value === 'ready' && isMetadataDirty.value && !isSavingMetadata.value,
+  () =>
+    viewState.value === 'ready' &&
+    isMetadataDirty.value &&
+    !isSavingMetadata.value &&
+    !isGeneratingDailyInsights.value,
+)
+const canGenerateDailyInsights = computed(
+  () =>
+    viewState.value === 'ready' &&
+    Boolean(editorContent.value.trim()) &&
+    aiSettingsStatus.value.isConfigured &&
+    !isSavingMetadata.value &&
+    !isGeneratingDailyInsights.value,
 )
 const hasVisibleMetadataFields = computed(
   () =>
@@ -165,6 +203,10 @@ const saveMetaText = computed(() => {
 
   if (isSavingEntry.value || isSavingMetadata.value) {
     return '正在保存...'
+  }
+
+  if (isGeneratingDailyInsights.value) {
+    return '大模型整理中...'
   }
 
   if (isDirty.value) {
@@ -200,8 +242,13 @@ async function bootstrapApp() {
   viewState.value = 'loading'
 
   try {
-    const bootstrap = await window.dairy.getAppBootstrap()
+    const [bootstrap, nextAiSettingsStatus] = await Promise.all([
+      window.dairy.getAppBootstrap(),
+      window.dairy.getAiSettingsStatus(),
+    ])
+
     syncConfigState(bootstrap.config)
+    aiSettingsStatus.value = nextAiSettingsStatus
     selectedDate.value = todayText.value
 
     if (!workspacePath.value) {
@@ -240,6 +287,7 @@ function resetTransientState() {
   savedMetadataSnapshot.value = metadataToSnapshot(createEmptyMetadata())
   statusMessage.value = ''
   metadataStatusMessage.value = ''
+  dailyInsightsStatusMessage.value = ''
   lastSavedAt.value = null
 }
 
@@ -291,6 +339,7 @@ function applyReadyState(entry: JournalEntryReadResult) {
   savedMetadataSnapshot.value = metadataToSnapshot(nextMetadata)
   statusMessage.value = ''
   metadataStatusMessage.value = ''
+  dailyInsightsStatusMessage.value = ''
   lastSavedAt.value = entry.frontmatter.updatedAt
 }
 
@@ -408,7 +457,9 @@ async function loadEntryForDate(dateText: string) {
 
   const currentLoad = ++loadSequence
   const shouldShowLoadingState =
-    viewState.value === 'loading' || viewState.value === 'error' || viewState.value === 'no-workspace'
+    viewState.value === 'loading' ||
+    viewState.value === 'error' ||
+    viewState.value === 'no-workspace'
 
   if (shouldShowLoadingState) {
     viewState.value = 'loading'
@@ -416,6 +467,7 @@ async function loadEntryForDate(dateText: string) {
 
   statusMessage.value = ''
   metadataStatusMessage.value = ''
+  dailyInsightsStatusMessage.value = ''
 
   try {
     const result = await window.dairy.readJournalEntry({
@@ -541,12 +593,65 @@ async function handleSaveMetadata() {
   }
 }
 
+async function handleGenerateDailyInsights() {
+  if (!workspacePath.value || viewState.value !== 'ready') {
+    return
+  }
+
+  if (!editorContent.value.trim()) {
+    dailyInsightsStatusMessage.value = '正文为空，暂时无法自动整理。'
+    return
+  }
+
+  if (!aiSettingsStatus.value.isConfigured) {
+    dailyInsightsStatusMessage.value = '请先在设置页完成大模型配置和 API Key 保存。'
+    return
+  }
+
+  if (metadataDraft.value.summary.trim() || metadataDraft.value.tags.length > 0) {
+    const shouldContinue = window.confirm(
+      '自动整理会覆盖当前的一句话总结和标签，是否继续？',
+    )
+    if (!shouldContinue) {
+      return
+    }
+  }
+
+  isGeneratingDailyInsights.value = true
+  dailyInsightsStatusMessage.value = ''
+
+  try {
+    const result = await window.dairy.generateDailyInsights({
+      workspacePath: `${workspacePath.value}`,
+      date: `${selectedDate.value}`,
+      body: `${editorContent.value}`,
+      workspaceTags: [...workspaceTags.value],
+    })
+
+    metadataDraft.value = cloneMetadata({
+      ...metadataDraft.value,
+      summary: result.summary,
+      tags: result.tags,
+    })
+
+    dailyInsightsStatusMessage.value =
+      result.newTags.length > 0
+        ? `已生成总结和标签。保存信息后会新增 ${result.newTags.length} 个候选标签。`
+        : '已生成总结和标签。'
+  } catch (error) {
+    dailyInsightsStatusMessage.value =
+      error instanceof Error ? error.message : '自动整理失败，请稍后重试。'
+  } finally {
+    isGeneratingDailyInsights.value = false
+  }
+}
+
 async function handleSaveAll() {
   if (!workspacePath.value || viewState.value !== 'ready') {
     return
   }
 
-  if (isSavingEntry.value || isSavingMetadata.value) {
+  if (isSavingEntry.value || isSavingMetadata.value || isGeneratingDailyInsights.value) {
     return
   }
 
@@ -572,6 +677,7 @@ function handleUpdateMetadata(nextMetadata: JournalEntryMetadata) {
     tags: [...new Set(nextMetadata.tags.map((tag) => tag.trim()).filter(Boolean))],
   })
   metadataStatusMessage.value = ''
+  dailyInsightsStatusMessage.value = ''
 }
 
 function setEditorMode(mode: EditorMode) {
@@ -698,6 +804,45 @@ async function handleSaveWorkspaceLibraries(input: {
     isSavingWorkspaceLibraries.value = false
   }
 }
+
+async function handleSaveAiSettings(nextSettings: AiSettings) {
+  isSavingAiSettings.value = true
+  aiSettingsSaveMessage.value = ''
+
+  try {
+    const nextStatus = await window.dairy.saveAiSettings({
+      providerType: nextSettings.providerType,
+      baseURL: nextSettings.baseURL,
+      model: nextSettings.model,
+      timeoutMs: nextSettings.timeoutMs,
+    })
+    aiSettingsStatus.value = nextStatus
+    aiSettingsSaveMessage.value = nextStatus.hasApiKey
+      ? '大模型配置已保存。'
+      : '大模型配置已保存，请继续设置当前 provider 的 API Key。'
+  } catch (error) {
+    aiSettingsSaveMessage.value =
+      error instanceof Error ? error.message : '保存大模型配置失败，请稍后重试。'
+  } finally {
+    isSavingAiSettings.value = false
+  }
+}
+
+async function handleSaveAiApiKey(input: { providerType: AiSettings['providerType']; apiKey: string }) {
+  isSavingAiApiKey.value = true
+  aiApiKeySaveMessage.value = ''
+
+  try {
+    const nextStatus = await window.dairy.saveAiApiKey(input)
+    aiSettingsStatus.value = nextStatus
+    aiApiKeySaveMessage.value = 'API Key 已保存。'
+  } catch (error) {
+    aiApiKeySaveMessage.value =
+      error instanceof Error ? error.message : '保存 API Key 失败，请稍后重试。'
+  } finally {
+    isSavingAiApiKey.value = false
+  }
+}
 </script>
 
 <template>
@@ -737,8 +882,12 @@ async function handleSaveWorkspaceLibraries(input: {
           :is-saving="isSavingMetadata"
           :can-save="canSaveMetadata"
           :status-message="metadataStatusMessage"
+          :is-generating-insights="isGeneratingDailyInsights"
+          :can-generate-insights="canGenerateDailyInsights"
+          :insights-status-message="dailyInsightsStatusMessage"
           @update:metadata="handleUpdateMetadata"
           @save="handleSaveMetadata"
+          @generate-insights="handleGenerateDailyInsights"
         />
       </section>
 
@@ -761,10 +910,17 @@ async function handleSaveWorkspaceLibraries(input: {
         :workspace-location-options="workspaceLocationOptions"
         :is-saving-workspace-libraries="isSavingWorkspaceLibraries"
         :workspace-libraries-save-message="workspaceLibrariesSaveMessage"
+        :ai-settings-status="aiSettingsStatus"
+        :is-saving-ai-settings="isSavingAiSettings"
+        :ai-settings-save-message="aiSettingsSaveMessage"
+        :is-saving-ai-api-key="isSavingAiApiKey"
+        :ai-api-key-save-message="aiApiKeySaveMessage"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
+        @save-ai-settings="handleSaveAiSettings"
+        @save-ai-api-key="handleSaveAiApiKey"
       />
 
       <JournalEditorPanel

@@ -2,13 +2,15 @@ import path from 'node:path'
 import { app } from 'electron'
 import { mkdir, stat, readFile, writeFile } from 'node:fs/promises'
 import type {
+  AiSettings,
   AppConfig,
   DayStartHourPreferenceInput,
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
+  SaveAiSettingsInput,
 } from '../../src/types/dairy'
-import { DEFAULT_APP_CONFIG } from './constants'
+import { DEFAULT_AI_SETTINGS, DEFAULT_APP_CONFIG } from './constants'
 
 function getConfigFilePath() {
   return path.join(app.getPath('userData'), 'config.json')
@@ -24,6 +26,50 @@ function normalizeDayStartHour(rawValue: unknown) {
   }
 
   return rawValue
+}
+
+function normalizeTimeoutMs(rawValue: unknown) {
+  void rawValue
+  return DEFAULT_AI_SETTINGS.timeoutMs
+}
+
+function normalizeBaseURL(rawValue: unknown, fallbackBaseURL = DEFAULT_AI_SETTINGS.baseURL) {
+  if (typeof rawValue !== 'string') {
+    return fallbackBaseURL
+  }
+
+  const normalizedValue = rawValue.trim().replace(/\/+$/, '')
+  return normalizedValue || fallbackBaseURL
+}
+
+function normalizeModel(rawValue: unknown, fallbackModel = DEFAULT_AI_SETTINGS.model) {
+  if (typeof rawValue !== 'string') {
+    return fallbackModel
+  }
+
+  const normalizedValue = rawValue.trim()
+  return normalizedValue || fallbackModel
+}
+
+function normalizeProviderType(rawValue: unknown): AiSettings['providerType'] {
+  return rawValue === 'openai' ||
+    rawValue === 'deepseek' ||
+    rawValue === 'alibaba' ||
+    rawValue === 'openai-compatible'
+    ? rawValue
+    : DEFAULT_AI_SETTINGS.providerType
+}
+
+export function normalizeAiSettings(rawValue: Partial<AiSettings> | null | undefined): AiSettings {
+  const providerType = normalizeProviderType(rawValue?.providerType)
+  const providerDefaults = getDefaultAiSettings(providerType)
+
+  return {
+    providerType,
+    baseURL: normalizeBaseURL(rawValue?.baseURL, providerDefaults.baseURL),
+    model: normalizeModel(rawValue?.model, providerDefaults.model),
+    timeoutMs: normalizeTimeoutMs(rawValue?.timeoutMs),
+  }
 }
 
 function normalizeFrontmatterVisibility(
@@ -53,6 +99,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
+  const ai = normalizeAiSettings(config.ai)
 
   return {
     lastOpenedWorkspace:
@@ -64,6 +111,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       dayStartHour,
       frontmatterVisibility,
     },
+    ai,
   }
 }
 
@@ -125,6 +173,38 @@ export async function writeAppConfig(config: AppConfig) {
   await writeFile(getConfigFilePath(), JSON.stringify(config, null, 2), 'utf-8')
 }
 
+export function getDefaultAiSettings(
+  providerType: AiSettings['providerType'],
+): AiSettings {
+  switch (providerType) {
+    case 'openai':
+      return {
+        providerType,
+        baseURL: 'https://api.openai.com/v1',
+        model: 'gpt-4.1-mini',
+        timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
+      }
+    case 'deepseek':
+      return {
+        providerType,
+        baseURL: 'https://api.deepseek.com/v1',
+        model: 'deepseek-chat',
+        timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
+      }
+    case 'alibaba':
+      return {
+        providerType,
+        baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+        model: 'qwen-plus',
+        timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
+      }
+    default:
+      return {
+        ...DEFAULT_AI_SETTINGS,
+      }
+  }
+}
+
 export async function setJournalHeatmapEnabled(
   input: JournalHeatmapPreferenceInput,
 ): Promise<AppConfig> {
@@ -165,6 +245,17 @@ export async function setFrontmatterVisibility(
       ...currentConfig.ui,
       frontmatterVisibility: normalizeFrontmatterVisibility(input.visibility),
     },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setAiSettings(input: SaveAiSettingsInput): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ai: normalizeAiSettings(input),
   }
 
   await writeAppConfig(nextConfig)

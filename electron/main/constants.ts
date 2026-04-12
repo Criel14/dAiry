@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { AppConfig, JournalEntryMetadata } from '../../src/types/dairy'
+import type { AiSettings, AppConfig, JournalEntryMetadata } from '../../src/types/dairy'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -19,6 +19,9 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 export const IPC_CHANNELS = {
   getBootstrap: 'app:get-bootstrap',
+  getAiSettingsStatus: 'app:get-ai-settings-status',
+  saveAiSettings: 'app:save-ai-settings',
+  saveAiApiKey: 'app:save-ai-api-key',
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
   setDayStartHour: 'app:set-day-start-hour',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
@@ -35,7 +38,15 @@ export const IPC_CHANNELS = {
   saveJournalEntryBody: 'journal:save-entry-body',
   saveJournalEntryMetadata: 'journal:save-entry-metadata',
   getJournalMonthActivity: 'journal:get-month-activity',
+  generateDailyInsights: 'journal:generate-daily-insights',
 } as const
+
+export const DEFAULT_AI_SETTINGS: AiSettings = {
+  providerType: 'openai-compatible',
+  baseURL: 'https://api.openai.com/v1',
+  model: 'gpt-4.1-mini',
+  timeoutMs: 30_000,
+}
 
 export const DEFAULT_APP_CONFIG: AppConfig = {
   lastOpenedWorkspace: null,
@@ -51,6 +62,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
       tags: true,
     },
   },
+  ai: DEFAULT_AI_SETTINGS,
 }
 
 export const EMPTY_METADATA: JournalEntryMetadata = {
