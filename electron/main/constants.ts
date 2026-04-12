@@ -60,6 +60,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     frontmatterVisibility: {
       weather: true,
       location: true,
+      mood: true,
       summary: true,
       tags: true,
     },
@@ -70,6 +71,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
 export const EMPTY_METADATA: JournalEntryMetadata = {
   weather: '',
   location: '',
+  mood: 0,
   summary: '',
   tags: [],
 }

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import TagInput from '../form/TagInput.vue'
 import SuggestionInput from '../form/SuggestionInput.vue'
+import SettingsInfoTip from '../settings/SettingsInfoTip.vue'
 import type { FrontmatterVisibilityConfig, JournalEntryMetadata } from '../../types/dairy'
 
 const props = defineProps<{
@@ -27,16 +28,54 @@ const emit = defineEmits<{
 
 const isCollapsed = ref(true)
 const showRecordSection = computed(() => props.visibility.weather || props.visibility.location)
-const showContentSection = computed(() => props.visibility.summary || props.visibility.tags)
+const showContentSection = computed(
+  () => props.visibility.mood || props.visibility.summary || props.visibility.tags,
+)
 const generateButtonText = computed(() =>
   props.isGeneratingInsights ? '正在整理' : '自动整理',
 )
 
-function updateField(field: keyof JournalEntryMetadata, value: string | string[]) {
+const moodSummaryText = computed(() => {
+  return `${props.metadata.mood > 0 ? '+' : ''}${props.metadata.mood} · ${getMoodLabel(props.metadata.mood)}`
+})
+
+function getMoodLabel(value: number) {
+  if (value <= -4) {
+    return '很低落'
+  }
+
+  if (value <= -2) {
+    return '偏低落'
+  }
+
+  if (value <= 1) {
+    return '平稳'
+  }
+
+  if (value <= 3) {
+    return '偏积极'
+  }
+
+  return '很积极'
+}
+
+function updateField(
+  field: keyof JournalEntryMetadata,
+  value: string | string[] | number,
+) {
   emit('update:metadata', {
     ...props.metadata,
     [field]: value,
   })
+}
+
+function handleMoodInput(event: Event) {
+  const target = event.target
+  if (!(target instanceof HTMLInputElement)) {
+    return
+  }
+
+  updateField('mood', Number(target.value))
 }
 </script>
 
@@ -100,6 +139,37 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
         </div>
 
         <div class="field-grid field-grid--stacked">
+          <div v-if="visibility.mood" class="field field--mood">
+            <div class="field-label-row">
+              <span class="field-label">心情</span>
+              <SettingsInfoTip text="用 -5 到 5 记录这篇日记对应的整体情绪，0 表示平稳或中性。" />
+            </div>
+
+            <div class="mood-card">
+              <div class="mood-header">
+                <strong class="mood-value">{{ moodSummaryText }}</strong>
+              </div>
+
+              <input
+                class="mood-slider"
+                type="range"
+                min="-5"
+                max="5"
+                step="1"
+                :value="metadata.mood"
+                :disabled="isSaving || isGeneratingInsights"
+                aria-label="调整心情分数"
+                @input="handleMoodInput"
+              />
+
+              <div class="mood-scale">
+                <span>-5</span>
+                <span>0</span>
+                <span>5</span>
+              </div>
+            </div>
+          </div>
+
           <label v-if="visibility.summary" class="field">
             <span class="field-label">一句话总结</span>
             <textarea
@@ -166,6 +236,12 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-text-subtle);
+}
+
+.field-label-row {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
 }
 
 .metadata-title {
@@ -267,6 +343,10 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   gap: 0.45rem;
 }
 
+.field--mood {
+  gap: 0.45rem;
+}
+
 .field-input {
   min-height: 2.6rem;
   padding: 0.7rem 0.9rem;
@@ -291,6 +371,109 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   resize: vertical;
 }
 
+.mood-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem 0.8rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fdfbf5;
+}
+
+.mood-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mood-value {
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.mood-slider {
+  width: 100%;
+  margin: 0;
+  height: 1.25rem;
+  padding: 0;
+  border-radius: 999px;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.mood-slider:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.mood-slider::-webkit-slider-runnable-track {
+  height: 0.4rem;
+  border: 1px solid #eadfca;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #eadbcc 0%, #f3e5c6 52%, #e8ddcf 100%);
+}
+
+.mood-slider::-webkit-slider-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  margin-top: -0.32rem;
+  border: 1px solid #c8b47a;
+  border-radius: 50%;
+  background: #fffdf7;
+  box-shadow: 0 2px 6px rgba(95, 82, 42, 0.18);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.mood-slider:hover::-webkit-slider-thumb,
+.mood-slider:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.04);
+  border-color: #b49a59;
+  box-shadow: 0 4px 10px rgba(95, 82, 42, 0.22);
+}
+
+.mood-slider::-moz-range-track {
+  height: 0.4rem;
+  border: 1px solid #eadfca;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #eadbcc 0%, #f3e5c6 52%, #e8ddcf 100%);
+}
+
+.mood-slider::-moz-range-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 1px solid #c8b47a;
+  border-radius: 50%;
+  background: #fffdf7;
+  box-shadow: 0 2px 6px rgba(95, 82, 42, 0.18);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.mood-slider:hover::-moz-range-thumb,
+.mood-slider:focus-visible::-moz-range-thumb {
+  transform: scale(1.04);
+  border-color: #b49a59;
+  box-shadow: 0 4px 10px rgba(95, 82, 42, 0.22);
+}
+
+.mood-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-text-soft);
+  font-size: 0.76rem;
+}
+
 .metadata-footer {
   display: flex;
   gap: 0.75rem;
@@ -307,7 +490,8 @@ function updateField(field: keyof JournalEntryMetadata, value: string | string[]
   .metadata-header,
   .metadata-header-actions,
   .content-header,
-  .metadata-footer {
+  .metadata-footer,
+  .mood-header {
     flex-direction: column;
     align-items: stretch;
   }

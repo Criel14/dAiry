@@ -13,11 +13,13 @@ import { loadPrompt } from './prompt-loader'
 interface DailyInsightsPayload {
   summary?: unknown
   tags?: unknown
+  mood?: unknown
 }
 
 interface EnsureDailyInsightsInput extends GenerateDailyInsightsInput {
   currentSummary?: string
   currentTags?: string[]
+  currentMood?: number
 }
 
 function extractJsonObject(text: string) {
@@ -66,13 +68,31 @@ function normalizeDailyInsights(
 
   const existingTags = dedupedTags.filter((tag) => workspaceTagMap.has(tag.toLocaleLowerCase()))
   const newTags = dedupedTags.filter((tag) => !workspaceTagMap.has(tag.toLocaleLowerCase()))
+  const mood = normalizeMood(payload.mood)
 
   return {
     summary,
     tags: dedupedTags,
+    mood,
     existingTags,
     newTags,
   }
+}
+
+function normalizeMood(value: unknown): number {
+  if (value === null || value === undefined) {
+    return 0
+  }
+
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    throw new Error('大模型返回的心情分数格式无效，请稍后重试。')
+  }
+
+  if (value < -5 || value > 5) {
+    throw new Error('大模型返回的心情分数超出范围，请稍后重试。')
+  }
+
+  return value
 }
 
 function buildDailyInsightsPrompt(input: GenerateDailyInsightsInput) {
@@ -149,6 +169,7 @@ export async function ensureDailyInsights(
       {
         summary: currentSummary,
         tags: currentTags,
+        mood: input.currentMood,
       },
       input.workspaceTags,
     )

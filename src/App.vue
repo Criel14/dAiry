@@ -23,6 +23,7 @@ function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
   return {
     weather: true,
     location: true,
+    mood: true,
     summary: true,
     tags: true,
   }
@@ -60,6 +61,7 @@ function createEmptyMetadata(): JournalEntryMetadata {
   return {
     weather: '',
     location: '',
+    mood: 0,
     summary: '',
     tags: [],
   }
@@ -69,6 +71,7 @@ function cloneMetadata(metadata: JournalEntryMetadata): JournalEntryMetadata {
   return {
     weather: metadata.weather,
     location: metadata.location,
+    mood: metadata.mood,
     summary: metadata.summary,
     tags: [...metadata.tags],
   }
@@ -89,6 +92,13 @@ function normalizeMetadata(metadata: JournalEntryMetadata): JournalEntryMetadata
   return {
     weather: metadata.weather.trim(),
     location: metadata.location.trim(),
+    mood:
+      typeof metadata.mood === 'number' &&
+      Number.isInteger(metadata.mood) &&
+      metadata.mood >= -5 &&
+      metadata.mood <= 5
+        ? metadata.mood
+        : 0,
     summary: metadata.summary.trim(),
     tags: [...uniqueTags],
   }
@@ -102,6 +112,7 @@ function frontmatterToMetadata(frontmatter: JournalFrontmatter): JournalEntryMet
   return {
     weather: frontmatter.weather,
     location: frontmatter.location,
+    mood: frontmatter.mood,
     summary: frontmatter.summary,
     tags: [...frontmatter.tags],
   }
@@ -193,6 +204,7 @@ const hasVisibleMetadataFields = computed(
   () =>
     frontmatterVisibility.value.weather ||
     frontmatterVisibility.value.location ||
+    frontmatterVisibility.value.mood ||
     frontmatterVisibility.value.summary ||
     frontmatterVisibility.value.tags,
 )
@@ -608,9 +620,13 @@ async function handleGenerateDailyInsights() {
     return
   }
 
-  if (metadataDraft.value.summary.trim() || metadataDraft.value.tags.length > 0) {
+  if (
+    metadataDraft.value.summary.trim() ||
+    metadataDraft.value.tags.length > 0 ||
+    metadataDraft.value.mood !== 0
+  ) {
     const shouldContinue = window.confirm(
-      '自动整理会覆盖当前的一句话总结和标签，是否继续？',
+      '自动整理会覆盖当前的一句话总结、标签和心情，是否继续？',
     )
     if (!shouldContinue) {
       return
@@ -630,14 +646,15 @@ async function handleGenerateDailyInsights() {
 
     metadataDraft.value = cloneMetadata({
       ...metadataDraft.value,
+      mood: result.mood,
       summary: result.summary,
       tags: result.tags,
     })
 
     dailyInsightsStatusMessage.value =
       result.newTags.length > 0
-        ? `已生成总结和标签。保存信息后会新增 ${result.newTags.length} 个候选标签。`
-        : '已生成总结和标签。'
+        ? `已生成总结、标签和心情。保存信息后会新增 ${result.newTags.length} 个候选标签。`
+        : '已生成总结、标签和心情。'
   } catch (error) {
     dailyInsightsStatusMessage.value =
       error instanceof Error ? error.message : '自动整理失败，请稍后重试。'
@@ -674,6 +691,13 @@ function handleWindowKeydown(event: KeyboardEvent) {
 function handleUpdateMetadata(nextMetadata: JournalEntryMetadata) {
   metadataDraft.value = cloneMetadata({
     ...nextMetadata,
+    mood:
+      typeof nextMetadata.mood === 'number' &&
+      Number.isInteger(nextMetadata.mood) &&
+      nextMetadata.mood >= -5 &&
+      nextMetadata.mood <= 5
+        ? nextMetadata.mood
+        : 0,
     tags: [...new Set(nextMetadata.tags.map((tag) => tag.trim()).filter(Boolean))],
   })
   metadataStatusMessage.value = ''

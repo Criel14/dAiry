@@ -28,6 +28,7 @@ export interface AppConfig {
 export interface FrontmatterVisibilityConfig {
   weather: boolean
   location: boolean
+  mood: boolean
   summary: boolean
   tags: boolean
 }
@@ -50,6 +51,7 @@ export interface JournalEntryQuery {
 export interface JournalEntryMetadata {
   weather: string
   location: string
+  mood: number
   summary: string
   tags: string[]
 }
@@ -134,6 +136,7 @@ export interface GenerateDailyInsightsInput {
 export interface GenerateDailyInsightsResult {
   summary: string
   tags: string[]
+  mood: number
   existingTags: string[]
   newTags: string[]
 }

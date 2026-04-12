@@ -98,6 +98,7 @@ createdAt: ""
 updatedAt: ""
 weather: ""
 location: ""
+mood: 0
 summary: ""
 tags: []
 ---
@@ -108,7 +109,8 @@ tags: []
 - 本地文件写入成功才算保存成功
 - AI 失败不能影响保存
 - Git 失败不能影响保存
-- 不要假设已存在 `date`、`title`、`mood`、`git` 等字段
+- 不要假设已存在 `date`、`title`、`git` 等字段
+- 允许并维护 `mood` 字段，语义为 `-5` 到 `5` 的整数，默认值为 `0`
 
 配置分层：
 

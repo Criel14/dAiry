@@ -99,6 +99,16 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
         />
 
         <SettingsToggleRow
+          title="心情"
+          description="用 -5 到 5 的整数记录当天整体情绪，适合后续做趋势和总结。"
+          tip-text="大模型会分析你的心情，但准确度不能保证"
+          :active="frontmatterVisibility.mood"
+          :disabled="isSavingFrontmatterVisibility"
+          button-label="切换心情显示"
+          @toggle="toggleFrontmatterField('mood')"
+        />
+
+        <SettingsToggleRow
           title="一句话总结"
           description="为每天的日记生成一份简短总结，方便后续做月度和年度整理。"
           :active="frontmatterVisibility.summary"

@@ -30,9 +30,26 @@ export function normalizeJournalMetadata(input: Partial<JournalEntryMetadata> | 
   return {
     weather: typeof input?.weather === 'string' ? input.weather.trim() : '',
     location: typeof input?.location === 'string' ? input.location.trim() : '',
+    mood: normalizeMoodValue(input?.mood),
     summary: typeof input?.summary === 'string' ? input.summary.trim() : '',
     tags: normalizeStringList(input?.tags),
   }
+}
+
+function normalizeMoodValue(value: unknown): number {
+  if (value === null || value === undefined || value === '') {
+    return 0
+  }
+
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    return 0
+  }
+
+  if (value < -5 || value > 5) {
+    return 0
+  }
+
+  return value
 }
 
 export function normalizeJournalFrontmatter(
@@ -126,6 +143,20 @@ function parseInlineStringArray(rawValue: string) {
   return innerValue.split(',').map((item) => parseYamlString(item))
 }
 
+function parseYamlInteger(rawValue: string) {
+  const trimmedValue = rawValue.trim()
+
+  if (!trimmedValue || trimmedValue.toLowerCase() === 'null') {
+    return 0
+  }
+
+  if (!/^-?\d+$/.test(trimmedValue)) {
+    return 0
+  }
+
+  return normalizeMoodValue(Number(trimmedValue))
+}
+
 function parseFrontmatterBlock(frontmatterText: string): Partial<JournalFrontmatter> {
   const parsedResult: Partial<JournalFrontmatter> = {}
   let activeListKey: 'tags' | null = null
@@ -170,6 +201,11 @@ function parseFrontmatterBlock(frontmatterText: string): Partial<JournalFrontmat
       key === 'summary'
     ) {
       parsedResult[key] = parseYamlString(rawValue)
+      continue
+    }
+
+    if (key === 'mood') {
+      parsedResult.mood = parseYamlInteger(rawValue)
     }
   }
 
@@ -187,6 +223,7 @@ function serializeFrontmatter(frontmatter: JournalFrontmatter) {
     `updatedAt: ${stringifyYamlString(frontmatter.updatedAt)}`,
     `weather: ${stringifyYamlString(frontmatter.weather)}`,
     `location: ${stringifyYamlString(frontmatter.location)}`,
+    `mood: ${frontmatter.mood}`,
     `summary: ${stringifyYamlString(frontmatter.summary)}`,
   ]
 

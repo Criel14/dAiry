@@ -78,6 +78,7 @@ function normalizeFrontmatterVisibility(
   return {
     weather: rawValue?.weather !== false,
     location: rawValue?.location !== false,
+    mood: rawValue?.mood !== false,
     summary: rawValue?.summary !== false,
     tags: rawValue?.tags !== false,
   }
