@@ -14,6 +14,19 @@ export function setWindowDirtyState(isDirty: boolean) {
   isWindowDirty = isDirty
 }
 
+export function openMainWindowDevTools() {
+  if (!win) {
+    return
+  }
+
+  if (win.webContents.isDevToolsOpened()) {
+    win.webContents.focus()
+    return
+  }
+
+  win.webContents.openDevTools({ mode: 'detach' })
+}
+
 export function createMainWindow() {
   Menu.setApplicationMenu(null)
 

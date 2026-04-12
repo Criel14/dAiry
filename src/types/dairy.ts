@@ -142,6 +142,10 @@ export interface WindowDirtyStateInput {
   isDirty: boolean
 }
 
+export interface OpenExternalLinkInput {
+  url: string
+}
+
 export interface DairyApi {
   getAppBootstrap: () => Promise<AppBootstrap>
   chooseWorkspace: () => Promise<WorkspaceSelectionResult>
@@ -170,4 +174,6 @@ export interface DairyApi {
     input: GenerateDailyInsightsInput,
   ) => Promise<GenerateDailyInsightsResult>
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
+  openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
+  openDevTools: () => Promise<void>
 }

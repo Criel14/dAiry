@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import SettingsInfoTip from './SettingsInfoTip.vue'
 import StringListEditor from './StringListEditor.vue'
+import packageJson from '../../package.json'
 import type {
   AiProviderType,
   AiSettings,
@@ -9,7 +10,13 @@ import type {
   FrontmatterVisibilityConfig,
 } from '../types/dairy'
 
-type SettingsSectionId = 'appearance' | 'display' | 'llm' | 'libraries' | 'workspace'
+type SettingsSectionId =
+  | 'appearance'
+  | 'display'
+  | 'llm'
+  | 'libraries'
+  | 'workspace'
+  | 'about'
 
 interface SettingsSectionItem {
   id: SettingsSectionId
@@ -70,6 +77,7 @@ const settingsSections: SettingsSectionItem[] = [
   { id: 'llm', label: '大模型' },
   { id: 'libraries', label: '词库' },
   { id: 'workspace', label: '工作区' },
+  { id: 'about', label: '关于' },
 ]
 
 const aiProviderOptions: AiProviderOption[] = [
@@ -86,6 +94,9 @@ const draftWeatherOptions = ref<string[]>([])
 const draftLocationOptions = ref<string[]>([])
 const draftAiSettings = ref<AiSettings>({ ...props.aiSettingsStatus.settings })
 const draftApiKey = ref('')
+const appVersion = packageJson.version ?? '0.0.0'
+const repositoryUrl = 'https://github.com/Criel14/dAiry'
+const feedbackEmail = 'chencriel@qq.com'
 
 function getAiDefaults(providerType: AiProviderType): AiSettings {
   switch (providerType) {
@@ -207,6 +218,19 @@ function emitSaveAiSettings() {
     timeoutMs: draftAiSettings.value.timeoutMs,
   })
 }
+
+function openRepository() {
+  void window.dairy.openExternalLink({ url: repositoryUrl })
+}
+
+function openFeedbackEmail() {
+  void window.dairy.openExternalLink({ url: `mailto:${feedbackEmail}` })
+}
+
+function openDebugPanel() {
+  void window.dairy.openDevTools()
+}
+
 function handleDayStartHourChange(event: Event) {
   const target = event.target
   if (!(target instanceof HTMLSelectElement)) {
@@ -562,6 +586,8 @@ function handleProviderTypeChange(event: Event) {
             />
           </label>
 
+          <p class="setting-feedback">当前状态：{{ apiKeyStatusText }}</p>
+
           <div class="library-actions">
             <button
               class="save-button"
@@ -655,7 +681,7 @@ function handleProviderTypeChange(event: Event) {
         </section>
       </div>
 
-      <div v-else class="settings-section">
+      <div v-else-if="activeSectionId === 'workspace'" class="settings-section">
         <section class="settings-card">
           <div class="panel-heading">
             <span class="panel-label">当前工作区</span>
@@ -677,6 +703,66 @@ function handleProviderTypeChange(event: Event) {
             <span class="workspace-status" :class="{ 'workspace-status--ready': hasWorkspace }">
               {{ hasWorkspace ? '已连接' : '未连接' }}
             </span>
+          </div>
+        </section>
+      </div>
+
+      <div v-else class="settings-section">
+        <section class="settings-card">
+          <div class="about-basic">
+            <h4 class="about-name">dAiry</h4>
+            <p class="panel-description">一个本地优先的桌面日记工具。</p>
+            <p class="panel-description">
+              日记内容保存在你自己的工作区目录中，以 Markdown 作为主要存储格式。
+            </p>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">版本</span>
+          </div>
+
+          <div class="about-version-card">
+            <strong class="about-version-value">{{ appVersion }}</strong>
+            <p class="panel-description">当前版本已完成日记写作与 AI 每日整理能力。</p>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">开发者工具</span>
+          </div>
+
+          <div class="about-version-card">
+            <p class="panel-description">用于查看渲染进程的控制台日志、报错信息和页面状态。</p>
+            <div class="about-action-row">
+              <button class="about-action-button" type="button" @click="openDebugPanel">
+                打开开发者工具
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="panel-heading">
+            <span class="panel-label">项目与反馈</span>
+          </div>
+
+          <div class="about-contact-list">
+            <div class="about-contact-row">
+              <span class="about-contact-label">仓库地址</span>
+              <button class="about-link-button" type="button" @click="openRepository">
+                {{ repositoryUrl }}
+              </button>
+            </div>
+
+            <div class="about-contact-row">
+              <span class="about-contact-label">反馈邮箱</span>
+              <button class="about-link-button" type="button" @click="openFeedbackEmail">
+                {{ feedbackEmail }}
+              </button>
+            </div>
           </div>
         </section>
       </div>
@@ -906,6 +992,122 @@ function handleProviderTypeChange(event: Event) {
   color: #6b5b38;
 }
 
+.about-basic {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.about-name {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.about-version-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+
+.about-version-value {
+  color: var(--color-text-main);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.about-action-row {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.15rem;
+}
+
+.about-action-button {
+  min-height: 2.25rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #f8f3e5;
+  color: #5b513a;
+  font-size: 0.9rem;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.about-action-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  background: #f5ebc3;
+}
+
+.about-action-button:focus-visible {
+  outline: 2px solid rgba(217, 203, 159, 0.9);
+  outline-offset: 3px;
+}
+
+.about-contact-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.about-contact-row {
+  grid-template-columns: 112px minmax(0, 1fr);
+  display: grid;
+  align-items: center;
+  gap: 0.9rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.about-contact-row:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.about-contact-label {
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.about-contact-value {
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.6;
+  word-break: break-all;
+  user-select: text;
+}
+
+.about-link-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6b5b38;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(107, 91, 56, 0.35);
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+
+.about-link-button:hover {
+  color: #4f4630;
+  text-decoration-color: rgba(79, 70, 48, 0.6);
+}
+
+.about-link-button:focus-visible {
+  outline: 2px solid rgba(217, 203, 159, 0.9);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 .library-actions {
   display: flex;
   justify-content: flex-end;
@@ -1044,7 +1246,7 @@ function handleProviderTypeChange(event: Event) {
   }
 
   .settings-nav-list {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .settings-nav {
@@ -1075,6 +1277,11 @@ function handleProviderTypeChange(event: Event) {
 
   .setting-select {
     width: 100%;
+  }
+
+  .about-contact-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
   }
 }
 </style>

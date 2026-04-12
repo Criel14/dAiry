@@ -1,4 +1,4 @@
-import { dialog, ipcMain, type OpenDialogOptions } from 'electron'
+import { dialog, ipcMain, shell, type OpenDialogOptions } from 'electron'
 import type {
   AppBootstrap,
   DayStartHourPreferenceInput,
@@ -8,6 +8,7 @@ import type {
   JournalEntryMetadataSaveInput,
   JournalEntryQuery,
   JournalHeatmapPreferenceInput,
+  OpenExternalLinkInput,
   JournalMonthActivityQuery,
   SaveAiApiKeyInput,
   SaveAiSettingsInput,
@@ -34,7 +35,7 @@ import {
   saveJournalEntryBody,
   saveJournalEntryMetadata,
 } from './journal-service'
-import { getMainWindow, setWindowDirtyState } from './window'
+import { getMainWindow, openMainWindowDevTools, setWindowDirtyState } from './window'
 import {
   getWorkspaceLocationOptions,
   getWorkspaceTags,
@@ -82,6 +83,20 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.setWindowDirtyState, (_event, input: WindowDirtyStateInput) => {
     setWindowDirtyState(input.isDirty)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.openExternalLink, async (_event, input: OpenExternalLinkInput) => {
+    const url = input.url.trim()
+
+    if (!/^https:\/\/.+/i.test(url) && !/^mailto:.+/i.test(url)) {
+      throw new Error('暂不支持打开这个地址。')
+    }
+
+    await shell.openExternal(url)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.openDevTools, () => {
+    openMainWindowDevTools()
   })
 
   ipcMain.handle(IPC_CHANNELS.chooseWorkspace, async (): Promise<WorkspaceSelectionResult> => {

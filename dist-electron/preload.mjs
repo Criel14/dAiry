@@ -1,1 +1,28 @@
-"use strict";const t=require("electron"),r={getAppBootstrap:()=>t.ipcRenderer.invoke("app:get-bootstrap"),getAiSettingsStatus:()=>t.ipcRenderer.invoke("app:get-ai-settings-status"),saveAiSettings:e=>t.ipcRenderer.invoke("app:save-ai-settings",e),saveAiApiKey:e=>t.ipcRenderer.invoke("app:save-ai-api-key",e),chooseWorkspace:()=>t.ipcRenderer.invoke("workspace:choose"),readJournalEntry:e=>t.ipcRenderer.invoke("journal:read-entry",e),createJournalEntry:e=>t.ipcRenderer.invoke("journal:create-entry",e),saveJournalEntryBody:e=>t.ipcRenderer.invoke("journal:save-entry-body",e),saveJournalEntryMetadata:e=>t.ipcRenderer.invoke("journal:save-entry-metadata",e),getJournalMonthActivity:e=>t.ipcRenderer.invoke("journal:get-month-activity",e),generateDailyInsights:e=>t.ipcRenderer.invoke("journal:generate-daily-insights",e),getWorkspaceTags:e=>t.ipcRenderer.invoke("workspace:get-tags",e),getWorkspaceWeatherOptions:e=>t.ipcRenderer.invoke("workspace:get-weather-options",e),getWorkspaceLocationOptions:e=>t.ipcRenderer.invoke("workspace:get-location-options",e),setWorkspaceTags:e=>t.ipcRenderer.invoke("workspace:set-tags",e),setWorkspaceWeatherOptions:e=>t.ipcRenderer.invoke("workspace:set-weather-options",e),setWorkspaceLocationOptions:e=>t.ipcRenderer.invoke("workspace:set-location-options",e),setJournalHeatmapEnabled:e=>t.ipcRenderer.invoke("app:set-journal-heatmap-enabled",e),setDayStartHour:e=>t.ipcRenderer.invoke("app:set-day-start-hour",e),setFrontmatterVisibility:e=>t.ipcRenderer.invoke("app:set-frontmatter-visibility",e),setWindowDirtyState:e=>t.ipcRenderer.invoke("app:set-window-dirty-state",e)};t.contextBridge.exposeInMainWorld("dairy",r);
+"use strict";
+const electron = require("electron");
+const dairyApi = {
+  getAppBootstrap: () => electron.ipcRenderer.invoke("app:get-bootstrap"),
+  getAiSettingsStatus: () => electron.ipcRenderer.invoke("app:get-ai-settings-status"),
+  saveAiSettings: (input) => electron.ipcRenderer.invoke("app:save-ai-settings", input),
+  saveAiApiKey: (input) => electron.ipcRenderer.invoke("app:save-ai-api-key", input),
+  chooseWorkspace: () => electron.ipcRenderer.invoke("workspace:choose"),
+  readJournalEntry: (input) => electron.ipcRenderer.invoke("journal:read-entry", input),
+  createJournalEntry: (input) => electron.ipcRenderer.invoke("journal:create-entry", input),
+  saveJournalEntryBody: (input) => electron.ipcRenderer.invoke("journal:save-entry-body", input),
+  saveJournalEntryMetadata: (input) => electron.ipcRenderer.invoke("journal:save-entry-metadata", input),
+  getJournalMonthActivity: (input) => electron.ipcRenderer.invoke("journal:get-month-activity", input),
+  generateDailyInsights: (input) => electron.ipcRenderer.invoke("journal:generate-daily-insights", input),
+  getWorkspaceTags: (workspacePath) => electron.ipcRenderer.invoke("workspace:get-tags", workspacePath),
+  getWorkspaceWeatherOptions: (workspacePath) => electron.ipcRenderer.invoke("workspace:get-weather-options", workspacePath),
+  getWorkspaceLocationOptions: (workspacePath) => electron.ipcRenderer.invoke("workspace:get-location-options", workspacePath),
+  setWorkspaceTags: (input) => electron.ipcRenderer.invoke("workspace:set-tags", input),
+  setWorkspaceWeatherOptions: (input) => electron.ipcRenderer.invoke("workspace:set-weather-options", input),
+  setWorkspaceLocationOptions: (input) => electron.ipcRenderer.invoke("workspace:set-location-options", input),
+  setJournalHeatmapEnabled: (input) => electron.ipcRenderer.invoke("app:set-journal-heatmap-enabled", input),
+  setDayStartHour: (input) => electron.ipcRenderer.invoke("app:set-day-start-hour", input),
+  setFrontmatterVisibility: (input) => electron.ipcRenderer.invoke("app:set-frontmatter-visibility", input),
+  setWindowDirtyState: (input) => electron.ipcRenderer.invoke("app:set-window-dirty-state", input),
+  openExternalLink: (input) => electron.ipcRenderer.invoke("app:open-external-link", input),
+  openDevTools: () => electron.ipcRenderer.invoke("app:open-dev-tools")
+};
+electron.contextBridge.exposeInMainWorld("dairy", dairyApi);

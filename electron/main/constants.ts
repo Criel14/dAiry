@@ -26,6 +26,8 @@ export const IPC_CHANNELS = {
   setDayStartHour: 'app:set-day-start-hour',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
+  openExternalLink: 'app:open-external-link',
+  openDevTools: 'app:open-dev-tools',
   chooseWorkspace: 'workspace:choose',
   getWorkspaceTags: 'workspace:get-tags',
   getWorkspaceWeatherOptions: 'workspace:get-weather-options',

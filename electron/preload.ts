@@ -27,6 +27,8 @@ const dairyApi: DairyApi = {
   setDayStartHour: (input) => ipcRenderer.invoke('app:set-day-start-hour', input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),
+  openExternalLink: (input) => ipcRenderer.invoke('app:open-external-link', input),
+  openDevTools: () => ipcRenderer.invoke('app:open-dev-tools'),
 }
 
 contextBridge.exposeInMainWorld('dairy', dairyApi)
