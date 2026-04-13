@@ -35,6 +35,10 @@ export function getWorkspaceMetadataDir(workspacePath: string) {
 }
 
 export function getWorkspaceReportsDir(workspacePath: string) {
+  return path.join(workspacePath, 'reports')
+}
+
+export function getLegacyWorkspaceReportsDir(workspacePath: string) {
   return path.join(getWorkspaceMetadataDir(workspacePath), 'reports')
 }
 
@@ -48,6 +52,18 @@ export function getWorkspaceYearlyReportsDir(workspacePath: string) {
 
 export function getWorkspaceCustomReportsDir(workspacePath: string) {
   return path.join(getWorkspaceReportsDir(workspacePath), 'custom')
+}
+
+export function getLegacyWorkspaceMonthlyReportsDir(workspacePath: string) {
+  return path.join(getLegacyWorkspaceReportsDir(workspacePath), 'monthly')
+}
+
+export function getLegacyWorkspaceYearlyReportsDir(workspacePath: string) {
+  return path.join(getLegacyWorkspaceReportsDir(workspacePath), 'yearly')
+}
+
+export function getLegacyWorkspaceCustomReportsDir(workspacePath: string) {
+  return path.join(getLegacyWorkspaceReportsDir(workspacePath), 'custom')
 }
 
 export function getWorkspaceTagLibraryPath(workspacePath: string) {
@@ -71,9 +87,19 @@ export function resolveMonthlyReportPath(workspacePath: string, month: string) {
   return path.join(getWorkspaceMonthlyReportsDir(workspacePath), `${month}.json`)
 }
 
+export function resolveLegacyMonthlyReportPath(workspacePath: string, month: string) {
+  assertValidMonth(month)
+  return path.join(getLegacyWorkspaceMonthlyReportsDir(workspacePath), `${month}.json`)
+}
+
 export function resolveYearlyReportPath(workspacePath: string, year: string) {
   assertValidYear(year)
   return path.join(getWorkspaceYearlyReportsDir(workspacePath), `${year}.json`)
+}
+
+export function resolveLegacyYearlyReportPath(workspacePath: string, year: string) {
+  assertValidYear(year)
+  return path.join(getLegacyWorkspaceYearlyReportsDir(workspacePath), `${year}.json`)
 }
 
 export function resolveCustomReportPath(workspacePath: string, reportId: string) {
@@ -82,4 +108,12 @@ export function resolveCustomReportPath(workspacePath: string, reportId: string)
   }
 
   return path.join(getWorkspaceCustomReportsDir(workspacePath), `${reportId}.json`)
+}
+
+export function resolveLegacyCustomReportPath(workspacePath: string, reportId: string) {
+  if (!/^[A-Za-z0-9_-]+$/.test(reportId)) {
+    throw new Error('报告标识无效。')
+  }
+
+  return path.join(getLegacyWorkspaceCustomReportsDir(workspacePath), `${reportId}.json`)
 }

@@ -88,6 +88,7 @@
 
 ```text
 workspace/
+  reports/
   journal/YYYY/MM/YYYY-MM-DD.md
   .dairy/
     tags.json
@@ -166,7 +167,7 @@ Git：
 当前已落地：
 
 - 主窗口中已增加一级 `报告` 视图，并提供 `本月 / 本年 / 自定义区间` 生成入口
-- 报告已按预设落盘到 `<workspace>/.dairy/reports/` 下，并支持历史列表读取
+- 报告已按预设落盘到 `<workspace>/reports/` 下，并支持历史列表读取
 - 已实现 `stats`、`heatmap`、`moodTrend`、`tagCloud`、`highlights`、`locationPatterns`、`timePatterns`
 - 区间总结文案会优先尝试 AI 生成，失败时回退到本地兜底摘要
 - 对“有日记但缺少总结”的日期，生成报告时会按需补做日级 insight，但不改写原始日记文件
@@ -205,9 +206,9 @@ Git：
 
 数据落地：
 
-- 月总结：`<workspace>/.dairy/reports/monthly/YYYY-MM.json`
-- 年总结：`<workspace>/.dairy/reports/yearly/YYYY.json`
-- 自定义区间：`<workspace>/.dairy/reports/custom/<reportId>.json`
+- 月总结：`<workspace>/reports/monthly/YYYY-MM.json`
+- 年总结：`<workspace>/reports/yearly/YYYY.json`
+- 自定义区间：`<workspace>/reports/custom/<reportId>.json`
 
 JSON 结构约定：
 

@@ -287,7 +287,7 @@ function formatPercentScore(score: number) {
 <template>
   <section v-if="!hasWorkspace" class="report-empty-state">
     <h2>请先选择一个工作区</h2>
-    <p>区间总结会扫描工作区里的日记文件，并把结果缓存到 `.dairy/reports/` 目录。</p>
+    <p>区间总结会扫描工作区里的日记文件，并把结果缓存到 `reports/` 目录。</p>
   </section>
 
   <section v-else class="reports-panel">

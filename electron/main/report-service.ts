@@ -22,10 +22,16 @@ import {
   assertValidMonth,
   assertValidYear,
   resolveCustomReportPath,
+  resolveLegacyCustomReportPath,
   resolveJournalEntryFilePath,
+  resolveLegacyMonthlyReportPath,
+  resolveLegacyYearlyReportPath,
   resolveMonthlyReportPath,
   resolveYearlyReportPath,
   getWorkspaceCustomReportsDir,
+  getLegacyWorkspaceCustomReportsDir,
+  getLegacyWorkspaceMonthlyReportsDir,
+  getLegacyWorkspaceYearlyReportsDir,
   getWorkspaceMonthlyReportsDir,
   getWorkspaceYearlyReportsDir,
 } from './workspace-paths'
@@ -777,21 +783,50 @@ export async function generateRangeReport(
   return report
 }
 
-function resolveReportPath(workspacePath: string, reportId: string) {
+function resolveReportPathCandidates(workspacePath: string, reportId: string) {
   if (reportId.startsWith('month_')) {
-    return resolveMonthlyReportPath(workspacePath, reportId.slice('month_'.length))
+    const monthText = reportId.slice('month_'.length)
+    return [
+      resolveMonthlyReportPath(workspacePath, monthText),
+      resolveLegacyMonthlyReportPath(workspacePath, monthText),
+    ]
   }
 
   if (reportId.startsWith('year_')) {
-    return resolveYearlyReportPath(workspacePath, reportId.slice('year_'.length))
+    const yearText = reportId.slice('year_'.length)
+    return [
+      resolveYearlyReportPath(workspacePath, yearText),
+      resolveLegacyYearlyReportPath(workspacePath, yearText),
+    ]
   }
 
-  return resolveCustomReportPath(workspacePath, reportId)
+  return [
+    resolveCustomReportPath(workspacePath, reportId),
+    resolveLegacyCustomReportPath(workspacePath, reportId),
+  ]
+}
+
+async function readReportWithFallback(filePaths: string[]) {
+  let lastError: unknown = null
+
+  for (const filePath of filePaths) {
+    try {
+      return await readReportFile(filePath)
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        lastError = error
+        continue
+      }
+
+      throw error
+    }
+  }
+
+  throw lastError ?? new Error('报告不存在。')
 }
 
 export async function getRangeReport(input: ReportQuery): Promise<RangeReport> {
-  const filePath = resolveReportPath(input.workspacePath, input.reportId)
-  return readReportFile(filePath)
+  return readReportWithFallback(resolveReportPathCandidates(input.workspacePath, input.reportId))
 }
 
 export async function listRangeReports(workspacePath: string): Promise<ReportListItem[]> {
@@ -799,14 +834,26 @@ export async function listRangeReports(workspacePath: string): Promise<ReportLis
     return []
   }
 
-  const [monthlyFiles, yearlyFiles, customFiles] = await Promise.all([
+  const [monthlyFiles, yearlyFiles, customFiles, legacyMonthlyFiles, legacyYearlyFiles, legacyCustomFiles] = await Promise.all([
     listReportFiles(getWorkspaceMonthlyReportsDir(workspacePath)),
     listReportFiles(getWorkspaceYearlyReportsDir(workspacePath)),
     listReportFiles(getWorkspaceCustomReportsDir(workspacePath)),
+    listReportFiles(getLegacyWorkspaceMonthlyReportsDir(workspacePath)),
+    listReportFiles(getLegacyWorkspaceYearlyReportsDir(workspacePath)),
+    listReportFiles(getLegacyWorkspaceCustomReportsDir(workspacePath)),
   ])
 
+  const reportFiles = [
+    ...monthlyFiles,
+    ...yearlyFiles,
+    ...customFiles,
+    ...legacyMonthlyFiles,
+    ...legacyYearlyFiles,
+    ...legacyCustomFiles,
+  ]
+
   const reports = await Promise.all(
-    [...monthlyFiles, ...yearlyFiles, ...customFiles].map(async (filePath) => {
+    reportFiles.map(async (filePath) => {
       const report = await readReportFile(filePath)
       return {
         reportId: report.reportId,
@@ -820,5 +867,13 @@ export async function listRangeReports(workspacePath: string): Promise<ReportLis
     }),
   )
 
-  return reports.sort((left, right) => right.generatedAt.localeCompare(left.generatedAt))
+  const uniqueReports = new Map<string, ReportListItem>()
+
+  for (const report of reports) {
+    if (!uniqueReports.has(report.reportId)) {
+      uniqueReports.set(report.reportId, report)
+    }
+  }
+
+  return [...uniqueReports.values()].sort((left, right) => right.generatedAt.localeCompare(left.generatedAt))
 }
