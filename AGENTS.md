@@ -152,70 +152,233 @@ Git：
 - 不要提前引入数据库、重量级状态管理或重量级编辑器
 - 当前编辑器仍以纯文本写作 + 轻量 Markdown 预览为主
 
-## 8. 月总结 / 年总结计划
+## 8. 区间总结 / 报告计划
 
-目标：月总结和年总结应作为独立“报告层”能力建设，而不是继续沿用普通日记 Markdown 承载所有内容。
+目标：将月总结、年总结、自定义时间段统一为“区间总结”，产出 JSON 报告并在应用内专门视图渲染。
 
 定位约束：
 
 - 日记 `Markdown` 仍是唯一原始事实源
-- 月报 / 年报是基于日记派生出的结构化结果，不反向替代日记正文
-- AI 负责归纳、解释、生成文案，不负责生成最终图表数据
-- 图表、统计、时间分布、标签频次等尽量由本地代码确定性计算
-- 年总结优先复用月总结结果，避免直接把全年正文一次性发送给大模型
+- 月报 / 年报 / 自定义总结本质都是 `startDate + endDate` 的区间报告，月报和年报只是预设
+- 报告是派生数据，不反向替代日记正文
+- AI 负责归纳与文案，本地代码负责统计、图表数据、时间分布、标签频次等事实层计算
+- 报告生成不能阻塞日记保存，失败不能影响已有日记
 
-推荐数据落地：
+页面组织：
+
+- 不单独开业务新窗口，先在主窗口中增加一级 `报告` 视图
+- 左侧一级导航建议为 `写作 / 报告 / 设置`
+- `报告` 视图下提供 `本月 / 本年 / 自定义区间` 入口与报告列表
+- 导出 PNG 可后续使用隐藏窗口或专用渲染容器完成
+
+生成链路：
+
+- 主进程负责扫描区间内实际存在的日记文件，缺失日期通过日期计算得出
+- 有日记则纳入分析，无日记跳过正文处理
+- 单篇日记优先复用已有 `summary + tags + mood`；缺失时再补做日级 AI 整理
+- 报告生成默认不自动回写 Markdown，可增加缓存，但不改变“Markdown 是事实源”的原则
+- 最终以事实层数据 + 日级摘要 + 少量代表性片段交给大模型生成区间总结文案
+
+数据落地：
 
 - 月总结：`<workspace>/.dairy/reports/monthly/YYYY-MM.json`
 - 年总结：`<workspace>/.dairy/reports/yearly/YYYY.json`
-- 报告文件保存结构化数据、AI 文案和图表所需数据，不强制保存为 Markdown
-- 应用内通过专门的报告视图渲染这些数据，而不是把总结直接当作编辑器正文
+- 自定义区间：`<workspace>/.dairy/reports/custom/<reportId>.json`
 
-报告数据建议至少包含：
+JSON 结构约定：
 
-- 周期信息：月份 / 年份、生成时间、版本号
-- 基础统计：记录天数、总字数、平均字数、最长连续记录、缺失天数
-- 时间特征：最早写作、最晚写作、深夜写作次数、晨间写作次数
-- 标签统计：高频标签、标签趋势、标签共现、可用于词云的数据
-- 特征日：超长日记、深夜写作、间隔多天后恢复、长时间补记、反复修改
-- AI 结论：本月 / 本年概览、主要主题、关键进展、困难阻塞、值得记住的时刻、下一阶段建议
-- 渲染数据：折线图、柱状图、热力图、词云等组件直接消费的数据结构
+- 顶层至少包含：`version`、`reportId`、`preset`、`period`、`generation`、`summary`、`source`、`dailyEntries`、`sections`
+- `summary.text` 始终存在，是最小可用结果
+- `dailyEntries` 保存逐日事实快照，如日期、是否有日记、字数、心情、summary、tags、location、写作小时、摘要来源
+- `sections` 为可选模块，适合前端直接渲染图表；未勾选则不生成该 section
+- 推荐 section：`stats`、`heatmap`、`moodTrend`、`tagCloud`、`highlights`、`locationPatterns`、`timePatterns`
 
-分析策略建议：
+交互约定：
 
-- 第一层为本地确定性分析：优先根据 `createdAt`、`updatedAt`、`summary`、`tags`、字数、日期分布生成事实层数据
-- 第二层为 AI 语义分析：基于事实层数据和少量代表性正文片段输出自然语言总结
-- 代表性正文片段优先选取字数最高、深夜写作、标签密集、用户主动标记的重要日期
-- 月总结生成后，年总结优先消费 12 份月总结和全年聚合统计，只在必要时补充少量原始日记片段
+- 生成报告前弹出复选框面板，默认全选
+- 用户可选择是否生成基础统计、字数热力图、情绪变化、标签词云、重点事件、地点分析、时间段分析
+- 简要总结文本默认始终生成，不作为可取消项
 
-实现边界：
+JSON 示例：
 
-- 总结生成不能阻塞日记保存
-- 报告生成失败不能影响已有日记内容
-- AI 输出先作为草稿结果返回，再决定是否落盘
-- preload 只暴露显式的报告读取、生成、导出接口
-- 渲染进程不直接扫描工作区文件，数据聚合由主进程负责
+```json
+{
+  "version": 1,
+  "reportId": "report_2026-04-13T21-30-12_range_2026-03-01_2026-03-31",
+  "preset": "month",
+  "period": {
+    "startDate": "2026-03-01",
+    "endDate": "2026-03-31",
+    "label": "2026 年 3 月总结",
+    "generatedAt": "2026-04-13T21:30:12.000+08:00",
+    "timezone": "Asia/Shanghai"
+  },
+  "generation": {
+    "requestedSections": [
+      "stats",
+      "heatmap",
+      "moodTrend",
+      "tagCloud",
+      "highlights",
+      "locationPatterns",
+      "timePatterns"
+    ],
+    "entryInsightPolicy": "reuse-or-generate",
+    "reusedEntryInsightCount": 18,
+    "generatedEntryInsightCount": 5,
+    "skippedEmptyDays": 8,
+    "warnings": []
+  },
+  "summary": {
+    "text": "这个月整体写作节奏较稳定，主题集中在产品整理、功能推进和状态调整。",
+    "themes": ["产品设计", "功能实现", "工作复盘"],
+    "progress": ["明确了报告能力方向", "持续推进写作主流程"],
+    "blockers": ["部分边界仍在讨论", "夜间写作偏多"],
+    "memorableMoments": ["确定将月报、年报统一为区间总结"]
+  },
+  "source": {
+    "totalDays": 31,
+    "entryDays": 23,
+    "missingDays": 8,
+    "totalWords": 18426,
+    "averageWords": 801,
+    "longestStreak": 6
+  },
+  "dailyEntries": [
+    {
+      "date": "2026-03-01",
+      "hasEntry": true,
+      "wordCount": 623,
+      "mood": 1,
+      "summary": "重新梳理了写作工具定位。",
+      "tags": ["产品设计", "项目规划"],
+      "location": "家",
+      "createdAt": "2026-03-01T22:14:12.000+08:00",
+      "updatedAt": "2026-03-01T22:48:03.000+08:00",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2026-03-02",
+      "hasEntry": false,
+      "wordCount": 0,
+      "mood": null,
+      "summary": "",
+      "tags": [],
+      "location": "",
+      "createdAt": null,
+      "updatedAt": null,
+      "writingHour": null,
+      "insightSource": "frontmatter"
+    }
+  ],
+  "sections": {
+    "stats": {
+      "recordDays": 23,
+      "missingDays": 8,
+      "totalWords": 18426,
+      "averageWords": 801,
+      "maxWordsInOneDay": 1688,
+      "maxWordsDate": "2026-03-18",
+      "longestStreak": 6,
+      "currentStreakAtEnd": 3
+    },
+    "heatmap": {
+      "points": [
+        { "date": "2026-03-01", "value": 623 },
+        { "date": "2026-03-02", "value": 0 }
+      ]
+    },
+    "moodTrend": {
+      "points": [
+        { "date": "2026-03-01", "value": 1 },
+        { "date": "2026-03-02", "value": null }
+      ],
+      "averageMood": 1.3
+    },
+    "tagCloud": {
+      "items": [
+        { "label": "产品设计", "value": 9 },
+        { "label": "功能实现", "value": 8 }
+      ]
+    },
+    "highlights": {
+      "events": [
+        {
+          "date": "2026-03-03",
+          "title": "区间总结方向基本确定",
+          "summary": "统一月报、年报和自定义时间段总结，明确了功能边界。",
+          "tags": ["报告系统", "架构设计"],
+          "score": 0.92
+        }
+      ]
+    },
+    "locationPatterns": {
+      "topLocation": {
+        "name": "家",
+        "count": 11
+      },
+      "uniqueLocation": {
+        "name": "咖啡馆",
+        "countInRange": 1,
+        "score": 0.81,
+        "reason": "仅出现一次，但对应记录篇幅较长且事件密度较高。"
+      },
+      "ranking": [
+        { "name": "家", "count": 11 },
+        { "name": "公司", "count": 8 }
+      ]
+    },
+    "timePatterns": {
+      "topTimeBucket": {
+        "label": "晚上 18-24",
+        "count": 12
+      },
+      "uniqueTimeBucket": {
+        "label": "凌晨 0-5",
+        "countInRange": 4,
+        "score": 0.76,
+        "reason": "出现次数不算最高，但多次对应长文和高强度思考记录。"
+      },
+      "buckets": [
+        { "label": "凌晨 0-5", "count": 4 },
+        { "label": "上午 9-12", "count": 3 },
+        { "label": "晚上 18-24", "count": 12 }
+      ]
+    }
+  }
+}
+```
 
-推荐实施顺序：
+字段解释：
 
-- V1：先做月总结，只基于 metadata、字数、标签、时间分布产出 JSON
-- V2：增加月总结页面，完成基础图表和美观排版
-- V3：支持导出月总结为 PNG
-- V4：在月总结稳定后实现年总结，优先基于月总结聚合
-- V5：再评估是否引入更复杂的正文片段提炼、主题演化和跨月对比
-
-导出策略：
-
-- 导出目标是“精美报告页面截图”，而不是导出原始 Markdown
-- 建议使用专门的报告页面作为导出源，保证布局、图表和主题一致
-- 优先考虑由 Electron 主进程创建隐藏窗口或专用渲染容器完成 PNG 导出
-- 导出过程应等待图表渲染完成，避免截图时出现空白或错位
-
-产品判断：
-
-- 月总结首先服务于“回顾与整理”，不是为了生成一篇很长的文章
-- 年总结首先服务于“观察变化与阶段感”，不是简单拼接 12 个月文本
-- 整体设计应保持低 AI 感，强调本地事实、清晰结构和可读性
+- `version`：报告 JSON 结构版本号。
+- `reportId`：报告唯一标识，用于落盘、缓存、列表展示。
+- `preset`：生成预设，取值 `month`、`year`、`custom`。
+- `period`：报告覆盖区间与生成时间信息。`label` 供前端直接展示，`timezone` 用于保证日期解释一致。
+- `generation`：本次生成过程信息。`requestedSections` 是用户勾选项；`entryInsightPolicy` 表示日级摘要优先复用、缺失再生成；`warnings` 用于记录不影响生成的异常或缺失。
+- `summary`：整份区间报告的核心摘要。`text` 必须存在；其余字段用于补充主题、进展、阻塞和值得记住的时刻。
+- `source`：区间基础统计，主要用于顶部概览卡。
+- `dailyEntries`：逐日事实快照。即使前端暂时不全部展示，也建议保存，便于后续扩展新图表。
+- `dailyEntries[].hasEntry`：当天是否存在日记。
+- `dailyEntries[].wordCount`：当天字数，没写时为 `0`。
+- `dailyEntries[].mood`：当天心情，未知时为 `null`。
+- `dailyEntries[].summary`、`tags`、`location`：当天用于聚合分析的核心信息。
+- `dailyEntries[].writingHour`：从 `createdAt` 或 `updatedAt` 提取的写作小时，用于时间段统计。
+- `dailyEntries[].insightSource`：摘要来源，`frontmatter` 表示原文已有，`generated` 表示本次补做。
+- `sections`：可选分析模块集合；未勾选则该字段下不出现对应 section。
+- `sections.stats`：基础统计明细，如单日最高字数、最长连续记录等。
+- `sections.heatmap.points`：字数热力图数据，前端直接按日期和值渲染。
+- `sections.moodTrend.points`：情绪折线图数据，空值可断线或跳过。
+- `sections.tagCloud.items`：词云或标签频次图数据，`value` 为权重或出现次数。
+- `sections.highlights.events`：重点事件列表，`score` 用于排序和筛选。
+- `sections.locationPatterns.topLocation`：最常写作地点。
+- `sections.locationPatterns.uniqueLocation`：最独特地点，建议附带 `score` 与 `reason`，避免只有结论没有解释。
+- `sections.locationPatterns.ranking`：地点频次排行，可用于柱状图。
+- `sections.timePatterns.topTimeBucket`：最常写作时间段。
+- `sections.timePatterns.uniqueTimeBucket`：最独特时间段，同样建议附带原因。
+- `sections.timePatterns.buckets`：时间段分布数据，前端可直接画柱状图。
+- 推荐约定：`summary` 始终存在；勾选但无数据的 section 允许保留空数组或 `null`，未勾选则不生成对应字段。
 
 ## 9. UI 方向
 
