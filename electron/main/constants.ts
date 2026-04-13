@@ -41,6 +41,9 @@ export const IPC_CHANNELS = {
   saveJournalEntryMetadata: 'journal:save-entry-metadata',
   getJournalMonthActivity: 'journal:get-month-activity',
   generateDailyInsights: 'journal:generate-daily-insights',
+  generateRangeReport: 'report:generate-range-report',
+  getRangeReport: 'report:get-range-report',
+  listRangeReports: 'report:list-range-reports',
 } as const
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {

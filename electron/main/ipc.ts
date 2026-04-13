@@ -4,12 +4,14 @@ import type {
   DayStartHourPreferenceInput,
   FrontmatterVisibilityInput,
   GenerateDailyInsightsInput,
+  GenerateRangeReportInput,
   JournalEntryBodySaveInput,
   JournalEntryMetadataSaveInput,
   JournalEntryQuery,
   JournalHeatmapPreferenceInput,
   OpenExternalLinkInput,
   JournalMonthActivityQuery,
+  ReportQuery,
   SaveAiApiKeyInput,
   SaveAiSettingsInput,
   WindowDirtyStateInput,
@@ -35,6 +37,7 @@ import {
   saveJournalEntryBody,
   saveJournalEntryMetadata,
 } from './journal-service'
+import { generateRangeReport, getRangeReport, listRangeReports } from './report-service'
 import { getMainWindow, openMainWindowDevTools, setWindowDirtyState } from './window'
 import {
   getWorkspaceLocationOptions,
@@ -185,5 +188,17 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.generateDailyInsights, (_event, input: GenerateDailyInsightsInput) => {
     return generateDailyInsights(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.generateRangeReport, (_event, input: GenerateRangeReportInput) => {
+    return generateRangeReport(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getRangeReport, (_event, input: ReportQuery) => {
+    return getRangeReport(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.listRangeReports, (_event, workspacePath: string) => {
+    return listRangeReports(workspacePath)
   })
 }

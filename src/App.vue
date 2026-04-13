@@ -7,6 +7,7 @@ import SettingsHeader from './components/settings/SettingsHeader.vue'
 import SettingsPanel from './components/settings/SettingsPanel.vue'
 import JournalEditorPanel from './components/journal/JournalEditorPanel.vue'
 import JournalMetadataPanel from './components/journal/JournalMetadataPanel.vue'
+import ReportsPanel from './components/report/ReportsPanel.vue'
 import type {
   AiSettings,
   AiSettingsStatus,
@@ -712,6 +713,10 @@ function openSettingsPage() {
   rightPanel.value = 'settings'
 }
 
+function openReportsPage() {
+  rightPanel.value = 'reports'
+}
+
 function openJournalPage() {
   rightPanel.value = 'journal'
 }
@@ -876,7 +881,10 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
       :selected-date="selectedDate"
       :today-date="todayText"
       :is-journal-heatmap-enabled="isJournalHeatmapEnabled"
+      :active-panel="rightPanel"
       @choose-workspace="handleChooseWorkspace"
+      @open-journal="openJournalPage"
+      @open-reports="openReportsPage"
       @open-settings="openSettingsPage"
       @select-date="handleSelectDate"
     />
@@ -915,7 +923,7 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
         />
       </section>
 
-      <SettingsHeader v-else @back="openJournalPage" />
+      <SettingsHeader v-else-if="rightPanel === 'settings'" @back="openJournalPage" />
 
       <SettingsPanel
         v-if="rightPanel === 'settings'"
@@ -945,6 +953,11 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
         @save-ai-settings="handleSaveAiSettings"
         @save-ai-api-key="handleSaveAiApiKey"
+      />
+
+      <ReportsPanel
+        v-else-if="rightPanel === 'reports'"
+        :workspace-path="workspacePath"
       />
 
       <JournalEditorPanel

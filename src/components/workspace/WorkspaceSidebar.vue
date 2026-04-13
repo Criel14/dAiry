@@ -7,10 +7,13 @@ defineProps<{
   selectedDate: string
   todayDate: string
   isJournalHeatmapEnabled: boolean
+  activePanel: 'journal' | 'reports' | 'settings'
 }>()
 
 defineEmits<{
   chooseWorkspace: []
+  openJournal: []
+  openReports: []
   openSettings: []
   selectDate: [value: string]
 }>()
@@ -59,6 +62,33 @@ defineEmits<{
           </div>
         </header>
       </section>
+
+      <nav class="primary-nav" aria-label="一级导航">
+        <button
+          class="nav-button"
+          :class="{ 'nav-button--active': activePanel === 'journal' }"
+          type="button"
+          @click="$emit('openJournal')"
+        >
+          写作
+        </button>
+        <button
+          class="nav-button"
+          :class="{ 'nav-button--active': activePanel === 'reports' }"
+          type="button"
+          @click="$emit('openReports')"
+        >
+          报告
+        </button>
+        <button
+          class="nav-button"
+          :class="{ 'nav-button--active': activePanel === 'settings' }"
+          type="button"
+          @click="$emit('openSettings')"
+        >
+          设置
+        </button>
+      </nav>
 
       <JournalCalendar
         :model-value="selectedDate"
@@ -122,6 +152,39 @@ defineEmits<{
   border-radius: 10px;
   background: var(--color-surface);
 }
+
+.primary-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.nav-button {
+  min-height: 2.6rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fffdf8;
+  color: var(--color-text-subtle);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.nav-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+  color: var(--color-text-main);
+}
+
+.nav-button--active {
+  border-color: var(--color-border-strong);
+  background: #f5ebc3;
+  color: #4f4630;
+ }
 
 .workspace-header {
   display: flex;

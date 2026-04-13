@@ -15,6 +15,9 @@ const dairyApi: DairyApi = {
   saveJournalEntryMetadata: (input) => ipcRenderer.invoke('journal:save-entry-metadata', input),
   getJournalMonthActivity: (input) => ipcRenderer.invoke('journal:get-month-activity', input),
   generateDailyInsights: (input) => ipcRenderer.invoke('journal:generate-daily-insights', input),
+  generateRangeReport: (input) => ipcRenderer.invoke('report:generate-range-report', input),
+  getRangeReport: (input) => ipcRenderer.invoke('report:get-range-report', input),
+  listRangeReports: (workspacePath) => ipcRenderer.invoke('report:list-range-reports', workspacePath),
   getWorkspaceTags: (workspacePath) => ipcRenderer.invoke('workspace:get-tags', workspacePath),
   getWorkspaceWeatherOptions: (workspacePath) =>
     ipcRenderer.invoke('workspace:get-weather-options', workspacePath),

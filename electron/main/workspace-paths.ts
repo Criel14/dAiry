@@ -13,6 +13,12 @@ export function assertValidMonth(monthText: string) {
   }
 }
 
+export function assertValidYear(yearText: string) {
+  if (!/^\d{4}$/.test(yearText)) {
+    throw new Error('年份格式无效，必须为 YYYY。')
+  }
+}
+
 export function resolveJournalEntryFilePath(workspacePath: string, date: string) {
   assertValidDate(date)
 
@@ -26,6 +32,22 @@ export function resolveJournalEntryPath({ workspacePath, date }: JournalEntryQue
 
 export function getWorkspaceMetadataDir(workspacePath: string) {
   return path.join(workspacePath, '.dairy')
+}
+
+export function getWorkspaceReportsDir(workspacePath: string) {
+  return path.join(getWorkspaceMetadataDir(workspacePath), 'reports')
+}
+
+export function getWorkspaceMonthlyReportsDir(workspacePath: string) {
+  return path.join(getWorkspaceReportsDir(workspacePath), 'monthly')
+}
+
+export function getWorkspaceYearlyReportsDir(workspacePath: string) {
+  return path.join(getWorkspaceReportsDir(workspacePath), 'yearly')
+}
+
+export function getWorkspaceCustomReportsDir(workspacePath: string) {
+  return path.join(getWorkspaceReportsDir(workspacePath), 'custom')
 }
 
 export function getWorkspaceTagLibraryPath(workspacePath: string) {
@@ -42,4 +64,22 @@ export function getWorkspaceLocationLibraryPath(workspacePath: string) {
 
 export function getWorkspaceJournalDir(workspacePath: string) {
   return path.join(workspacePath, 'journal')
+}
+
+export function resolveMonthlyReportPath(workspacePath: string, month: string) {
+  assertValidMonth(month)
+  return path.join(getWorkspaceMonthlyReportsDir(workspacePath), `${month}.json`)
+}
+
+export function resolveYearlyReportPath(workspacePath: string, year: string) {
+  assertValidYear(year)
+  return path.join(getWorkspaceYearlyReportsDir(workspacePath), `${year}.json`)
+}
+
+export function resolveCustomReportPath(workspacePath: string, reportId: string) {
+  if (!/^[A-Za-z0-9_-]+$/.test(reportId)) {
+    throw new Error('报告标识无效。')
+  }
+
+  return path.join(getWorkspaceCustomReportsDir(workspacePath), `${reportId}.json`)
 }
