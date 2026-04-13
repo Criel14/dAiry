@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import packageJson from '../../../package.json'
 import type { AiSettings, AiSettingsStatus, FrontmatterVisibilityConfig } from '../../types/dairy'
 import SettingsAboutSection from './SettingsAboutSection.vue'
@@ -7,7 +7,6 @@ import SettingsAiSection from './SettingsAiSection.vue'
 import SettingsAppearanceSection from './SettingsAppearanceSection.vue'
 import SettingsEditorSection from './SettingsEditorSection.vue'
 import SettingsLibrariesSection from './SettingsLibrariesSection.vue'
-import SettingsNav from './SettingsNav.vue'
 import {
   SETTINGS_SECTIONS,
   type SettingsSectionId,
@@ -36,6 +35,7 @@ const props = defineProps<{
   aiSettingsSaveMessage: string
   isSavingAiApiKey: boolean
   aiApiKeySaveMessage: string
+  activeSectionId: SettingsSectionId
 }>()
 
 const emit = defineEmits<{
@@ -58,13 +58,12 @@ const emit = defineEmits<{
   ]
 }>()
 
-const activeSectionId = ref<SettingsSectionId>('appearance')
 const appVersion = packageJson.version ?? '0.0.0'
 const repositoryUrl = 'https://github.com/Criel14/dAiry'
 const feedbackEmail = 'chencriel@qq.com'
 
 const activeSection = computed<SettingsSectionItem>(() => {
-  return SETTINGS_SECTIONS.find((section) => section.id === activeSectionId.value) ?? SETTINGS_SECTIONS[0]
+  return SETTINGS_SECTIONS.find((section) => section.id === props.activeSectionId) ?? SETTINGS_SECTIONS[0]
 })
 
 function openRepository() {
@@ -82,12 +81,6 @@ function openDebugPanel() {
 
 <template>
   <section class="settings-panel">
-    <SettingsNav
-      :sections="SETTINGS_SECTIONS"
-      :active-section-id="activeSectionId"
-      @select="activeSectionId = $event"
-    />
-
     <div class="settings-content">
       <header class="settings-page-header">
         <h3 class="settings-page-title">{{ activeSection.label }}</h3>

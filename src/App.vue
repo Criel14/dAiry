@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import WorkspaceSidebar from './components/workspace/WorkspaceSidebar.vue'
 import JournalHeader from './components/journal/JournalHeader.vue'
 import SettingsPanel from './components/settings/SettingsPanel.vue'
+import SettingsNav from './components/settings/SettingsNav.vue'
 import JournalEditorPanel from './components/journal/JournalEditorPanel.vue'
 import JournalMetadataPanel from './components/journal/JournalMetadataPanel.vue'
 import ReportsPanel from './components/report/ReportsPanel.vue'
@@ -21,6 +22,7 @@ import type {
 } from './types/dairy'
 import type { EditorMode, RightPanel, ViewState } from './types/ui'
 import { useReportsPanel } from './components/report/useReportsPanel'
+import { SETTINGS_SECTIONS, type SettingsSectionId } from './components/settings/config'
 
 function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
   return {
@@ -162,6 +164,7 @@ const dayStartHour = ref(0)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
 const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
 const lastSavedAt = ref<string | null>(null)
+const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
 let loadSequence = 0
 const reportsPanel = useReportsPanel(workspacePath)
 
@@ -923,6 +926,13 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
           @select-report="reportsPanel.loadReport"
           @generate="reportsPanel.handleGenerateReport"
         />
+
+        <SettingsNav
+          v-else-if="rightPanel === 'settings'"
+          :sections="SETTINGS_SECTIONS"
+          :active-section-id="activeSettingsSectionId"
+          @select="activeSettingsSectionId = $event"
+        />
       </template>
     </WorkspaceSidebar>
 
@@ -982,6 +992,7 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
         :ai-settings-save-message="aiSettingsSaveMessage"
         :is-saving-ai-api-key="isSavingAiApiKey"
         :ai-api-key-save-message="aiApiKeySaveMessage"
+        :active-section-id="activeSettingsSectionId"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"

@@ -1,66 +1,11 @@
 .settings-panel {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
   align-content: start;
   min-height: 0;
   height: 100%;
   isolation: isolate;
-}
-
-.settings-nav {
-  position: relative;
-  z-index: 0;
-  display: grid;
-  gap: 0.6rem;
-  align-content: start;
-  padding: 0.4rem 0 0;
-  min-height: 0;
-  border-right: 1px solid var(--color-border);
-}
-
-.settings-nav-header {
-  padding-bottom: 0.15rem;
-}
-
-.settings-nav-title {
-  margin: 0;
-  color: var(--color-text-main);
-  font-size: 1.2rem;
-}
-
-.settings-nav-list {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.settings-nav-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 0.7rem 0.85rem;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
-  text-align: left;
-  transition:
-    transform 160ms ease,
-    background-color 160ms ease;
-}
-
-.settings-nav-item:hover {
-  transform: translateY(-1px);
-  background: rgba(245, 235, 195, 0.28);
-}
-
-.settings-nav-item--active {
-  background: #f4ead1;
-}
-
-.settings-nav-item-label {
-  color: var(--color-text-main);
-  font-size: 0.96rem;
-  font-weight: 600;
 }
 
 .settings-content {
@@ -70,7 +15,7 @@
   gap: 1rem;
   align-content: start;
   min-height: 0;
-  padding: 0.4rem 0 0 0.5rem;
+  padding: 0.4rem 0 0;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #d8ccb0 transparent;
@@ -485,10 +430,6 @@
 @media (max-width: 768px) {
   .settings-content {
     padding: 0;
-  }
-
-  .settings-nav-list {
-    grid-template-columns: 1fr;
   }
 
   .setting-row,
