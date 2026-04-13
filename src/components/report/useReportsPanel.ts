@@ -295,6 +295,7 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
         startDate: monthDate.startOf('month').format('YYYY-MM-DD'),
         endDate: monthDate.endOf('month').format('YYYY-MM-DD'),
         requestedSections: [...selectedSections.value],
+        overwriteReportId: null,
       }
     }
 
@@ -311,6 +312,7 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
         startDate: yearDate.startOf('year').format('YYYY-MM-DD'),
         endDate: yearDate.endOf('year').format('YYYY-MM-DD'),
         requestedSections: [...selectedSections.value],
+        overwriteReportId: null,
       }
     }
 
@@ -338,7 +340,37 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
       startDate: startDate.format('YYYY-MM-DD'),
       endDate: endDate.format('YYYY-MM-DD'),
       requestedSections: [...selectedSections.value],
+      overwriteReportId: null,
     }
+  }
+
+  function findExistingReportForInput(input: GenerateRangeReportInput) {
+    if (input.preset === 'month') {
+      return selectedMonthReport.value
+    }
+
+    if (input.preset === 'year') {
+      return selectedYearReport.value
+    }
+
+    return customReportList.value.find(
+      (item) => item.startDate === input.startDate && item.endDate === input.endDate,
+    ) ?? null
+  }
+
+  function buildOverwriteConfirmMessage(
+    input: GenerateRangeReportInput,
+    existingReport: ReportListItem,
+  ) {
+    if (input.preset === 'month') {
+      return `${existingReport.label}已存在，重新生成会覆盖原有报告。要继续吗？`
+    }
+
+    if (input.preset === 'year') {
+      return `${existingReport.label}已存在，重新生成会覆盖原有报告。要继续吗？`
+    }
+
+    return `${input.startDate} 至 ${input.endDate} 的报告已存在，重新生成会覆盖原有报告。要继续吗？`
   }
 
   function isActiveReportMatchingInput(input: GenerateRangeReportInput) {
@@ -353,6 +385,16 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     const input = createReportInput()
     if (!input) {
       return
+    }
+
+    const existingReport = findExistingReportForInput(input)
+    if (existingReport) {
+      const shouldOverwrite = window.confirm(buildOverwriteConfirmMessage(input, existingReport))
+      if (!shouldOverwrite) {
+        return
+      }
+
+      input.overwriteReportId = existingReport.reportId
     }
 
     if (input.preset === 'custom' && !isActiveReportMatchingInput(input)) {

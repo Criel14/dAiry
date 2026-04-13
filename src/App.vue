@@ -1047,6 +1047,8 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
 .journal-top {
   display: grid;
   gap: 1rem;
+  min-height: 0;
+  align-content: start;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-border);
 }

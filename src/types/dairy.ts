@@ -122,6 +122,7 @@ export interface GenerateRangeReportInput {
   startDate: string
   endDate: string
   requestedSections: ReportSectionKey[]
+  overwriteReportId?: string | null
 }
 
 export interface ReportQuery {

@@ -663,6 +663,18 @@ function createReportId(
   return `custom_${startDate.format('YYYY-MM-DD')}_${endDate.format('YYYY-MM-DD')}_${Date.now()}`
 }
 
+function resolveTargetReportId(
+  input: GenerateRangeReportInput,
+  startDate: dayjs.Dayjs,
+  endDate: dayjs.Dayjs,
+) {
+  if (input.preset === 'custom' && input.overwriteReportId?.trim()) {
+    return input.overwriteReportId.trim()
+  }
+
+  return createReportId(input.preset, startDate, endDate)
+}
+
 function buildFallbackSummary(
   label: string,
   source: ReturnType<typeof buildSourceSummary>,
@@ -768,7 +780,7 @@ export async function generateRangeReport(
   const dailyEntries = dailyInsightHydration.dailyEntries
   const source = buildSourceSummary(dailyEntries)
   const label = formatReportLabel(input.preset, startDate, endDate)
-  const reportId = createReportId(input.preset, startDate, endDate)
+  const reportId = resolveTargetReportId(input, startDate, endDate)
   const generatedAt = new Date().toISOString()
   const sections = buildSections(dailyEntries, requestedSections)
   const fallbackSummary = buildFallbackSummary(label, source, dailyEntries)

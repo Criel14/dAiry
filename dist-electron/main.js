@@ -2067,6 +2067,13 @@ function createReportId(preset, startDate, endDate) {
   }
   return `custom_${startDate.format("YYYY-MM-DD")}_${endDate.format("YYYY-MM-DD")}_${Date.now()}`;
 }
+function resolveTargetReportId(input, startDate, endDate) {
+  var _a;
+  if (input.preset === "custom" && ((_a = input.overwriteReportId) == null ? void 0 : _a.trim())) {
+    return input.overwriteReportId.trim();
+  }
+  return createReportId(input.preset, startDate, endDate);
+}
 function buildFallbackSummary(label, source, dailyEntries) {
   const topTags = buildTagCloudItems(dailyEntries).slice(0, 3).map((item) => item.label);
   const topLocation = buildLocationPatternsSection(dailyEntries).topLocation;
@@ -2139,7 +2146,7 @@ async function generateRangeReport(input) {
   const dailyEntries = dailyInsightHydration.dailyEntries;
   const source = buildSourceSummary(dailyEntries);
   const label = formatReportLabel(input.preset, startDate, endDate);
-  const reportId = createReportId(input.preset, startDate, endDate);
+  const reportId = resolveTargetReportId(input, startDate, endDate);
   const generatedAt = (/* @__PURE__ */ new Date()).toISOString();
   const sections = buildSections(dailyEntries, requestedSections);
   const fallbackSummary = buildFallbackSummary(label, source, dailyEntries);

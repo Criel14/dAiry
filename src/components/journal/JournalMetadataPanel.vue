@@ -80,7 +80,10 @@ function handleMoodInput(event: Event) {
 </script>
 
 <template>
-  <section class="metadata-panel">
+  <section
+    class="metadata-panel"
+    :class="{ 'metadata-panel--expanded': !isCollapsed }"
+  >
     <header class="metadata-header">
       <div>
         <h3 class="metadata-title">日记信息</h3>
@@ -202,7 +205,13 @@ function handleMoodInput(event: Event) {
         :disabled="!canGenerateInsights"
         @click="$emit('generateInsights')"
       >
-        {{ generateButtonText }}
+        <span>{{ generateButtonText }}</span>
+        <Icon
+          v-if="isGeneratingInsights"
+          class="button-loading-icon"
+          icon="lucide:loader-circle"
+          aria-hidden="true"
+        />
       </button>
 
       <button class="save-button" type="button" :disabled="!canSave" @click="$emit('save')">
@@ -220,6 +229,13 @@ function handleMoodInput(event: Event) {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: #fffef9;
+}
+
+.metadata-panel--expanded {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  max-height: calc(100dvh - 13rem);
+  overflow: hidden;
 }
 
 .metadata-header {
@@ -314,9 +330,54 @@ function handleMoodInput(event: Event) {
   height: 1rem;
 }
 
+.button-loading-icon {
+  width: 1rem;
+  height: 1rem;
+  animation: metadata-button-spin 0.8s linear infinite;
+}
+
+@keyframes metadata-button-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .metadata-grid {
   display: grid;
   gap: 0.9rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
+.metadata-grid::-webkit-scrollbar {
+  width: 10px;
+}
+
+.metadata-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.metadata-grid::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
+  background-clip: padding-box;
+}
+
+.metadata-grid::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
+  background-clip: padding-box;
+}
+
+.metadata-grid::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .metadata-card {
@@ -477,7 +538,10 @@ function handleMoodInput(event: Event) {
 .metadata-footer {
   display: flex;
   gap: 0.75rem;
+  flex-wrap: wrap;
   justify-content: flex-end;
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(217, 203, 159, 0.55);
 }
 
 @media (max-width: 960px) {
@@ -487,6 +551,14 @@ function handleMoodInput(event: Event) {
 }
 
 @media (max-width: 768px) {
+  .metadata-panel {
+    padding: 1rem;
+  }
+
+  .metadata-panel--expanded {
+    max-height: calc(100dvh - 9.5rem);
+  }
+
   .metadata-header,
   .metadata-header-actions,
   .content-header,

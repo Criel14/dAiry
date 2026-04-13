@@ -111,7 +111,7 @@ const yearCells = computed(() =>
 
 const generateButtonText = computed(() => {
   if (props.isGenerating) {
-    return '正在生成...'
+    return '正在生成'
   }
 
   if (props.preset === 'month') {
@@ -340,7 +340,13 @@ function goToCurrentYear() {
         :disabled="isGenerating"
         @click="emit('generate')"
       >
-        {{ generateButtonText }}
+        <span>{{ generateButtonText }}</span>
+        <Icon
+          v-if="isGenerating"
+          class="button-loading-icon"
+          icon="lucide:loader-circle"
+          aria-hidden="true"
+        />
       </button>
 
       <p v-if="statusMessage" class="report-status-inline">{{ statusMessage }}</p>
@@ -421,6 +427,22 @@ function goToCurrentYear() {
   color: var(--color-text-subtle);
 }
 
+.button-loading-icon {
+  width: 1rem;
+  height: 1rem;
+  animation: report-button-spin 0.8s linear infinite;
+}
+
+@keyframes report-button-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .preset-tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -447,6 +469,13 @@ function goToCurrentYear() {
 .primary-button {
   min-height: 2.3rem;
   padding: 0 0.95rem;
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
 }
 
 .preset-tab--active,

@@ -55,7 +55,8 @@ defineEmits<{
           type="button"
           @click="$emit('openJournal')"
         >
-          写作
+          <Icon class="nav-button-icon" icon="lucide:pencil-line" aria-hidden="true" />
+          <span>写作</span>
         </button>
         <button
           class="nav-button"
@@ -63,7 +64,8 @@ defineEmits<{
           type="button"
           @click="$emit('openReports')"
         >
-          报告
+          <Icon class="nav-button-icon" icon="lucide:chart-column" aria-hidden="true" />
+          <span>报告</span>
         </button>
         <button
           class="nav-button"
@@ -71,7 +73,8 @@ defineEmits<{
           type="button"
           @click="$emit('openSettings')"
         >
-          设置
+          <Icon class="nav-button-icon" icon="lucide:sliders-horizontal" aria-hidden="true" />
+          <span>设置</span>
         </button>
       </nav>
     </div>
@@ -145,6 +148,10 @@ defineEmits<{
 }
 
 .nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   min-height: 2.6rem;
   padding: 0 0.85rem;
   border: 1px solid var(--color-border);
@@ -157,6 +164,12 @@ defineEmits<{
     border-color 160ms ease,
     background-color 160ms ease,
     color 160ms ease;
+}
+
+.nav-button-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
 }
 
 .nav-button:hover {
