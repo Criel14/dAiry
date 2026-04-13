@@ -3,11 +3,12 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import WorkspaceSidebar from './components/workspace/WorkspaceSidebar.vue'
 import JournalHeader from './components/journal/JournalHeader.vue'
-import SettingsHeader from './components/settings/SettingsHeader.vue'
 import SettingsPanel from './components/settings/SettingsPanel.vue'
 import JournalEditorPanel from './components/journal/JournalEditorPanel.vue'
 import JournalMetadataPanel from './components/journal/JournalMetadataPanel.vue'
 import ReportsPanel from './components/report/ReportsPanel.vue'
+import ReportsSidebar from './components/report/ReportsSidebar.vue'
+import JournalCalendar from './components/journal/JournalCalendar.vue'
 import type {
   AiSettings,
   AiSettingsStatus,
@@ -19,6 +20,7 @@ import type {
   WorkspaceSelectionResult,
 } from './types/dairy'
 import type { EditorMode, RightPanel, ViewState } from './types/ui'
+import { useReportsPanel } from './components/report/useReportsPanel'
 
 function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
   return {
@@ -161,6 +163,7 @@ const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFron
 const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
 const lastSavedAt = ref<string | null>(null)
 let loadSequence = 0
+const reportsPanel = useReportsPanel(workspacePath)
 
 const todayText = computed(() => getJournalDateText(dayStartHour.value))
 const selectedDateText = computed(() => dayjs(selectedDate.value).format('YYYY 年 M 月 D 日 dddd'))
@@ -878,16 +881,47 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
   <div class="app-shell">
     <WorkspaceSidebar
       :workspace-path="workspacePath"
-      :selected-date="selectedDate"
-      :today-date="todayText"
-      :is-journal-heatmap-enabled="isJournalHeatmapEnabled"
       :active-panel="rightPanel"
       @choose-workspace="handleChooseWorkspace"
       @open-journal="openJournalPage"
       @open-reports="openReportsPage"
       @open-settings="openSettingsPage"
-      @select-date="handleSelectDate"
-    />
+    >
+      <template #context>
+        <JournalCalendar
+          v-if="rightPanel === 'journal'"
+          :model-value="selectedDate"
+          :today-date="todayText"
+          :workspace-path="workspacePath"
+          :is-heatmap-enabled="isJournalHeatmapEnabled"
+          @update:model-value="handleSelectDate"
+        />
+
+        <ReportsSidebar
+          v-else-if="rightPanel === 'reports'"
+          :has-workspace="reportsPanel.hasWorkspace.value"
+          :preset="reportsPanel.preset.value"
+          :month-value="reportsPanel.monthValue.value"
+          :year-value="reportsPanel.yearValue.value"
+          :custom-start-date="reportsPanel.customStartDate.value"
+          :custom-end-date="reportsPanel.customEndDate.value"
+          :selected-sections="reportsPanel.selectedSections.value"
+          :section-options="reportsPanel.sectionOptions"
+          :report-list="reportsPanel.reportList.value"
+          :selected-report-id="reportsPanel.selectedReportId.value"
+          :is-loading-list="reportsPanel.isLoadingList.value"
+          :is-generating="reportsPanel.isGenerating.value"
+          @update:preset="reportsPanel.preset.value = $event"
+          @update:month-value="reportsPanel.monthValue.value = $event"
+          @update:year-value="reportsPanel.yearValue.value = $event"
+          @update:custom-start-date="reportsPanel.customStartDate.value = $event"
+          @update:custom-end-date="reportsPanel.customEndDate.value = $event"
+          @toggle-section="reportsPanel.toggleSection"
+          @select-report="reportsPanel.loadReport"
+          @generate="reportsPanel.handleGenerateReport"
+        />
+      </template>
+    </WorkspaceSidebar>
 
     <main class="editor-shell">
       <section v-if="rightPanel === 'journal'" class="journal-top">
@@ -923,8 +957,6 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
         />
       </section>
 
-      <SettingsHeader v-else-if="rightPanel === 'settings'" @back="openJournalPage" />
-
       <SettingsPanel
         v-if="rightPanel === 'settings'"
         :workspace-path="workspacePath"
@@ -957,7 +989,17 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
 
       <ReportsPanel
         v-else-if="rightPanel === 'reports'"
-        :workspace-path="workspacePath"
+        :has-workspace="reportsPanel.hasWorkspace.value"
+        :status-message="reportsPanel.statusMessage.value"
+        :active-report="reportsPanel.activeReport.value"
+        :is-loading-report="reportsPanel.isLoadingReport.value"
+        :active-stats="reportsPanel.activeStats.value"
+        :active-heatmap-points="reportsPanel.activeHeatmapPoints.value"
+        :active-mood-points="reportsPanel.activeMoodPoints.value"
+        :active-tag-items="reportsPanel.activeTagItems.value"
+        :active-highlights="reportsPanel.activeHighlights.value"
+        :active-location-patterns="reportsPanel.activeLocationPatterns.value"
+        :active-time-patterns="reportsPanel.activeTimePatterns.value"
       />
 
       <JournalEditorPanel
@@ -980,18 +1022,22 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
 <style scoped>
 .app-shell {
   display: grid;
-  grid-template-columns: 360px minmax(0, 1fr);
+  grid-template-columns: 390px minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
 }
 
 .editor-shell {
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   padding: 2rem;
   min-height: 0;
   overflow: hidden;
+}
+
+.editor-shell > * {
+  min-height: 0;
 }
 
 .journal-top {

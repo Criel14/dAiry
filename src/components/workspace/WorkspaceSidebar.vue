@@ -1,12 +1,8 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import JournalCalendar from '../journal/JournalCalendar.vue'
 
 defineProps<{
   workspacePath: string | null
-  selectedDate: string
-  todayDate: string
-  isJournalHeatmapEnabled: boolean
   activePanel: 'journal' | 'reports' | 'settings'
 }>()
 
@@ -15,7 +11,6 @@ defineEmits<{
   openJournal: []
   openReports: []
   openSettings: []
-  selectDate: [value: string]
 }>()
 </script>
 
@@ -49,16 +44,6 @@ defineEmits<{
             >
               <Icon class="icon-svg" icon="lucide:folder-open" aria-hidden="true" />
             </button>
-
-            <button
-              class="icon-button"
-              type="button"
-              title="打开设置"
-              aria-label="打开设置"
-              @click="$emit('openSettings')"
-            >
-              <Icon class="icon-svg" icon="lucide:settings" aria-hidden="true" />
-            </button>
           </div>
         </header>
       </section>
@@ -89,14 +74,10 @@ defineEmits<{
           设置
         </button>
       </nav>
+    </div>
 
-      <JournalCalendar
-        :model-value="selectedDate"
-        :today-date="todayDate"
-        :workspace-path="workspacePath"
-        :is-heatmap-enabled="isJournalHeatmapEnabled"
-        @update:model-value="$emit('selectDate', $event)"
-      />
+    <div v-if="$slots.context" class="sidebar-context">
+      <slot name="context" />
     </div>
   </aside>
 </template>
@@ -118,6 +99,16 @@ defineEmits<{
   gap: 1.25rem;
 }
 
+.sidebar-context {
+  flex: 1;
+  min-height: 0;
+  margin-right: -0.45rem;
+  padding-right: 0.45rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
 .brand-block {
   display: grid;
   gap: 0.4rem;
@@ -136,12 +127,6 @@ defineEmits<{
   margin: 0;
   font-size: 2.4rem;
   color: var(--color-text-main);
-}
-
-.brand-subtitle {
-  margin: 0;
-  color: var(--color-text-subtle);
-  line-height: 1.7;
 }
 
 .workspace-card {
@@ -184,7 +169,7 @@ defineEmits<{
   border-color: var(--color-border-strong);
   background: #f5ebc3;
   color: #4f4630;
- }
+}
 
 .workspace-header {
   display: flex;
@@ -240,6 +225,26 @@ defineEmits<{
 .icon-svg {
   width: 1.35rem;
   height: 1.35rem;
+}
+
+.sidebar-context::-webkit-scrollbar {
+  width: 10px;
+}
+
+.sidebar-context::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-context::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
+  background-clip: padding-box;
+}
+
+.sidebar-context::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
+  background-clip: padding-box;
 }
 
 @media (max-width: 960px) {
