@@ -89,17 +89,18 @@ export function createDefaultFrontmatter() {
 }
 
 function extractFrontmatter(content: string) {
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/)
+  const normalizedContent = content.replace(/^\uFEFF/, '')
+  const match = normalizedContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/)
   if (!match) {
     return {
       frontmatterText: null,
-      body: content,
+      body: normalizedContent,
     }
   }
 
   return {
     frontmatterText: match[1],
-    body: content.slice(match[0].length),
+    body: normalizedContent.slice(match[0].length),
   }
 }
 

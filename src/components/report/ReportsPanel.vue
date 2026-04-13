@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import MoodTrendChart from './MoodTrendChart.vue'
 import type {
   RangeReport,
   ReportHeatmapPoint,
@@ -261,24 +262,7 @@ function formatPercentScore(score: number) {
             </span>
           </div>
 
-          <div class="mood-list">
-            <div
-              v-for="point in activeMoodPoints"
-              :key="point.date"
-              class="mood-row"
-            >
-              <span>{{ point.date }}</span>
-              <div class="mood-bar-track">
-                <div
-                  class="mood-bar-fill"
-                  :style="{
-                    width: `${((point.value ?? 0) + 5) * 10}%`,
-                  }"
-                />
-              </div>
-              <strong>{{ point.value ?? '空' }}</strong>
-            </div>
-          </div>
+          <MoodTrendChart :points="activeMoodPoints" />
         </section>
 
         <section v-if="activeTagItems.length > 0" class="content-card">
@@ -621,37 +605,6 @@ function formatPercentScore(score: number) {
   color: #47391f;
 }
 
-.mood-list {
-  display: grid;
-  gap: 0.6rem;
-  margin-top: 1rem;
-}
-
-.mood-row {
-  display: grid;
-  grid-template-columns: 130px minmax(0, 1fr) 3rem;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.mood-row span {
-  color: var(--color-text-subtle);
-  font-size: 0.88rem;
-}
-
-.mood-bar-track {
-  overflow: hidden;
-  height: 0.75rem;
-  border-radius: 999px;
-  background: #efe8d8;
-}
-
-.mood-bar-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #d5b569 0%, #8ea7a7 100%);
-}
-
 .tag-cloud {
   display: flex;
   flex-wrap: wrap;
@@ -797,10 +750,6 @@ function formatPercentScore(score: number) {
   }
 
   .pattern-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .mood-row {
     grid-template-columns: 1fr;
   }
 }

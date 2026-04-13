@@ -503,13 +503,13 @@ function ye() {
   );
 }
 function hn(t) {
-  const e = t.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/);
-  return e ? {
-    frontmatterText: e[1],
-    body: t.slice(e[0].length)
+  const e = t.replace(/^\uFEFF/, ""), n = e.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/);
+  return n ? {
+    frontmatterText: n[1],
+    body: e.slice(n[0].length)
   } : {
     frontmatterText: null,
-    body: t
+    body: e
   };
 }
 function Wt(t) {
