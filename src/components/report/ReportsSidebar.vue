@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
 import type { ReportListItem, ReportPreset, ReportSectionKey } from '../../types/dairy'
 
@@ -16,10 +17,13 @@ const props = defineProps<{
     label: string
     description: string
   }>
-  reportList: ReportListItem[]
+  monthReports: ReportListItem[]
+  yearReports: ReportListItem[]
+  customReportList: ReportListItem[]
   selectedReportId: string | null
   isLoadingList: boolean
   isGenerating: boolean
+  statusMessage: string
 }>()
 
 const emit = defineEmits<{
@@ -33,7 +37,26 @@ const emit = defineEmits<{
   generate: []
 }>()
 
+const monthLabels = ['1 月', '2 月', '3 月', '4 月', '5 月', '6 月', '7 月', '8 月', '9 月', '10 月', '11 月', '12 月']
 const isSectionOptionsExpanded = ref(false)
+const monthPickerYear = ref(parseMonthYear(props.monthValue))
+const yearPickerStart = ref(getYearPageStart(parseYearValue(props.yearValue)))
+
+watch(
+  () => props.monthValue,
+  (value) => {
+    monthPickerYear.value = parseMonthYear(value)
+  },
+  { immediate: true },
+)
+
+watch(
+  () => props.yearValue,
+  (value) => {
+    yearPickerStart.value = getYearPageStart(parseYearValue(value))
+  },
+  { immediate: true },
+)
 
 const selectedSectionSummary = computed(() => {
   if (props.selectedSections.length === 0) {
@@ -43,27 +66,116 @@ const selectedSectionSummary = computed(() => {
   return `已选 ${props.selectedSections.length} 项`
 })
 
+const monthReportKeys = computed(
+  () => new Set(props.monthReports.map((item) => dayjs(item.startDate).format('YYYY-MM'))),
+)
+
+const yearReportKeys = computed(
+  () => new Set(props.yearReports.map((item) => dayjs(item.startDate).format('YYYY'))),
+)
+
+const monthPickerTitle = computed(() => `${monthPickerYear.value} 年`)
+const yearPickerTitle = computed(
+  () => `${yearPickerStart.value} - ${yearPickerStart.value + 11}`,
+)
+
+const monthCells = computed(() =>
+  monthLabels.map((label, index) => {
+    const date = dayjs().year(monthPickerYear.value).month(index).startOf('month')
+    const key = date.format('YYYY-MM')
+
+    return {
+      key,
+      label,
+      isSelected: key === props.monthValue,
+      isCurrent: key === dayjs().format('YYYY-MM'),
+      hasReport: monthReportKeys.value.has(key),
+    }
+  }),
+)
+
+const yearCells = computed(() =>
+  Array.from({ length: 12 }, (_, index) => {
+    const year = yearPickerStart.value + index
+    const key = `${year}`
+
+    return {
+      key,
+      label: `${year} 年`,
+      isSelected: key === props.yearValue,
+      isCurrent: key === dayjs().format('YYYY'),
+      hasReport: yearReportKeys.value.has(key),
+    }
+  }),
+)
+
+const generateButtonText = computed(() => {
+  if (props.isGenerating) {
+    return '正在生成...'
+  }
+
+  if (props.preset === 'month') {
+    return '生成当前月份报告'
+  }
+
+  if (props.preset === 'year') {
+    return '生成当前年份报告'
+  }
+
+  return '生成并保存报告'
+})
+
+function parseMonthYear(value: string) {
+  const parsedDate = dayjs(`${value}-01`)
+  return parsedDate.isValid() ? parsedDate.year() : dayjs().year()
+}
+
+function parseYearValue(value: string) {
+  const parsedDate = dayjs(`${value}-01-01`)
+  return parsedDate.isValid() ? parsedDate.year() : dayjs().year()
+}
+
+function getYearPageStart(year: number) {
+  return Math.floor(year / 12) * 12
+}
+
 function formatDateTime(value: string) {
   return dayjs(value).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm') : value
 }
 
-function formatPreset(presetValue: ReportPreset) {
-  if (presetValue === 'month') {
-    return '月度'
-  }
+function shiftMonthPickerYear(amount: number) {
+  monthPickerYear.value += amount
+}
 
-  if (presetValue === 'year') {
-    return '年度'
-  }
+function selectMonth(key: string) {
+  emit('update:monthValue', key)
+}
 
-  return '自定义'
+function goToCurrentMonth() {
+  const currentMonth = dayjs().format('YYYY-MM')
+  monthPickerYear.value = dayjs().year()
+  emit('update:monthValue', currentMonth)
+}
+
+function shiftYearPickerPage(amount: number) {
+  yearPickerStart.value += amount * 12
+}
+
+function selectYear(key: string) {
+  emit('update:yearValue', key)
+}
+
+function goToCurrentYear() {
+  const currentYear = dayjs().format('YYYY')
+  yearPickerStart.value = getYearPageStart(dayjs().year())
+  emit('update:yearValue', currentYear)
 }
 </script>
 
 <template>
   <div v-if="!hasWorkspace" class="reports-sidebar-empty">
     <h3>区间总结</h3>
-    <p>先选择一个工作区，左侧这里会显示生成报告和历史报告菜单。</p>
+    <p>先选择一个工作区，左侧这里会显示总结选项、月报年报选择器和历史自定义报告。</p>
   </div>
 
   <div v-else class="reports-sidebar-stack">
@@ -97,50 +209,92 @@ function formatPreset(presetValue: ReportPreset) {
         </button>
       </div>
 
-      <div class="field-group">
-        <label v-if="preset === 'month'" class="field-label">
-          月份
+      <section v-if="preset === 'month'" class="selector-card">
+        <header class="selector-toolbar">
+          <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftMonthPickerYear(-1)">
+            <Icon class="toolbar-icon" icon="lucide:chevrons-left" aria-hidden="true" />
+          </button>
+          <strong class="selector-title">{{ monthPickerTitle }}</strong>
+          <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftMonthPickerYear(1)">
+            <Icon class="toolbar-icon" icon="lucide:chevrons-right" aria-hidden="true" />
+          </button>
+        </header>
+
+        <div class="picker-grid picker-grid--month">
+          <button
+            v-for="item in monthCells"
+            :key="item.key"
+            class="picker-cell"
+            :class="{
+              'picker-cell--selected': item.isSelected,
+              'picker-cell--current': item.isCurrent,
+              'picker-cell--has-report': item.hasReport,
+            }"
+            type="button"
+            @click="selectMonth(item.key)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+
+        <button class="today-button" type="button" @click="goToCurrentMonth">
+          回到本月
+        </button>
+      </section>
+
+      <section v-else-if="preset === 'year'" class="selector-card">
+        <header class="selector-toolbar">
+          <button class="toolbar-button" type="button" title="上一组年份" aria-label="上一组年份" @click="shiftYearPickerPage(-1)">
+            <Icon class="toolbar-icon" icon="lucide:chevrons-left" aria-hidden="true" />
+          </button>
+          <strong class="selector-title">{{ yearPickerTitle }}</strong>
+          <button class="toolbar-button" type="button" title="下一组年份" aria-label="下一组年份" @click="shiftYearPickerPage(1)">
+            <Icon class="toolbar-icon" icon="lucide:chevrons-right" aria-hidden="true" />
+          </button>
+        </header>
+
+        <div class="picker-grid picker-grid--year">
+          <button
+            v-for="item in yearCells"
+            :key="item.key"
+            class="picker-cell"
+            :class="{
+              'picker-cell--selected': item.isSelected,
+              'picker-cell--current': item.isCurrent,
+              'picker-cell--has-report': item.hasReport,
+            }"
+            type="button"
+            @click="selectYear(item.key)"
+          >
+            {{ item.label }}
+          </button>
+        </div>
+
+        <button class="today-button" type="button" @click="goToCurrentYear">
+          回到本年
+        </button>
+      </section>
+
+      <div v-else class="field-group">
+        <label class="field-label">
+          开始日期
           <input
-            :value="monthValue"
+            :value="customStartDate"
             class="field-input"
-            type="month"
-            @input="emit('update:monthValue', ($event.target as HTMLInputElement).value)"
+            type="date"
+            @input="emit('update:customStartDate', ($event.target as HTMLInputElement).value)"
           />
         </label>
 
-        <label v-else-if="preset === 'year'" class="field-label">
-          年份
+        <label class="field-label">
+          结束日期
           <input
-            :value="yearValue"
+            :value="customEndDate"
             class="field-input"
-            type="number"
-            min="2000"
-            max="2100"
-            @input="emit('update:yearValue', ($event.target as HTMLInputElement).value)"
+            type="date"
+            @input="emit('update:customEndDate', ($event.target as HTMLInputElement).value)"
           />
         </label>
-
-        <template v-else>
-          <label class="field-label">
-            开始日期
-            <input
-              :value="customStartDate"
-              class="field-input"
-              type="date"
-              @input="emit('update:customStartDate', ($event.target as HTMLInputElement).value)"
-            />
-          </label>
-
-          <label class="field-label">
-            结束日期
-            <input
-              :value="customEndDate"
-              class="field-input"
-              type="date"
-              @input="emit('update:customEndDate', ($event.target as HTMLInputElement).value)"
-            />
-          </label>
-        </template>
       </div>
 
       <div class="field-group">
@@ -154,13 +308,11 @@ function formatPreset(presetValue: ReportPreset) {
             <span class="section-toggle-label">总结选项</span>
             <strong class="section-toggle-summary">{{ selectedSectionSummary }}</strong>
           </span>
-          <span
+          <Icon
             class="section-toggle-icon"
-            :class="{ 'section-toggle-icon--expanded': isSectionOptionsExpanded }"
+            :icon="isSectionOptionsExpanded ? 'lucide:chevron-up' : 'lucide:chevron-down'"
             aria-hidden="true"
-          >
-            ▾
-          </span>
+          />
         </button>
 
         <div v-if="isSectionOptionsExpanded" class="check-list">
@@ -188,30 +340,31 @@ function formatPreset(presetValue: ReportPreset) {
         :disabled="isGenerating"
         @click="emit('generate')"
       >
-        {{ isGenerating ? '正在生成...' : '生成并保存报告' }}
+        {{ generateButtonText }}
       </button>
+
+      <p v-if="statusMessage" class="report-status-inline">{{ statusMessage }}</p>
     </section>
 
-    <section class="panel-card report-list-card">
+    <section v-if="preset === 'custom'" class="panel-card report-list-card">
       <div class="panel-title-row">
-        <h3 class="panel-title">历史报告</h3>
-        <span class="panel-meta">{{ isLoadingList ? '读取中...' : `${reportList.length} 份` }}</span>
+        <h3 class="panel-title">历史自定义报告</h3>
+        <span class="panel-meta">{{ isLoadingList ? '读取中...' : `${customReportList.length} 份` }}</span>
       </div>
 
-      <div v-if="reportList.length === 0" class="empty-inline">
-        还没有已保存的区间总结。
+      <div v-if="customReportList.length === 0" class="empty-inline">
+        还没有已保存的自定义区间总结。
       </div>
 
       <div v-else class="report-list">
         <button
-          v-for="item in reportList"
+          v-for="item in customReportList"
           :key="item.reportId"
           class="report-list-item"
           :class="{ 'report-list-item--active': item.reportId === selectedReportId }"
           type="button"
           @click="emit('selectReport', item.reportId)"
         >
-          <span class="report-list-tag">{{ formatPreset(item.preset) }}</span>
           <strong>{{ item.label }}</strong>
           <small>{{ formatDateTime(item.generatedAt) }}</small>
         </button>
@@ -231,6 +384,12 @@ function formatPreset(presetValue: ReportPreset) {
   display: grid;
   gap: 0.9rem;
   align-content: start;
+  padding: 0;
+}
+
+.panel-card + .panel-card {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .reports-sidebar-empty {
@@ -255,25 +414,11 @@ function formatPreset(presetValue: ReportPreset) {
   line-height: 1.7;
 }
 
-.panel-card {
-  padding: 0;
-}
-
-.panel-card + .panel-card {
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--color-border);
-}
-
-.panel-title-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.panel-meta {
-  color: var(--color-text-soft);
-  font-size: 0.85rem;
+.report-status-inline {
+  margin: -0.15rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--color-text-subtle);
 }
 
 .preset-tabs {
@@ -312,7 +457,8 @@ function formatPreset(presetValue: ReportPreset) {
 
 .preset-tab:hover,
 .primary-button:hover,
-.report-list-item:hover {
+.report-list-item:hover,
+.picker-cell:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
 }
@@ -324,17 +470,122 @@ function formatPreset(presetValue: ReportPreset) {
   box-shadow: none;
 }
 
+.selector-card,
 .field-group {
   display: grid;
   gap: 0.9rem;
   margin-top: 0.8rem;
 }
 
-.field-title {
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.selector-card {
+  padding: 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 14px;
+  background: rgba(255, 254, 249, 0.72);
+}
+
+.selector-toolbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.selector-title {
+  text-align: center;
+  font-size: 0.98rem;
+  color: var(--color-text-main);
+}
+
+.toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--color-text-subtle);
+  transition:
+    transform 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
+}
+
+.toolbar-button:hover {
+  color: var(--color-text-main);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.toolbar-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.picker-grid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.picker-grid--month,
+.picker-grid--year {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.picker-cell {
+  min-height: 3rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  text-align: center;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.picker-cell--has-report {
+  background: #f8f0d7;
+  border-color: #dfc98f;
+}
+
+.picker-cell--current {
+  border-color: #d8c991;
+}
+
+.picker-cell--selected {
+  border-width: 2px;
+  border-color: #766543;
+  font-weight: 600;
+}
+
+.today-button {
+  min-height: 2.25rem;
+  justify-self: start;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+  font-size: 0.88rem;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.today-button:hover {
+  color: var(--color-text-main);
+  border-color: var(--color-border-strong);
+  box-shadow: 0 6px 14px rgba(95, 82, 42, 0.08);
+  transform: translateY(-1px);
 }
 
 .section-toggle {
@@ -376,14 +627,10 @@ function formatPreset(presetValue: ReportPreset) {
 }
 
 .section-toggle-icon {
-  font-size: 1.18rem;
-  line-height: 1;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: 0 0 auto;
   color: var(--color-text-subtle);
-  transition: transform 160ms ease;
-}
-
-.section-toggle-icon--expanded {
-  transform: rotate(180deg);
 }
 
 .check-list {
@@ -436,6 +683,18 @@ function formatPreset(presetValue: ReportPreset) {
   line-height: 1.65;
 }
 
+.panel-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.panel-meta {
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+}
+
 .report-list-card {
   min-height: 0;
 }
@@ -456,18 +715,23 @@ function formatPreset(presetValue: ReportPreset) {
 }
 
 .report-list-item strong,
-.report-list-item small,
-.report-list-tag {
+.report-list-item small {
   display: block;
 }
 
-.report-list-item small,
-.report-list-tag {
+.report-list-item small {
   color: var(--color-text-subtle);
 }
 
 .report-list-item--active {
   background: #f9f2dd;
   border-color: var(--color-border-strong);
+}
+
+@media (max-width: 640px) {
+  .picker-grid--month,
+  .picker-grid--year {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 </style>

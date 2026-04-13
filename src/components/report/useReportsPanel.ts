@@ -7,6 +7,7 @@ import type {
   ReportPreset,
   ReportSectionKey,
 } from '../../types/dairy'
+import { getReadableErrorMessage } from '../../utils/error'
 
 export const REPORT_SECTION_OPTIONS: Array<{
   key: ReportSectionKey
@@ -44,8 +45,57 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
   const isLoadingReport = ref(false)
   const isGenerating = ref(false)
   const statusMessage = ref('')
+  let reportLoadSequence = 0
 
   const hasWorkspace = computed(() => Boolean(workspacePath.value))
+  const monthReports = computed(() => reportList.value.filter((item) => item.preset === 'month'))
+  const yearReports = computed(() => reportList.value.filter((item) => item.preset === 'year'))
+  const customReportList = computed(() => reportList.value.filter((item) => item.preset === 'custom'))
+  const selectedMonthReportId = computed(() => `month_${monthValue.value}`)
+  const selectedYearReportId = computed(() => `year_${yearValue.value}`)
+  const selectedMonthReport = computed(
+    () => monthReports.value.find((item) => item.reportId === selectedMonthReportId.value) ?? null,
+  )
+  const selectedYearReport = computed(
+    () => yearReports.value.find((item) => item.reportId === selectedYearReportId.value) ?? null,
+  )
+  const selectedPeriodHasReport = computed(() => {
+    if (preset.value === 'month') {
+      return Boolean(selectedMonthReport.value)
+    }
+
+    if (preset.value === 'year') {
+      return Boolean(selectedYearReport.value)
+    }
+
+    return Boolean(selectedReportId.value)
+  })
+  const emptyStateTitle = computed(() => {
+    if (preset.value === 'month' && !selectedPeriodHasReport.value) {
+      return '本月报告未生成'
+    }
+
+    if (preset.value === 'year' && !selectedPeriodHasReport.value) {
+      return '本年报告未生成'
+    }
+
+    return '还没有打开任何报告'
+  })
+  const emptyStateDescription = computed(() => {
+    if (preset.value === 'month' && !selectedPeriodHasReport.value) {
+      const monthDate = dayjs(`${monthValue.value}-01`)
+      const label = monthDate.isValid() ? monthDate.format('YYYY 年 M 月') : monthValue.value
+      return `${label} 还没有已保存的月度总结，你可以在左侧直接生成。`
+    }
+
+    if (preset.value === 'year' && !selectedPeriodHasReport.value) {
+      const yearDate = dayjs(`${yearValue.value}-01-01`)
+      const label = yearDate.isValid() ? yearDate.format('YYYY 年') : yearValue.value
+      return `${label} 还没有已保存的年度总结，你可以在左侧直接生成。`
+    }
+
+    return '你可以先从左侧生成一份月度、年度或自定义区间总结。'
+  })
   const activeStats = computed(() => activeReport.value?.sections.stats ?? null)
   const activeHeatmapPoints = computed(() => activeReport.value?.sections.heatmap?.points ?? [])
   const activeMoodPoints = computed(() => activeReport.value?.sections.moodTrend?.points ?? [])
@@ -62,9 +112,17 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     { immediate: true },
   )
 
+  watch(
+    [preset, monthValue, yearValue, selectedReportId, reportList, workspacePath],
+    () => {
+      void syncActiveReportForSelection()
+    },
+    { immediate: true },
+  )
+
   async function handleWorkspaceChange() {
     reportList.value = []
-    activeReport.value = null
+    clearActiveReport()
     selectedReportId.value = null
     statusMessage.value = ''
 
@@ -86,50 +144,123 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     try {
       const nextReports = await window.dairy.listRangeReports(workspacePath.value)
       reportList.value = nextReports
-
-      const nextSelectedReportId =
+      const nextCustomReportId =
         selectedReportId.value &&
-        nextReports.some((item) => item.reportId === selectedReportId.value)
+        nextReports.some((item) => item.preset === 'custom' && item.reportId === selectedReportId.value)
           ? selectedReportId.value
-          : nextReports[0]?.reportId ?? null
+          : nextReports.find((item) => item.preset === 'custom')?.reportId ?? null
 
-      selectedReportId.value = nextSelectedReportId
-
-      if (nextSelectedReportId) {
-        await loadReport(nextSelectedReportId)
-        return
-      }
-
-      activeReport.value = null
+      selectedReportId.value = nextCustomReportId
     } catch (error) {
       reportList.value = []
-      activeReport.value = null
-      statusMessage.value = error instanceof Error ? error.message : '读取报告列表失败，请稍后重试。'
+      clearActiveReport()
+      statusMessage.value = getReadableErrorMessage(error, '读取报告列表失败，请稍后重试。')
     } finally {
       isLoadingList.value = false
     }
   }
 
-  async function loadReport(reportId: string) {
+  function clearActiveReport() {
+    reportLoadSequence += 1
+    activeReport.value = null
+    isLoadingReport.value = false
+  }
+
+  async function loadReport(reportId: string, options: { syncCustomSelection?: boolean } = {}) {
     if (!workspacePath.value) {
       return
     }
 
+    const currentLoad = ++reportLoadSequence
     isLoadingReport.value = true
     statusMessage.value = ''
 
     try {
-      activeReport.value = await window.dairy.getRangeReport({
+      const report = await window.dairy.getRangeReport({
         workspacePath: workspacePath.value,
         reportId,
       })
-      selectedReportId.value = reportId
+
+      if (currentLoad !== reportLoadSequence) {
+        return
+      }
+
+      activeReport.value = report
+
+      if (options.syncCustomSelection ?? true) {
+        selectedReportId.value = reportId
+      }
     } catch (error) {
+      if (currentLoad !== reportLoadSequence) {
+        return
+      }
+
       activeReport.value = null
-      statusMessage.value = error instanceof Error ? error.message : '读取报告详情失败，请稍后重试。'
+      statusMessage.value = getReadableErrorMessage(error, '读取报告详情失败，请稍后重试。')
     } finally {
-      isLoadingReport.value = false
+      if (currentLoad === reportLoadSequence) {
+        isLoadingReport.value = false
+      }
     }
+  }
+
+  async function syncActiveReportForSelection() {
+    if (!workspacePath.value) {
+      clearActiveReport()
+      return
+    }
+
+    if (preset.value === 'month') {
+      if (!selectedMonthReport.value) {
+        statusMessage.value = ''
+        clearActiveReport()
+        return
+      }
+
+      if (activeReport.value?.reportId === selectedMonthReport.value.reportId) {
+        return
+      }
+
+      await loadReport(selectedMonthReport.value.reportId, { syncCustomSelection: false })
+      return
+    }
+
+    if (preset.value === 'year') {
+      if (!selectedYearReport.value) {
+        statusMessage.value = ''
+        clearActiveReport()
+        return
+      }
+
+      if (activeReport.value?.reportId === selectedYearReport.value.reportId) {
+        return
+      }
+
+      await loadReport(selectedYearReport.value.reportId, { syncCustomSelection: false })
+      return
+    }
+
+    const nextSelectedReportId =
+      selectedReportId.value &&
+      customReportList.value.some((item) => item.reportId === selectedReportId.value)
+        ? selectedReportId.value
+        : customReportList.value[0]?.reportId ?? null
+
+    if (selectedReportId.value !== nextSelectedReportId) {
+      selectedReportId.value = nextSelectedReportId
+    }
+
+    if (!nextSelectedReportId) {
+      statusMessage.value = ''
+      clearActiveReport()
+      return
+    }
+
+    if (activeReport.value?.reportId === nextSelectedReportId) {
+      return
+    }
+
+    await loadReport(nextSelectedReportId)
   }
 
   function toggleSection(sectionKey: ReportSectionKey) {
@@ -210,10 +341,23 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     }
   }
 
+  function isActiveReportMatchingInput(input: GenerateRangeReportInput) {
+    return (
+      activeReport.value?.preset === input.preset &&
+      activeReport.value.period.startDate === input.startDate &&
+      activeReport.value.period.endDate === input.endDate
+    )
+  }
+
   async function handleGenerateReport() {
     const input = createReportInput()
     if (!input) {
       return
+    }
+
+    if (input.preset === 'custom' && !isActiveReportMatchingInput(input)) {
+      clearActiveReport()
+      selectedReportId.value = null
     }
 
     isGenerating.value = true
@@ -222,11 +366,13 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     try {
       const report = await window.dairy.generateRangeReport(input)
       activeReport.value = report
-      selectedReportId.value = report.reportId
+      if (report.preset === 'custom') {
+        selectedReportId.value = report.reportId
+      }
       statusMessage.value = '报告已生成并保存到工作区。'
       await loadReportList()
     } catch (error) {
-      statusMessage.value = error instanceof Error ? error.message : '生成报告失败，请稍后重试。'
+      statusMessage.value = getReadableErrorMessage(error, '生成报告失败，请稍后重试。')
     } finally {
       isGenerating.value = false
     }
@@ -241,22 +387,28 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     activeStats,
     activeTagItems,
     activeTimePatterns,
+    customReportList,
     customEndDate,
     customStartDate,
+    emptyStateDescription,
+    emptyStateTitle,
     handleGenerateReport,
     hasWorkspace,
     isGenerating,
     isLoadingList,
     isLoadingReport,
     loadReport,
+    monthReports,
     monthValue,
     preset,
     reportList,
     sectionOptions: REPORT_SECTION_OPTIONS,
+    selectedPeriodHasReport,
     selectedReportId,
     selectedSections,
     statusMessage,
     toggleSection,
+    yearReports,
     yearValue,
   }
 }

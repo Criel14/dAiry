@@ -14,7 +14,8 @@ import type {
 
 defineProps<{
   hasWorkspace: boolean
-  statusMessage: string
+  emptyStateTitle: string
+  emptyStateDescription: string
   activeReport: RangeReport | null
   isLoadingReport: boolean
   activeStats: ReportStatsSection | null
@@ -92,8 +93,6 @@ function formatPercentScore(score: number) {
         <h2 class="reports-title">总结报告</h2>
         <p class="reports-description">这段时间你过得怎么样呢</p>
       </div>
-
-      <p v-if="statusMessage" class="reports-status">{{ statusMessage }}</p>
     </header>
 
     <section class="report-content">
@@ -103,8 +102,8 @@ function formatPercentScore(score: number) {
       </div>
 
       <div v-else-if="!activeReport" class="report-empty-state">
-        <h3>还没有打开任何报告</h3>
-        <p>你可以先从左侧生成一份月度、年度或自定义区间总结。</p>
+        <h3>{{ emptyStateTitle }}</h3>
+        <p>{{ emptyStateDescription }}</p>
       </div>
 
       <article v-else class="report-article">

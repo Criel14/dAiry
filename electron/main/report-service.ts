@@ -631,6 +631,22 @@ function formatReportLabel(preset: GenerateRangeReportInput['preset'], startDate
   return `${startDate.format('YYYY 年 M 月 D 日')} 至 ${endDate.format('YYYY 年 M 月 D 日')}总结`
 }
 
+function buildEmptyReportMessage(
+  preset: GenerateRangeReportInput['preset'],
+  startDate: dayjs.Dayjs,
+  endDate: dayjs.Dayjs,
+) {
+  if (preset === 'month') {
+    return `${startDate.format('YYYY 年 M 月')}还没有任何日记，无法生成报告。`
+  }
+
+  if (preset === 'year') {
+    return `${startDate.format('YYYY 年')}还没有任何日记，无法生成报告。`
+  }
+
+  return `${startDate.format('YYYY-MM-DD')} 至 ${endDate.format('YYYY-MM-DD')} 这段时间还没有任何日记，无法生成报告。`
+}
+
 function createReportId(
   preset: GenerateRangeReportInput['preset'],
   startDate: dayjs.Dayjs,
@@ -742,6 +758,12 @@ export async function generateRangeReport(
 ): Promise<RangeReport> {
   const { startDate, endDate, requestedSections } = validateReportRange(input)
   const dailyEntryResults = await buildDailyEntries(input.workspacePath, startDate, endDate)
+  const hasAnyEntry = dailyEntryResults.some((item) => item.entry.hasEntry)
+
+  if (!hasAnyEntry) {
+    throw new Error(buildEmptyReportMessage(input.preset, startDate, endDate))
+  }
+
   const dailyInsightHydration = await hydrateMissingDailyInsights(input.workspacePath, dailyEntryResults)
   const dailyEntries = dailyInsightHydration.dailyEntries
   const source = buildSourceSummary(dailyEntries)
