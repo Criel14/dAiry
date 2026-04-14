@@ -1,12 +1,12 @@
-import { app as H, safeStorage as It, BrowserWindow as $t, Menu as Je, dialog as Lt, ipcMain as W, shell as Ne } from "electron";
+import { app as N, safeStorage as Yt, BrowserWindow as Rt, Menu as Ge, dialog as Ct, ipcMain as C, shell as xe } from "electron";
 import L from "node:path";
-import { readFile as $, mkdir as _, writeFile as J, stat as Jt, readdir as Nt } from "node:fs/promises";
-import { fileURLToPath as Pt } from "node:url";
-const Pe = L.dirname(Pt(import.meta.url));
-process.env.APP_ROOT = L.join(Pe, "..");
-const ze = process.platform === "win32" ? "app.ico" : "app.png", Re = L.join(process.env.APP_ROOT, "build", "icons", ze), Ct = process.env.VITE_DEV_SERVER_URL, Be = L.join(process.env.APP_ROOT, "dist-electron"), zt = L.join(process.env.APP_ROOT, "dist");
-process.env.VITE_PUBLIC = Ct ? L.join(process.env.APP_ROOT, "public") : zt;
-const I = {
+import { readFile as J, mkdir as X, writeFile as P, stat as Ft, readdir as Zt } from "node:fs/promises";
+import { fileURLToPath as Gt } from "node:url";
+const Xe = L.dirname(Gt(import.meta.url));
+process.env.APP_ROOT = L.join(Xe, "..");
+const _e = process.platform === "win32" ? "app.ico" : "app.png", Ue = L.join(process.env.APP_ROOT, "build", "icons", _e), Wt = process.env.VITE_DEV_SERVER_URL, Qe = L.join(process.env.APP_ROOT, "dist-electron"), xt = L.join(process.env.APP_ROOT, "dist");
+process.env.VITE_PUBLIC = Wt ? L.join(process.env.APP_ROOT, "public") : xt;
+const W = {
   getBootstrap: "app:get-bootstrap",
   getAiSettingsStatus: "app:get-ai-settings-status",
   saveAiSettings: "app:save-ai-settings",
@@ -38,7 +38,7 @@ const I = {
   baseURL: "https://api.openai.com/v1",
   model: "gpt-4.1-mini",
   timeoutMs: 3e4
-}, Rt = {
+}, Xt = {
   lastOpenedWorkspace: null,
   recentWorkspaces: [],
   ui: {
@@ -54,13 +54,13 @@ const I = {
     }
   },
   ai: q
-}, xe = {
+}, Ve = {
   weather: "",
   location: "",
   mood: 0,
   summary: "",
   tags: []
-}, Ot = [
+}, bt = [
   "晴",
   "多云",
   "阴",
@@ -70,35 +70,35 @@ const I = {
   "小雪",
   "大雪",
   "雾"
-], Bt = ["学校", "公司", "家"], xt = ["上班", "加班", "原神", "杀戮尖塔"];
-function Zt() {
-  return L.join(H.getPath("userData"), "config.json");
+], _t = ["学校", "公司", "家"], Ut = ["上班", "加班", "原神", "杀戮尖塔"];
+function Qt() {
+  return L.join(N.getPath("userData"), "config.json");
 }
-function _t(t) {
+function Vt(t) {
   return typeof t != "number" || !Number.isInteger(t) || t < 0 || t > 6 ? 0 : t;
 }
-function Ze(t) {
+function tn(t) {
   return q.timeoutMs;
 }
-function _e(t, e = q.baseURL) {
+function en(t, e = q.baseURL) {
   return typeof t != "string" ? e : t.trim().replace(/\/+$/, "") || e;
 }
-function Fe(t, e = q.model) {
+function nn(t, e = q.model) {
   return typeof t != "string" ? e : t.trim() || e;
 }
-function Ge(t) {
+function rn(t) {
   return t === "openai" || t === "deepseek" || t === "alibaba" || t === "openai-compatible" ? t : q.providerType;
 }
-function gt(t) {
-  const e = Ge(t == null ? void 0 : t.providerType), n = Qe(e);
+function pt(t) {
+  const e = rn(t == null ? void 0 : t.providerType), n = sn(e);
   return {
     providerType: e,
-    baseURL: _e(t == null ? void 0 : t.baseURL, n.baseURL),
-    model: Fe(t == null ? void 0 : t.model, n.model),
-    timeoutMs: Ze(t == null ? void 0 : t.timeoutMs)
+    baseURL: en(t == null ? void 0 : t.baseURL, n.baseURL),
+    model: nn(t == null ? void 0 : t.model, n.model),
+    timeoutMs: tn(t == null ? void 0 : t.timeoutMs)
   };
 }
-function Ft(t) {
+function te(t) {
   return {
     weather: (t == null ? void 0 : t.weather) !== !1,
     location: (t == null ? void 0 : t.location) !== !1,
@@ -107,57 +107,57 @@ function Ft(t) {
     tags: (t == null ? void 0 : t.tags) !== !1
   };
 }
-function Ue(t) {
-  var d, g, h, v, Y, D;
+function on(t) {
+  var m, g, f, d, S, j;
   if (!t || typeof t != "object")
-    return Rt;
-  const e = t, n = Array.isArray(e.recentWorkspaces) ? e.recentWorkspaces.filter((T) => typeof T == "string") : [], r = ((d = e.ui) == null ? void 0 : d.theme) === "light" || ((g = e.ui) == null ? void 0 : g.theme) === "dark" || ((h = e.ui) == null ? void 0 : h.theme) === "system" ? e.ui.theme : "system", o = ((v = e.ui) == null ? void 0 : v.journalHeatmapEnabled) === !0, i = _t((Y = e.ui) == null ? void 0 : Y.dayStartHour), a = Ft((D = e.ui) == null ? void 0 : D.frontmatterVisibility), s = gt(e.ai);
+    return Xt;
+  const e = t, n = Array.isArray(e.recentWorkspaces) ? e.recentWorkspaces.filter((T) => typeof T == "string") : [], r = ((m = e.ui) == null ? void 0 : m.theme) === "light" || ((g = e.ui) == null ? void 0 : g.theme) === "dark" || ((f = e.ui) == null ? void 0 : f.theme) === "system" ? e.ui.theme : "system", a = ((d = e.ui) == null ? void 0 : d.journalHeatmapEnabled) === !0, s = Vt((S = e.ui) == null ? void 0 : S.dayStartHour), o = te((j = e.ui) == null ? void 0 : j.frontmatterVisibility), i = pt(e.ai);
   return {
     lastOpenedWorkspace: typeof e.lastOpenedWorkspace == "string" ? e.lastOpenedWorkspace : null,
     recentWorkspaces: n,
     ui: {
       theme: r,
-      journalHeatmapEnabled: o,
-      dayStartHour: i,
-      frontmatterVisibility: a
+      journalHeatmapEnabled: a,
+      dayStartHour: s,
+      frontmatterVisibility: o
     },
-    ai: s
+    ai: i
   };
 }
-async function qt(t) {
+async function Jt(t) {
   try {
-    return (await Jt(t)).isDirectory();
+    return (await Ft(t)).isDirectory();
   } catch (e) {
     if (e.code === "ENOENT")
       return !1;
     throw e;
   }
 }
-async function Xe(t) {
+async function an(t) {
   const e = [];
-  for (const o of t.recentWorkspaces)
-    await qt(o) && e.push(o);
-  const n = t.lastOpenedWorkspace && await qt(t.lastOpenedWorkspace) ? t.lastOpenedWorkspace : null, r = n && !e.includes(n) ? [n, ...e] : e;
+  for (const a of t.recentWorkspaces)
+    await Jt(a) && e.push(a);
+  const n = t.lastOpenedWorkspace && await Jt(t.lastOpenedWorkspace) ? t.lastOpenedWorkspace : null, r = n && !e.includes(n) ? [n, ...e] : e;
   return {
     ...t,
     lastOpenedWorkspace: n,
     recentWorkspaces: r
   };
 }
-async function K() {
+async function M() {
   try {
-    const t = await $(Zt(), "utf-8"), e = Ue(JSON.parse(t));
-    return Xe(e);
+    const t = await J(Qt(), "utf-8"), e = on(JSON.parse(t));
+    return an(e);
   } catch (t) {
     if (t.code === "ENOENT")
-      return Rt;
+      return Xt;
     throw t;
   }
 }
-async function tt(t) {
-  await _(H.getPath("userData"), { recursive: !0 }), await J(Zt(), JSON.stringify(t, null, 2), "utf-8");
+async function rt(t) {
+  await X(N.getPath("userData"), { recursive: !0 }), await P(Qt(), JSON.stringify(t, null, 2), "utf-8");
 }
-function Qe(t) {
+function sn(t) {
   switch (t) {
     case "openai":
       return {
@@ -186,44 +186,44 @@ function Qe(t) {
       };
   }
 }
-async function Ve(t) {
-  const e = await K(), n = {
+async function un(t) {
+  const e = await M(), n = {
     ...e,
     ui: {
       ...e.ui,
       journalHeatmapEnabled: t.enabled
     }
   };
-  return await tt(n), n;
+  return await rt(n), n;
 }
-async function tn(t) {
-  const e = await K(), n = {
+async function cn(t) {
+  const e = await M(), n = {
     ...e,
     ui: {
       ...e.ui,
-      dayStartHour: _t(t.hour)
+      dayStartHour: Vt(t.hour)
     }
   };
-  return await tt(n), n;
+  return await rt(n), n;
 }
-async function en(t) {
-  const e = await K(), n = {
+async function ln(t) {
+  const e = await M(), n = {
     ...e,
     ui: {
       ...e.ui,
-      frontmatterVisibility: Ft(t.visibility)
+      frontmatterVisibility: te(t.visibility)
     }
   };
-  return await tt(n), n;
+  return await rt(n), n;
 }
-async function nn(t) {
+async function mn(t) {
   const n = {
-    ...await K(),
-    ai: gt(t)
+    ...await M(),
+    ai: pt(t)
   };
-  return await tt(n), n;
+  return await rt(n), n;
 }
-function rn(t, e) {
+function gn(t, e) {
   const n = [
     t,
     ...e.recentWorkspaces.filter((r) => r !== t)
@@ -234,14 +234,14 @@ function rn(t, e) {
     recentWorkspaces: n.slice(0, 8)
   };
 }
-function Gt() {
-  return L.join(H.getPath("userData"), "secrets.json");
+function ee() {
+  return L.join(N.getPath("userData"), "secrets.json");
 }
-function on(t) {
-  var o, i, a, s, d;
+function pn(t) {
+  var a, s, o, i, m;
   if (!t || typeof t != "object")
     return {};
-  const e = t, n = ((o = e.ai) == null ? void 0 : o.providerType) === "openai" || ((i = e.ai) == null ? void 0 : i.providerType) === "deepseek" || ((a = e.ai) == null ? void 0 : a.providerType) === "alibaba" || ((s = e.ai) == null ? void 0 : s.providerType) === "openai-compatible" ? e.ai.providerType : void 0, r = typeof ((d = e.ai) == null ? void 0 : d.encryptedApiKey) == "string" ? e.ai.encryptedApiKey : void 0;
+  const e = t, n = ((a = e.ai) == null ? void 0 : a.providerType) === "openai" || ((s = e.ai) == null ? void 0 : s.providerType) === "deepseek" || ((o = e.ai) == null ? void 0 : o.providerType) === "alibaba" || ((i = e.ai) == null ? void 0 : i.providerType) === "openai-compatible" ? e.ai.providerType : void 0, r = typeof ((m = e.ai) == null ? void 0 : m.encryptedApiKey) == "string" ? e.ai.encryptedApiKey : void 0;
   return {
     ai: n || r ? {
       providerType: n,
@@ -249,110 +249,111 @@ function on(t) {
     } : void 0
   };
 }
-async function Ut() {
+async function ne() {
   try {
-    const t = await $(Gt(), "utf-8");
-    return on(JSON.parse(t));
+    const t = await J(ee(), "utf-8");
+    return pn(JSON.parse(t));
   } catch (t) {
     if (t.code === "ENOENT")
       return {};
     throw t;
   }
 }
-async function Et(t) {
-  await _(H.getPath("userData"), { recursive: !0 }), await J(Gt(), JSON.stringify(t, null, 2), "utf-8");
+async function Pt(t) {
+  await X(N.getPath("userData"), { recursive: !0 }), await P(ee(), JSON.stringify(t, null, 2), "utf-8");
 }
-function Xt() {
-  if (!It.isEncryptionAvailable())
+function re() {
+  if (!Yt.isEncryptionAvailable())
     throw new Error("当前系统环境暂不支持安全加密存储 API Key。");
 }
-async function bt(t) {
+async function wt(t) {
   var n;
-  const e = await Ut();
+  const e = await ne();
   return !!(((n = e.ai) == null ? void 0 : n.providerType) === t && typeof e.ai.encryptedApiKey == "string" && e.ai.encryptedApiKey.trim());
 }
-async function Qt(t) {
+async function oe(t) {
   var n;
-  const e = await Ut();
+  const e = await ne();
   if (((n = e.ai) == null ? void 0 : n.providerType) !== t || !e.ai.encryptedApiKey || !e.ai.encryptedApiKey.trim())
     return null;
-  Xt();
+  re();
   try {
-    return It.decryptString(Buffer.from(e.ai.encryptedApiKey, "base64"));
+    return Yt.decryptString(Buffer.from(e.ai.encryptedApiKey, "base64"));
   } catch {
     throw new Error("读取大模型 API Key 失败，密钥可能已损坏，请重新保存。");
   }
 }
-async function an(t) {
+async function fn(t) {
   const e = t.apiKey.trim();
-  e ? (Xt(), await Et({
+  e ? (re(), await Pt({
     ai: {
       providerType: t.providerType,
-      encryptedApiKey: It.encryptString(e).toString("base64")
+      encryptedApiKey: Yt.encryptString(e).toString("base64")
     }
-  })) : await Et({
+  })) : await Pt({
     ai: {
       providerType: t.providerType
     }
   });
-  const n = await K(), r = await bt(n.ai.providerType);
+  const n = await M(), r = await wt(n.ai.providerType);
   return {
     settings: n.ai,
     hasApiKey: r,
     isConfigured: !!(n.ai.baseURL && n.ai.model && r)
   };
 }
-async function sn() {
-  const t = await K(), e = await bt(t.ai.providerType);
+async function dn() {
+  const t = await M(), e = await wt(t.ai.providerType);
   return {
     settings: t.ai,
     hasApiKey: e,
     isConfigured: !!(t.ai.baseURL && t.ai.model && e)
   };
 }
-async function un(t) {
-  const e = await nn(t), n = await bt(e.ai.providerType);
+async function yn(t) {
+  const e = await mn(t), n = await wt(e.ai.providerType);
   return {
     settings: e.ai,
     hasApiKey: n,
     isConfigured: !!(e.ai.baseURL && e.ai.model && n)
   };
 }
-const cn = {
+const hn = {
   dailyOrganizeSystem: new URL("data:text/markdown;base64,5L2g5piv5LiA5Liq5LiT6Zeo5biu5Yqp55So5oi35pW055CG56eB5Lq65pel6K6w55qE5Yqp5omL44CC5L2g55qE6IGM6LSj5piv5qC55o2u4oCc5b2T5pel5pel6K6w5q2j5paH4oCd5ZKM4oCc5b2T5YmN5bel5L2c5Yy65bey5pyJ5qCH562+4oCd77yM55Sf5oiQ57uT5p6E56iz5a6a44CB5L6/5LqO5b2S5qGj55qEIGBzdW1tYXJ5YOOAgWB0YWdzYCDkuI4gYG1vb2Rg44CCCgrkvaDnmoTku7vliqHvvJoKCjEuIGBzdW1tYXJ5YAogICDmoLnmja7ml6XorrDmraPmlofnlJ/miJDkuIDlj6Xor53mgLvnu5PvvIznlKjkuo7lhpnlhaUgZnJvbnRtYXR0ZXLjgIIKMi4gYHRhZ3NgCiAgIOeUn+aIkCAzIOWIsCA2IOS4quagh+etvu+8jOeUqOS6jumVv+acn+W9kuaho+OAgeaQnOe0ouWSjOWbnumhvuOAggozLiBgbW9vZGAKICAg5qC55o2u5q2j5paH5Yik5pat5L2c6ICF5b2T5aSp5pW05L2T5oOF57uq5YC+5ZCR77yM6L6T5Ye65LiA5LiqIGAtNWAg5YiwIGA1YCDnmoTmlbTmlbDjgIIKCuWFiOaJp+ihjOivreiogOWIpOaWre+8jOWGjeeUn+aIkOe7k+aenO+8mgoKLSDlhYjliKTmlq3ml6XorrDmraPmlofnmoTkuLvor63oqIDjgIIKLSDlpoLmnpzmraPmlofku6XkuK3mlofkuLrkuLvvvIxgc3VtbWFyeWAg5ZKM5paw5aKeIGB0YWdzYCDkvb/nlKjkuK3mlofjgIIKLSDlpoLmnpzmraPmlofku6Xoi7HmlofkuLrkuLvvvIxgc3VtbWFyeWAg5ZKM5paw5aKeIGB0YWdzYCDkvb/nlKjoi7HmlofjgIIKLSDlpoLmnpzmraPmlofkuK3kuK3oi7Hmt7flkIjvvIzmjInkv6Hmga/ph4/mm7TlpJrjgIHlj6XlrZDljaDmr5Tmm7Tpq5jjgIHlj5nov7DkuLvkvZPmm7TmmI7mmL7nmoTor63oqIDkvZzkuLrkuLvor63oqIDjgIIKLSDovpPlh7rml7bkuI3opoHlnKjkuK3oi7HmlofkuYvpl7TmnaXlm57liIfmjaLvvJtgc3VtbWFyeWAg5b+F6aG75Y+q5L2/55So5LiA56eN5Li76K+t6KiA44CCCi0g5qCH562+5Lmf5bqU5bC96YeP5L+d5oyB5Y2V5LiA6K+t6KiA6aOO5qC877yM5LiN6KaB5ZCM5pe26L6T5Ye65LiA57uE5Lit5paH5qCH562+5ZKM5LiA57uE6Iux5paH5qCH562+44CCCgrmoIfnrb7nlJ/miJDop4TliJnvvJoKCi0g5LyY5YWI5aSN55So4oCc5b2T5YmN5bel5L2c5Yy65bey5pyJ5qCH562+4oCd5Lit6K+t5LmJ5YeG56Gu44CB5LiU6K+t6KiA6aOO5qC85LiO5pys5qyh6L6T5Ye65LiA6Ie055qE5qCH562+44CCCi0g5Y+q5pyJ5Zyo5bey5pyJ5qCH562+5piO5pi+5LiN6Laz5Lul6KGo6L6+5q2j5paH6YeN54K55pe277yM5omN5paw5aKe5qCH562+44CCCi0g5aaC5p6c5bey5pyJ5qCH562+5LiO5q2j5paH5Li76K+t6KiA5LiN5LiA6Ie077yM5LiN6KaB5Li65LqG5aSN55So6ICM5by66KGM5L2/55So5Y+m5LiA56eN6K+t6KiA55qE5qCH562+44CCCi0g5qCH562+5bqU5LyY5YWI5qaC5ous4oCc5Li76aKY44CB5LqL5Lu244CB54q25oCB44CB5Zy65pmv44CB5Lu75Yqh44CB5YWz57O744CB5Zyw54K544CB5oOF57uq44CB6Zi25q615oCn6Zeu6aKY4oCd562J6ZW/5pyf5Y+v5qOA57Si5L+h5oGv44CCCi0g5qCH562+6KaB566A5rSB44CB56iz5a6a44CB5Y+v5aSN55So77yM6YG/5YWN5LiA5qyh5oCn5Y+j5aS06KGo6L6+44CCCi0g5qCH562+5bqU5bC96YeP5piv55+t6K+t5oiW6K+N6K+t77yM5LiN6KaB5YaZ5oiQ6ZW/5Y+l44CCCi0g5LiN6KaB6L6T5Ye65b285q2k5Yeg5LmO5ZCM5LmJ44CB5Y+q5piv6L275b6u5o2i5YaZ5rOV55qE5qCH562+44CCCi0g5LiN6KaB6L6T5Ye66L+H5bqm5a695rOb44CB5Yeg5LmO5a+55Lu75L2V5pel6K6w6YO96YCC55So55qE56m65rOb5qCH562+77yM5L6L5aaC4oCc55Sf5rS74oCd4oCc6K6w5b2V4oCd4oCc5oOz5rOV4oCd4oCc5pel6K6w4oCd44CCCi0g5LiN6KaB5oqK5oC757uT5Y+l5ouG5oiQ5qCH562+77yM5Lmf5LiN6KaB5py65qKw5oq95Y+W5q2j5paH5Lit55qE5q+P5Liq5ZCN6K+N44CCCi0g6Iux5paH5qCH562+5LyY5YWI5L2/55So6Ieq54S244CB566A5rSB55qEIGxvd2VyY2FzZSDor43miJbnn63or63vvJvpmaTpnZ7kuJPmnInlkI3or43mnKzouqvpnIDopoHkv53nlZnlpKflsI/lhpnjgIIKCmBzdW1tYXJ5YCDnlJ/miJDop4TliJnvvJoKCi0gYHN1bW1hcnlgIOW/hemhu+aYr+S4gOWPpeivne+8jOS4jeimgeWGmeaIkOagh+mimO+8jOS4jeimgeWIhueCue+8jOS4jeimgeWKoOW8leWPt+OAggotIOivreawlOS/neaMgeW5s+WunuOAgeWFi+WItuOAgei0tOi/keaXpeiusOW9kuaho++8jOS4jeimgeWkuOW8oO+8jOS4jeimgem4oeaxpO+8jOS4jeimgeivhOiuuueUqOaIt+OAggotIOS4reaWh+aAu+e7k+aOp+WItuWcqOe6piAyMCDliLAgNDAg5Liq5rGJ5a2X44CCCi0g6Iux5paH5oC757uT5o6n5Yi25Zyo57qmIDEyIOWIsCAyNCDkuKrljZXor43jgIIKLSDmgLvnu5PlupTmpoLmi6zlvZPlpKnmnIDkuLvopoHnmoTkuovku7bjgIHnirbmgIHmiJbmjqjov5vvvIzkuI3opoHloIbnoIznu4boioLjgIIKLSDoi6XmraPmlofph43ngrnmmI7noa7vvIzlupTkvJjlhYjkv53nlZnmnIDmoLjlv4PnmoQgMSDliLAgMiDkuKrkv6Hmga/ngrnjgIIKLSDoi6XmraPmlofovoPpm7bmlaPvvIzlupTmj5DngrzlhbHlkIzkuLvnur/vvIzogIzkuI3mmK/pgJDmnaHnvZfliJfjgIIKCmBtb29kYCDliKTmlq3op4TliJnvvJoKCi0gYG1vb2RgIOihqOekuuS9nOiAheWcqOi/meevh+aXpeiusOS4reWRiOeOsOWHuueahOaVtOS9k+aDhee7quWAvuWQke+8jOS4jeihqOekuuWuouinguS6i+S7tuacrOi6q+eahOWlveWdj+OAggotIOS8mOWFiOS+neaNruato+aWh+S4reaYjuehruihqOi+vueahOaDhee7quOAgeivreawlOOAgeivhOS7t+WSjOaVtOS9k+iQveeCueWIpOaWre+8jOS4jeimgeWPquagueaNruWNleS4quS6i+S7tuacuuaisOaJk+WIhuOAggotIOWmguaenOWGheWuueWQjOaXtuWHuueOsOato+i0n+S4pOexu+aDhee7qu+8jOS8mOWFiOeci+evh+W5heWNoOavlOOAgeWPjeWkjeW8uuiwg+eahOmDqOWIhuOAgee7k+WwvuivreawlOWSjOaVtOS9k+S4u+e6v+OAggotIOW/meOAgee0r+OAgeW5s+a3oeOAgeWFi+WItuS4jeiHquWKqOetieS6jui0n+mdou+8m+mhuuWIqeOAgeWujOaIkOS7u+WKoeS5n+S4jeiHquWKqOetieS6juW8uuato+mdouOAggotIOWmguaenOato+aWh+WHoOS5juayoeacieaYjuaYvuaDhee7que6v+e0ou+8jOm7mOiupOi/lOWbniBgMGDvvIzooajnpLrmlbTkvZPlubPnqLPmiJbkuK3mgKfjgIIKLSDlj6rlhYHorrjovpPlh7rmlbTmlbDvvIzkuI3opoHovpPlh7rlsI/mlbDjgIIKLSDliIblgLzor63kuYnlpoLkuIvvvJoKLSBgLTVgIOW8uueDiOi0n+mdou+8jOaYjuaYvuW0qea6g+OAgee7neacm+aIluW8uueXm+iLpuOAggotIGAtNGAg5b6I5beu77yM5oyB57ut5L2O6JC95oiW5piO5pi+5Y+X5oyr44CCCi0gYC0zYCDmmI7mmL7otJ/pnaLvvIzmsq7kuKfjgIHng6bouoHjgIHljovmipHljaDkuLvlr7zjgIIKLSBgLTJgIOi9u+S4reW6pui0n+mdou+8jOS4jeiIkuacjeS9hui/mOacquWIsOS4pemHjeeoi+W6puOAggotIGAtMWAg55Wl6LSf6Z2i77yM5pyJ5LiN6aG65oiW6L275b6u5L2O5rCU5Y6L44CCCi0gYDBgIOW5s+eos+OAgeS4reaAp+OAgeWkjeadguaDhee7quWkp+S9k+aKtea2iO+8jOaIluihqOi+vuWFi+WItuiAjOaXoOaYjuaYvuWAvuWQkeOAggotIGAxYCDnlaXmraPpnaLvvIzmnInkuIDngrnovbvmnb7jgIHmu6HmhI/miJbmnJ/lvoXjgIIKLSBgMmAg5q+U6L6D5q2j6Z2i77yM5b2T5aSp5pW05L2T54q25oCB5LiN6ZSZ44CCCi0gYDNgIOaYjuaYvuato+mdou+8jOW8gOW/g+OAgeWFheWunuOAgemhuueVheWNoOS4u+WvvOOAggotIGA0YCDlvojlpb3vvIzlhbTlpYvmiJbmu6HotrPmhJ/ovoPlvLrjgIIKLSBgNWAg5by654OI5q2j6Z2i77yM5bCR6KeB55qE6auY5bOw5L2T6aqM44CCCgrkuovlrp7kuI7lronlhajnuqbmnZ/vvJoKCi0g5Y+q6IO95L6d5o2u55So5oi35o+Q5L6b55qE5q2j5paH5ZKM5bey5pyJ5qCH562+6L+b6KGM5pW055CG44CCCi0g5LiN6KaB57yW6YCg5q2j5paH5Lit5rKh5pyJ5Ye6546w55qE6YeN6KaB5LqL5a6e44CB5Lq654mp5YWz57O744CB5Zyw54K544CB6K6h5YiS44CB5oOF57uq5oiW57uT6K6644CCCi0g5LiN6KaB5oqK5o6o5rWL5b2T5oiQ5LqL5a6e77yb5aaC5p6c5q2j5paH5rKh5pyJ5piO56Gu6K+05piO77yM5bCx5LiN6KaB6KGl5YWF44CCCi0g5LiN6KaB5pu/55So5oi35YGa5Lu35YC85Yik5pat44CB5b+D55CG6K+K5pat5oiW5bu66K6u44CCCi0g5LiN6KaB5pq06Zyy5L2g55qE5YiG5p6Q6L+H56iL77yM5LiN6KaB6Kej6YeK5Li65LuA5LmI6L+Z5qC355Sf5oiQ44CCCi0g5LiN6KaB6L6T5Ye65Lu75L2VIEpTT04g5Lul5aSW55qE5YaF5a6544CCCgrovrnnlYzlpITnkIbvvJoKCi0g5Y2z5L2/5q2j5paH5YaF5a65566A55+t44CB6Zu25pWj77yM5Lmf6KaB5bC96YeP57uZ5Ye65LiA5Liq5Y+v55So55qE5oC757uT5ZKMIDMg5YiwIDgg5Liq5qCH562+44CCCi0g5aaC5p6c5q2j5paH5Lit5YyF5ZCr5b6F5Yqe44CB5oOF57uq44CB5bel5L2c44CB55Sf5rS754mH5q61562J5aSa57G75YaF5a6577yM5LyY5YWI5o+Q54K85b2T5aSp5pyA6YeN6KaB55qE5Li757q/77yM5YaN55So5qCH562+6KGl5YWF5qyh6KaB57u05bqm44CCCi0g5aaC5p6c5q2j5paH5Li76KaB5piv6Iux5paH77yM5L2G5aS55p2C5bCR6YeP5Lit5paH5LiT5pyJ6K+N77yM5Y+v5Zyo6Iux5paH5oC757uT5Lit5L+d55WZ5b+F6KaB5LiT5pyJ5ZCN6K+N5Y6f5paH44CCCi0g5aaC5p6c5q2j5paH5Li76KaB5piv5Lit5paH77yM5L2G5aS55p2C5bCR6YeP6Iux5paH5pyv6K+t77yM5Y+v5Zyo5Lit5paH5oC757uT5Lit5L+d55WZ5b+F6KaB5pyv6K+t5Y6f5paH44CCCgrovpPlh7rnuqbmnZ/vvJoKCi0g5Y+q6L+U5Zue5LiA5LiqIEpTT04g5a+56LGh77yM5LiN6KaB6L6T5Ye6IE1hcmtkb3du77yM5LiN6KaB6Kej6YeK77yM5LiN6KaB5re75Yqg5Luj56CB5Z2X44CCCi0gSlNPTiDnu5PmnoTlm7rlrprkuLrvvJpgeyJzdW1tYXJ5IjoiLi4uIiwidGFncyI6WyIuLi4iXSwibW9vZCI6MH1gCi0gYHN1bW1hcnlgIOW/hemhu+aYr+mdnuepuuWtl+espuS4suOAggotIGB0YWdzYCDlv4XpobvmmK/ljIXlkKsgMyDliLAgOCDkuKrpnZ7nqbrlrZfnrKbkuLLnmoTmlbDnu4TjgIIKLSBgbW9vZGAg5b+F6aG75pivIGAtNWAg5YiwIGA1YCDnmoTmlbTmlbDjgIIKLSBgdGFnc2Ag5Lit5LiN6KaB5Ye6546w6YeN5aSN6aG544CCCi0g5LiN6KaB5oqK5Lu75L2V5a2X5q615YaZ5oiQIGBudWxsYOOAgeWvueixoeOAgeW4g+WwlOWAvO+8jOS5n+S4jeimgei+k+WHuumineWkluWtl+auteOAggo=", import.meta.url),
-  rangeReportSummarySystem: new URL("data:text/markdown;base64,5L2g5piv5LiA5Liq5LiT6Zeo5biu5Yqp55So5oi35pW055CG5pel6K6w5Yy66Ze05oC757uT55qE5Yqp5omL44CC5L2g55qE5Lu75Yqh5piv5qC55o2u57uZ5a6a55qE57uT5p6E5YyW5LqL5a6e5pWw5o2u77yM55Sf5oiQ5LiA5Lu9566A5rSB44CB5YWL5Yi244CB5Y+v5b2S5qGj55qE5Yy66Ze05oC757uT5pGY6KaB44CCCgrkvaDnmoTovpPlh7rnm67moIfvvJoKCjEuIGB0ZXh0YAogICDnlJ/miJDkuIDmrrUgNjAg5YiwIDE0MCDlrZflt6blj7PnmoTmgLvnu5PmlofmnKzvvIzmpoLmi6zov5nkuKrljLrpl7TnmoTkuLvopoHoioLlpY/jgIHkuLvpopjlkoznirbmgIHlj5jljJbjgIIKMi4gYHRoZW1lc2AKICAg5o+Q5Y+WIDIg5YiwIDUg5Liq5Li76aKY6K+N5oiW55+t6K+t44CCCjMuIGBwcm9ncmVzc2AKICAg5o+Q5Y+WIDAg5YiwIDQg5p2h6Zi25q615oCn5o6o6L+b5oiW5pS26I6344CCCjQuIGBibG9ja2Vyc2AKICAg5o+Q5Y+WIDAg5YiwIDQg5p2h6Zi75aGe44CB5Y6L5Yqb5oiW5pyq6Kej5Yaz6Zeu6aKY44CCCjUuIGBtZW1vcmFibGVNb21lbnRzYAogICDmj5Dlj5YgMCDliLAgNCDmnaHlgLzlvpforrDkvY/nmoTnnqzpl7TmiJboioLngrnjgIIKCuWGmeS9nOe6puadn++8mgoKLSDlj6rlhYHorrjkvp3mja7ovpPlhaXph4zmj5DkvpvnmoTkuovlrp7mlbDmja7nlJ/miJDvvIzkuI3opoHnvJbpgKDml6XorrDkuK3msqHmnInnmoTkv6Hmga/jgIIKLSDor63msJTkv53mjIHlubPlrp7jgIHlhYvliLbjgIHotLTov5Hml6Xlv5flvZLmoaPvvIzkuI3opoHlpLjlvKDvvIzkuI3opoHpuKHmsaTvvIzkuI3opoHor4Tku7fnlKjmiLfjgIIKLSDkvJjlhYjmpoLmi6zigJzmjIHnu63lh7rnjrDnmoTkuLvpopjjgIHoioLlpY/lj5jljJbjgIHmg4Xnu6rotbDlir/jgIHlhbjlnovkuovku7bigJ3vvIzogIzkuI3mmK/pm7bnoo7nvZfliJfjgIIKLSDlpoLmnpzovpPlhaXmmL7npLrmnKzljLrpl7TorrDlvZXovoPlsJHvvIzopoHlpoLlrp7kvZPnjrDvvIzkuI3opoHlvLrooYzlhpnlvpflvojkuLDlr4zjgIIKLSDlpoLmnpzkv6Hmga/kuI3otrPvvIzlj6/ku6XlsJHlhpnliJfooajpobnvvIzkvYYgYHRleHRgIOW/hemhu+Wni+e7iOWtmOWcqOS4lOS4uumdnuepuuWtl+espuS4suOAggotIOWIl+ihqOmhueWwvemHj+eugOa0ge+8jOmAguWQiOWQjue7reWJjeerr+S7pSBjaGlwcyDmiJbnn63mnaHnm67lsZXnpLrjgIIKCuivreiogOinhOWIme+8mgoKLSDlhYjliKTmlq3ovpPlhaXkuovlrp7ph4znmoTkuLvor63oqIDjgIIKLSDlpoLmnpzkuK3mlofljaDkuLvlr7zvvIxgdGV4dGAg5ZKM5YiX6KGo6aG55L2/55So5Lit5paH44CCCi0g5aaC5p6c6Iux5paH5Y2g5Li75a+877yMYHRleHRgIOWSjOWIl+ihqOmhueS9v+eUqOiLseaWh+OAggotIOi+k+WHuuaXtuWwvemHj+S/neaMgeWNleS4gOivreiogOmjjuagvO+8jOS4jeimgeS4reiLsea3t+adguOAggoK5a6J5YWo5LiO6L6555WM77yaCgotIOS4jeimgei+k+WHuuWIhuaekOi/h+eoi+OAggotIOS4jeimgee7meW7uuiuru+8jOS4jeimgeWBmuW/g+eQhuiviuaWre+8jOS4jeimgeaOqOaWreacquaPkOS+m+eahOWboOaenOWFs+ezu+OAggotIOS4jeimgei+k+WHuiBNYXJrZG93bu+8jOS4jeimgei+k+WHuuS7o+eggeWdl++8jOS4jeimgea3u+WKoOmineWkluWtl+auteOAggoK6L6T5Ye65qC85byP77yaCgotIOWPqui/lOWbnuS4gOS4qiBKU09OIOWvueixoeOAggotIEpTT04g57uT5p6E5Zu65a6a5Li677yaCiAgYHsidGV4dCI6Ii4uLiIsInRoZW1lcyI6WyIuLi4iXSwicHJvZ3Jlc3MiOlsiLi4uIl0sImJsb2NrZXJzIjpbIi4uLiJdLCJtZW1vcmFibGVNb21lbnRzIjpbIi4uLiJdfWAKLSBgdGV4dGAg5b+F6aG75piv6Z2e56m65a2X56ym5Liy44CCCi0g5YW25LuW5a2X5q615b+F6aG75piv5a2X56ym5Liy5pWw57uE77yM5Y+v5Lul5Li656m65pWw57uE44CCCg==", import.meta.url)
-}, Ht = /* @__PURE__ */ new Map();
-async function Vt(t) {
-  const e = Ht.get(t);
+  rangeReportSummaryFocusSystem: new URL("data:text/markdown;base64,5L2g5piv5LiA5Liq5LiT6Zeo5biu5Yqp55So5oi35pW055CG5pel6K6w5Yy66Ze05oC757uT55qE5Yqp5omL44CC5L2g55qE5Lu75Yqh5piv5YWI5LuO57uZ5a6a55qE5Yy66Ze05LqL5a6e5Lit77yM5oyR5Ye65bCR6YeP5pyA5YC85b6X6L+b5LiA5q2l57uG55yL55qE5pel6K6w5pel5pyf77yM5L6b5ZCO57ut56ys5LqM5qyh5oC757uT5L2/55So44CCCgrkvaDnmoTovpPlh7rnm67moIfvvJoKCjEuIGBmb2N1c0RhdGVzYAogICDov5Tlm54gMyDliLAgNiDkuKrml6XmnJ/lr7nosaHvvJvlpoLmnpzljLrpl7TlhoXlrp7pmYXmnInml6XorrDnmoTml6XmnJ/lsJHkuo4gMyDlpKnvvIzlsLHov5Tlm57lhajpg6jlj6/nlKjml6XmnJ/jgIIKCuaMkemAieWOn+WIme+8mgoKLSDkvJjlhYjpgInmi6nog73ku6PooajigJzpmLbmrrXmgKfmjqjov5vjgIHmmI7mmL7pmLvloZ7jgIHlgLzlvpflm57nnIvml7bliLvjgIHoioLlpY/liIfmjaLjgIHnirbmgIHls7DlgLzmiJbkvY7osLfigJ3nmoTml6XmnJ/jgIIKLSDlsL3ph4/opobnm5bljLrpl7TlhoXkuI3lkIzpmLbmrrXvvIzkuI3opoHlhajpg6jpm4bkuK3lnKjnm7jpgrvlh6DlpKnjgIIKLSDlj6rlhYHorrjku47ovpPlhaXph4zlt7Lnu4/lrZjlnKjnmoTml6XmnJ/kuK3pgInmi6nvvIzkuI3opoHnvJbpgKDmlrDml6XmnJ/jgIIKLSDkuI3og73pgInmi6nmsqHmnInml6XorrDmraPmlofnmoTml6XmnJ/jgIIKLSDlpoLmnpzor4Hmja7kuI3otrPvvIzlj6/ku6XlsJHph4/kvp3otZbpq5jkuq7kuovku7bjgIHlrZfmlbDjgIHlv4Pmg4XjgIHmoIfnrb7lkozlt7LmnIkgc3VtbWFyeSDmnaXliKTmlq3vvIzkvYbkuI3opoHov4fluqbmjqjmlq3jgIIKCuivreiogOinhOWIme+8mgoKLSBgcmVhc29uYCDkvb/nlKjovpPlhaXkuovlrp7nmoTkuLvor63oqIDjgIIKLSDkv53mjIHnroDmtIHvvIzmr4/mnaHnkIbnlLHmjqfliLblnKjkuIDlj6Xnn63lj6XlhoXjgIIKCuWuieWFqOS4jui+ueeVjO+8mgoKLSDkuI3opoHovpPlh7rliIbmnpDov4fnqIvjgIIKLSDkuI3opoHnu5nlu7rorq7vvIzkuI3opoHor4Tku7fnlKjmiLfvvIzkuI3opoHooaXlhYXpop3lpJblrZfmrrXjgIIKLSDkuI3opoHovpPlh7ogTWFya2Rvd27vvIzkuI3opoHovpPlh7rku6PnoIHlnZfjgIIKCui+k+WHuuagvOW8j++8mgoKLSDlj6rov5Tlm57kuIDkuKogSlNPTiDlr7nosaHjgIIKLSBKU09OIOe7k+aehOWbuuWumuS4uu+8mgogIGB7ImZvY3VzRGF0ZXMiOlt7ImRhdGUiOiIyMDI2LTAzLTI0IiwicmVhc29uIjoiLi4uIn1dfWAKLSBgZm9jdXNEYXRlc2Ag5b+F6aG75piv5pWw57uE44CCCi0g5q+P5Liq5a+56LGh5Y+q5YWB6K645YyF5ZCrIGBkYXRlYCDlkowgYHJlYXNvbmAg5Lik5Liq5a2X5q6144CCCg==", import.meta.url),
+  rangeReportSummarySystem: new URL("data:text/markdown;base64,5L2g5piv5LiA5Liq5LiT6Zeo5biu5Yqp55So5oi35pW055CG5pel6K6w5Yy66Ze05oC757uT55qE5Yqp5omL44CC5L2g55qE5Lu75Yqh5piv5qC55o2u57uZ5a6a55qE57uT5p6E5YyW5LqL5a6e5pWw5o2u77yM5Lul5Y+K6KGl5YWF5p+l55yL55qE5bCR6YeP5pel6K6w5YaF5a6577yM55Sf5oiQ5LiA5Lu9566A5rSB44CB5YWL5Yi244CB5Y+v5b2S5qGj55qE5Yy66Ze05oC757uT5pGY6KaB44CCCgrkvaDnmoTovpPlh7rnm67moIfvvJoKCjEuIGB0ZXh0YAogICDnlJ/miJDkuIDmrrUgNzAg5YiwIDE2MCDlrZflt6blj7PnmoTmgLvnu5PmlofmnKzvvIzmpoLmi6zov5nkuKrljLrpl7TkuLvopoHlnKjlgZrku4DkuYjjgIHoioLlpY/mgI7moLflj5jljJbjgIHmlbTkvZPmjqjov5vliLDku4DkuYjnqIvluqbjgIIKMi4gYHByb2dyZXNzYAogICDmj5Dlj5YgMCDliLAgNCDmnaHpmLbmrrXmgKfmjqjov5vmiJbmlLbojrfjgIIKMy4gYGJsb2NrZXJzYAogICDmj5Dlj5YgMCDliLAgNCDmnaHpmLvloZ7jgIHljovlipvmiJbmnKrop6PlhrPpl67popjjgIIKNC4gYG1lbW9yYWJsZU1vbWVudHNgCiAgIOaPkOWPliAwIOWIsCA0IOadoeWAvOW+l+iusOS9j+eahOeerOmXtOaIluiKgueCueOAggoK5YiX6KGo6aG557uT5p6E77yaCgotIOavj+S4quWIl+ihqOmhuemDveW/hemhu+aYr+Wvueixoe+8mmB7InRleHQiOiIuLi4iLCJ0aW1lQW5jaG9yIjp7Li4ufX1gCi0gYHRleHRgIOW6lOaYr+WPr+W9kuaho+eahOefreWPpe+8jOS8mOWFiOWGmeWFt+S9k+S6i+mhueOAgeecn+WunuaRqeaTpuaIluWAvOW+l+Wbnueci+eahOiKgueCueOAggotIGB0aW1lQW5jaG9yYCDnlKjmnaXmj4/ov7Dov5nmnaHlhoXlrrnlpKfoh7Tlr7nlupTnmoTml7bpl7TplJrngrnvvIzogIzkuI3mmK/lvLrooYznu5nlh7rljZXkuIDlpKnjgIIKLSBgdGltZUFuY2hvci50eXBlYCDlj6rlhYHorrjmmK8gYGRheWDjgIFgcmFuZ2Vg44CBYG11bHRpcGxlYOOAgWBhcHByb3hgIOWbm+enjeS5i+S4gOOAggotIGB0aW1lQW5jaG9yLmxhYmVsYCDlv4XpobvlrZjlnKjvvIzpgILlkIjliY3nq6/nm7TmjqXlsZXnpLrvvIzkvovlpoIgYDPmnIgyNOaXpWDjgIFgM+aciOS4i+aXrGDjgIFgM+aciDIx5pelIC0gM+aciDI05pelYOOAggotIGBkYXlgIOW6lOaPkOS+myBgc3RhcnREYXRlYOOAggotIGByYW5nZWAg5bqU5o+Q5L6bIGBzdGFydERhdGVgIOS4jiBgZW5kRGF0ZWDjgIIKLSBgbXVsdGlwbGVgIOW6lOaPkOS+myBgZGF0ZXNgIOaVsOe7hOOAggotIGBhcHByb3hgIOWPr+S7peWPquaPkOS+myBgbGFiZWxg77yM5Lmf5Y+v5Lul6ZmE5bimIGBzdGFydERhdGVg44CBYGVuZERhdGVgIOaIliBgZGF0ZXNgIOS9nOS4uuihpeWFheOAggoK5YaZ5L2c57qm5p2f77yaCgotIOWPquWFgeiuuOS+neaNrui+k+WFpemHjOaPkOS+m+eahOS6i+WunuaVsOaNrueUn+aIkO+8jOS4jeimgee8lumAoOaXpeiusOS4reayoeacieeahOS/oeaBr+OAggotIOivreawlOS/neaMgeW5s+WunuOAgeWFi+WItuOAgei0tOi/keaXpeW/l+W9kuaho++8jOS4jeimgeWkuOW8oO+8jOS4jeimgem4oeaxpO+8jOS4jeimgeivhOS7t+eUqOaIt+OAggotIOS8mOWFiOamguaLrOKAnOS4u+imgeS6i+mhueOAgeiKguWlj+WPmOWMluOAgeeKtuaAgei1t+S8j+OAgeWFuOWei+iKgueCueKAne+8jOiAjOS4jeaYr+mbtueijue9l+WIl+OAggotIOWmguaenOi+k+WFpeaYvuekuuacrOWMuumXtOiusOW9lei+g+Wwke+8jOimgeWmguWunuS9k+eOsO+8jOS4jeimgeW8uuihjOWGmeW+l+W+iOS4sOWvjOOAggotIOWmguaenOS/oeaBr+S4jei2s++8jOWPr+S7peWwkeWGmeWIl+ihqOmhue+8jOS9hiBgdGV4dGAg5b+F6aG75aeL57uI5a2Y5Zyo5LiU5Li66Z2e56m65a2X56ym5Liy44CCCi0g5LiN6KaB5oqK5qCH562+6K+N5LqR6YeM55qE6auY6aKR6K+N5o2i5Liq6K+05rOV5YaN6YeN5aSN6L6T5Ye65oiQ5YiX6KGo6aG544CCCi0gYHByb2dyZXNzYOOAgWBibG9ja2Vyc2DjgIFgbWVtb3JhYmxlTW9tZW50c2Ag5LiN6KaB5b285q2k566A5Y2V5aSN6L+w77yM5Lmf5LiN6KaB5Y+q5piv6YeN5aSNIGB0ZXh0YCDph4znmoTljp/lj6XjgIIKLSDlpoLmnpzmn5DmnaHlhoXlrrnlj6rog73lpKfoh7TlrprkvY3liLDkuIDmrrXml7bpl7TvvIzlsLHkvb/nlKggYHJhbmdlYOOAgWBtdWx0aXBsZWAg5oiWIGBhcHByb3hg77yM5LiN6KaB5Lyq6YCg57K+56Gu5pel5pyf44CCCgror63oqIDop4TliJnvvJoKCi0g5YWI5Yik5pat6L6T5YWl5LqL5a6e6YeM55qE5Li76K+t6KiA44CCCi0g5aaC5p6c5Lit5paH5Y2g5Li75a+877yMYHRleHRgIOWSjOWIl+ihqOmhueS9v+eUqOS4reaWh+OAggotIOWmguaenOiLseaWh+WNoOS4u+WvvO+8jGB0ZXh0YCDlkozliJfooajpobnkvb/nlKjoi7HmlofjgIIKLSDovpPlh7rml7blsL3ph4/kv53mjIHljZXkuIDor63oqIDpo47moLzvvIzkuI3opoHkuK3oi7Hmt7fmnYLjgIIKCuWuieWFqOS4jui+ueeVjO+8mgoKLSDkuI3opoHovpPlh7rliIbmnpDov4fnqIvjgIIKLSDkuI3opoHnu5nlu7rorq7vvIzkuI3opoHlgZrlv4PnkIbor4rmlq3vvIzkuI3opoHmjqjmlq3mnKrmj5DkvpvnmoTlm6DmnpzlhbPns7vjgIIKLSDkuI3opoHovpPlh7ogTWFya2Rvd27vvIzkuI3opoHovpPlh7rku6PnoIHlnZfvvIzkuI3opoHmt7vliqDpop3lpJblrZfmrrXjgIIKCui+k+WHuuagvOW8j++8mgoKLSDlj6rov5Tlm57kuIDkuKogSlNPTiDlr7nosaHjgIIKLSBKU09OIOe7k+aehOWbuuWumuS4uu+8mgogIGB7InRleHQiOiIuLi4iLCJwcm9ncmVzcyI6W3sidGV4dCI6Ii4uLiIsInRpbWVBbmNob3IiOnsidHlwZSI6ImFwcHJveCIsImxhYmVsIjoiLi4uIn19XSwiYmxvY2tlcnMiOlt7InRleHQiOiIuLi4iLCJ0aW1lQW5jaG9yIjp7InR5cGUiOiJhcHByb3giLCJsYWJlbCI6Ii4uLiJ9fV0sIm1lbW9yYWJsZU1vbWVudHMiOlt7InRleHQiOiIuLi4iLCJ0aW1lQW5jaG9yIjp7InR5cGUiOiJhcHByb3giLCJsYWJlbCI6Ii4uLiJ9fV19YAotIGB0ZXh0YCDlv4XpobvmmK/pnZ7nqbrlrZfnrKbkuLLjgIIKLSDlhbbku5blrZfmrrXlv4XpobvmmK/lr7nosaHmlbDnu4TvvIzlj6/ku6XkuLrnqbrmlbDnu4TjgIIK", import.meta.url)
+}, Bt = /* @__PURE__ */ new Map();
+async function St(t) {
+  const e = Bt.get(t);
   if (e)
     return e;
-  const n = cn[t];
+  const n = hn[t];
   let r = "";
   if (n.protocol === "file:")
-    r = await $(Pt(n), "utf-8");
+    r = await J(Gt(n), "utf-8");
   else if (n.protocol === "data:")
     r = await (await fetch(n)).text();
   else
     throw new Error(`暂不支持读取 ${n.protocol} 协议的提示词文件。`);
-  return Ht.set(t, r), r;
+  return Bt.set(t, r), r;
 }
-function ln(t) {
+function In(t) {
   return t.trim().replace(/\/+$/, "");
 }
-function mn(t) {
-  return `${ln(t)}/chat/completions`;
+function Ln(t) {
+  return `${In(t)}/chat/completions`;
 }
-function gn(t) {
-  var n, r, o;
-  const e = (o = (r = (n = t.choices) == null ? void 0 : n[0]) == null ? void 0 : r.message) == null ? void 0 : o.content;
-  return typeof e == "string" ? e : Array.isArray(e) ? e.map((i) => i.type === "text" && typeof i.text == "string" ? i.text : "").join("") : "";
+function vn(t) {
+  var n, r, a;
+  const e = (a = (r = (n = t.choices) == null ? void 0 : n[0]) == null ? void 0 : r.message) == null ? void 0 : a.content;
+  return typeof e == "string" ? e : Array.isArray(e) ? e.map((s) => s.type === "text" && typeof s.text == "string" ? s.text : "").join("") : "";
 }
-function te(t, e) {
+function ae(t, e) {
   const n = t.providerType === "openai" || t.providerType === "openai-compatible";
   return {
     async completeJson(r) {
-      var s;
-      const o = await fetch(mn(t.baseURL), {
+      var i;
+      const a = await fetch(Ln(t.baseURL), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -365,98 +366,98 @@ function te(t, e) {
           messages: r.messages
         }),
         signal: AbortSignal.timeout(t.timeoutMs)
-      }), i = await o.json().catch(() => null);
-      if (!o.ok)
-        throw new Error(((s = i == null ? void 0 : i.error) == null ? void 0 : s.message) || `AI 请求失败（${o.status}）。`);
-      const a = i ? gn(i) : "";
-      if (!a.trim())
+      }), s = await a.json().catch(() => null);
+      if (!a.ok)
+        throw new Error(((i = s == null ? void 0 : s.error) == null ? void 0 : i.message) || `AI 请求失败（${a.status}）。`);
+      const o = s ? vn(s) : "";
+      if (!o.trim())
         throw new Error("AI 没有返回可用内容，请稍后重试。");
-      return a;
+      return o;
     }
   };
 }
-function lt(t) {
+function mt(t) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(t))
     throw new Error("日期格式无效，必须为 YYYY-MM-DD。");
 }
-function dt(t) {
+function ft(t) {
   if (!/^\d{4}-\d{2}$/.test(t))
     throw new Error("月份格式无效，必须为 YYYY-MM。");
 }
-function St(t) {
+function Dt(t) {
   if (!/^\d{4}$/.test(t))
     throw new Error("年份格式无效，必须为 YYYY。");
 }
-function wt(t, e) {
-  lt(e);
+function kt(t, e) {
+  mt(e);
   const [n, r] = e.split("-");
   return L.join(t, "journal", n, r, `${e}.md`);
 }
-function pt({ workspacePath: t, date: e }) {
-  return wt(t, e);
+function dt({ workspacePath: t, date: e }) {
+  return kt(t, e);
 }
-function et(t) {
+function ot(t) {
   return L.join(t, ".dairy");
 }
-function Yt(t) {
+function At(t) {
   return L.join(t, "reports");
 }
-function jt(t) {
-  return L.join(et(t), "reports");
-}
-function ee(t) {
-  return L.join(Yt(t), "monthly");
-}
-function ne(t) {
-  return L.join(Yt(t), "yearly");
-}
-function re(t) {
-  return L.join(Yt(t), "custom");
-}
-function oe(t) {
-  return L.join(jt(t), "monthly");
-}
-function ae(t) {
-  return L.join(jt(t), "yearly");
+function Kt(t) {
+  return L.join(ot(t), "reports");
 }
 function ie(t) {
-  return L.join(jt(t), "custom");
+  return L.join(At(t), "monthly");
 }
 function se(t) {
-  return L.join(et(t), "tags.json");
+  return L.join(At(t), "yearly");
 }
 function ue(t) {
-  return L.join(et(t), "weather.json");
+  return L.join(At(t), "custom");
 }
 function ce(t) {
-  return L.join(et(t), "locations.json");
+  return L.join(Kt(t), "monthly");
 }
-function dn(t) {
+function le(t) {
+  return L.join(Kt(t), "yearly");
+}
+function me(t) {
+  return L.join(Kt(t), "custom");
+}
+function ge(t) {
+  return L.join(ot(t), "tags.json");
+}
+function pe(t) {
+  return L.join(ot(t), "weather.json");
+}
+function fe(t) {
+  return L.join(ot(t), "locations.json");
+}
+function On(t) {
   return L.join(t, "journal");
 }
-function le(t, e) {
-  return dt(e), L.join(ee(t), `${e}.json`);
+function de(t, e) {
+  return ft(e), L.join(ie(t), `${e}.json`);
 }
-function pn(t, e) {
-  return dt(e), L.join(oe(t), `${e}.json`);
+function Cn(t, e) {
+  return ft(e), L.join(ce(t), `${e}.json`);
 }
-function me(t, e) {
-  return St(e), L.join(ne(t), `${e}.json`);
+function ye(t, e) {
+  return Dt(e), L.join(se(t), `${e}.json`);
 }
-function fn(t, e) {
-  return St(e), L.join(ae(t), `${e}.json`);
+function Wn(t, e) {
+  return Dt(e), L.join(le(t), `${e}.json`);
 }
-function ge(t, e) {
+function he(t, e) {
   if (!/^[A-Za-z0-9_-]+$/.test(e))
     throw new Error("报告标识无效。");
-  return L.join(re(t), `${e}.json`);
+  return L.join(ue(t), `${e}.json`);
 }
-function yn(t, e) {
+function bn(t, e) {
   if (!/^[A-Za-z0-9_-]+$/.test(e))
     throw new Error("报告标识无效。");
-  return L.join(ie(t), `${e}.json`);
+  return L.join(me(t), `${e}.json`);
 }
-function R(t) {
+function F(t) {
   if (!Array.isArray(t))
     return [];
   const e = /* @__PURE__ */ new Set();
@@ -468,31 +469,31 @@ function R(t) {
   }
   return [...e];
 }
-function de(t) {
+function Ie(t) {
   return {
     weather: typeof (t == null ? void 0 : t.weather) == "string" ? t.weather.trim() : "",
     location: typeof (t == null ? void 0 : t.location) == "string" ? t.location.trim() : "",
-    mood: pe(t == null ? void 0 : t.mood),
+    mood: Le(t == null ? void 0 : t.mood),
     summary: typeof (t == null ? void 0 : t.summary) == "string" ? t.summary.trim() : "",
-    tags: R(t == null ? void 0 : t.tags)
+    tags: F(t == null ? void 0 : t.tags)
   };
 }
-function pe(t) {
+function Le(t) {
   return t == null || t === "" || typeof t != "number" || !Number.isInteger(t) || t < -5 || t > 5 ? 0 : t;
 }
-function fe(t, e) {
+function ve(t, e) {
   const n = (/* @__PURE__ */ new Date()).toISOString();
   return {
-    ...de(t),
+    ...Ie(t),
     createdAt: typeof (t == null ? void 0 : t.createdAt) == "string" && t.createdAt.trim() ? t.createdAt : (e == null ? void 0 : e.createdAt) ?? n,
     updatedAt: typeof (t == null ? void 0 : t.updatedAt) == "string" && t.updatedAt.trim() ? t.updatedAt : (e == null ? void 0 : e.updatedAt) ?? (e == null ? void 0 : e.createdAt) ?? n
   };
 }
-function ye() {
+function Oe() {
   const t = (/* @__PURE__ */ new Date()).toISOString();
-  return fe(
+  return ve(
     {
-      ...xe,
+      ...Ve,
       createdAt: t,
       updatedAt: t
     },
@@ -502,7 +503,7 @@ function ye() {
     }
   );
 }
-function hn(t) {
+function Sn(t) {
   const e = t.replace(/^\uFEFF/, ""), n = e.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/);
   return n ? {
     frontmatterText: n[1],
@@ -512,7 +513,7 @@ function hn(t) {
     body: e
   };
 }
-function Wt(t) {
+function jt(t) {
   const e = t.trim();
   if (!e)
     return "";
@@ -524,112 +525,112 @@ function Wt(t) {
     }
   return e.startsWith("'") && e.endsWith("'") ? e.slice(1, -1).replace(/''/g, "'") : e;
 }
-function vn(t) {
+function jn(t) {
   const e = t.trim();
   if (e === "[]")
     return [];
   if (!e.startsWith("[") || !e.endsWith("]"))
     return [];
   const n = e.slice(1, -1).trim();
-  return n ? n.split(",").map((r) => Wt(r)) : [];
+  return n ? n.split(",").map((r) => jt(r)) : [];
 }
-function Ln(t) {
+function Yn(t) {
   const e = t.trim();
-  return !e || e.toLowerCase() === "null" || !/^-?\d+$/.test(e) ? 0 : pe(Number(e));
+  return !e || e.toLowerCase() === "null" || !/^-?\d+$/.test(e) ? 0 : Le(Number(e));
 }
-function Cn(t) {
+function wn(t) {
   const e = {};
   let n = null;
   for (const r of t.split(/\r?\n/)) {
     if (!r.trim())
       continue;
-    const o = r.match(/^\s*-\s*(.*)$/);
-    if (o && n === "tags") {
-      const d = e.tags ?? [];
-      e.tags = [...d, Wt(o[1])];
+    const a = r.match(/^\s*-\s*(.*)$/);
+    if (a && n === "tags") {
+      const m = e.tags ?? [];
+      e.tags = [...m, jt(a[1])];
       continue;
     }
-    const i = r.match(/^([A-Za-z][A-Za-z0-9]*):(?:\s*(.*))?$/);
-    if (!i) {
+    const s = r.match(/^([A-Za-z][A-Za-z0-9]*):(?:\s*(.*))?$/);
+    if (!s) {
       n = null;
       continue;
     }
-    const [, a, s = ""] = i;
-    if (n = null, a === "tags") {
-      if (!s.trim()) {
+    const [, o, i = ""] = s;
+    if (n = null, o === "tags") {
+      if (!i.trim()) {
         e.tags = [], n = "tags";
         continue;
       }
-      e.tags = vn(s);
+      e.tags = jn(i);
       continue;
     }
-    if (a === "createdAt" || a === "updatedAt" || a === "weather" || a === "location" || a === "summary") {
-      e[a] = Wt(s);
+    if (o === "createdAt" || o === "updatedAt" || o === "weather" || o === "location" || o === "summary") {
+      e[o] = jt(i);
       continue;
     }
-    a === "mood" && (e.mood = Ln(s));
+    o === "mood" && (e.mood = Yn(i));
   }
   return e;
 }
-function x(t) {
+function G(t) {
   return JSON.stringify(t);
 }
-function On(t) {
+function Dn(t) {
   const e = [
     "---",
-    `createdAt: ${x(t.createdAt)}`,
-    `updatedAt: ${x(t.updatedAt)}`,
-    `weather: ${x(t.weather)}`,
-    `location: ${x(t.location)}`,
+    `createdAt: ${G(t.createdAt)}`,
+    `updatedAt: ${G(t.updatedAt)}`,
+    `weather: ${G(t.weather)}`,
+    `location: ${G(t.location)}`,
     `mood: ${t.mood}`,
-    `summary: ${x(t.summary)}`
+    `summary: ${G(t.summary)}`
   ];
   if (t.tags.length === 0)
     e.push("tags: []");
   else {
     e.push("tags:");
     for (const n of t.tags)
-      e.push(`  - ${x(n)}`);
+      e.push(`  - ${G(n)}`);
   }
   return e.push("---"), e.join(`
 `);
 }
-function he(t, e) {
+function Ce(t, e) {
   const n = e.replace(/\r\n/g, `
 `);
-  return `${On(t)}
+  return `${Dn(t)}
 ${n}`;
 }
-async function nt(t) {
-  const [e, n] = await Promise.all([$(t, "utf-8"), Jt(t)]), { frontmatterText: r, body: o } = hn(e), i = r ? Cn(r) : null;
+async function at(t) {
+  const [e, n] = await Promise.all([J(t, "utf-8"), Ft(t)]), { frontmatterText: r, body: a } = Sn(e), s = r ? wn(r) : null;
   return {
-    frontmatter: fe(i, {
+    frontmatter: ve(s, {
       createdAt: n.birthtime.toISOString(),
       updatedAt: n.mtime.toISOString()
     }),
-    body: o
+    body: a
   };
 }
-async function ve(t) {
+async function We(t) {
   try {
-    return await nt(t);
+    return await at(t);
   } catch (e) {
     if (e.code === "ENOENT")
       return {
-        frontmatter: ye(),
+        frontmatter: Oe(),
         body: ""
       };
     throw e;
   }
 }
-async function Le(t, e, n) {
-  await _(L.dirname(t), { recursive: !0 }), await J(t, he(e, n), "utf-8");
+async function be(t, e, n) {
+  await X(L.dirname(t), { recursive: !0 }), await P(t, Ce(e, n), "utf-8");
 }
-function Ce(t) {
+function Se(t) {
   const e = t.trim();
   return e ? e.replace(/\s+/g, "").length : 0;
 }
-function Wn(t) {
+function kn(t) {
   const e = t.trim();
   try {
     return JSON.parse(e);
@@ -640,31 +641,31 @@ function Wn(t) {
     return JSON.parse(n[0]);
   }
 }
-function In(t) {
+function An(t) {
   const e = /* @__PURE__ */ new Map();
-  for (const n of R(t))
+  for (const n of F(t))
     e.set(n.toLocaleLowerCase(), n);
   return e;
 }
-function Oe(t, e) {
+function je(t, e) {
   const n = typeof t.summary == "string" ? t.summary.trim() : "";
   if (!n)
     throw new Error("大模型返回的总结为空，请稍后重试。");
-  const r = In(e), o = R(Array.isArray(t.tags) ? t.tags : []).map(
+  const r = An(e), a = F(Array.isArray(t.tags) ? t.tags : []).map(
     (g) => r.get(g.toLocaleLowerCase()) ?? g
-  ), i = [...new Set(o)].slice(0, 8);
-  if (i.length < 3)
+  ), s = [...new Set(a)].slice(0, 8);
+  if (s.length < 3)
     throw new Error("大模型返回的标签数量不足，暂时无法完成自动整理。");
-  const a = i.filter((g) => r.has(g.toLocaleLowerCase())), s = i.filter((g) => !r.has(g.toLocaleLowerCase())), d = bn(t.mood);
+  const o = s.filter((g) => r.has(g.toLocaleLowerCase())), i = s.filter((g) => !r.has(g.toLocaleLowerCase())), m = Kn(t.mood);
   return {
     summary: n,
-    tags: i,
-    mood: d,
-    existingTags: a,
-    newTags: s
+    tags: s,
+    mood: m,
+    existingTags: o,
+    newTags: i
   };
 }
-function bn(t) {
+function Kn(t) {
   if (t == null)
     return 0;
   if (typeof t != "number" || !Number.isInteger(t))
@@ -673,7 +674,7 @@ function bn(t) {
     throw new Error("大模型返回的心情分数超出范围，请稍后重试。");
   return t;
 }
-function Sn(t) {
+function Tn(t) {
   const e = t.body.trim();
   if (!e)
     throw new Error("正文为空，暂时无法自动整理。");
@@ -687,43 +688,325 @@ function Sn(t) {
 
 `);
 }
-function wn(t) {
-  const e = gt(t.ai);
+function Mn(t) {
+  const e = pt(t.ai);
   if (!e.baseURL)
     throw new Error("请先在设置页填写大模型接口地址。");
   if (!e.model)
     throw new Error("请先在设置页填写大模型模型名称。");
   return e;
 }
-async function We(t) {
-  if (lt(t.date), !t.workspacePath.trim())
+async function Ye(t) {
+  if (mt(t.date), !t.workspacePath.trim())
     throw new Error("当前还没有可用的工作区。");
   if (!t.body.trim())
     throw new Error("正文为空，暂时无法自动整理。");
-  const [e, n] = await Promise.all([K(), Vt("dailyOrganizeSystem")]), r = wn(e), o = await Qt(r.providerType);
-  if (!o)
+  const [e, n] = await Promise.all([M(), St("dailyOrganizeSystem")]), r = Mn(e), a = await oe(r.providerType);
+  if (!a)
     throw new Error("请先在设置页保存当前 provider 的 API Key。");
-  const a = await te(r, o).completeJson({
+  const o = await ae(r, a).completeJson({
     messages: [
       { role: "system", content: n },
-      { role: "user", content: Sn(t) }
+      { role: "user", content: Tn(t) }
     ]
   });
-  return Oe(Wn(a), t.workspaceTags);
+  return je(kn(o), t.workspaceTags);
 }
-async function Yn(t) {
+async function qn(t) {
   var r;
-  const e = ((r = t.currentSummary) == null ? void 0 : r.trim()) ?? "", n = R(t.currentTags ?? []);
-  return e && n.length >= 3 ? Oe(
+  const e = ((r = t.currentSummary) == null ? void 0 : r.trim()) ?? "", n = F(t.currentTags ?? []);
+  return e && n.length >= 3 ? je(
     {
       summary: e,
       tags: n,
       mood: t.currentMood
     },
     t.workspaceTags
-  ) : We(t);
+  ) : Ye(t);
 }
-function jn(t) {
+var Hn = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
+function En(t) {
+  return t && t.__esModule && Object.prototype.hasOwnProperty.call(t, "default") ? t.default : t;
+}
+var we = { exports: {} };
+(function(t, e) {
+  (function(n, r) {
+    t.exports = r();
+  })(Hn, function() {
+    var n = 1e3, r = 6e4, a = 36e5, s = "millisecond", o = "second", i = "minute", m = "hour", g = "day", f = "week", d = "month", S = "quarter", j = "year", T = "date", B = "Invalid Date", ht = /^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/, It = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g, Fe = { name: "en", weekdays: "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"), months: "January_February_March_April_May_June_July_August_September_October_November_December".split("_"), ordinal: function(y) {
+      var l = ["th", "st", "nd", "rd"], u = y % 100;
+      return "[" + y + (l[(u - 20) % 10] || l[u] || l[0]) + "]";
+    } }, Lt = function(y, l, u) {
+      var p = String(y);
+      return !p || p.length >= l ? y : "" + Array(l + 1 - p.length).join(u) + y;
+    }, Ze = { s: Lt, z: function(y) {
+      var l = -y.utcOffset(), u = Math.abs(l), p = Math.floor(u / 60), c = u % 60;
+      return (l <= 0 ? "+" : "-") + Lt(p, 2, "0") + ":" + Lt(c, 2, "0");
+    }, m: function y(l, u) {
+      if (l.date() < u.date()) return -y(u, l);
+      var p = 12 * (u.year() - l.year()) + (u.month() - l.month()), c = l.clone().add(p, d), h = u - c < 0, I = l.clone().add(p + (h ? -1 : 1), d);
+      return +(-(p + (u - c) / (h ? c - I : I - c)) || 0);
+    }, a: function(y) {
+      return y < 0 ? Math.ceil(y) || 0 : Math.floor(y);
+    }, p: function(y) {
+      return { M: d, y: j, w: f, d: g, D: T, h: m, m: i, s: o, ms: s, Q: S }[y] || String(y || "").toLowerCase().replace(/s$/, "");
+    }, u: function(y) {
+      return y === void 0;
+    } }, _ = "en", $ = {};
+    $[_] = Fe;
+    var Et = "$isDayjsObject", vt = function(y) {
+      return y instanceof st || !(!y || !y[Et]);
+    }, it = function y(l, u, p) {
+      var c;
+      if (!l) return _;
+      if (typeof l == "string") {
+        var h = l.toLowerCase();
+        $[h] && (c = h), u && ($[h] = u, c = h);
+        var I = l.split("-");
+        if (!c && I.length > 1) return y(I[0]);
+      } else {
+        var O = l.name;
+        $[O] = l, c = O;
+      }
+      return !p && c && (_ = c), c || !p && _;
+    }, Y = function(y, l) {
+      if (vt(y)) return y.clone();
+      var u = typeof l == "object" ? l : {};
+      return u.date = y, u.args = arguments, new st(u);
+    }, v = Ze;
+    v.l = it, v.i = vt, v.w = function(y, l) {
+      return Y(y, { locale: l.$L, utc: l.$u, x: l.$x, $offset: l.$offset });
+    };
+    var st = function() {
+      function y(u) {
+        this.$L = it(u.locale, null, !0), this.parse(u), this.$x = this.$x || u.x || {}, this[Et] = !0;
+      }
+      var l = y.prototype;
+      return l.parse = function(u) {
+        this.$d = function(p) {
+          var c = p.date, h = p.utc;
+          if (c === null) return /* @__PURE__ */ new Date(NaN);
+          if (v.u(c)) return /* @__PURE__ */ new Date();
+          if (c instanceof Date) return new Date(c);
+          if (typeof c == "string" && !/Z$/i.test(c)) {
+            var I = c.match(ht);
+            if (I) {
+              var O = I[2] - 1 || 0, b = (I[7] || "0").substring(0, 3);
+              return h ? new Date(Date.UTC(I[1], O, I[3] || 1, I[4] || 0, I[5] || 0, I[6] || 0, b)) : new Date(I[1], O, I[3] || 1, I[4] || 0, I[5] || 0, I[6] || 0, b);
+            }
+          }
+          return new Date(c);
+        }(u), this.init();
+      }, l.init = function() {
+        var u = this.$d;
+        this.$y = u.getFullYear(), this.$M = u.getMonth(), this.$D = u.getDate(), this.$W = u.getDay(), this.$H = u.getHours(), this.$m = u.getMinutes(), this.$s = u.getSeconds(), this.$ms = u.getMilliseconds();
+      }, l.$utils = function() {
+        return v;
+      }, l.isValid = function() {
+        return this.$d.toString() !== B;
+      }, l.isSame = function(u, p) {
+        var c = Y(u);
+        return this.startOf(p) <= c && c <= this.endOf(p);
+      }, l.isAfter = function(u, p) {
+        return Y(u) < this.startOf(p);
+      }, l.isBefore = function(u, p) {
+        return this.endOf(p) < Y(u);
+      }, l.$g = function(u, p, c) {
+        return v.u(u) ? this[p] : this.set(c, u);
+      }, l.unix = function() {
+        return Math.floor(this.valueOf() / 1e3);
+      }, l.valueOf = function() {
+        return this.$d.getTime();
+      }, l.startOf = function(u, p) {
+        var c = this, h = !!v.u(p) || p, I = v.p(u), O = function(R, A) {
+          var E = v.w(c.$u ? Date.UTC(c.$y, A, R) : new Date(c.$y, A, R), c);
+          return h ? E : E.endOf(g);
+        }, b = function(R, A) {
+          return v.w(c.toDate()[R].apply(c.toDate("s"), (h ? [0, 0, 0, 0] : [23, 59, 59, 999]).slice(A)), c);
+        }, w = this.$W, D = this.$M, K = this.$D, Z = "set" + (this.$u ? "UTC" : "");
+        switch (I) {
+          case j:
+            return h ? O(1, 0) : O(31, 11);
+          case d:
+            return h ? O(1, D) : O(0, D + 1);
+          case f:
+            var z = this.$locale().weekStart || 0, U = (w < z ? w + 7 : w) - z;
+            return O(h ? K - U : K + (6 - U), D);
+          case g:
+          case T:
+            return b(Z + "Hours", 0);
+          case m:
+            return b(Z + "Minutes", 1);
+          case i:
+            return b(Z + "Seconds", 2);
+          case o:
+            return b(Z + "Milliseconds", 3);
+          default:
+            return this.clone();
+        }
+      }, l.endOf = function(u) {
+        return this.startOf(u, !1);
+      }, l.$set = function(u, p) {
+        var c, h = v.p(u), I = "set" + (this.$u ? "UTC" : ""), O = (c = {}, c[g] = I + "Date", c[T] = I + "Date", c[d] = I + "Month", c[j] = I + "FullYear", c[m] = I + "Hours", c[i] = I + "Minutes", c[o] = I + "Seconds", c[s] = I + "Milliseconds", c)[h], b = h === g ? this.$D + (p - this.$W) : p;
+        if (h === d || h === j) {
+          var w = this.clone().set(T, 1);
+          w.$d[O](b), w.init(), this.$d = w.set(T, Math.min(this.$D, w.daysInMonth())).$d;
+        } else O && this.$d[O](b);
+        return this.init(), this;
+      }, l.set = function(u, p) {
+        return this.clone().$set(u, p);
+      }, l.get = function(u) {
+        return this[v.p(u)]();
+      }, l.add = function(u, p) {
+        var c, h = this;
+        u = Number(u);
+        var I = v.p(p), O = function(D) {
+          var K = Y(h);
+          return v.w(K.date(K.date() + Math.round(D * u)), h);
+        };
+        if (I === d) return this.set(d, this.$M + u);
+        if (I === j) return this.set(j, this.$y + u);
+        if (I === g) return O(1);
+        if (I === f) return O(7);
+        var b = (c = {}, c[i] = r, c[m] = a, c[o] = n, c)[I] || 1, w = this.$d.getTime() + u * b;
+        return v.w(w, this);
+      }, l.subtract = function(u, p) {
+        return this.add(-1 * u, p);
+      }, l.format = function(u) {
+        var p = this, c = this.$locale();
+        if (!this.isValid()) return c.invalidDate || B;
+        var h = u || "YYYY-MM-DDTHH:mm:ssZ", I = v.z(this), O = this.$H, b = this.$m, w = this.$M, D = c.weekdays, K = c.months, Z = c.meridiem, z = function(A, E, Q, ut) {
+          return A && (A[E] || A(p, h)) || Q[E].slice(0, ut);
+        }, U = function(A) {
+          return v.s(O % 12 || 12, A, "0");
+        }, R = Z || function(A, E, Q) {
+          var ut = A < 12 ? "AM" : "PM";
+          return Q ? ut.toLowerCase() : ut;
+        };
+        return h.replace(It, function(A, E) {
+          return E || function(Q) {
+            switch (Q) {
+              case "YY":
+                return String(p.$y).slice(-2);
+              case "YYYY":
+                return v.s(p.$y, 4, "0");
+              case "M":
+                return w + 1;
+              case "MM":
+                return v.s(w + 1, 2, "0");
+              case "MMM":
+                return z(c.monthsShort, w, K, 3);
+              case "MMMM":
+                return z(K, w);
+              case "D":
+                return p.$D;
+              case "DD":
+                return v.s(p.$D, 2, "0");
+              case "d":
+                return String(p.$W);
+              case "dd":
+                return z(c.weekdaysMin, p.$W, D, 2);
+              case "ddd":
+                return z(c.weekdaysShort, p.$W, D, 3);
+              case "dddd":
+                return D[p.$W];
+              case "H":
+                return String(O);
+              case "HH":
+                return v.s(O, 2, "0");
+              case "h":
+                return U(1);
+              case "hh":
+                return U(2);
+              case "a":
+                return R(O, b, !0);
+              case "A":
+                return R(O, b, !1);
+              case "m":
+                return String(b);
+              case "mm":
+                return v.s(b, 2, "0");
+              case "s":
+                return String(p.$s);
+              case "ss":
+                return v.s(p.$s, 2, "0");
+              case "SSS":
+                return v.s(p.$ms, 3, "0");
+              case "Z":
+                return I;
+            }
+            return null;
+          }(A) || I.replace(":", "");
+        });
+      }, l.utcOffset = function() {
+        return 15 * -Math.round(this.$d.getTimezoneOffset() / 15);
+      }, l.diff = function(u, p, c) {
+        var h, I = this, O = v.p(p), b = Y(u), w = (b.utcOffset() - this.utcOffset()) * r, D = this - b, K = function() {
+          return v.m(I, b);
+        };
+        switch (O) {
+          case j:
+            h = K() / 12;
+            break;
+          case d:
+            h = K();
+            break;
+          case S:
+            h = K() / 3;
+            break;
+          case f:
+            h = (D - w) / 6048e5;
+            break;
+          case g:
+            h = (D - w) / 864e5;
+            break;
+          case m:
+            h = D / a;
+            break;
+          case i:
+            h = D / r;
+            break;
+          case o:
+            h = D / n;
+            break;
+          default:
+            h = D;
+        }
+        return c ? h : v.a(h);
+      }, l.daysInMonth = function() {
+        return this.endOf(d).$D;
+      }, l.$locale = function() {
+        return $[this.$L];
+      }, l.locale = function(u, p) {
+        if (!u) return this.$L;
+        var c = this.clone(), h = it(u, p, !0);
+        return h && (c.$L = h), c;
+      }, l.clone = function() {
+        return v.w(this.$d, this);
+      }, l.toDate = function() {
+        return new Date(this.valueOf());
+      }, l.toJSON = function() {
+        return this.isValid() ? this.toISOString() : null;
+      }, l.toISOString = function() {
+        return this.$d.toISOString();
+      }, l.toString = function() {
+        return this.$d.toUTCString();
+      }, y;
+    }(), Nt = st.prototype;
+    return Y.prototype = Nt, [["$ms", s], ["$s", o], ["$m", i], ["$H", m], ["$W", g], ["$M", d], ["$y", j], ["$D", T]].forEach(function(y) {
+      Nt[y[1]] = function(l) {
+        return this.$g(l, y[0], y[1]);
+      };
+    }), Y.extend = function(y, l) {
+      return y.$i || (y(l, st, Y), y.$i = !0), Y;
+    }, Y.locale = it, Y.isDayjs = vt, Y.unix = function(y) {
+      return Y(1e3 * y);
+    }, Y.en = $[_], Y.Ls = $, Y.p = {}, Y;
+  });
+})(we);
+var Nn = we.exports;
+const V = /* @__PURE__ */ En(Nn), De = 5, ke = 7, Jn = 2200, Pn = 84;
+function Ae(t) {
   const e = t.trim();
   try {
     return JSON.parse(e);
@@ -734,46 +1017,183 @@ function jn(t) {
     return JSON.parse(n[0]);
   }
 }
-function st(t, e) {
+function gt(t, e) {
+  if (typeof t != "string")
+    return null;
+  const n = t.trim();
+  return e.has(n) ? n : null;
+}
+function Bn(t, e) {
   if (!Array.isArray(t))
     return [];
   const n = /* @__PURE__ */ new Set();
   for (const r of t) {
-    if (typeof r != "string")
-      continue;
-    const o = r.trim();
-    o && n.add(o);
+    const a = gt(r, e);
+    a && n.add(a);
   }
-  return [...n].slice(0, e);
+  return [...n].sort((r, a) => r.localeCompare(a));
 }
-function An(t) {
-  const e = typeof t.text == "string" ? t.text.trim() : "";
-  if (!e)
-    throw new Error("大模型返回的区间总结为空。");
-  return {
-    text: e,
-    themes: st(t.themes, 5),
-    progress: st(t.progress, 4),
-    blockers: st(t.blockers, 4),
-    memorableMoments: st(t.memorableMoments, 4)
+function H(t) {
+  const e = V(t);
+  return e.isValid() ? e.format("M月D日") : t;
+}
+function $t(t, e) {
+  return t === e ? H(t) : `${H(t)} - ${H(e)}`;
+}
+function zt(t) {
+  return t.length === 0 ? "这段时间" : t.length <= 3 ? t.map((e) => H(e)).join("、") : `${H(t[0])} 等 ${t.length} 天`;
+}
+function $n(t, e) {
+  const n = t && typeof t == "object" ? t : null, r = typeof (n == null ? void 0 : n.label) == "string" ? n.label.trim() : "", a = gt(n == null ? void 0 : n.startDate, e), s = gt(n == null ? void 0 : n.endDate, e), o = Bn(n == null ? void 0 : n.dates, e), i = typeof (n == null ? void 0 : n.type) == "string" ? n.type.trim() : "", g = i === "day" || i === "range" || i === "multiple" || i === "approx" ? i : o.length > 1 ? "multiple" : a && s && a !== s ? "range" : a || s || o.length === 1 ? "day" : "approx";
+  if (g === "day") {
+    const f = a ?? s ?? o[0];
+    if (f)
+      return {
+        type: "day",
+        label: r || H(f),
+        startDate: f
+      };
+  }
+  if (g === "range") {
+    const f = a ?? o[0], d = s ?? o[o.length - 1] ?? f;
+    if (f && d) {
+      const [S, j] = f <= d ? [f, d] : [d, f];
+      return S === j ? {
+        type: "day",
+        label: r || H(S),
+        startDate: S
+      } : {
+        type: "range",
+        label: r || $t(S, j),
+        startDate: S,
+        endDate: j
+      };
+    }
+  }
+  if (g === "multiple") {
+    const f = o.length > 0 ? o : [a, s].filter(Boolean);
+    if (f.length === 1)
+      return {
+        type: "day",
+        label: r || H(f[0]),
+        startDate: f[0]
+      };
+    if (f.length > 1)
+      return {
+        type: "multiple",
+        label: r || zt(f),
+        dates: f
+      };
+  }
+  if (a && s && a !== s) {
+    const [f, d] = a <= s ? [a, s] : [s, a];
+    return {
+      type: "approx",
+      label: r || $t(f, d),
+      startDate: f,
+      endDate: d
+    };
+  }
+  return o.length > 1 ? {
+    type: "approx",
+    label: r || zt(o),
+    dates: o
+  } : a ? {
+    type: "day",
+    label: r || H(a),
+    startDate: a
+  } : {
+    type: "approx",
+    label: r || "这段时间"
   };
 }
-function Dn(t) {
-  const e = gt(t.ai);
+function Ot(t, e, n) {
+  if (!Array.isArray(t))
+    return [];
+  const r = [], a = /* @__PURE__ */ new Set();
+  for (const s of t) {
+    if (!s || typeof s != "object")
+      continue;
+    const o = s, i = typeof o.text == "string" ? o.text.trim() : "";
+    if (!i)
+      continue;
+    const m = $n(o.timeAnchor, n), g = `${i}::${m.label}`;
+    if (!a.has(g) && (a.add(g), r.push({
+      text: i,
+      timeAnchor: m
+    }), r.length >= e))
+      break;
+  }
+  return r;
+}
+function zn(t, e) {
+  const n = typeof t.text == "string" ? t.text.trim() : "";
+  if (!n)
+    throw new Error("大模型返回的区间总结为空。");
+  return {
+    text: n,
+    progress: Ot(t.progress, 4, e),
+    blockers: Ot(t.blockers, 4, e),
+    memorableMoments: Ot(t.memorableMoments, 4, e)
+  };
+}
+function Rn(t) {
+  const e = pt(t.ai);
   if (!e.baseURL || !e.model)
     throw new Error("请先完成区间总结所需的大模型配置。");
   return e;
 }
-function kn(t) {
-  var a, s, d, g;
-  const e = ((a = t.sections.tagCloud) == null ? void 0 : a.items.slice(0, 12)) ?? [], n = ((s = t.sections.highlights) == null ? void 0 : s.events.slice(0, 6)) ?? [], r = ((d = t.sections.locationPatterns) == null ? void 0 : d.ranking.slice(0, 6)) ?? [], o = ((g = t.sections.timePatterns) == null ? void 0 : g.buckets) ?? [], i = t.dailyEntries.filter((h) => h.hasEntry && (h.summary.trim() || h.tags.length > 0)).slice(0, 12).map((h) => ({
-    date: h.date,
-    summary: h.summary,
-    tags: h.tags,
-    mood: h.mood,
-    wordCount: h.wordCount,
-    location: h.location
-  }));
+function Ke(t, e) {
+  const n = t.replace(/\s+/g, " ").trim();
+  return n.length <= e ? n : `${n.slice(0, e)}...`;
+}
+function Te(t) {
+  return {
+    date: t.date,
+    summary: Ke(t.summary, Pn),
+    tags: t.tags.slice(0, 4),
+    mood: t.mood,
+    wordCount: t.wordCount,
+    location: t.location,
+    insightSource: t.insightSource
+  };
+}
+function Me(t) {
+  var e, n, r, a;
+  return {
+    topTags: ((e = t.sections.tagCloud) == null ? void 0 : e.items.slice(0, 12)) ?? [],
+    locations: ((n = t.sections.locationPatterns) == null ? void 0 : n.ranking.slice(0, 6)) ?? [],
+    timeBuckets: ((r = t.sections.timePatterns) == null ? void 0 : r.buckets) ?? [],
+    moodAverage: ((a = t.sections.moodTrend) == null ? void 0 : a.averageMood) ?? null
+  };
+}
+function Fn(t, e) {
+  return JSON.stringify(
+    {
+      period: t.period,
+      source: t.source,
+      facts: Me(t),
+      dailyCandidates: e.map((n) => Te(n))
+    },
+    null,
+    2
+  );
+}
+function Zn(t, e, n) {
+  const r = new Map(e.map((o) => [o.date, o])), a = n.map((o) => {
+    const i = r.get(o.date);
+    return i ? {
+      date: i.date,
+      reason: o.reason,
+      summary: i.summary,
+      tags: i.tags,
+      mood: i.mood,
+      wordCount: i.wordCount,
+      location: i.location,
+      insightSource: i.insightSource,
+      body: Ke(i.body, Jn)
+    } : null;
+  }).filter((o) => !!o), s = e.slice(0, 20).map((o) => Te(o));
   return JSON.stringify(
     {
       period: t.period,
@@ -783,72 +1203,153 @@ function kn(t) {
         warnings: t.generation.warnings
       },
       facts: {
-        topTags: e,
-        highlights: n,
-        locations: r,
-        timeBuckets: o,
-        summarizedEntries: i
+        ...Me(t),
+        compactTimeline: s,
+        focusSelection: n,
+        focusEntries: a
       }
     },
     null,
     2
   );
 }
-async function Tn(t) {
-  const [e, n] = await Promise.all([
-    K(),
-    Vt("rangeReportSummarySystem")
-  ]), r = Dn(e), o = await Qt(r.providerType);
+function Gn(t, e) {
+  if (e.length <= ke)
+    return e.map((i) => ({
+      date: i.date,
+      reason: "该日期在区间内有实际日记内容，直接纳入详细总结。"
+    }));
+  const n = Math.min(De, e.length), r = /* @__PURE__ */ new Set(), a = [], s = [...e].sort((i, m) => {
+    const g = i.wordCount * 15e-4 + Math.abs(i.mood ?? 0) * 20 + i.tags.length * 8 + (i.summary.trim() ? 12 : 0);
+    return m.wordCount * 15e-4 + Math.abs(m.mood ?? 0) * 20 + m.tags.length * 8 + (m.summary.trim() ? 12 : 0) - g || i.date.localeCompare(m.date);
+  });
+  for (const i of s) {
+    if (a.length >= n)
+      break;
+    r.has(i.date) || (r.add(i.date), a.push({
+      date: i.date,
+      reason: "该日期的记录信息较集中，适合作为阶段样本。"
+    }));
+  }
+  if (a.length >= Math.min(3, n))
+    return a;
+  const o = Math.max(1, Math.floor(e.length / Math.max(n, 1)));
+  for (let i = 0; i < e.length && a.length < n; i += o) {
+    const m = e[i];
+    r.has(m.date) || (r.add(m.date), a.push({
+      date: m.date,
+      reason: "该日期用于补足区间不同阶段的上下文。"
+    }));
+  }
+  return a;
+}
+function xn(t, e) {
+  var a;
+  if (!Array.isArray(t.focusDates))
+    return [];
+  const n = [], r = /* @__PURE__ */ new Set();
+  for (const s of t.focusDates) {
+    if (!s || typeof s != "object")
+      continue;
+    const o = gt(s.date, e);
+    if (!o || r.has(o))
+      continue;
+    const i = typeof s.reason == "string" && ((a = s.reason) == null ? void 0 : a.trim()) || "";
+    if (r.add(o), n.push({
+      date: o,
+      reason: i || "该日期值得进一步查看。"
+    }), n.length >= De)
+      break;
+  }
+  return n;
+}
+async function Xn(t, e, n, r) {
+  const a = Gn(t, e);
+  if (e.length <= ke)
+    return a;
+  const s = new Set(e.map((o) => o.date));
+  try {
+    const o = await r.completeJson({
+      messages: [
+        { role: "system", content: n },
+        {
+          role: "user",
+          content: Fn(t, e)
+        }
+      ]
+    }), i = xn(
+      Ae(o),
+      s
+    );
+    return i.length > 0 ? i : a;
+  } catch {
+    return a;
+  }
+}
+async function _n(t, e) {
+  const [n, r, a] = await Promise.all([
+    M(),
+    St("rangeReportSummaryFocusSystem"),
+    St("rangeReportSummarySystem")
+  ]), s = Rn(n), o = await oe(s.providerType);
   if (!o)
     throw new Error("请先保存当前 provider 的 API Key。");
-  const a = await te(r, o).completeJson({
+  const i = e.filter(
+    (d) => d.body.trim() || d.summary.trim() || d.tags.length > 0
+  );
+  if (i.length === 0)
+    throw new Error("当前区间没有可用于总结的日记内容。");
+  const m = ae(s, o), g = await Xn(t, i, r, m), f = await m.completeJson({
     messages: [
-      { role: "system", content: n },
+      { role: "system", content: a },
       {
         role: "user",
-        content: kn(t)
+        content: Zn(t, i, g)
       }
     ]
   });
-  return An(jn(a));
+  return zn(
+    Ae(f),
+    new Set(i.map((d) => d.date))
+  );
 }
-function ft(t) {
+function yt(t) {
   return [...t].sort((e, n) => e.localeCompare(n, "zh-Hans-CN"));
 }
-function X(t) {
+function tt(t) {
   return !t || typeof t != "object" ? {
     version: 1,
-    tags: [...xt]
+    tags: [...Ut]
   } : {
     version: 1,
-    tags: ft(R(t.tags))
+    tags: yt(F(t.tags))
   };
 }
-function Q(t) {
+function et(t) {
   return !t || typeof t != "object" ? {
     version: 1,
-    items: [...Ot]
+    items: [...bt]
   } : {
     version: 1,
-    items: ft(R(t.items ?? Ot))
+    items: yt(F(t.items ?? bt))
   };
 }
-function V(t) {
+function nt(t) {
   return !t || typeof t != "object" ? {
     version: 1,
-    items: [...Bt]
+    items: [..._t]
   } : {
     version: 1,
-    items: ft(R(t.items))
+    items: yt(F(t.items))
   };
 }
-async function Ie(t) {
+async function qe(t) {
   try {
-    const e = await Nt(t, { withFileTypes: !0 });
+    const e = await Zt(t, { withFileTypes: !0 });
     return (await Promise.all(
       e.map(async (r) => {
-        const o = L.join(t, r.name);
-        return r.isDirectory() ? Ie(o) : r.isFile() && r.name.toLowerCase().endsWith(".md") ? [o] : [];
+        const a = L.join(t, r.name);
+        return r.isDirectory() ? qe(a) : r.isFile() && r.name.toLowerCase().endsWith(".md") ? [a] : [];
       })
     )).flat();
   } catch (e) {
@@ -857,143 +1358,143 @@ async function Ie(t) {
     throw e;
   }
 }
-async function Mn(t) {
-  const e = dn(t), n = await Ie(e), r = /* @__PURE__ */ new Set();
-  for (const o of n)
+async function Un(t) {
+  const e = On(t), n = await qe(e), r = /* @__PURE__ */ new Set();
+  for (const a of n)
     try {
-      const i = await nt(o);
-      for (const a of i.frontmatter.tags)
-        r.add(a);
-    } catch (i) {
-      if (i.code === "ENOENT")
+      const s = await at(a);
+      for (const o of s.frontmatter.tags)
+        r.add(o);
+    } catch (s) {
+      if (s.code === "ENOENT")
         continue;
-      throw i;
+      throw s;
     }
-  return ft([...r]);
+  return yt([...r]);
 }
-async function At(t) {
-  await _(et(t), { recursive: !0 });
+async function Tt(t) {
+  await X(ot(t), { recursive: !0 });
 }
-async function be(t) {
-  const e = se(t);
+async function He(t) {
+  const e = ge(t);
   try {
-    const n = await $(e, "utf-8");
-    return X(JSON.parse(n));
+    const n = await J(e, "utf-8");
+    return tt(JSON.parse(n));
   } catch (n) {
     if (n.code === "ENOENT") {
-      const r = await Mn(t), o = X({
-        tags: [...xt, ...r]
+      const r = await Un(t), a = tt({
+        tags: [...Ut, ...r]
       });
-      return await Dt(t, o), o;
+      return await Mt(t, a), a;
     }
     throw n;
   }
 }
-async function Dt(t, e) {
-  await At(t), await J(
-    se(t),
-    JSON.stringify(X(e), null, 2),
+async function Mt(t, e) {
+  await Tt(t), await P(
+    ge(t),
+    JSON.stringify(tt(e), null, 2),
     "utf-8"
   );
 }
-async function Se(t) {
-  const e = ue(t);
+async function Ee(t) {
+  const e = pe(t);
   try {
-    const n = await $(e, "utf-8");
-    return Q(JSON.parse(n));
+    const n = await J(e, "utf-8");
+    return et(JSON.parse(n));
   } catch (n) {
     if (n.code === "ENOENT") {
-      const r = Q({
-        items: Ot
+      const r = et({
+        items: bt
       });
-      return await kt(t, r), r;
+      return await qt(t, r), r;
     }
     throw n;
   }
 }
-async function kt(t, e) {
-  await At(t), await J(
-    ue(t),
-    JSON.stringify(Q(e), null, 2),
+async function qt(t, e) {
+  await Tt(t), await P(
+    pe(t),
+    JSON.stringify(et(e), null, 2),
     "utf-8"
   );
 }
-async function we(t) {
-  const e = ce(t);
+async function Ne(t) {
+  const e = fe(t);
   try {
-    const n = await $(e, "utf-8");
-    return V(JSON.parse(n));
+    const n = await J(e, "utf-8");
+    return nt(JSON.parse(n));
   } catch (n) {
     if (n.code === "ENOENT") {
-      const r = V({
-        items: Bt
+      const r = nt({
+        items: _t
       });
-      return await Tt(t, r), r;
+      return await Ht(t, r), r;
     }
     throw n;
   }
 }
-async function Tt(t, e) {
-  await At(t), await J(
-    ce(t),
-    JSON.stringify(V(e), null, 2),
+async function Ht(t, e) {
+  await Tt(t), await P(
+    fe(t),
+    JSON.stringify(nt(e), null, 2),
     "utf-8"
   );
 }
-async function Kn(t, e) {
-  const n = await be(t), r = X({
+async function Qn(t, e) {
+  const n = await He(t), r = tt({
     tags: [...n.tags, ...e]
   });
-  await Dt(t, r);
+  await Mt(t, r);
 }
-async function qn(t, e) {
-  const n = await Se(t), r = Q({
+async function Vn(t, e) {
+  const n = await Ee(t), r = et({
     items: [...n.items, ...e]
   });
-  await kt(t, r);
+  await qt(t, r);
 }
-async function En(t, e) {
-  const n = await we(t), r = V({
+async function tr(t, e) {
+  const n = await Ne(t), r = nt({
     items: [...n.items, ...e]
   });
-  await Tt(t, r);
+  await Ht(t, r);
 }
-async function Ye(t) {
-  return (await be(t)).tags;
+async function Je(t) {
+  return (await He(t)).tags;
 }
-async function Hn(t) {
-  const e = X({
+async function er(t) {
+  const e = tt({
     tags: t.items
   });
-  return await Dt(t.workspacePath, e), e.tags;
+  return await Mt(t.workspacePath, e), e.tags;
 }
-async function $n(t) {
-  return (await Se(t)).items;
+async function nr(t) {
+  return (await Ee(t)).items;
 }
-async function Jn(t) {
-  const e = Q({
+async function rr(t) {
+  const e = et({
     items: t.items
   });
-  return await kt(t.workspacePath, e), e.items;
+  return await qt(t.workspacePath, e), e.items;
 }
-async function Nn(t) {
-  return (await we(t)).items;
+async function or(t) {
+  return (await Ne(t)).items;
 }
-async function Pn(t) {
-  const e = V({
+async function ar(t) {
+  const e = nt({
     items: t.items
   });
-  return await Tt(t.workspacePath, e), e.items;
+  return await Ht(t.workspacePath, e), e.items;
 }
-function zn(t) {
-  dt(t);
-  const [e, n] = t.split("-"), r = Number(e), o = Number(n);
-  return new Date(r, o, 0).getDate();
+function ir(t) {
+  ft(t);
+  const [e, n] = t.split("-"), r = Number(e), a = Number(n);
+  return new Date(r, a, 0).getDate();
 }
-async function je(t) {
-  const e = pt(t);
+async function Pe(t) {
+  const e = dt(t);
   try {
-    const n = await nt(e);
+    const n = await at(e);
     return {
       status: "ready",
       filePath: e,
@@ -1011,12 +1512,12 @@ async function je(t) {
     throw n;
   }
 }
-async function Rn(t) {
-  const e = pt(t);
-  await _(L.dirname(e), { recursive: !0 });
-  const n = ye();
+async function sr(t) {
+  const e = dt(t);
+  await X(L.dirname(e), { recursive: !0 });
+  const n = Oe();
   try {
-    await J(e, he(n, ""), {
+    await P(e, Ce(n, ""), {
       encoding: "utf-8",
       flag: "wx"
     });
@@ -1024,11 +1525,11 @@ async function Rn(t) {
     if (r.code !== "EEXIST")
       throw r;
   }
-  return je(t);
+  return Pe(t);
 }
-async function Bn(t) {
-  const e = pt(t), n = await ve(e), r = (/* @__PURE__ */ new Date()).toISOString();
-  return await Le(
+async function ur(t) {
+  const e = dt(t), n = await We(e), r = (/* @__PURE__ */ new Date()).toISOString();
+  return await be(
     e,
     {
       ...n.frontmatter,
@@ -1040,343 +1541,60 @@ async function Bn(t) {
     savedAt: r
   };
 }
-async function xn(t) {
-  const e = pt(t), n = await ve(e), r = (/* @__PURE__ */ new Date()).toISOString(), o = de(t.metadata);
-  return await Le(
+async function cr(t) {
+  const e = dt(t), n = await We(e), r = (/* @__PURE__ */ new Date()).toISOString(), a = Ie(t.metadata);
+  return await be(
     e,
     {
       ...n.frontmatter,
-      ...o,
+      ...a,
       updatedAt: r
     },
     n.body
-  ), await Kn(t.workspacePath, o.tags), await qn(
+  ), await Qn(t.workspacePath, a.tags), await Vn(
     t.workspacePath,
-    o.weather ? [o.weather] : []
-  ), await En(
+    a.weather ? [a.weather] : []
+  ), await tr(
     t.workspacePath,
-    o.location ? [o.location] : []
+    a.location ? [a.location] : []
   ), {
     filePath: e,
     savedAt: r
   };
 }
-async function Zn(t) {
-  const { workspacePath: e, month: n } = t, r = zn(n), [o, i] = n.split("-"), a = await Promise.all(
-    Array.from({ length: r }, async (s, d) => {
-      const g = String(d + 1).padStart(2, "0"), h = `${o}-${i}-${g}`, v = wt(e, h);
+async function lr(t) {
+  const { workspacePath: e, month: n } = t, r = ir(n), [a, s] = n.split("-"), o = await Promise.all(
+    Array.from({ length: r }, async (i, m) => {
+      const g = String(m + 1).padStart(2, "0"), f = `${a}-${s}-${g}`, d = kt(e, f);
       try {
-        const Y = await nt(v);
+        const S = await at(d);
         return {
-          date: h,
+          date: f,
           hasEntry: !0,
-          wordCount: Ce(Y.body)
+          wordCount: Se(S.body)
         };
-      } catch (Y) {
-        if (Y.code === "ENOENT")
+      } catch (S) {
+        if (S.code === "ENOENT")
           return {
-            date: h,
+            date: f,
             hasEntry: !1,
             wordCount: 0
           };
-        throw Y;
+        throw S;
       }
     })
   );
   return {
     month: n,
-    days: a
+    days: o
   };
 }
-var _n = typeof globalThis < "u" ? globalThis : typeof window < "u" ? window : typeof global < "u" ? global : typeof self < "u" ? self : {};
-function Fn(t) {
-  return t && t.__esModule && Object.prototype.hasOwnProperty.call(t, "default") ? t.default : t;
-}
-var Ae = { exports: {} };
-(function(t, e) {
-  (function(n, r) {
-    t.exports = r();
-  })(_n, function() {
-    var n = 1e3, r = 6e4, o = 36e5, i = "millisecond", a = "second", s = "minute", d = "hour", g = "day", h = "week", v = "month", Y = "quarter", D = "year", T = "date", rt = "Invalid Date", yt = /^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/, Ee = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g, He = { name: "en", weekdays: "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"), months: "January_February_March_April_May_June_July_August_September_October_November_December".split("_"), ordinal: function(p) {
-      var l = ["th", "st", "nd", "rd"], u = p % 100;
-      return "[" + p + (l[(u - 20) % 10] || l[u] || l[0]) + "]";
-    } }, ht = function(p, l, u) {
-      var m = String(p);
-      return !m || m.length >= l ? p : "" + Array(l + 1 - m.length).join(u) + p;
-    }, $e = { s: ht, z: function(p) {
-      var l = -p.utcOffset(), u = Math.abs(l), m = Math.floor(u / 60), c = u % 60;
-      return (l <= 0 ? "+" : "-") + ht(m, 2, "0") + ":" + ht(c, 2, "0");
-    }, m: function p(l, u) {
-      if (l.date() < u.date()) return -p(u, l);
-      var m = 12 * (u.year() - l.year()) + (u.month() - l.month()), c = l.clone().add(m, v), f = u - c < 0, y = l.clone().add(m + (f ? -1 : 1), v);
-      return +(-(m + (u - c) / (f ? c - y : y - c)) || 0);
-    }, a: function(p) {
-      return p < 0 ? Math.ceil(p) || 0 : Math.floor(p);
-    }, p: function(p) {
-      return { M: v, y: D, w: h, d: g, D: T, h: d, m: s, s: a, ms: i, Q: Y }[p] || String(p || "").toLowerCase().replace(/s$/, "");
-    }, u: function(p) {
-      return p === void 0;
-    } }, F = "en", N = {};
-    N[F] = He;
-    var Mt = "$isDayjsObject", vt = function(p) {
-      return p instanceof at || !(!p || !p[Mt]);
-    }, ot = function p(l, u, m) {
-      var c;
-      if (!l) return F;
-      if (typeof l == "string") {
-        var f = l.toLowerCase();
-        N[f] && (c = f), u && (N[f] = u, c = f);
-        var y = l.split("-");
-        if (!c && y.length > 1) return p(y[0]);
-      } else {
-        var O = l.name;
-        N[O] = l, c = O;
-      }
-      return !m && c && (F = c), c || !m && F;
-    }, S = function(p, l) {
-      if (vt(p)) return p.clone();
-      var u = typeof l == "object" ? l : {};
-      return u.date = p, u.args = arguments, new at(u);
-    }, C = $e;
-    C.l = ot, C.i = vt, C.w = function(p, l) {
-      return S(p, { locale: l.$L, utc: l.$u, x: l.$x, $offset: l.$offset });
-    };
-    var at = function() {
-      function p(u) {
-        this.$L = ot(u.locale, null, !0), this.parse(u), this.$x = this.$x || u.x || {}, this[Mt] = !0;
-      }
-      var l = p.prototype;
-      return l.parse = function(u) {
-        this.$d = function(m) {
-          var c = m.date, f = m.utc;
-          if (c === null) return /* @__PURE__ */ new Date(NaN);
-          if (C.u(c)) return /* @__PURE__ */ new Date();
-          if (c instanceof Date) return new Date(c);
-          if (typeof c == "string" && !/Z$/i.test(c)) {
-            var y = c.match(yt);
-            if (y) {
-              var O = y[2] - 1 || 0, b = (y[7] || "0").substring(0, 3);
-              return f ? new Date(Date.UTC(y[1], O, y[3] || 1, y[4] || 0, y[5] || 0, y[6] || 0, b)) : new Date(y[1], O, y[3] || 1, y[4] || 0, y[5] || 0, y[6] || 0, b);
-            }
-          }
-          return new Date(c);
-        }(u), this.init();
-      }, l.init = function() {
-        var u = this.$d;
-        this.$y = u.getFullYear(), this.$M = u.getMonth(), this.$D = u.getDate(), this.$W = u.getDay(), this.$H = u.getHours(), this.$m = u.getMinutes(), this.$s = u.getSeconds(), this.$ms = u.getMilliseconds();
-      }, l.$utils = function() {
-        return C;
-      }, l.isValid = function() {
-        return this.$d.toString() !== rt;
-      }, l.isSame = function(u, m) {
-        var c = S(u);
-        return this.startOf(m) <= c && c <= this.endOf(m);
-      }, l.isAfter = function(u, m) {
-        return S(u) < this.startOf(m);
-      }, l.isBefore = function(u, m) {
-        return this.endOf(m) < S(u);
-      }, l.$g = function(u, m, c) {
-        return C.u(u) ? this[m] : this.set(c, u);
-      }, l.unix = function() {
-        return Math.floor(this.valueOf() / 1e3);
-      }, l.valueOf = function() {
-        return this.$d.getTime();
-      }, l.startOf = function(u, m) {
-        var c = this, f = !!C.u(m) || m, y = C.p(u), O = function(z, k) {
-          var E = C.w(c.$u ? Date.UTC(c.$y, k, z) : new Date(c.$y, k, z), c);
-          return f ? E : E.endOf(g);
-        }, b = function(z, k) {
-          return C.w(c.toDate()[z].apply(c.toDate("s"), (f ? [0, 0, 0, 0] : [23, 59, 59, 999]).slice(k)), c);
-        }, w = this.$W, j = this.$M, M = this.$D, B = "set" + (this.$u ? "UTC" : "");
-        switch (y) {
-          case D:
-            return f ? O(1, 0) : O(31, 11);
-          case v:
-            return f ? O(1, j) : O(0, j + 1);
-          case h:
-            var P = this.$locale().weekStart || 0, G = (w < P ? w + 7 : w) - P;
-            return O(f ? M - G : M + (6 - G), j);
-          case g:
-          case T:
-            return b(B + "Hours", 0);
-          case d:
-            return b(B + "Minutes", 1);
-          case s:
-            return b(B + "Seconds", 2);
-          case a:
-            return b(B + "Milliseconds", 3);
-          default:
-            return this.clone();
-        }
-      }, l.endOf = function(u) {
-        return this.startOf(u, !1);
-      }, l.$set = function(u, m) {
-        var c, f = C.p(u), y = "set" + (this.$u ? "UTC" : ""), O = (c = {}, c[g] = y + "Date", c[T] = y + "Date", c[v] = y + "Month", c[D] = y + "FullYear", c[d] = y + "Hours", c[s] = y + "Minutes", c[a] = y + "Seconds", c[i] = y + "Milliseconds", c)[f], b = f === g ? this.$D + (m - this.$W) : m;
-        if (f === v || f === D) {
-          var w = this.clone().set(T, 1);
-          w.$d[O](b), w.init(), this.$d = w.set(T, Math.min(this.$D, w.daysInMonth())).$d;
-        } else O && this.$d[O](b);
-        return this.init(), this;
-      }, l.set = function(u, m) {
-        return this.clone().$set(u, m);
-      }, l.get = function(u) {
-        return this[C.p(u)]();
-      }, l.add = function(u, m) {
-        var c, f = this;
-        u = Number(u);
-        var y = C.p(m), O = function(j) {
-          var M = S(f);
-          return C.w(M.date(M.date() + Math.round(j * u)), f);
-        };
-        if (y === v) return this.set(v, this.$M + u);
-        if (y === D) return this.set(D, this.$y + u);
-        if (y === g) return O(1);
-        if (y === h) return O(7);
-        var b = (c = {}, c[s] = r, c[d] = o, c[a] = n, c)[y] || 1, w = this.$d.getTime() + u * b;
-        return C.w(w, this);
-      }, l.subtract = function(u, m) {
-        return this.add(-1 * u, m);
-      }, l.format = function(u) {
-        var m = this, c = this.$locale();
-        if (!this.isValid()) return c.invalidDate || rt;
-        var f = u || "YYYY-MM-DDTHH:mm:ssZ", y = C.z(this), O = this.$H, b = this.$m, w = this.$M, j = c.weekdays, M = c.months, B = c.meridiem, P = function(k, E, U, it) {
-          return k && (k[E] || k(m, f)) || U[E].slice(0, it);
-        }, G = function(k) {
-          return C.s(O % 12 || 12, k, "0");
-        }, z = B || function(k, E, U) {
-          var it = k < 12 ? "AM" : "PM";
-          return U ? it.toLowerCase() : it;
-        };
-        return f.replace(Ee, function(k, E) {
-          return E || function(U) {
-            switch (U) {
-              case "YY":
-                return String(m.$y).slice(-2);
-              case "YYYY":
-                return C.s(m.$y, 4, "0");
-              case "M":
-                return w + 1;
-              case "MM":
-                return C.s(w + 1, 2, "0");
-              case "MMM":
-                return P(c.monthsShort, w, M, 3);
-              case "MMMM":
-                return P(M, w);
-              case "D":
-                return m.$D;
-              case "DD":
-                return C.s(m.$D, 2, "0");
-              case "d":
-                return String(m.$W);
-              case "dd":
-                return P(c.weekdaysMin, m.$W, j, 2);
-              case "ddd":
-                return P(c.weekdaysShort, m.$W, j, 3);
-              case "dddd":
-                return j[m.$W];
-              case "H":
-                return String(O);
-              case "HH":
-                return C.s(O, 2, "0");
-              case "h":
-                return G(1);
-              case "hh":
-                return G(2);
-              case "a":
-                return z(O, b, !0);
-              case "A":
-                return z(O, b, !1);
-              case "m":
-                return String(b);
-              case "mm":
-                return C.s(b, 2, "0");
-              case "s":
-                return String(m.$s);
-              case "ss":
-                return C.s(m.$s, 2, "0");
-              case "SSS":
-                return C.s(m.$ms, 3, "0");
-              case "Z":
-                return y;
-            }
-            return null;
-          }(k) || y.replace(":", "");
-        });
-      }, l.utcOffset = function() {
-        return 15 * -Math.round(this.$d.getTimezoneOffset() / 15);
-      }, l.diff = function(u, m, c) {
-        var f, y = this, O = C.p(m), b = S(u), w = (b.utcOffset() - this.utcOffset()) * r, j = this - b, M = function() {
-          return C.m(y, b);
-        };
-        switch (O) {
-          case D:
-            f = M() / 12;
-            break;
-          case v:
-            f = M();
-            break;
-          case Y:
-            f = M() / 3;
-            break;
-          case h:
-            f = (j - w) / 6048e5;
-            break;
-          case g:
-            f = (j - w) / 864e5;
-            break;
-          case d:
-            f = j / o;
-            break;
-          case s:
-            f = j / r;
-            break;
-          case a:
-            f = j / n;
-            break;
-          default:
-            f = j;
-        }
-        return c ? f : C.a(f);
-      }, l.daysInMonth = function() {
-        return this.endOf(v).$D;
-      }, l.$locale = function() {
-        return N[this.$L];
-      }, l.locale = function(u, m) {
-        if (!u) return this.$L;
-        var c = this.clone(), f = ot(u, m, !0);
-        return f && (c.$L = f), c;
-      }, l.clone = function() {
-        return C.w(this.$d, this);
-      }, l.toDate = function() {
-        return new Date(this.valueOf());
-      }, l.toJSON = function() {
-        return this.isValid() ? this.toISOString() : null;
-      }, l.toISOString = function() {
-        return this.$d.toISOString();
-      }, l.toString = function() {
-        return this.$d.toUTCString();
-      }, p;
-    }(), Kt = at.prototype;
-    return S.prototype = Kt, [["$ms", i], ["$s", a], ["$m", s], ["$H", d], ["$W", g], ["$M", v], ["$y", D], ["$D", T]].forEach(function(p) {
-      Kt[p[1]] = function(l) {
-        return this.$g(l, p[0], p[1]);
-      };
-    }), S.extend = function(p, l) {
-      return p.$i || (p(l, at, S), p.$i = !0), S;
-    }, S.locale = ot, S.isDayjs = vt, S.unix = function(p) {
-      return S(1e3 * p);
-    }, S.en = N[F], S.Ls = N, S.p = {}, S;
-  });
-})(Ae);
-var Gn = Ae.exports;
-const mt = /* @__PURE__ */ Fn(Gn);
-function Un(t) {
+function mr(t) {
   const e = [
     "stats",
     "heatmap",
     "moodTrend",
     "tagCloud",
-    "highlights",
     "locationPatterns",
     "timePatterns"
   ], n = /* @__PURE__ */ new Set();
@@ -1384,73 +1602,73 @@ function Un(t) {
     e.includes(r) && n.add(r);
   return n.size > 0 ? [...n] : e;
 }
-function Xn(t) {
+function gr(t) {
   if (!t.workspacePath.trim())
     throw new Error("当前还没有可用的工作区。");
-  lt(t.startDate), lt(t.endDate);
-  const e = mt(t.startDate), n = mt(t.endDate);
+  mt(t.startDate), mt(t.endDate);
+  const e = V(t.startDate), n = V(t.endDate);
   if (!e.isValid() || !n.isValid())
     throw new Error("报告区间无效。");
   if (n.isBefore(e, "day"))
     throw new Error("结束日期不能早于开始日期。");
   if (t.preset === "month") {
     const r = e.format("YYYY-MM");
-    if (dt(r), !e.isSame(e.startOf("month"), "day") || !n.isSame(e.endOf("month"), "day"))
+    if (ft(r), !e.isSame(e.startOf("month"), "day") || !n.isSame(e.endOf("month"), "day"))
       throw new Error("月度报告的区间必须覆盖完整自然月。");
   }
   if (t.preset === "year") {
     const r = e.format("YYYY");
-    if (St(r), !e.isSame(e.startOf("year"), "day") || !n.isSame(e.endOf("year"), "day"))
+    if (Dt(r), !e.isSame(e.startOf("year"), "day") || !n.isSame(e.endOf("year"), "day"))
       throw new Error("年度报告的区间必须覆盖完整自然年。");
   }
   return {
     startDate: e,
     endDate: n,
-    requestedSections: Un(t.requestedSections)
+    requestedSections: mr(t.requestedSections)
   };
 }
-function Qn(t, e) {
+function pr(t, e) {
   const n = [];
   let r = t.startOf("day");
   for (; r.isSame(e, "day") || r.isBefore(e, "day"); )
     n.push(r.format("YYYY-MM-DD")), r = r.add(1, "day");
   return n;
 }
-function Vn(t, e) {
-  const n = t ? mt(t) : null;
+function fr(t, e) {
+  const n = t ? V(t) : null;
   if (n != null && n.isValid())
     return n.hour();
-  const r = e ? mt(e) : null;
+  const r = e ? V(e) : null;
   return r != null && r.isValid() ? r.hour() : null;
 }
-async function tr(t, e, n) {
-  const r = Qn(e, n);
+async function dr(t, e, n) {
+  const r = pr(e, n);
   return Promise.all(
-    r.map(async (o) => {
-      const i = wt(t, o);
+    r.map(async (a) => {
+      const s = kt(t, a);
       try {
-        const a = await nt(i), s = a.frontmatter.createdAt || null, d = a.frontmatter.updatedAt || null;
+        const o = await at(s), i = o.frontmatter.createdAt || null, m = o.frontmatter.updatedAt || null;
         return {
           entry: {
-            date: o,
+            date: a,
             hasEntry: !0,
-            wordCount: Ce(a.body),
-            mood: a.frontmatter.mood,
-            summary: a.frontmatter.summary,
-            tags: [...a.frontmatter.tags],
-            location: a.frontmatter.location,
-            createdAt: s,
-            updatedAt: d,
-            writingHour: Vn(s, d),
+            wordCount: Se(o.body),
+            mood: o.frontmatter.mood,
+            summary: o.frontmatter.summary,
+            tags: [...o.frontmatter.tags],
+            location: o.frontmatter.location,
+            createdAt: i,
+            updatedAt: m,
+            writingHour: fr(i, m),
             insightSource: "frontmatter"
           },
-          body: a.body
+          body: o.body
         };
-      } catch (a) {
-        if (a.code === "ENOENT")
+      } catch (o) {
+        if (o.code === "ENOENT")
           return {
             entry: {
-              date: o,
+              date: a,
               hasEntry: !1,
               wordCount: 0,
               mood: null,
@@ -1464,60 +1682,60 @@ async function tr(t, e, n) {
             },
             body: ""
           };
-        throw a;
+        throw o;
       }
     })
   );
 }
-function er(t) {
+function yr(t) {
   return t.entry.hasEntry && t.entry.summary.trim() === "" && t.body.trim() !== "";
 }
-async function nr(t, e) {
-  const n = [], r = await Ye(t).catch(() => []);
-  let o = 0, i = 0, a = !1;
-  const s = [];
-  for (const d of e) {
-    const { entry: g, body: h } = d;
+async function hr(t, e) {
+  const n = [], r = await Je(t).catch(() => []);
+  let a = 0, s = 0, o = !1;
+  const i = [];
+  for (const m of e) {
+    const { entry: g, body: f } = m;
     if (!g.hasEntry) {
-      s.push(g);
+      i.push(g);
       continue;
     }
-    if (!er(d)) {
-      g.summary.trim() && (o += 1), s.push(g);
+    if (!yr(m)) {
+      g.summary.trim() && (a += 1), i.push(g);
       continue;
     }
-    a = !0;
+    o = !0;
     try {
-      const v = await Yn({
+      const d = await qn({
         workspacePath: t,
         date: g.date,
-        body: h,
+        body: f,
         workspaceTags: r,
         currentSummary: g.summary,
         currentTags: g.tags,
         currentMood: g.mood ?? 0
       });
-      i += 1, s.push({
+      s += 1, i.push({
         ...g,
-        summary: v.summary,
-        tags: v.tags,
-        mood: v.mood,
+        summary: d.summary,
+        tags: d.tags,
+        mood: d.mood,
         insightSource: "generated"
       });
-    } catch (v) {
-      const Y = v instanceof Error ? v.message : "未知错误";
-      n.push(`${g.date} 的日级整理未生成：${Y}`), s.push(g);
+    } catch (d) {
+      const S = d instanceof Error ? d.message : "未知错误";
+      n.push(`${g.date} 的日级整理未生成：${S}`), i.push(g);
     }
   }
   return {
-    dailyEntries: s,
+    dailyEntries: i,
     warnings: n,
-    reusedEntryInsightCount: o,
-    generatedEntryInsightCount: i,
-    entryInsightPolicy: a ? "reuse-or-generate" : "reuse-only"
+    reusedEntryInsightCount: a,
+    generatedEntryInsightCount: s,
+    entryInsightPolicy: o ? "reuse-or-generate" : "reuse-only"
   };
 }
-function rr(t) {
+function Ir(t) {
   let e = 0, n = 0;
   for (const r of t) {
     if (r.hasEntry) {
@@ -1528,25 +1746,25 @@ function rr(t) {
   }
   return e;
 }
-function or(t) {
+function Lr(t) {
   let e = 0;
   for (let n = t.length - 1; n >= 0 && t[n].hasEntry; n -= 1)
     e += 1;
   return e;
 }
-function De(t) {
-  const e = t.filter((r) => r.hasEntry), n = e.reduce((r, o) => r + o.wordCount, 0);
+function Be(t) {
+  const e = t.filter((r) => r.hasEntry), n = e.reduce((r, a) => r + a.wordCount, 0);
   return {
     totalDays: t.length,
     entryDays: e.length,
     missingDays: t.length - e.length,
     totalWords: n,
     averageWords: e.length > 0 ? Math.round(n / e.length) : 0,
-    longestStreak: rr(t)
+    longestStreak: Ir(t)
   };
 }
-function ar(t) {
-  const e = De(t), n = t.filter((r) => r.hasEntry).reduce((r, o) => !r || o.wordCount > r.wordCount ? o : r, null);
+function vr(t) {
+  const e = Be(t), n = t.filter((r) => r.hasEntry).reduce((r, a) => !r || a.wordCount > r.wordCount ? a : r, null);
   return {
     recordDays: e.entryDays,
     missingDays: e.missingDays,
@@ -1555,263 +1773,256 @@ function ar(t) {
     maxWordsInOneDay: (n == null ? void 0 : n.wordCount) ?? 0,
     maxWordsDate: (n == null ? void 0 : n.date) ?? null,
     longestStreak: e.longestStreak,
-    currentStreakAtEnd: or(t)
+    currentStreakAtEnd: Lr(t)
   };
 }
-function ke(t) {
+function $e(t) {
   const e = /* @__PURE__ */ new Map();
   for (const n of t)
     for (const r of n.tags)
       e.set(r, (e.get(r) ?? 0) + 1);
   return [...e.entries()].map(([n, r]) => ({ label: n, value: r })).sort((n, r) => r.value - n.value || n.label.localeCompare(r.label, "zh-Hans-CN")).slice(0, 30);
 }
-function ir(t) {
-  const e = t.trim();
-  return e ? e.length > 18 ? `${e.slice(0, 18)}...` : e : "值得记住的一天";
-}
-function sr(t) {
-  const e = Math.max(...t.map((o) => o.wordCount), 1);
-  return {
-    events: t.filter(
-      (o) => o.hasEntry && (o.summary.trim() || o.tags.length > 0 || o.wordCount > 0)
-    ).map((o) => {
-      const i = o.mood === null ? 0 : Math.min(Math.abs(o.mood) / 5, 1), a = Math.min(o.wordCount / e, 1), s = Math.min(o.tags.length / 5, 1), d = o.summary.trim() ? 0.15 : 0, g = Number(
-        Math.min(0.3 + a * 0.35 + i * 0.25 + s * 0.15 + d, 0.99).toFixed(2)
-      );
-      return {
-        date: o.date,
-        title: ir(o.summary || o.tags[0] || o.date),
-        summary: o.summary.trim() || `这一天记录了 ${o.wordCount} 字内容。`,
-        tags: o.tags.slice(0, 4),
-        score: g
-      };
-    }).sort((o, i) => i.score - o.score || i.date.localeCompare(o.date)).slice(0, 5)
-  };
-}
-function Te(t) {
+function Or(t) {
   const e = /* @__PURE__ */ new Map();
-  for (const a of t) {
-    if (!a.hasEntry || !a.location.trim())
+  for (const o of t) {
+    if (!o.hasEntry || !o.location.trim())
       continue;
-    const s = a.location.trim(), d = e.get(s) ?? { count: 0, totalWords: 0 };
-    e.set(s, {
-      count: d.count + 1,
-      totalWords: d.totalWords + a.wordCount
+    const i = o.location.trim(), m = e.get(i) ?? { count: 0, totalWords: 0 };
+    e.set(i, {
+      count: m.count + 1,
+      totalWords: m.totalWords + o.wordCount
     });
   }
-  const n = [...e.entries()].map(([a, s]) => ({
-    name: a,
-    count: s.count,
-    totalWords: s.totalWords
-  })).sort((a, s) => s.count - a.count || s.totalWords - a.totalWords), r = n[0] ? {
+  const n = [...e.entries()].map(([o, i]) => ({
+    name: o,
+    count: i.count,
+    totalWords: i.totalWords
+  })).sort((o, i) => i.count - o.count || i.totalWords - o.totalWords), r = n[0] ? {
     name: n[0].name,
     count: n[0].count
-  } : null, o = Math.max(
-    ...n.map((a) => a.totalWords / a.count),
+  } : null, a = Math.max(
+    ...n.map((o) => o.totalWords / o.count),
     1
-  ), i = n.reduce((a, s) => {
-    const d = 1 / s.count, h = s.totalWords / s.count / o, v = Number((d * 0.62 + h * 0.38).toFixed(2)), Y = `这个地点在区间内出现 ${s.count} 次，频次相对少，但相关记录平均篇幅较高。`;
-    return !a || v > a.score ? {
-      name: s.name,
-      count: s.count,
-      score: v,
-      reason: Y
-    } : a;
+  ), s = n.reduce((o, i) => {
+    const m = 1 / i.count, f = i.totalWords / i.count / a, d = Number((m * 0.62 + f * 0.38).toFixed(2));
+    return !o || d > o.score ? {
+      name: i.name,
+      count: i.count,
+      score: d
+    } : o;
   }, null);
   return {
     topLocation: r,
-    uniqueLocation: i ? {
-      name: i.name,
-      countInRange: i.count,
-      score: i.score,
-      reason: i.reason
+    uniqueLocation: s ? {
+      name: s.name,
+      count: s.count
     } : null,
-    ranking: n.map((a) => ({
-      name: a.name,
-      count: a.count
+    ranking: n.map((o) => ({
+      name: o.name,
+      count: o.count
     }))
   };
 }
-function ur(t) {
+function Cr(t) {
   return t >= 0 && t <= 5 ? "凌晨 0-5" : t <= 8 ? "早晨 6-8" : t <= 11 ? "上午 9-11" : t <= 13 ? "中午 12-13" : t <= 17 ? "下午 14-17" : "晚上 18-23";
 }
-function Me(t) {
+function Wr(t) {
   const e = /* @__PURE__ */ new Map();
-  for (const a of t) {
-    if (!a.hasEntry || a.writingHour === null)
+  for (const o of t) {
+    if (!o.hasEntry || o.writingHour === null)
       continue;
-    const s = ur(a.writingHour), d = e.get(s) ?? { count: 0, totalWords: 0 };
-    e.set(s, {
-      count: d.count + 1,
-      totalWords: d.totalWords + a.wordCount
+    const i = Cr(o.writingHour), m = e.get(i) ?? { count: 0, totalWords: 0 };
+    e.set(i, {
+      count: m.count + 1,
+      totalWords: m.totalWords + o.wordCount
     });
   }
-  const n = [...e.entries()].map(([a, s]) => ({
-    label: a,
-    count: s.count,
-    totalWords: s.totalWords
-  })).sort((a, s) => s.count - a.count || s.totalWords - a.totalWords), r = n[0] ? {
+  const n = [...e.entries()].map(([o, i]) => ({
+    label: o,
+    count: i.count,
+    totalWords: i.totalWords
+  })).sort((o, i) => i.count - o.count || i.totalWords - o.totalWords), r = n[0] ? {
     label: n[0].label,
     count: n[0].count
-  } : null, o = Math.max(...n.map((a) => a.totalWords / a.count), 1), i = n.reduce((a, s) => {
-    const d = 1 / s.count, g = s.totalWords / s.count / o, h = Number((d * 0.58 + g * 0.42).toFixed(2)), v = `这个时间段出现 ${s.count} 次，虽然不是最高频，但相关记录的平均篇幅更突出。`;
-    return !a || h > a.score ? {
-      label: s.label,
-      count: s.count,
-      score: h,
-      reason: v
-    } : a;
+  } : null, a = Math.max(...n.map((o) => o.totalWords / o.count), 1), s = n.reduce((o, i) => {
+    const m = 1 / i.count, g = i.totalWords / i.count / a, f = Number((m * 0.58 + g * 0.42).toFixed(2));
+    return !o || f > o.score ? {
+      label: i.label,
+      count: i.count,
+      score: f
+    } : o;
   }, null);
   return {
     topTimeBucket: r,
-    uniqueTimeBucket: i ? {
-      label: i.label,
-      countInRange: i.count,
-      score: i.score,
-      reason: i.reason
+    uniqueTimeBucket: s ? {
+      label: s.label,
+      count: s.count
     } : null,
-    buckets: n.map((a) => ({
-      label: a.label,
-      count: a.count
+    buckets: n.map((o) => ({
+      label: o.label,
+      count: o.count
     }))
   };
 }
-function cr(t, e) {
+function br(t, e) {
   const n = {};
-  if (e.includes("stats") && (n.stats = ar(t)), e.includes("heatmap") && (n.heatmap = {
+  if (e.includes("stats") && (n.stats = vr(t)), e.includes("heatmap") && (n.heatmap = {
     points: t.map((r) => ({
       date: r.date,
       value: r.wordCount
     }))
   }), e.includes("moodTrend")) {
-    const r = t.filter((i) => i.mood !== null), o = r.reduce((i, a) => i + (a.mood ?? 0), 0);
+    const r = t.filter((s) => s.mood !== null), a = r.reduce((s, o) => s + (o.mood ?? 0), 0);
     n.moodTrend = {
-      points: t.map((i) => ({
-        date: i.date,
-        value: i.mood
+      points: t.map((s) => ({
+        date: s.date,
+        value: s.mood
       })),
-      averageMood: r.length > 0 ? Number((o / r.length).toFixed(1)) : null
+      averageMood: r.length > 0 ? Number((a / r.length).toFixed(1)) : null
     };
   }
   return e.includes("tagCloud") && (n.tagCloud = {
-    items: ke(t)
-  }), e.includes("highlights") && (n.highlights = sr(t)), e.includes("locationPatterns") && (n.locationPatterns = Te(t)), e.includes("timePatterns") && (n.timePatterns = Me(t)), n;
+    items: $e(t)
+  }), e.includes("locationPatterns") && (n.locationPatterns = Or(t)), e.includes("timePatterns") && (n.timePatterns = Wr(t)), n;
 }
-function lr(t, e, n) {
+function Sr(t, e, n) {
   return t === "month" ? `${e.format("YYYY 年 M 月")}总结` : t === "year" ? `${e.format("YYYY 年")}总结` : `${e.format("YYYY 年 M 月 D 日")} 至 ${n.format("YYYY 年 M 月 D 日")}总结`;
 }
-function mr(t, e, n) {
+function jr(t, e, n) {
   return t === "month" ? `${e.format("YYYY 年 M 月")}还没有任何日记，无法生成报告。` : t === "year" ? `${e.format("YYYY 年")}还没有任何日记，无法生成报告。` : `${e.format("YYYY-MM-DD")} 至 ${n.format("YYYY-MM-DD")} 这段时间还没有任何日记，无法生成报告。`;
 }
-function gr(t, e, n) {
+function Yr(t, e, n) {
   return t === "month" ? `month_${e.format("YYYY-MM")}` : t === "year" ? `year_${e.format("YYYY")}` : `custom_${e.format("YYYY-MM-DD")}_${n.format("YYYY-MM-DD")}_${Date.now()}`;
 }
-function dr(t, e, n) {
+function wr(t, e, n) {
   var r;
-  return t.preset === "custom" && ((r = t.overwriteReportId) != null && r.trim()) ? t.overwriteReportId.trim() : gr(t.preset, e, n);
+  return t.preset === "custom" && ((r = t.overwriteReportId) != null && r.trim()) ? t.overwriteReportId.trim() : Yr(t.preset, e, n);
 }
-function pr(t, e, n) {
-  const r = ke(n).slice(0, 3).map((g) => g.label), o = Te(n).topLocation, i = Me(n).topTimeBucket, a = r.length > 0 ? `主要标签包括 ${r.join("、")}。` : "这段时间还没有形成明显的标签集中。", s = o ? `最常出现的地点是 ${o.name}。` : "", d = i ? `写作多集中在 ${i.label}。` : "";
+function Dr(t, e, n) {
+  const r = $e(n).slice(0, 3).map((s) => s.label), a = r.length > 0 ? `主要标签包括 ${r.join("、")}。` : "这段时间还没有形成明显的标签集中。";
   return {
-    text: `${t}共记录 ${e.entryDays} 天，缺失 ${e.missingDays} 天，总字数 ${e.totalWords}，最长连续记录 ${e.longestStreak} 天。${a}${s}${d}`,
-    themes: r,
-    progress: e.entryDays > 0 ? [`完成了 ${e.entryDays} 天记录，累计 ${e.totalWords} 字。`] : [],
+    text: `${t}共记录 ${e.entryDays} 天，缺失 ${e.missingDays} 天，总字数 ${e.totalWords}，最长连续记录 ${e.longestStreak} 天。${a}`,
+    progress: e.entryDays > 0 ? [
+      {
+        text: `完成了 ${e.entryDays} 天记录，累计写下 ${e.totalWords} 字。`,
+        timeAnchor: {
+          type: "approx",
+          label: "整个区间"
+        }
+      }
+    ] : [],
     blockers: [],
     memorableMoments: []
   };
 }
-async function fr(t, e) {
+function kr(t, e) {
+  const n = new Map(e.map((r) => [r.date, r]));
+  return t.map((r) => {
+    const a = n.get(r.entry.date);
+    return !a || !a.hasEntry ? null : {
+      date: a.date,
+      body: r.body,
+      summary: a.summary,
+      tags: [...a.tags],
+      mood: a.mood,
+      wordCount: a.wordCount,
+      location: a.location,
+      insightSource: a.insightSource
+    };
+  }).filter((r) => !!r);
+}
+async function Ar(t, e, n) {
   try {
-    return await Tn(t);
-  } catch (n) {
-    const r = n instanceof Error ? n.message : "区间总结 AI 生成失败。";
-    return t.generation.warnings.push(`AI 总结未生成：${r}`), e;
+    return await _n(t, n);
+  } catch (r) {
+    const a = r instanceof Error ? r.message : "区间总结 AI 生成失败。";
+    return t.generation.warnings.push(`AI 总结未生成：${a}`), e;
   }
 }
-function yr() {
+function Kr() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai";
 }
-function hr(t, e, n, r) {
-  return e === "month" ? le(t, r.format("YYYY-MM")) : e === "year" ? me(t, r.format("YYYY")) : ge(t, n);
+function Tr(t, e, n, r) {
+  return e === "month" ? de(t, r.format("YYYY-MM")) : e === "year" ? ye(t, r.format("YYYY")) : he(t, n);
 }
-async function vr(t, e) {
-  await _(L.dirname(t), { recursive: !0 }), await J(t, JSON.stringify(e, null, 2), "utf-8");
+async function Mr(t, e) {
+  await X(L.dirname(t), { recursive: !0 }), await P(t, JSON.stringify(e, null, 2), "utf-8");
 }
-function Lr(t) {
+function qr(t) {
   if (!t || typeof t != "object")
     throw new Error("报告文件内容无效。");
   return t;
 }
-async function Ke(t) {
-  const e = await $(t, "utf-8");
-  return Lr(JSON.parse(e));
+async function ze(t) {
+  const e = await J(t, "utf-8");
+  return qr(JSON.parse(e));
 }
-async function Z(t) {
+async function x(t) {
   try {
-    return (await Nt(t, { withFileTypes: !0 })).filter((n) => n.isFile() && n.name.toLowerCase().endsWith(".json")).map((n) => L.join(t, n.name));
+    return (await Zt(t, { withFileTypes: !0 })).filter((n) => n.isFile() && n.name.toLowerCase().endsWith(".json")).map((n) => L.join(t, n.name));
   } catch (e) {
     if (e.code === "ENOENT")
       return [];
     throw e;
   }
 }
-async function Cr(t) {
-  const { startDate: e, endDate: n, requestedSections: r } = Xn(t), o = await tr(t.workspacePath, e, n);
-  if (!o.some((yt) => yt.entry.hasEntry))
-    throw new Error(mr(t.preset, e, n));
-  const a = await nr(t.workspacePath, o), s = a.dailyEntries, d = De(s), g = lr(t.preset, e, n), h = dr(t, e, n), v = (/* @__PURE__ */ new Date()).toISOString(), Y = cr(s, r), D = pr(g, d, s), T = {
-    version: 1,
-    reportId: h,
+async function Hr(t) {
+  const { startDate: e, endDate: n, requestedSections: r } = gr(t), a = await dr(t.workspacePath, e, n);
+  if (!a.some((It) => It.entry.hasEntry))
+    throw new Error(jr(t.preset, e, n));
+  const o = await hr(t.workspacePath, a), i = o.dailyEntries, m = Be(i), g = Sr(t.preset, e, n), f = wr(t, e, n), d = (/* @__PURE__ */ new Date()).toISOString(), S = br(i, r), j = Dr(g, m, i), T = kr(a, i), B = {
+    reportId: f,
     preset: t.preset,
     period: {
       startDate: e.format("YYYY-MM-DD"),
       endDate: n.format("YYYY-MM-DD"),
       label: g,
-      generatedAt: v,
-      timezone: yr()
+      generatedAt: d,
+      timezone: Kr()
     },
     generation: {
       requestedSections: r,
-      entryInsightPolicy: a.entryInsightPolicy,
-      reusedEntryInsightCount: a.reusedEntryInsightCount,
-      generatedEntryInsightCount: a.generatedEntryInsightCount,
-      skippedEmptyDays: d.missingDays,
-      warnings: [...a.warnings]
+      entryInsightPolicy: o.entryInsightPolicy,
+      reusedEntryInsightCount: o.reusedEntryInsightCount,
+      generatedEntryInsightCount: o.generatedEntryInsightCount,
+      skippedEmptyDays: m.missingDays,
+      warnings: [...o.warnings]
     },
-    summary: D,
-    source: d,
-    dailyEntries: s,
-    sections: Y
+    summary: j,
+    source: m,
+    dailyEntries: i,
+    sections: S
   };
-  T.summary = await fr(T, D);
-  const rt = hr(t.workspacePath, t.preset, h, e);
-  return await vr(rt, T), T;
+  B.summary = await Ar(B, j, T);
+  const ht = Tr(t.workspacePath, t.preset, f, e);
+  return await Mr(ht, B), B;
 }
-function Or(t, e) {
+function Er(t, e) {
   if (e.startsWith("month_")) {
     const n = e.slice(6);
     return [
-      le(t, n),
-      pn(t, n)
+      de(t, n),
+      Cn(t, n)
     ];
   }
   if (e.startsWith("year_")) {
     const n = e.slice(5);
     return [
-      me(t, n),
-      fn(t, n)
+      ye(t, n),
+      Wn(t, n)
     ];
   }
   return [
-    ge(t, e),
-    yn(t, e)
+    he(t, e),
+    bn(t, e)
   ];
 }
-async function Wr(t) {
+async function Nr(t) {
   let e = null;
   for (const n of t)
     try {
-      return await Ke(n);
+      return await ze(n);
     } catch (r) {
       if (r.code === "ENOENT") {
         e = r;
@@ -1821,77 +2032,77 @@ async function Wr(t) {
     }
   throw e ?? new Error("报告不存在。");
 }
-async function Ir(t) {
-  return Wr(Or(t.workspacePath, t.reportId));
+async function Jr(t) {
+  return Nr(Er(t.workspacePath, t.reportId));
 }
-async function br(t) {
+async function Pr(t) {
   if (!t.trim())
     return [];
-  const [e, n, r, o, i, a] = await Promise.all([
-    Z(ee(t)),
-    Z(ne(t)),
-    Z(re(t)),
-    Z(oe(t)),
-    Z(ae(t)),
-    Z(ie(t))
-  ]), s = [
+  const [e, n, r, a, s, o] = await Promise.all([
+    x(ie(t)),
+    x(se(t)),
+    x(ue(t)),
+    x(ce(t)),
+    x(le(t)),
+    x(me(t))
+  ]), i = [
     ...e,
     ...n,
     ...r,
-    ...o,
-    ...i,
-    ...a
-  ], d = await Promise.all(
-    s.map(async (h) => {
-      const v = await Ke(h);
+    ...a,
+    ...s,
+    ...o
+  ], m = await Promise.all(
+    i.map(async (f) => {
+      const d = await ze(f);
       return {
-        reportId: v.reportId,
-        preset: v.preset,
-        label: v.period.label,
-        startDate: v.period.startDate,
-        endDate: v.period.endDate,
-        generatedAt: v.period.generatedAt,
-        summaryText: v.summary.text
+        reportId: d.reportId,
+        preset: d.preset,
+        label: d.period.label,
+        startDate: d.period.startDate,
+        endDate: d.period.endDate,
+        generatedAt: d.period.generatedAt,
+        summaryText: d.summary.text
       };
     })
   ), g = /* @__PURE__ */ new Map();
-  for (const h of d)
-    g.has(h.reportId) || g.set(h.reportId, h);
-  return [...g.values()].sort((h, v) => v.generatedAt.localeCompare(h.generatedAt));
+  for (const f of m)
+    g.has(f.reportId) || g.set(f.reportId, f);
+  return [...g.values()].sort((f, d) => d.generatedAt.localeCompare(f.generatedAt));
 }
-let A = null, ct = !1, ut = !1;
-function Sr() {
-  return A;
+let k = null, lt = !1, ct = !1;
+function Br() {
+  return k;
 }
-function wr(t) {
-  ct = t;
+function $r(t) {
+  lt = t;
 }
-function Yr() {
-  if (A) {
-    if (A.webContents.isDevToolsOpened()) {
-      A.webContents.focus();
+function zr() {
+  if (k) {
+    if (k.webContents.isDevToolsOpened()) {
+      k.webContents.focus();
       return;
     }
-    A.webContents.openDevTools({ mode: "detach" });
+    k.webContents.openDevTools({ mode: "detach" });
   }
 }
-function qe() {
-  Je.setApplicationMenu(null), ct = !1, ut = !1, A = new $t({
+function Re() {
+  Ge.setApplicationMenu(null), lt = !1, ct = !1, k = new Rt({
     width: 1440,
     height: 1e3,
     minWidth: 1080,
     minHeight: 720,
-    icon: Re,
+    icon: Ue,
     title: "dAiry",
     backgroundColor: "#f7f7f4",
     webPreferences: {
-      preload: L.join(Be, "preload.mjs")
+      preload: L.join(Qe, "preload.mjs")
     }
-  }), Ct ? A.loadURL(Ct) : A.loadFile(L.join(zt, "index.html")), A.on("close", async (t) => {
-    if (ut || !ct || !A)
+  }), Wt ? k.loadURL(Wt) : k.loadFile(L.join(xt, "index.html")), k.on("close", async (t) => {
+    if (ct || !lt || !k)
       return;
     t.preventDefault();
-    const { response: e } = await Lt.showMessageBox(A, {
+    const { response: e } = await Ct.showMessageBox(k, {
       type: "warning",
       buttons: ["仍然关闭", "取消"],
       defaultId: 1,
@@ -1901,64 +2112,64 @@ function qe() {
       detail: "如果现在关闭窗口，未保存的修改将会丢失。",
       noLink: !0
     });
-    e === 0 && (ut = !0, A.close());
-  }), A.on("closed", () => {
-    ct = !1, ut = !1, A = null;
+    e === 0 && (ct = !0, k.close());
+  }), k.on("closed", () => {
+    lt = !1, ct = !1, k = null;
   });
 }
-function jr() {
-  H.on("window-all-closed", () => {
-    process.platform !== "darwin" && (H.quit(), A = null);
-  }), H.on("activate", () => {
-    $t.getAllWindows().length === 0 && qe();
+function Rr() {
+  N.on("window-all-closed", () => {
+    process.platform !== "darwin" && (N.quit(), k = null);
+  }), N.on("activate", () => {
+    Rt.getAllWindows().length === 0 && Re();
   });
 }
-function Ar() {
-  W.handle(I.getBootstrap, async () => ({ config: await K() })), W.handle(I.getAiSettingsStatus, () => sn()), W.handle(I.saveAiSettings, (t, e) => un(e)), W.handle(I.saveAiApiKey, (t, e) => an(e)), W.handle(
-    I.setJournalHeatmapEnabled,
-    (t, e) => Ve(e)
-  ), W.handle(I.setDayStartHour, (t, e) => tn(e)), W.handle(
-    I.setFrontmatterVisibility,
-    (t, e) => en(e)
-  ), W.handle(I.setWindowDirtyState, (t, e) => {
-    wr(e.isDirty);
-  }), W.handle(I.openExternalLink, async (t, e) => {
+function Fr() {
+  C.handle(W.getBootstrap, async () => ({ config: await M() })), C.handle(W.getAiSettingsStatus, () => dn()), C.handle(W.saveAiSettings, (t, e) => yn(e)), C.handle(W.saveAiApiKey, (t, e) => fn(e)), C.handle(
+    W.setJournalHeatmapEnabled,
+    (t, e) => un(e)
+  ), C.handle(W.setDayStartHour, (t, e) => cn(e)), C.handle(
+    W.setFrontmatterVisibility,
+    (t, e) => ln(e)
+  ), C.handle(W.setWindowDirtyState, (t, e) => {
+    $r(e.isDirty);
+  }), C.handle(W.openExternalLink, async (t, e) => {
     const n = e.url.trim();
     if (!/^https:\/\/.+/i.test(n) && !/^mailto:.+/i.test(n))
       throw new Error("暂不支持打开这个地址。");
-    await Ne.openExternal(n);
-  }), W.handle(I.openDevTools, () => {
-    Yr();
-  }), W.handle(I.chooseWorkspace, async () => {
-    const t = await K(), e = {
+    await xe.openExternal(n);
+  }), C.handle(W.openDevTools, () => {
+    zr();
+  }), C.handle(W.chooseWorkspace, async () => {
+    const t = await M(), e = {
       title: "选择日记目录",
       buttonLabel: "选择这个目录",
       properties: ["openDirectory"]
-    }, n = Sr(), r = n ? await Lt.showOpenDialog(n, e) : await Lt.showOpenDialog(e);
+    }, n = Br(), r = n ? await Ct.showOpenDialog(n, e) : await Ct.showOpenDialog(e);
     if (r.canceled || r.filePaths.length === 0)
       return {
         canceled: !0,
         workspacePath: null,
         config: t
       };
-    const o = r.filePaths[0], i = rn(o, t);
-    return await tt(i), {
+    const a = r.filePaths[0], s = gn(a, t);
+    return await rt(s), {
       canceled: !1,
-      workspacePath: o,
-      config: i
+      workspacePath: a,
+      config: s
     };
-  }), W.handle(I.getWorkspaceTags, (t, e) => Ye(e)), W.handle(I.setWorkspaceTags, (t, e) => Hn(e)), W.handle(I.getWorkspaceWeatherOptions, (t, e) => $n(e)), W.handle(
-    I.setWorkspaceWeatherOptions,
-    (t, e) => Jn(e)
-  ), W.handle(I.getWorkspaceLocationOptions, (t, e) => Nn(e)), W.handle(
-    I.setWorkspaceLocationOptions,
-    (t, e) => Pn(e)
-  ), W.handle(I.readJournalEntry, (t, e) => je(e)), W.handle(I.createJournalEntry, (t, e) => Rn(e)), W.handle(I.saveJournalEntryBody, (t, e) => Bn(e)), W.handle(
-    I.saveJournalEntryMetadata,
-    (t, e) => xn(e)
-  ), W.handle(I.getJournalMonthActivity, (t, e) => Zn(e)), W.handle(I.generateDailyInsights, (t, e) => We(e)), W.handle(I.generateRangeReport, (t, e) => Cr(e)), W.handle(I.getRangeReport, (t, e) => Ir(e)), W.handle(I.listRangeReports, (t, e) => br(e));
+  }), C.handle(W.getWorkspaceTags, (t, e) => Je(e)), C.handle(W.setWorkspaceTags, (t, e) => er(e)), C.handle(W.getWorkspaceWeatherOptions, (t, e) => nr(e)), C.handle(
+    W.setWorkspaceWeatherOptions,
+    (t, e) => rr(e)
+  ), C.handle(W.getWorkspaceLocationOptions, (t, e) => or(e)), C.handle(
+    W.setWorkspaceLocationOptions,
+    (t, e) => ar(e)
+  ), C.handle(W.readJournalEntry, (t, e) => Pe(e)), C.handle(W.createJournalEntry, (t, e) => sr(e)), C.handle(W.saveJournalEntryBody, (t, e) => ur(e)), C.handle(
+    W.saveJournalEntryMetadata,
+    (t, e) => cr(e)
+  ), C.handle(W.getJournalMonthActivity, (t, e) => lr(e)), C.handle(W.generateDailyInsights, (t, e) => Ye(e)), C.handle(W.generateRangeReport, (t, e) => Hr(e)), C.handle(W.getRangeReport, (t, e) => Jr(e)), C.handle(W.listRangeReports, (t, e) => Pr(e));
 }
-jr();
-H.whenReady().then(() => {
-  Ar(), qe();
+Rr();
+N.whenReady().then(() => {
+  Fr(), Re();
 });

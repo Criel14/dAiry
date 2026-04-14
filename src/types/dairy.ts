@@ -104,7 +104,6 @@ export type ReportSectionKey =
   | 'heatmap'
   | 'moodTrend'
   | 'tagCloud'
-  | 'highlights'
   | 'locationPatterns'
   | 'timePatterns'
 
@@ -130,12 +129,26 @@ export interface ReportQuery {
   reportId: string
 }
 
+export type ReportSummaryTimeAnchorType = 'day' | 'range' | 'multiple' | 'approx'
+
+export interface ReportSummaryTimeAnchor {
+  type: ReportSummaryTimeAnchorType
+  label: string
+  startDate?: string
+  endDate?: string
+  dates?: string[]
+}
+
+export interface ReportSummaryItem {
+  text: string
+  timeAnchor: ReportSummaryTimeAnchor
+}
+
 export interface RangeReportSummary {
   text: string
-  themes: string[]
-  progress: string[]
-  blockers: string[]
-  memorableMoments: string[]
+  progress: ReportSummaryItem[]
+  blockers: ReportSummaryItem[]
+  memorableMoments: ReportSummaryItem[]
 }
 
 export interface ReportSourceSummary {
@@ -187,14 +200,6 @@ export interface ReportTagCloudItem {
   value: number
 }
 
-export interface ReportHighlightEvent {
-  date: string
-  title: string
-  summary: string
-  tags: string[]
-  score: number
-}
-
 export interface ReportLocationRankingItem {
   name: string
   count: number
@@ -202,12 +207,7 @@ export interface ReportLocationRankingItem {
 
 export interface ReportLocationPatternsSection {
   topLocation: ReportLocationRankingItem | null
-  uniqueLocation: {
-    name: string
-    countInRange: number
-    score: number
-    reason: string
-  } | null
+  uniqueLocation: ReportLocationRankingItem | null
   ranking: ReportLocationRankingItem[]
 }
 
@@ -218,12 +218,7 @@ export interface ReportTimeBucketItem {
 
 export interface ReportTimePatternsSection {
   topTimeBucket: ReportTimeBucketItem | null
-  uniqueTimeBucket: {
-    label: string
-    countInRange: number
-    score: number
-    reason: string
-  } | null
+  uniqueTimeBucket: ReportTimeBucketItem | null
   buckets: ReportTimeBucketItem[]
 }
 
@@ -239,15 +234,11 @@ export interface ReportSections {
   tagCloud?: {
     items: ReportTagCloudItem[]
   }
-  highlights?: {
-    events: ReportHighlightEvent[]
-  }
   locationPatterns?: ReportLocationPatternsSection
   timePatterns?: ReportTimePatternsSection
 }
 
 export interface RangeReport {
-  version: 1
   reportId: string
   preset: ReportPreset
   period: ReportPeriod

@@ -26,8 +26,6 @@ const sortedItems = computed(() =>
 
 const layout = computed(() => buildWordCloudLayout(sortedItems.value, containerWidth.value))
 
-const topTag = computed(() => sortedItems.value[0] ?? null)
-
 onMounted(() => {
   if (!containerRef.value) {
     return
@@ -249,11 +247,6 @@ function buildWordCloudLayout(items: ReportTagCloudItem[], measuredWidth: number
         </g>
       </svg>
     </div>
-
-    <div class="word-cloud-footer">
-      <span>共 {{ items.length }} 个高频标签</span>
-      <span v-if="topTag">最高频：{{ topTag.label }} · {{ topTag.value }} 次</span>
-    </div>
   </div>
 </template>
 
@@ -297,14 +290,6 @@ function buildWordCloudLayout(items: ReportTagCloudItem[], measuredWidth: number
 
 .word-cloud-text:hover {
   fill-opacity: 1;
-}
-
-.word-cloud-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem 1rem;
-  color: var(--color-text-subtle);
-  font-size: 0.85rem;
 }
 
 @media (max-width: 768px) {

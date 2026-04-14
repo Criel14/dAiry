@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 
 const PROMPT_FILE_MAP = {
   dailyOrganizeSystem: new URL('./prompts/daily-organize.system.md', import.meta.url),
+  rangeReportSummaryFocusSystem: new URL('./prompts/range-report-summary-focus.system.md', import.meta.url),
   rangeReportSummarySystem: new URL('./prompts/range-report-summary.system.md', import.meta.url),
 } as const
 

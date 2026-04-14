@@ -345,9 +345,7 @@ JSON 示例：
       },
       "uniqueLocation": {
         "name": "咖啡馆",
-        "countInRange": 1,
-        "score": 0.81,
-        "reason": "仅出现一次，但对应记录篇幅较长且事件密度较高。"
+        "count": 1
       },
       "ranking": [
         { "name": "家", "count": 11 },
@@ -361,9 +359,7 @@ JSON 示例：
       },
       "uniqueTimeBucket": {
         "label": "凌晨 0-5",
-        "countInRange": 4,
-        "score": 0.76,
-        "reason": "出现次数不算最高，但多次对应长文和高强度思考记录。"
+        "count": 4
       },
       "buckets": [
         { "label": "凌晨 0-5", "count": 4 },
@@ -398,10 +394,10 @@ JSON 示例：
 - `sections.tagCloud.items`：词云或标签频次图数据，`value` 为权重或出现次数。
 - `sections.highlights.events`：重点事件列表，`score` 用于排序和筛选。
 - `sections.locationPatterns.topLocation`：最常写作地点。
-- `sections.locationPatterns.uniqueLocation`：最独特地点，建议附带 `score` 与 `reason`，避免只有结论没有解释。
+- `sections.locationPatterns.uniqueLocation`：相对特别的地点，保留地点名与出现次数即可。
 - `sections.locationPatterns.ranking`：地点频次排行，可用于柱状图。
 - `sections.timePatterns.topTimeBucket`：最常写作时间段。
-- `sections.timePatterns.uniqueTimeBucket`：最独特时间段，同样建议附带原因。
+- `sections.timePatterns.uniqueTimeBucket`：相对特别的时间段，保留时间段与出现次数即可。
 - `sections.timePatterns.buckets`：时间段分布数据，前端可直接画柱状图。
 - 推荐约定：`summary` 始终存在；勾选但无数据的 section 允许保留空数组或 `null`，未勾选则不生成对应字段。
 

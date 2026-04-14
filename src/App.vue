@@ -1012,7 +1012,6 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
         :active-heatmap-points="reportsPanel.activeHeatmapPoints.value"
         :active-mood-points="reportsPanel.activeMoodPoints.value"
         :active-tag-items="reportsPanel.activeTagItems.value"
-        :active-highlights="reportsPanel.activeHighlights.value"
         :active-location-patterns="reportsPanel.activeLocationPatterns.value"
         :active-time-patterns="reportsPanel.activeTimePatterns.value"
       />

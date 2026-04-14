@@ -18,7 +18,6 @@ export const REPORT_SECTION_OPTIONS: Array<{
   { key: 'heatmap', label: '字数热力图', description: '按日期查看区间内写作分布' },
   { key: 'moodTrend', label: '情绪变化', description: '按日期查看心情分布与均值' },
   { key: 'tagCloud', label: '标签词云', description: '汇总高频标签，便于看主题集中度' },
-  { key: 'highlights', label: '重点事件', description: '从区间内挑出更值得回看的几天' },
   { key: 'locationPatterns', label: '地点分析', description: '汇总区间内最常写作和最独特的地点' },
   { key: 'timePatterns', label: '时间段分析', description: '查看写作主要集中在一天中的哪个时间段' },
 ]
@@ -34,7 +33,6 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     'heatmap',
     'moodTrend',
     'tagCloud',
-    'highlights',
     'locationPatterns',
     'timePatterns',
   ])
@@ -100,7 +98,6 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
   const activeHeatmapPoints = computed(() => activeReport.value?.sections.heatmap?.points ?? [])
   const activeMoodPoints = computed(() => activeReport.value?.sections.moodTrend?.points ?? [])
   const activeTagItems = computed(() => activeReport.value?.sections.tagCloud?.items ?? [])
-  const activeHighlights = computed(() => activeReport.value?.sections.highlights?.events ?? [])
   const activeLocationPatterns = computed(() => activeReport.value?.sections.locationPatterns ?? null)
   const activeTimePatterns = computed(() => activeReport.value?.sections.timePatterns ?? null)
 
@@ -422,7 +419,6 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
 
   return {
     activeHeatmapPoints,
-    activeHighlights,
     activeLocationPatterns,
     activeMoodPoints,
     activeReport,

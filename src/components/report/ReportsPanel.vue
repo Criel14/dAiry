@@ -1,20 +1,22 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import dayjs from 'dayjs'
 import MoodTrendChart from './MoodTrendChart.vue'
 import TagCloudView from './TagCloudView.vue'
 import type {
   RangeReport,
   ReportHeatmapPoint,
-  ReportHighlightEvent,
   ReportLocationPatternsSection,
   ReportMoodPoint,
   ReportPreset,
+  ReportSummaryItem,
+  ReportSummaryTimeAnchor,
   ReportStatsSection,
   ReportTagCloudItem,
   ReportTimePatternsSection,
 } from '../../types/dairy'
 
-defineProps<{
+const props = defineProps<{
   hasWorkspace: boolean
   emptyStateTitle: string
   emptyStateDescription: string
@@ -24,10 +26,33 @@ defineProps<{
   activeHeatmapPoints: ReportHeatmapPoint[]
   activeMoodPoints: ReportMoodPoint[]
   activeTagItems: ReportTagCloudItem[]
-  activeHighlights: ReportHighlightEvent[]
   activeLocationPatterns: ReportLocationPatternsSection | null
   activeTimePatterns: ReportTimePatternsSection | null
 }>()
+
+const activeSummaryGroups = computed(() => {
+  if (!props.activeReport) {
+    return []
+  }
+
+  return [
+    {
+      key: 'progress',
+      title: '推进',
+      items: props.activeReport.summary.progress,
+    },
+    {
+      key: 'blockers',
+      title: '阻塞',
+      items: props.activeReport.summary.blockers,
+    },
+    {
+      key: 'memorableMoments',
+      title: '值得记住',
+      items: props.activeReport.summary.memorableMoments,
+    },
+  ].filter((group) => group.items.length > 0)
+})
 
 function formatPreset(presetValue: ReportPreset) {
   if (presetValue === 'month') {
@@ -61,16 +86,64 @@ function getHeatLevel(value: number) {
   return 0
 }
 
-function formatPercentScore(score: number) {
-  return `${Math.round(score * 100)} 分`
-}
-
 function getMaxWordsInOneDay(report: RangeReport) {
   if (typeof report.sections.stats?.maxWordsInOneDay === 'number') {
     return report.sections.stats.maxWordsInOneDay
   }
 
   return report.dailyEntries.reduce((maxValue, entry) => Math.max(maxValue, entry.wordCount), 0)
+}
+
+function buildTimeAnchorTitle(timeAnchor: ReportSummaryTimeAnchor) {
+  if (timeAnchor.type === 'day') {
+    return `对应日期：${timeAnchor.startDate ?? timeAnchor.label}`
+  }
+
+  if (timeAnchor.type === 'range') {
+    return `对应时间范围：${timeAnchor.startDate ?? timeAnchor.label} 至 ${timeAnchor.endDate ?? timeAnchor.label}`
+  }
+
+  if (timeAnchor.type === 'multiple') {
+    return `主要对应日期：${timeAnchor.dates?.join('、') ?? timeAnchor.label}`
+  }
+
+  if (timeAnchor.startDate && timeAnchor.endDate) {
+    return `大致时间范围：${timeAnchor.startDate} 至 ${timeAnchor.endDate}`
+  }
+
+  if (timeAnchor.dates?.length) {
+    return `综合这些日期：${timeAnchor.dates.join('、')}`
+  }
+
+  return `大致对应时间：${timeAnchor.label}`
+}
+
+function getSummaryItemKey(groupKey: string, item: ReportSummaryItem) {
+  return `${groupKey}-${item.timeAnchor.label}-${item.text}`
+}
+
+function getRankingFillWidth(value: number, maxValue: number) {
+  if (maxValue <= 0) {
+    return '0%'
+  }
+
+  return `${Math.max((value / maxValue) * 100, 18)}%`
+}
+
+function getPatternCount(value: unknown) {
+  if (!value || typeof value !== 'object') {
+    return null
+  }
+
+  const payload = value as { count?: unknown; countInRange?: unknown }
+  const nextCount =
+    typeof payload.count === 'number'
+      ? payload.count
+      : typeof payload.countInRange === 'number'
+        ? payload.countInRange
+        : null
+
+  return nextCount
 }
 </script>
 
@@ -141,47 +214,35 @@ function getMaxWordsInOneDay(report: RangeReport) {
         </header>
 
         <section class="summary-card">
-          <h4>区间概览</h4>
-          <p>{{ activeReport.summary.text }}</p>
+          <div class="summary-card-head">
+            <p class="summary-kicker">Overview</p>
+            <h4>区间概览</h4>
+          </div>
 
-          <div
-            v-if="
-              activeReport.summary.themes.length ||
-              activeReport.summary.progress.length ||
-              activeReport.summary.blockers.length ||
-              activeReport.summary.memorableMoments.length
-            "
-            class="summary-groups"
-          >
-            <div v-if="activeReport.summary.themes.length" class="summary-group">
-              <span>主题</span>
-              <div class="tag-cloud tag-cloud--compact">
-                <span v-for="item in activeReport.summary.themes" :key="item" class="tag-chip tag-chip--sm">
-                  {{ item }}
-                </span>
+          <p class="summary-overview">{{ activeReport.summary.text }}</p>
+
+          <div v-if="activeSummaryGroups.length" class="summary-groups">
+            <section
+              v-for="group in activeSummaryGroups"
+              :key="group.key"
+              class="summary-group-panel"
+            >
+              <header class="summary-group-header">
+                <span class="summary-group-title">{{ group.title }}</span>
+              </header>
+
+              <div class="summary-item-list">
+                <article
+                  v-for="item in group.items"
+                  :key="getSummaryItemKey(group.key, item)"
+                  class="summary-item-card"
+                  :title="buildTimeAnchorTitle(item.timeAnchor)"
+                >
+                  <span class="summary-item-time">{{ item.timeAnchor.label }}</span>
+                  <p class="summary-item-text">{{ item.text }}</p>
+                </article>
               </div>
-            </div>
-
-            <div v-if="activeReport.summary.progress.length" class="summary-group">
-              <span>推进</span>
-              <ul class="summary-list">
-                <li v-for="item in activeReport.summary.progress" :key="item">{{ item }}</li>
-              </ul>
-            </div>
-
-            <div v-if="activeReport.summary.blockers.length" class="summary-group">
-              <span>阻塞</span>
-              <ul class="summary-list">
-                <li v-for="item in activeReport.summary.blockers" :key="item">{{ item }}</li>
-              </ul>
-            </div>
-
-            <div v-if="activeReport.summary.memorableMoments.length" class="summary-group">
-              <span>值得记住</span>
-              <ul class="summary-list">
-                <li v-for="item in activeReport.summary.memorableMoments" :key="item">{{ item }}</li>
-              </ul>
-            </div>
+            </section>
           </div>
         </section>
 
@@ -240,62 +301,51 @@ function getMaxWordsInOneDay(report: RangeReport) {
           <TagCloudView :items="activeTagItems" />
         </section>
 
-        <section v-if="activeHighlights.length > 0" class="content-card">
-          <div class="content-card-header">
-            <h4>重点事件</h4>
-            <span>{{ activeHighlights.length }} 条</span>
-          </div>
-
-          <div class="highlight-list">
-            <article
-              v-for="event in activeHighlights"
-              :key="`${event.date}-${event.title}`"
-              class="highlight-card"
-            >
-              <div class="highlight-head">
-                <strong>{{ event.title }}</strong>
-                <span>{{ event.date }} · {{ formatPercentScore(event.score) }}</span>
-              </div>
-              <p>{{ event.summary }}</p>
-              <div v-if="event.tags.length > 0" class="tag-cloud tag-cloud--compact">
-                <span v-for="tag in event.tags" :key="tag" class="tag-chip tag-chip--sm">
-                  {{ tag }}
-                </span>
-              </div>
-            </article>
-          </div>
-        </section>
-
         <section v-if="activeLocationPatterns" class="content-card">
           <div class="content-card-header">
             <h4>地点分析</h4>
-            <span>{{ activeLocationPatterns.ranking.length }} 个地点</span>
           </div>
 
-          <div class="pattern-grid">
-            <article class="pattern-card">
-              <span>最常地点</span>
-              <strong>{{ activeLocationPatterns.topLocation?.name ?? '暂无' }}</strong>
-              <small>
-                {{
-                  activeLocationPatterns.topLocation
-                    ? `出现 ${activeLocationPatterns.topLocation.count} 次`
-                    : '这个区间还没有可用地点数据'
-                }}
-              </small>
+          <div class="pattern-overview">
+            <article class="pattern-summary-card">
+              <span class="pattern-summary-label">最常地点</span>
+              <div class="pattern-summary-main">
+                <strong>{{ activeLocationPatterns.topLocation?.name ?? '暂无' }}</strong>
+                <em v-if="activeLocationPatterns.topLocation">{{ activeLocationPatterns.topLocation.count }} 次</em>
+              </div>
             </article>
 
-            <article class="pattern-card">
-              <span>最独特点</span>
-              <strong>{{ activeLocationPatterns.uniqueLocation?.name ?? '暂无' }}</strong>
-              <small>{{ activeLocationPatterns.uniqueLocation?.reason ?? '这个区间还没有可用地点数据' }}</small>
+            <article class="pattern-summary-card pattern-summary-card--accent">
+              <span class="pattern-summary-label">特别地点</span>
+              <div class="pattern-summary-main">
+                <strong>{{ activeLocationPatterns.uniqueLocation?.name ?? '暂无' }}</strong>
+                <em v-if="getPatternCount(activeLocationPatterns.uniqueLocation) !== null">
+                  {{ getPatternCount(activeLocationPatterns.uniqueLocation) }} 次
+                </em>
+              </div>
             </article>
           </div>
 
-          <div v-if="activeLocationPatterns.ranking.length > 0" class="ranking-list">
-            <div v-for="item in activeLocationPatterns.ranking" :key="item.name" class="ranking-row">
-              <span>{{ item.name }}</span>
-              <strong>{{ item.count }}</strong>
+          <div v-if="activeLocationPatterns.ranking.length > 0" class="pattern-compact-list">
+            <div
+              v-for="(item, index) in activeLocationPatterns.ranking"
+              :key="item.name"
+              class="pattern-compact-row"
+            >
+              <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
+              <strong class="pattern-compact-label">{{ item.name }}</strong>
+              <div class="pattern-compact-track">
+                <div
+                  class="pattern-compact-fill"
+                  :style="{
+                    width: getRankingFillWidth(
+                      item.count,
+                      activeLocationPatterns.topLocation?.count ?? item.count,
+                    ),
+                  }"
+                ></div>
+              </div>
+              <span class="pattern-compact-count">{{ item.count }} 次</span>
             </div>
           </div>
         </section>
@@ -303,37 +353,48 @@ function getMaxWordsInOneDay(report: RangeReport) {
         <section v-if="activeTimePatterns" class="content-card">
           <div class="content-card-header">
             <h4>时间段分析</h4>
-            <span>{{ activeTimePatterns.buckets.length }} 个时间段</span>
           </div>
 
-          <div class="pattern-grid">
-            <article class="pattern-card">
-              <span>最常时间段</span>
-              <strong>{{ activeTimePatterns.topTimeBucket?.label ?? '暂无' }}</strong>
-              <small>
-                {{
-                  activeTimePatterns.topTimeBucket
-                    ? `出现 ${activeTimePatterns.topTimeBucket.count} 次`
-                    : '这个区间还没有可用写作时间数据'
-                }}
-              </small>
+          <div class="pattern-overview">
+            <article class="pattern-summary-card">
+              <span class="pattern-summary-label">最常时间段</span>
+              <div class="pattern-summary-main">
+                <strong>{{ activeTimePatterns.topTimeBucket?.label ?? '暂无' }}</strong>
+                <em v-if="activeTimePatterns.topTimeBucket">{{ activeTimePatterns.topTimeBucket.count }} 次</em>
+              </div>
             </article>
 
-            <article class="pattern-card">
-              <span>最独特时间段</span>
-              <strong>{{ activeTimePatterns.uniqueTimeBucket?.label ?? '暂无' }}</strong>
-              <small>{{ activeTimePatterns.uniqueTimeBucket?.reason ?? '这个区间还没有可用写作时间数据' }}</small>
+            <article class="pattern-summary-card pattern-summary-card--accent">
+              <span class="pattern-summary-label">特别时段</span>
+              <div class="pattern-summary-main">
+                <strong>{{ activeTimePatterns.uniqueTimeBucket?.label ?? '暂无' }}</strong>
+                <em v-if="getPatternCount(activeTimePatterns.uniqueTimeBucket) !== null">
+                  {{ getPatternCount(activeTimePatterns.uniqueTimeBucket) }} 次
+                </em>
+              </div>
             </article>
           </div>
 
-          <div v-if="activeTimePatterns.buckets.length > 0" class="ranking-list">
+          <div v-if="activeTimePatterns.buckets.length > 0" class="pattern-compact-list">
             <div
-              v-for="item in activeTimePatterns.buckets"
+              v-for="(item, index) in activeTimePatterns.buckets"
               :key="item.label"
-              class="ranking-row"
+              class="pattern-compact-row"
             >
-              <span>{{ item.label }}</span>
-              <strong>{{ item.count }}</strong>
+              <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
+              <strong class="pattern-compact-label">{{ item.label }}</strong>
+              <div class="pattern-compact-track">
+                <div
+                  class="pattern-compact-fill"
+                  :style="{
+                    width: getRankingFillWidth(
+                      item.count,
+                      activeTimePatterns.topTimeBucket?.count ?? item.count,
+                    ),
+                  }"
+                ></div>
+              </div>
+              <span class="pattern-compact-count">{{ item.count }} 次</span>
             </div>
           </div>
         </section>
@@ -418,6 +479,15 @@ function getMaxWordsInOneDay(report: RangeReport) {
   padding: 1rem;
 }
 
+.summary-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.25rem;
+  border-color: rgba(217, 203, 159, 0.95);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
 .report-empty-state {
   display: grid;
   gap: 0.6rem;
@@ -439,6 +509,27 @@ function getMaxWordsInOneDay(report: RangeReport) {
   margin: 0;
   color: var(--color-text-subtle);
   line-height: 1.7;
+}
+
+.summary-card-head {
+  display: grid;
+  gap: 0.18rem;
+  padding-bottom: 0.5rem;
+}
+
+.summary-kicker {
+  margin: 0;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.summary-overview {
+  margin-top: 0;
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--color-text-main);
 }
 
 .content-card-header {
@@ -618,18 +709,72 @@ function getMaxWordsInOneDay(report: RangeReport) {
 
 .summary-groups {
   display: grid;
-  gap: 0.85rem;
-  margin-top: 1rem;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(217, 203, 159, 0.8);
 }
 
-.summary-group {
+.summary-group-panel {
   display: grid;
-  gap: 0.45rem;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: start;
+  min-width: 0;
+  padding: 0.9rem 0;
+  background: transparent;
 }
 
-.summary-group > span {
-  color: var(--color-text-subtle);
-  font-size: 0.84rem;
+.summary-group-panel + .summary-group-panel {
+  border-top: 1px solid rgba(229, 220, 197, 0.9);
+}
+
+.summary-group-header {
+  padding-top: 0.2rem;
+}
+
+.summary-group-title {
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.summary-item-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.summary-item-card {
+  display: grid;
+  gap: 0.28rem;
+  min-width: min(100%, 16rem);
+  max-width: 22rem;
+  padding: 0.2rem 0;
+  background: transparent;
+  flex: 1 1 15rem;
+}
+
+.summary-item-time {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ad945f;
+  font-size: 0.76rem;
+  font-weight: 500;
+}
+
+.summary-item-text {
+  margin: 0;
+  color: var(--color-text-main);
+  line-height: 1.72;
 }
 
 .summary-list {
@@ -655,8 +800,7 @@ function getMaxWordsInOneDay(report: RangeReport) {
   margin-top: 1rem;
 }
 
-.highlight-card,
-.pattern-card {
+.highlight-card {
   display: grid;
   gap: 0.45rem;
   padding: 0.95rem 1rem;
@@ -673,40 +817,141 @@ function getMaxWordsInOneDay(report: RangeReport) {
 }
 
 .highlight-head span,
-.highlight-card p,
-.pattern-card span,
-.pattern-card small {
+.highlight-card p {
   color: var(--color-text-subtle);
 }
 
-.highlight-card p,
-.pattern-card small {
+.highlight-card p {
   margin: 0;
   line-height: 1.7;
 }
 
-.pattern-grid {
+.pattern-overview {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-  margin-top: 1rem;
+  gap: 0.7rem;
+  margin-top: 0.85rem;
 }
 
-.ranking-list {
+.pattern-summary-card {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 1rem;
+  gap: 0.32rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #fffef9;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
-.ranking-row {
+.pattern-summary-card--accent {
+  background: #fffef9;
+}
+
+.pattern-summary-card:hover {
+  background: #faf6eb;
+  border-color: #dccda8;
+  box-shadow: 0 10px 22px rgba(102, 82, 32, 0.08);
+  transform: translateY(-1px);
+}
+
+.pattern-summary-label {
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.pattern-summary-main {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.8rem 0.95rem;
+}
+
+.pattern-summary-main strong {
+  color: var(--color-text-main);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.pattern-summary-main em {
+  font-style: normal;
+  color: #9d8657;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.pattern-compact-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 0.65rem;
+  margin-top: 0.8rem;
+}
+
+.pattern-compact-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) minmax(3.2rem, 6.5rem) auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.62rem 0.72rem;
   border: 1px solid var(--color-border-soft);
-  border-radius: 10px;
+  border-radius: 9px;
   background: #fffef9;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.pattern-compact-row:hover {
+  background: #f8f3e7;
+  border-color: #dbcba4;
+  box-shadow: 0 8px 18px rgba(102, 82, 32, 0.06);
+  transform: translateY(-1px);
+}
+
+.pattern-compact-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  border-radius: 999px;
+  background: #f6efdf;
+  color: #9d8657;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pattern-compact-label {
+  color: var(--color-text-main);
+  font-size: 0.88rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.pattern-compact-track {
+  overflow: hidden;
+  width: 100%;
+  height: 0.32rem;
+  border-radius: 999px;
+  background: #efe6d3;
+}
+
+.pattern-compact-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #ccb278;
+}
+
+.pattern-compact-count {
+  color: var(--color-text-subtle);
+  font-size: 0.79rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 768px) {
@@ -722,7 +967,21 @@ function getMaxWordsInOneDay(report: RangeReport) {
     grid-template-columns: 1fr 1fr;
   }
 
-  .pattern-grid {
+  .summary-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-group-panel {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .summary-group-panel + .summary-group-panel {
+    padding-top: 1rem;
+  }
+
+  .pattern-overview,
+  .pattern-compact-list {
     grid-template-columns: 1fr;
   }
 }

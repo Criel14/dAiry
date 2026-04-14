@@ -6,7 +6,6 @@ import type {
   RangeReport,
   RangeReportSummary,
   ReportDailyEntry,
-  ReportHighlightEvent,
   ReportListItem,
   ReportQuery,
   ReportSectionKey,
@@ -14,7 +13,11 @@ import type {
   ReportStatsSection,
   ReportTagCloudItem,
 } from '../../src/types/dairy'
-import { ensureDailyInsights, generateRangeReportSummaryWithAi } from './ai'
+import {
+  ensureDailyInsights,
+  generateRangeReportSummaryWithAi,
+  type RangeReportSummarySourceEntry,
+} from './ai'
 import { countJournalWords, readJournalDocument } from './journal-document'
 import { getWorkspaceTags } from './workspace-libraries'
 import {
@@ -47,7 +50,6 @@ function normalizeRequestedSections(sections: ReportSectionKey[]) {
     'heatmap',
     'moodTrend',
     'tagCloud',
-    'highlights',
     'locationPatterns',
     'timePatterns',
   ]
@@ -350,47 +352,6 @@ function buildTagCloudItems(dailyEntries: ReportDailyEntry[]): ReportTagCloudIte
     .slice(0, 30)
 }
 
-function createHighlightTitle(summary: string) {
-  const normalizedSummary = summary.trim()
-  if (!normalizedSummary) {
-    return '值得记住的一天'
-  }
-
-  return normalizedSummary.length > 18 ? `${normalizedSummary.slice(0, 18)}...` : normalizedSummary
-}
-
-function buildHighlightsSection(dailyEntries: ReportDailyEntry[]) {
-  const maxWordCount = Math.max(...dailyEntries.map((entry) => entry.wordCount), 1)
-  const candidateEntries = dailyEntries.filter(
-    (entry) => entry.hasEntry && (entry.summary.trim() || entry.tags.length > 0 || entry.wordCount > 0),
-  )
-
-  const events = candidateEntries
-    .map<ReportHighlightEvent>((entry) => {
-      const moodWeight = entry.mood === null ? 0 : Math.min(Math.abs(entry.mood) / 5, 1)
-      const wordWeight = Math.min(entry.wordCount / maxWordCount, 1)
-      const tagWeight = Math.min(entry.tags.length / 5, 1)
-      const summaryWeight = entry.summary.trim() ? 0.15 : 0
-      const score = Number(
-        Math.min(0.3 + wordWeight * 0.35 + moodWeight * 0.25 + tagWeight * 0.15 + summaryWeight, 0.99).toFixed(2),
-      )
-
-      return {
-        date: entry.date,
-        title: createHighlightTitle(entry.summary || entry.tags[0] || entry.date),
-        summary: entry.summary.trim() || `这一天记录了 ${entry.wordCount} 字内容。`,
-        tags: entry.tags.slice(0, 4),
-        score,
-      }
-    })
-    .sort((left, right) => right.score - left.score || right.date.localeCompare(left.date))
-    .slice(0, 5)
-
-  return {
-    events,
-  }
-}
-
 function buildLocationPatternsSection(dailyEntries: ReportDailyEntry[]) {
   const locationMap = new Map<string, { count: number; totalWords: number }>()
 
@@ -430,20 +391,17 @@ function buildLocationPatternsSection(dailyEntries: ReportDailyEntry[]) {
     name: string
     count: number
     score: number
-    reason: string
   } | null>((best, item) => {
     const rarityScore = 1 / item.count
     const averageWords = item.totalWords / item.count
     const intensityScore = averageWords / maxAverageWords
     const score = Number((rarityScore * 0.62 + intensityScore * 0.38).toFixed(2))
-    const reason = `这个地点在区间内出现 ${item.count} 次，频次相对少，但相关记录平均篇幅较高。`
 
     if (!best || score > best.score) {
       return {
         name: item.name,
         count: item.count,
         score,
-        reason,
       }
     }
 
@@ -455,9 +413,7 @@ function buildLocationPatternsSection(dailyEntries: ReportDailyEntry[]) {
     uniqueLocation: uniqueCandidate
       ? {
           name: uniqueCandidate.name,
-          countInRange: uniqueCandidate.count,
-          score: uniqueCandidate.score,
-          reason: uniqueCandidate.reason,
+          count: uniqueCandidate.count,
         }
       : null,
     ranking: ranking.map((item) => ({
@@ -527,19 +483,16 @@ function buildTimePatternsSection(dailyEntries: ReportDailyEntry[]) {
     label: string
     count: number
     score: number
-    reason: string
   } | null>((best, item) => {
     const rarityScore = 1 / item.count
     const intensityScore = item.totalWords / item.count / maxAverageWords
     const score = Number((rarityScore * 0.58 + intensityScore * 0.42).toFixed(2))
-    const reason = `这个时间段出现 ${item.count} 次，虽然不是最高频，但相关记录的平均篇幅更突出。`
 
     if (!best || score > best.score) {
       return {
         label: item.label,
         count: item.count,
         score,
-        reason,
       }
     }
 
@@ -551,9 +504,7 @@ function buildTimePatternsSection(dailyEntries: ReportDailyEntry[]) {
     uniqueTimeBucket: uniqueCandidate
       ? {
           label: uniqueCandidate.label,
-          countInRange: uniqueCandidate.count,
-          score: uniqueCandidate.score,
-          reason: uniqueCandidate.reason,
+          count: uniqueCandidate.count,
         }
       : null,
     buckets: buckets.map((item) => ({
@@ -602,10 +553,6 @@ function buildSections(
     sections.tagCloud = {
       items: buildTagCloudItems(dailyEntries),
     }
-  }
-
-  if (requestedSections.includes('highlights')) {
-    sections.highlights = buildHighlightsSection(dailyEntries)
   }
 
   if (requestedSections.includes('locationPatterns')) {
@@ -683,27 +630,60 @@ function buildFallbackSummary(
   const topTags = buildTagCloudItems(dailyEntries)
     .slice(0, 3)
     .map((item) => item.label)
-  const topLocation = buildLocationPatternsSection(dailyEntries).topLocation
-  const topTimeBucket = buildTimePatternsSection(dailyEntries).topTimeBucket
   const tagText = topTags.length > 0 ? `主要标签包括 ${topTags.join('、')}。` : '这段时间还没有形成明显的标签集中。'
-  const locationText = topLocation ? `最常出现的地点是 ${topLocation.name}。` : ''
-  const timeText = topTimeBucket ? `写作多集中在 ${topTimeBucket.label}。` : ''
 
   return {
-    text: `${label}共记录 ${source.entryDays} 天，缺失 ${source.missingDays} 天，总字数 ${source.totalWords}，最长连续记录 ${source.longestStreak} 天。${tagText}${locationText}${timeText}`,
-    themes: topTags,
-    progress: source.entryDays > 0 ? [`完成了 ${source.entryDays} 天记录，累计 ${source.totalWords} 字。`] : [],
+    text: `${label}共记录 ${source.entryDays} 天，缺失 ${source.missingDays} 天，总字数 ${source.totalWords}，最长连续记录 ${source.longestStreak} 天。${tagText}`,
+    progress: source.entryDays > 0
+      ? [
+          {
+            text: `完成了 ${source.entryDays} 天记录，累计写下 ${source.totalWords} 字。`,
+            timeAnchor: {
+              type: 'approx',
+              label: '整个区间',
+            },
+          },
+        ]
+      : [],
     blockers: [],
     memorableMoments: [],
   }
 }
 
+function buildSummarySourceEntries(
+  dailyEntryResults: DailyEntryBuildResult[],
+  dailyEntries: ReportDailyEntry[],
+) {
+  const hydratedEntryMap = new Map(dailyEntries.map((entry) => [entry.date, entry]))
+
+  return dailyEntryResults
+    .map((result): RangeReportSummarySourceEntry | null => {
+      const hydratedEntry = hydratedEntryMap.get(result.entry.date)
+      if (!hydratedEntry || !hydratedEntry.hasEntry) {
+        return null
+      }
+
+      return {
+        date: hydratedEntry.date,
+        body: result.body,
+        summary: hydratedEntry.summary,
+        tags: [...hydratedEntry.tags],
+        mood: hydratedEntry.mood,
+        wordCount: hydratedEntry.wordCount,
+        location: hydratedEntry.location,
+        insightSource: hydratedEntry.insightSource,
+      }
+    })
+    .filter((entry): entry is RangeReportSummarySourceEntry => Boolean(entry))
+}
+
 async function buildReportSummary(
   draftReport: RangeReport,
   fallbackSummary: RangeReportSummary,
+  sourceEntries: RangeReportSummarySourceEntry[],
 ) {
   try {
-    return await generateRangeReportSummaryWithAi(draftReport)
+    return await generateRangeReportSummaryWithAi(draftReport, sourceEntries)
   } catch (error) {
     const message = error instanceof Error ? error.message : '区间总结 AI 生成失败。'
     draftReport.generation.warnings.push(`AI 总结未生成：${message}`)
@@ -784,8 +764,8 @@ export async function generateRangeReport(
   const generatedAt = new Date().toISOString()
   const sections = buildSections(dailyEntries, requestedSections)
   const fallbackSummary = buildFallbackSummary(label, source, dailyEntries)
+  const summarySourceEntries = buildSummarySourceEntries(dailyEntryResults, dailyEntries)
   const report: RangeReport = {
-    version: 1,
     reportId,
     preset: input.preset,
     period: {
@@ -809,7 +789,7 @@ export async function generateRangeReport(
     sections,
   }
 
-  report.summary = await buildReportSummary(report, fallbackSummary)
+  report.summary = await buildReportSummary(report, fallbackSummary, summarySourceEntries)
 
   const filePath = getReportFilePath(input.workspacePath, input.preset, reportId, startDate)
   await writeReport(filePath, report)
