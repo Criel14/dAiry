@@ -29,10 +29,6 @@ defineProps<{
   activeTimePatterns: ReportTimePatternsSection | null
 }>()
 
-function formatDateTime(value: string) {
-  return dayjs(value).isValid() ? dayjs(value).format('YYYY-MM-DD HH:mm') : value
-}
-
 function formatPreset(presetValue: ReportPreset) {
   if (presetValue === 'month') {
     return '月度'
@@ -68,6 +64,14 @@ function getHeatLevel(value: number) {
 function formatPercentScore(score: number) {
   return `${Math.round(score * 100)} 分`
 }
+
+function getMaxWordsInOneDay(report: RangeReport) {
+  if (typeof report.sections.stats?.maxWordsInOneDay === 'number') {
+    return report.sections.stats.maxWordsInOneDay
+  }
+
+  return report.dailyEntries.reduce((maxValue, entry) => Math.max(maxValue, entry.wordCount), 0)
+}
 </script>
 
 <template>
@@ -98,22 +102,41 @@ function formatPercentScore(score: number) {
 
       <article v-else class="report-article">
         <header class="report-hero">
-          <div>
-            <p class="report-label">{{ formatPreset(activeReport.preset) }}</p>
-            <h3 class="report-title">{{ activeReport.period.label }}</h3>
-            <p class="report-subtitle">
-              {{ activeReport.period.startDate }} 至 {{ activeReport.period.endDate }} ·
-              生成于 {{ formatDateTime(activeReport.period.generatedAt) }}
-            </p>
-          </div>
+          <p class="report-label">{{ formatPreset(activeReport.preset) }}</p>
+          <h3 class="report-title">{{ activeReport.period.label }}</h3>
+          <p class="report-subtitle">{{ activeReport.period.startDate }} 至 {{ activeReport.period.endDate }}</p>
 
-          <div class="report-meta-box">
-            <span>报告 ID</span>
-            <strong>{{ activeReport.reportId }}</strong>
-            <small>
-              复用 {{ activeReport.generation.reusedEntryInsightCount }} 天，补做
-              {{ activeReport.generation.generatedEntryInsightCount }} 天
-            </small>
+          <div class="report-hero-divider"></div>
+
+          <div class="report-hero-stats">
+            <p class="report-hero-stats-label">基础统计</p>
+
+            <div class="report-hero-stats-grid">
+              <article class="report-hero-stat">
+                <span>记录天数</span>
+                <strong>{{ activeReport.source.entryDays }}<small>天</small></strong>
+              </article>
+              <article class="report-hero-stat">
+                <span>缺失天数</span>
+                <strong>{{ activeReport.source.missingDays }}<small>天</small></strong>
+              </article>
+              <article class="report-hero-stat">
+                <span>总字数</span>
+                <strong>{{ activeReport.source.totalWords }}<small>字</small></strong>
+              </article>
+              <article class="report-hero-stat">
+                <span>最长连续记录</span>
+                <strong>{{ activeReport.source.longestStreak }}<small>天</small></strong>
+              </article>
+              <article class="report-hero-stat">
+                <span>平均字数</span>
+                <strong>{{ activeReport.source.averageWords }}<small>字</small></strong>
+              </article>
+              <article class="report-hero-stat">
+                <span>单日最高字数</span>
+                <strong>{{ getMaxWordsInOneDay(activeReport) }}<small>字</small></strong>
+              </article>
+            </div>
           </div>
         </header>
 
@@ -176,51 +199,6 @@ function formatPercentScore(score: number) {
               {{ warning }}
             </li>
           </ul>
-        </section>
-
-        <section class="stats-grid">
-          <article class="stat-card">
-            <span>记录天数</span>
-            <strong>{{ activeReport.source.entryDays }}</strong>
-          </article>
-          <article class="stat-card">
-            <span>缺失天数</span>
-            <strong>{{ activeReport.source.missingDays }}</strong>
-          </article>
-          <article class="stat-card">
-            <span>总字数</span>
-            <strong>{{ activeReport.source.totalWords }}</strong>
-          </article>
-          <article class="stat-card">
-            <span>最长连续记录</span>
-            <strong>{{ activeReport.source.longestStreak }}</strong>
-          </article>
-        </section>
-
-        <section v-if="activeStats" class="content-card">
-          <div class="content-card-header">
-            <h4>基础统计</h4>
-            <span>阶段一</span>
-          </div>
-
-          <div class="detail-grid">
-            <div>
-              <span>平均字数</span>
-              <strong>{{ activeStats.averageWords }}</strong>
-            </div>
-            <div>
-              <span>单日最高</span>
-              <strong>{{ activeStats.maxWordsInOneDay }}</strong>
-            </div>
-            <div>
-              <span>最高日期</span>
-              <strong>{{ activeStats.maxWordsDate ?? '暂无' }}</strong>
-            </div>
-            <div>
-              <span>区间末连续</span>
-              <strong>{{ activeStats.currentStreakAtEnd }}</strong>
-            </div>
-          </div>
         </section>
 
         <section v-if="activeHeatmapPoints.length > 0" class="content-card">
@@ -384,12 +362,18 @@ function formatPercentScore(score: number) {
   gap: 0.35rem;
 }
 
-.reports-kicker,
-.report-label {
+.reports-kicker {
   margin: 0;
   font-size: 0.78rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.report-label {
+  margin: 0;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
   color: var(--color-text-subtle);
 }
 
@@ -472,6 +456,32 @@ function formatPercentScore(score: number) {
 .report-content {
   min-height: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
+.report-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.report-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.report-content::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
+  background-clip: padding-box;
+}
+
+.report-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
+  background-clip: padding-box;
+}
+
+.report-content::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .report-article {
@@ -480,72 +490,68 @@ function formatPercentScore(score: number) {
 }
 
 .report-hero {
-  display: flex;
-  gap: 1rem;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  gap: 0.7rem;
   padding: 1.2rem 1.25rem;
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  background:
-    radial-gradient(circle at top left, rgba(245, 235, 195, 0.86), transparent 38%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 246, 234, 0.92));
+  background: rgba(255, 255, 255, 0.9);
 }
 
-.report-meta-box {
+.report-hero-divider {
+  height: 1px;
+  margin: 0.2rem 0 0.05rem;
+  background: var(--color-border);
+}
+
+.report-hero-stats {
   display: grid;
-  gap: 0.3rem;
-  min-width: 12rem;
-  padding: 0.85rem 1rem;
-  border: 1px solid rgba(217, 203, 159, 0.88);
-  border-radius: 12px;
-  background: rgba(255, 251, 239, 0.9);
+  gap: 0.75rem;
 }
 
-.report-meta-box span {
+.report-hero-stats-label {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-subtle);
+}
+
+.report-hero-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.report-hero-stat {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(229, 220, 197, 0.9);
+  border-radius: 12px;
+  background: rgba(250, 246, 234, 0.42);
+}
+
+.report-hero-stat span {
+  color: var(--color-text-subtle);
   font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.report-hero-stat strong {
+  display: flex;
+  align-items: baseline;
+  gap: 0.18rem;
+  min-width: 0;
+  font-size: 1.22rem;
+  line-height: 1.1;
+  color: var(--color-text-main);
+}
+
+.report-hero-stat small {
+  font-size: 0.78rem;
+  font-weight: 500;
   color: var(--color-text-subtle);
-}
-
-.report-meta-box small {
-  color: var(--color-text-subtle);
-  line-height: 1.6;
-}
-
-.stats-grid,
-.detail-grid {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.stats-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.detail-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 1rem;
-}
-
-.stat-card,
-.detail-grid > div {
-  display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.stat-card span,
-.detail-grid span {
-  color: var(--color-text-subtle);
-  font-size: 0.85rem;
-}
-
-.stat-card strong,
-.detail-grid strong {
-  font-size: 1.35rem;
 }
 
 .heatmap-grid {
@@ -704,8 +710,7 @@ function formatPercentScore(score: number) {
 }
 
 @media (max-width: 768px) {
-  .reports-header,
-  .report-hero {
+  .reports-header {
     flex-direction: column;
   }
 
@@ -713,12 +718,17 @@ function formatPercentScore(score: number) {
     text-align: left;
   }
 
-  .stats-grid,
-  .detail-grid {
+  .report-hero-stats-grid {
     grid-template-columns: 1fr 1fr;
   }
 
   .pattern-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .report-hero-stats-grid {
     grid-template-columns: 1fr;
   }
 }
