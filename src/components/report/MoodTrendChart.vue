@@ -428,7 +428,6 @@ const tooltipStyle = computed(() => {
         <i class="legend-swatch legend-swatch--negative" />
         负向情绪
       </span>
-      <span class="legend-item legend-item--hint">纵轴固定为 -5 到 5，横轴按日期顺序展开</span>
     </div>
   </div>
 </template>

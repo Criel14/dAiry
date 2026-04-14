@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import MoodTrendChart from './MoodTrendChart.vue'
+import TagCloudView from './TagCloudView.vue'
 import type {
   RangeReport,
   ReportHeatmapPoint,
@@ -62,18 +63,6 @@ function getHeatLevel(value: number) {
   }
 
   return 0
-}
-
-function getTagSize(value: number) {
-  if (value >= 8) {
-    return 'tag-chip--lg'
-  }
-
-  if (value >= 4) {
-    return 'tag-chip--md'
-  }
-
-  return 'tag-chip--sm'
 }
 
 function formatPercentScore(score: number) {
@@ -268,19 +257,9 @@ function formatPercentScore(score: number) {
         <section v-if="activeTagItems.length > 0" class="content-card">
           <div class="content-card-header">
             <h4>标签词云</h4>
-            <span>前 {{ activeTagItems.length }} 项</span>
           </div>
 
-          <div class="tag-cloud">
-            <span
-              v-for="item in activeTagItems"
-              :key="item.label"
-              class="tag-chip"
-              :class="getTagSize(item.value)"
-            >
-              {{ item.label }} · {{ item.value }}
-            </span>
-          </div>
+          <TagCloudView :items="activeTagItems" />
         </section>
 
         <section v-if="activeHighlights.length > 0" class="content-card">
@@ -629,16 +608,6 @@ function formatPercentScore(score: number) {
 
 .tag-chip--sm {
   font-size: 0.86rem;
-}
-
-.tag-chip--md {
-  font-size: 0.96rem;
-  background: #faf3df;
-}
-
-.tag-chip--lg {
-  font-size: 1.06rem;
-  background: #f5ebc3;
 }
 
 .summary-groups {
