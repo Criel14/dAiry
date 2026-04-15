@@ -99,6 +99,8 @@ export interface JournalMonthActivityResult {
 
 export type ReportPreset = 'month' | 'year' | 'custom'
 
+export const MAX_CUSTOM_REPORT_RANGE_YEARS = 1
+
 export type ReportSectionKey =
   | 'stats'
   | 'heatmap'

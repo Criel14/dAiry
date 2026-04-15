@@ -1,11 +1,12 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import dayjs from 'dayjs'
-import type {
-  GenerateRangeReportInput,
-  RangeReport,
-  ReportListItem,
-  ReportPreset,
-  ReportSectionKey,
+import {
+  MAX_CUSTOM_REPORT_RANGE_YEARS,
+  type GenerateRangeReportInput,
+  type RangeReport,
+  type ReportListItem,
+  type ReportPreset,
+  type ReportSectionKey,
 } from '../../types/dairy'
 import { getReadableErrorMessage } from '../../utils/error'
 
@@ -22,20 +23,34 @@ export const REPORT_SECTION_OPTIONS: Array<{
   { key: 'timePatterns', label: '时间段分析', description: '查看写作主要集中在一天中的哪个时间段' },
 ]
 
+const REQUIRED_REPORT_SECTION: ReportSectionKey = 'stats'
+
+function normalizeSelectedSections(sections: ReportSectionKey[]) {
+  const uniqueSections = Array.from(new Set(sections))
+
+  if (uniqueSections.includes(REQUIRED_REPORT_SECTION)) {
+    return uniqueSections
+  }
+
+  return [REQUIRED_REPORT_SECTION, ...uniqueSections]
+}
+
 export function useReportsPanel(workspacePath: Ref<string | null>) {
   const preset = ref<ReportPreset>('month')
   const monthValue = ref(dayjs().format('YYYY-MM'))
   const yearValue = ref(dayjs().format('YYYY'))
   const customStartDate = ref(dayjs().startOf('month').format('YYYY-MM-DD'))
   const customEndDate = ref(dayjs().endOf('month').format('YYYY-MM-DD'))
-  const selectedSections = ref<ReportSectionKey[]>([
-    'stats',
-    'heatmap',
-    'moodTrend',
-    'tagCloud',
-    'locationPatterns',
-    'timePatterns',
-  ])
+  const selectedSections = ref<ReportSectionKey[]>(
+    normalizeSelectedSections([
+      'stats',
+      'heatmap',
+      'moodTrend',
+      'tagCloud',
+      'locationPatterns',
+      'timePatterns',
+    ]),
+  )
   const reportList = ref<ReportListItem[]>([])
   const activeReport = ref<RangeReport | null>(null)
   const selectedReportId = ref<string | null>(null)
@@ -83,13 +98,13 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
     if (preset.value === 'month' && !selectedPeriodHasReport.value) {
       const monthDate = dayjs(`${monthValue.value}-01`)
       const label = monthDate.isValid() ? monthDate.format('YYYY 年 M 月') : monthValue.value
-      return `${label} 还没有已保存的月度总结，你可以在左侧直接生成。`
+      return `${label} 还没有已保存的月度总结，你可以在左侧菜单处生成。`
     }
 
     if (preset.value === 'year' && !selectedPeriodHasReport.value) {
       const yearDate = dayjs(`${yearValue.value}-01-01`)
       const label = yearDate.isValid() ? yearDate.format('YYYY 年') : yearValue.value
-      return `${label} 还没有已保存的年度总结，你可以在左侧直接生成。`
+      return `${label} 还没有已保存的年度总结，你可以在左侧菜单处生成。`
     }
 
     return '你可以先从左侧生成一份月度、年度或自定义区间总结。'
@@ -261,16 +276,19 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
   }
 
   function toggleSection(sectionKey: ReportSectionKey) {
-    if (selectedSections.value.includes(sectionKey)) {
-      if (selectedSections.value.length === 1) {
-        return
-      }
-
-      selectedSections.value = selectedSections.value.filter((item) => item !== sectionKey)
+    if (sectionKey === REQUIRED_REPORT_SECTION) {
+      selectedSections.value = normalizeSelectedSections(selectedSections.value)
       return
     }
 
-    selectedSections.value = [...selectedSections.value, sectionKey]
+    if (selectedSections.value.includes(sectionKey)) {
+      selectedSections.value = normalizeSelectedSections(
+        selectedSections.value.filter((item) => item !== sectionKey),
+      )
+      return
+    }
+
+    selectedSections.value = normalizeSelectedSections([...selectedSections.value, sectionKey])
   }
 
   function createReportInput(): GenerateRangeReportInput | null {
@@ -291,7 +309,7 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
         preset: 'month',
         startDate: monthDate.startOf('month').format('YYYY-MM-DD'),
         endDate: monthDate.endOf('month').format('YYYY-MM-DD'),
-        requestedSections: [...selectedSections.value],
+        requestedSections: normalizeSelectedSections(selectedSections.value),
         overwriteReportId: null,
       }
     }
@@ -308,7 +326,7 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
         preset: 'year',
         startDate: yearDate.startOf('year').format('YYYY-MM-DD'),
         endDate: yearDate.endOf('year').format('YYYY-MM-DD'),
-        requestedSections: [...selectedSections.value],
+        requestedSections: normalizeSelectedSections(selectedSections.value),
         overwriteReportId: null,
       }
     }
@@ -331,12 +349,17 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
       return null
     }
 
+    if (endDate.isAfter(startDate.add(MAX_CUSTOM_REPORT_RANGE_YEARS, 'year'), 'day')) {
+      statusMessage.value = `自定义区间跨度不能超过${MAX_CUSTOM_REPORT_RANGE_YEARS}年。`
+      return null
+    }
+
     return {
       workspacePath: workspacePath.value,
       preset: 'custom',
       startDate: startDate.format('YYYY-MM-DD'),
       endDate: endDate.format('YYYY-MM-DD'),
-      requestedSections: [...selectedSections.value],
+      requestedSections: normalizeSelectedSections(selectedSections.value),
       overwriteReportId: null,
     }
   }

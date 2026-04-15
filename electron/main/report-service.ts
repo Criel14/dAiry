@@ -1,17 +1,18 @@
 import path from 'node:path'
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises'
 import dayjs from 'dayjs'
-import type {
-  GenerateRangeReportInput,
-  RangeReport,
-  RangeReportSummary,
-  ReportDailyEntry,
-  ReportListItem,
-  ReportQuery,
-  ReportSectionKey,
-  ReportSections,
-  ReportStatsSection,
-  ReportTagCloudItem,
+import {
+  MAX_CUSTOM_REPORT_RANGE_YEARS,
+  type GenerateRangeReportInput,
+  type RangeReport,
+  type RangeReportSummary,
+  type ReportDailyEntry,
+  type ReportListItem,
+  type ReportQuery,
+  type ReportSectionKey,
+  type ReportSections,
+  type ReportStatsSection,
+  type ReportTagCloudItem,
 } from '../../src/types/dairy'
 import {
   ensureDailyInsights,
@@ -105,6 +106,10 @@ function validateReportRange(input: GenerateRangeReportInput) {
     ) {
       throw new Error('年度报告的区间必须覆盖完整自然年。')
     }
+  }
+
+  if (input.preset === 'custom' && endDate.isAfter(startDate.add(MAX_CUSTOM_REPORT_RANGE_YEARS, 'year'), 'day')) {
+    throw new Error(`自定义区间跨度不能超过${MAX_CUSTOM_REPORT_RANGE_YEARS}年。`)
   }
 
   return {

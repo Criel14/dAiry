@@ -2,7 +2,12 @@
 import { computed, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
-import type { ReportListItem, ReportPreset, ReportSectionKey } from '../../types/dairy'
+import {
+  MAX_CUSTOM_REPORT_RANGE_YEARS,
+  type ReportListItem,
+  type ReportPreset,
+  type ReportSectionKey,
+} from '../../types/dairy'
 
 const props = defineProps<{
   hasWorkspace: boolean
@@ -59,12 +64,17 @@ watch(
 )
 
 const selectedSectionSummary = computed(() => {
-  if (props.selectedSections.length === 0) {
+  const selectedCount = new Set(['stats', ...props.selectedSections]).size
+
+  if (selectedCount === 0) {
     return '暂未选择'
   }
 
-  return `已选 ${props.selectedSections.length} 项`
+  return `已选 ${selectedCount} 项`
 })
+const isRequiredSection = (sectionKey: ReportSectionKey) => sectionKey === 'stats'
+const isSectionSelected = (sectionKey: ReportSectionKey) =>
+  isRequiredSection(sectionKey) || props.selectedSections.includes(sectionKey)
 
 const monthReportKeys = computed(
   () => new Set(props.monthReports.map((item) => dayjs(item.startDate).format('YYYY-MM'))),
@@ -78,6 +88,18 @@ const monthPickerTitle = computed(() => `${monthPickerYear.value} 年`)
 const yearPickerTitle = computed(
   () => `${yearPickerStart.value} - ${yearPickerStart.value + 11}`,
 )
+const customStartMinDate = computed(() => {
+  const endDate = dayjs(props.customEndDate)
+  return endDate.isValid()
+    ? endDate.subtract(MAX_CUSTOM_REPORT_RANGE_YEARS, 'year').format('YYYY-MM-DD')
+    : undefined
+})
+const customEndMaxDate = computed(() => {
+  const startDate = dayjs(props.customStartDate)
+  return startDate.isValid()
+    ? startDate.add(MAX_CUSTOM_REPORT_RANGE_YEARS, 'year').format('YYYY-MM-DD')
+    : undefined
+})
 
 const monthCells = computed(() =>
   monthLabels.map((label, index) => {
@@ -279,6 +301,7 @@ function goToCurrentYear() {
         <label class="field-label">
           开始日期
           <input
+            :min="customStartMinDate"
             :value="customStartDate"
             class="field-input"
             type="date"
@@ -289,12 +312,15 @@ function goToCurrentYear() {
         <label class="field-label">
           结束日期
           <input
+            :max="customEndMaxDate"
             :value="customEndDate"
             class="field-input"
             type="date"
             @input="emit('update:customEndDate', ($event.target as HTMLInputElement).value)"
           />
         </label>
+
+        <p class="field-hint">自定义区间最长支持 {{ MAX_CUSTOM_REPORT_RANGE_YEARS }} 年跨度。</p>
       </div>
 
       <div class="field-group">
@@ -320,14 +346,19 @@ function goToCurrentYear() {
             v-for="option in sectionOptions"
             :key="option.key"
             class="check-row"
+            :class="{ 'check-row--disabled': isRequiredSection(option.key) }"
           >
             <input
-              :checked="selectedSections.includes(option.key)"
+              :checked="isSectionSelected(option.key)"
+              :disabled="isRequiredSection(option.key)"
+              class="check-input"
               type="checkbox"
               @change="emit('toggleSection', option.key)"
             />
             <span>
-              <strong>{{ option.label }}</strong>
+              <strong>
+                {{ isRequiredSection(option.key) ? `${option.label}（必选）` : option.label }}
+              </strong>
               <small>{{ option.description }}</small>
             </span>
           </label>
@@ -684,6 +715,12 @@ function goToCurrentYear() {
   outline: none;
 }
 
+.field-hint {
+  margin: -0.25rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-subtle);
+}
+
 .check-row {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -693,6 +730,65 @@ function goToCurrentYear() {
   border: 1px solid var(--color-border-soft);
   border-radius: 10px;
   background: rgba(255, 254, 249, 0.72);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.check-row:hover {
+  border-color: #d6c48f;
+  background: rgba(250, 245, 228, 0.92);
+  box-shadow: 0 8px 18px rgba(95, 82, 42, 0.06);
+}
+
+.check-input {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.15rem;
+  border: 1px solid #ccb97d;
+  border-radius: 0.28rem;
+  background: #ffffff;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+  cursor: pointer;
+}
+
+.check-input:checked {
+  border-color: #c0ab6d;
+  background-color: #d9cb9f;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.4 6.4 11.3 12.5 4.9' fill='none' stroke='%23fffaf0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.1'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 0.78rem;
+}
+
+.check-row:hover .check-input {
+  border-color: #c5b177;
+  background-color: #f8f3e4;
+}
+
+.check-row:hover .check-input:checked {
+  border-color: #b59f63;
+  background-color: #cfbf88;
+}
+
+.check-row--disabled {
+  cursor: default;
+  opacity: 0.96;
+}
+
+.check-row--disabled:hover {
+  border-color: var(--color-border-soft);
+  background: rgba(255, 254, 249, 0.72);
+  box-shadow: none;
+}
+
+.check-row--disabled .check-input {
+  cursor: not-allowed;
 }
 
 .check-row strong,
