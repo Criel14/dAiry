@@ -128,6 +128,7 @@ function handlePreviewClick(event: MouseEvent) {
 .empty-state {
   display: grid;
   align-content: stretch;
+  height: 100%;
   min-height: 0;
   padding: 0;
   background: transparent;

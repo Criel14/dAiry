@@ -1017,6 +1017,7 @@ async function handleSaveAiConfiguration(
 
       <JournalEditorPanel
         v-else
+        class="journal-editor-panel"
         :view-state="viewState"
         :editor-mode="editorMode"
         :editor-content="editorContent"
@@ -1053,7 +1054,13 @@ async function handleSaveAiConfiguration(
   min-height: 0;
 }
 
+.journal-editor-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .journal-top {
+  flex: 0 0 auto;
   display: grid;
   gap: 1rem;
   min-height: 0;
