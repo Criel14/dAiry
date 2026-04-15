@@ -71,13 +71,7 @@ function buildLinePath(points: RenderPoint[]) {
       return `M ${point.x} ${point.y}`
     }
 
-    const previous = points[index - 1]
-    const previousPrevious = points[index - 2]
-    const next = points[index + 1]
-    const startControl = getControlPoint(previous, previousPrevious, point)
-    const endControl = getControlPoint(point, previous, next, true)
-
-    return `${path} C ${startControl.x} ${startControl.y}, ${endControl.x} ${endControl.y}, ${point.x} ${point.y}`
+    return `${path} L ${point.x} ${point.y}`
   }, '')
 }
 
@@ -103,26 +97,6 @@ function getPointTone(value: number) {
   }
 
   return 'neutral'
-}
-
-function getControlPoint(
-  current: RenderPoint,
-  previous?: RenderPoint,
-  next?: RenderPoint,
-  reverse = false,
-) {
-  const fallbackPrevious = previous ?? current
-  const fallbackNext = next ?? current
-  const angle =
-    Math.atan2(fallbackNext.y - fallbackPrevious.y, fallbackNext.x - fallbackPrevious.x) +
-    (reverse ? Math.PI : 0)
-  const length =
-    Math.hypot(fallbackNext.x - fallbackPrevious.x, fallbackNext.y - fallbackPrevious.y) * 0.18
-
-  return {
-    x: current.x + Math.cos(angle) * length,
-    y: current.y + Math.sin(angle) * length,
-  }
 }
 
 function handlePointEnter(point: RenderPoint) {
@@ -515,9 +489,17 @@ onBeforeUnmount(() => {
         <g class="mood-chart-lines">
           <path
             v-for="segment in lineSegments"
-            :key="`${segment.key}-line`"
+            :key="`${segment.key}-line-positive`"
             :d="segment.linePath"
-            class="mood-chart-line"
+            class="mood-chart-line mood-chart-line--positive"
+            :clip-path="`url(#${positiveClipId})`"
+          />
+          <path
+            v-for="segment in lineSegments"
+            :key="`${segment.key}-line-negative`"
+            :d="segment.linePath"
+            class="mood-chart-line mood-chart-line--negative"
+            :clip-path="`url(#${negativeClipId})`"
           />
         </g>
 
@@ -676,10 +658,17 @@ onBeforeUnmount(() => {
 
 .mood-chart-line {
   fill: none;
-  stroke: #74674d;
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.mood-chart-line--positive {
+  stroke: #5a9f61;
+}
+
+.mood-chart-line--negative {
+  stroke: #c76767;
 }
 
 .mood-chart-hover-line {
