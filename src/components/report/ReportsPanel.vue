@@ -55,14 +55,16 @@ const activeSummaryGroups = computed(() => {
 })
 
 const heatmapWeekdayLabels = ['周一', '', '周三', '', '周五', '', '']
-const heatmapScrollerRef = ref<HTMLElement | null>(null)
 const heatmapCellGap = 3
+const heatmapScrollerRef = ref<HTMLElement | null>(null)
 const heatmapMinCellSize = 10
 const heatmapMaxCellSize = 22
 const heatmapDefaultCellSize = 12
 const heatmapCustomContextMonthCount = 13
 const heatmapCellSize = ref(heatmapDefaultCellSize)
+let heatmapMeasureFrame = 0
 let heatmapResizeObserver: ResizeObserver | null = null
+let pendingHeatmapWidth: number | null = null
 
 const heatmapDisplayRange = computed(() => {
   if (!props.activeReport) {
@@ -205,9 +207,8 @@ const heatmapMonthLabels = computed(() => {
   return labels
 })
 
-function updateHeatmapCellSize() {
+function updateHeatmapCellSize(scrollerWidth = heatmapScrollerRef.value?.clientWidth ?? 0) {
   const weekCount = Math.max(heatmapWeekCount.value, 1)
-  const scrollerWidth = heatmapScrollerRef.value?.clientWidth ?? 0
 
   if (scrollerWidth <= 0) {
     heatmapCellSize.value = heatmapDefaultCellSize
@@ -215,58 +216,96 @@ function updateHeatmapCellSize() {
   }
 
   const totalGap = Math.max(weekCount - 1, 0) * heatmapCellGap
-  const nextCellSize = (scrollerWidth - totalGap) / weekCount
+  const rawSize = Math.floor((scrollerWidth - totalGap) / weekCount)
 
-  heatmapCellSize.value = Math.max(
+  const nextSize = Math.max(
     heatmapMinCellSize,
-    Math.min(heatmapMaxCellSize, nextCellSize),
+    Math.min(heatmapMaxCellSize, rawSize),
   )
+
+  if (nextSize !== heatmapCellSize.value) {
+    heatmapCellSize.value = nextSize
+  }
 }
 
-function bindHeatmapResizeObserver(element: HTMLElement | null) {
-  if (!heatmapResizeObserver) {
+function scheduleHeatmapCellSizeUpdate(scrollerWidth?: number) {
+  if (typeof scrollerWidth === 'number') {
+    pendingHeatmapWidth = scrollerWidth
+  }
+
+  if (heatmapMeasureFrame) {
+    cancelAnimationFrame(heatmapMeasureFrame)
+  }
+
+  heatmapMeasureFrame = window.requestAnimationFrame(() => {
+    heatmapMeasureFrame = 0
+    updateHeatmapCellSize(pendingHeatmapWidth ?? undefined)
+    pendingHeatmapWidth = null
+  })
+}
+
+function stopObservingHeatmapScroller() {
+  heatmapResizeObserver?.disconnect()
+  heatmapResizeObserver = null
+}
+
+function startObservingHeatmapScroller() {
+  stopObservingHeatmapScroller()
+
+  if (!heatmapScrollerRef.value) {
     return
   }
 
-  heatmapResizeObserver.disconnect()
+  scheduleHeatmapCellSizeUpdate(heatmapScrollerRef.value.clientWidth)
 
-  if (element) {
-    heatmapResizeObserver.observe(element)
+  if (typeof ResizeObserver === 'undefined') {
+    return
   }
+
+  heatmapResizeObserver = new ResizeObserver((entries) => {
+    const entry = entries[0]
+
+    if (!entry) {
+      return
+    }
+
+    const nextWidth = Math.round(entry.contentRect.width)
+
+    if (nextWidth > 0) {
+      scheduleHeatmapCellSizeUpdate(nextWidth)
+    }
+  })
+  heatmapResizeObserver.observe(heatmapScrollerRef.value)
 }
 
 onMounted(() => {
-  if (typeof ResizeObserver !== 'undefined') {
-    heatmapResizeObserver = new ResizeObserver(() => {
-      updateHeatmapCellSize()
-    })
-    bindHeatmapResizeObserver(heatmapScrollerRef.value)
-  }
-
-  updateHeatmapCellSize()
+  startObservingHeatmapScroller()
 })
 
 watch(
-  heatmapScrollerRef,
-  async (element) => {
-    bindHeatmapResizeObserver(element)
+  [heatmapWeekCount, () => props.activeReport?.reportId],
+  async () => {
     await nextTick()
-    updateHeatmapCellSize()
+    scheduleHeatmapCellSizeUpdate()
   },
   { flush: 'post' },
 )
 
 watch(
-  heatmapWeekCount,
+  heatmapScrollerRef,
   async () => {
     await nextTick()
-    updateHeatmapCellSize()
+    startObservingHeatmapScroller()
   },
   { flush: 'post' },
 )
 
 onBeforeUnmount(() => {
-  heatmapResizeObserver?.disconnect()
+  if (heatmapMeasureFrame) {
+    cancelAnimationFrame(heatmapMeasureFrame)
+  }
+
+  stopObservingHeatmapScroller()
 })
 
 function formatPreset(presetValue: ReportPreset) {
@@ -904,6 +943,8 @@ function getPatternCount(value: unknown) {
 .heatmap-shell {
   --heatmap-cell-size: 12px;
   --heatmap-cell-gap: 3px;
+  --heatmap-weekdays-width: 2.5rem;
+  --heatmap-body-gap: 0.55rem;
   --heatmap-label-top-offset: 1.4rem;
 
   display: grid;
@@ -926,7 +967,7 @@ function getPatternCount(value: unknown) {
 
 .heatmap-body {
   display: flex;
-  gap: 0.55rem;
+  gap: var(--heatmap-body-gap);
   align-items: flex-start;
 }
 
@@ -934,7 +975,7 @@ function getPatternCount(value: unknown) {
   display: grid;
   grid-template-rows: repeat(7, var(--heatmap-cell-size));
   gap: var(--heatmap-cell-gap);
-  flex: 0 0 2.5rem;
+  flex: 0 0 var(--heatmap-weekdays-width);
   padding-top: var(--heatmap-label-top-offset);
   box-sizing: border-box;
 }
@@ -978,46 +1019,54 @@ function getPatternCount(value: unknown) {
 }
 
 .heatmap-cell {
+  position: relative;
   width: var(--heatmap-cell-size);
   height: var(--heatmap-cell-size);
   border: 1px solid rgba(217, 203, 159, 0.18);
   border-radius: 3px;
-  background: #f4efe1;
+  background-color: #f4efe1;
   box-sizing: border-box;
+  overflow: hidden;
+}
+
+.heatmap-cell--level-1:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #e7dcc0;
+}
+
+.heatmap-cell--level-2:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #d9c89d;
+}
+
+.heatmap-cell--level-3:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #c8ad6f;
+}
+
+.heatmap-cell--level-4:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #a5803c;
 }
 
 .heatmap-cell--muted {
   border-color: rgba(138, 129, 109, 0.1);
-  background:
-    linear-gradient(
-      135deg,
-      transparent calc(50% - 0.7px),
-      rgba(138, 129, 109, 0.2) calc(50% - 0.7px),
-      rgba(138, 129, 109, 0.2) calc(50% + 0.7px),
-      transparent calc(50% + 0.7px)
-    ),
-    #f1efea;
+  background-color: #f1efea;
+}
+
+.heatmap-cell--muted::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  width: 140%;
+  height: 1.4px;
+  border-radius: 999px;
+  background: rgba(138, 129, 109, 0.2);
+  transform: translateY(-50%) rotate(-45deg);
+  transform-origin: center;
+  pointer-events: none;
 }
 
 .heatmap-cell--outside {
   border-color: transparent;
-  background: transparent;
-}
-
-.heatmap-cell--level-1 {
-  background: #e7dcc0;
-}
-
-.heatmap-cell--level-2 {
-  background: #d9c89d;
-}
-
-.heatmap-cell--level-3 {
-  background: #c8ad6f;
-}
-
-.heatmap-cell--level-4 {
-  background: #a5803c;
+  background-color: transparent;
 }
 
 .tag-cloud {
