@@ -60,19 +60,80 @@ const heatmapCellGap = 3
 const heatmapMinCellSize = 10
 const heatmapMaxCellSize = 22
 const heatmapDefaultCellSize = 12
+const heatmapCustomContextMonthCount = 13
 const heatmapCellSize = ref(heatmapDefaultCellSize)
 let heatmapResizeObserver: ResizeObserver | null = null
 
+const heatmapDisplayRange = computed(() => {
+  if (!props.activeReport) {
+    return null
+  }
+
+  const focusStart = dayjs(props.activeReport.period.startDate)
+  const focusEnd = dayjs(props.activeReport.period.endDate)
+
+  if (props.activeReport.preset === 'year') {
+    return {
+      displayStart: focusStart.startOf('year'),
+      displayEnd: focusEnd.endOf('year'),
+      focusStart,
+      focusEnd,
+    }
+  }
+
+  if (props.activeReport.preset === 'month' || props.activeReport.preset === 'custom') {
+    const focusMonthStart = focusStart.startOf('month')
+    const focusMonthEnd = focusEnd.endOf('month')
+
+    if (props.activeReport.preset === 'custom') {
+      const focusMonthCount = focusMonthEnd.startOf('month').diff(focusMonthStart, 'month') + 1
+
+      if (focusMonthCount >= heatmapCustomContextMonthCount) {
+        return {
+          displayStart: focusMonthStart,
+          displayEnd: focusMonthEnd,
+          focusStart,
+          focusEnd,
+        }
+      }
+
+      const extraMonths = heatmapCustomContextMonthCount - focusMonthCount
+      const beforeMonths = Math.floor(extraMonths * 0.4)
+      const afterMonths = extraMonths - beforeMonths
+
+      return {
+        displayStart: focusMonthStart.subtract(beforeMonths, 'month'),
+        displayEnd: focusMonthEnd.add(afterMonths, 'month'),
+        focusStart,
+        focusEnd,
+      }
+    }
+
+    return {
+      displayStart: focusMonthStart.startOf('year'),
+      displayEnd: focusMonthEnd.endOf('year'),
+      focusStart,
+      focusEnd,
+    }
+  }
+
+  return {
+    displayStart: focusStart,
+    displayEnd: focusEnd,
+    focusStart,
+    focusEnd,
+  }
+})
+
 const heatmapCells = computed(() => {
-  if (!props.activeReport || props.activeHeatmapPoints.length === 0) {
+  if (!props.activeReport || props.activeHeatmapPoints.length === 0 || !heatmapDisplayRange.value) {
     return []
   }
 
   const pointMap = new Map(props.activeHeatmapPoints.map((point) => [point.date, point]))
-  const rangeStart = dayjs(props.activeReport.period.startDate)
-  const rangeEnd = dayjs(props.activeReport.period.endDate)
-  const gridStart = rangeStart.subtract((rangeStart.day() + 6) % 7, 'day')
-  const gridEnd = rangeEnd.add(6 - ((rangeEnd.day() + 6) % 7), 'day')
+  const { displayStart, displayEnd, focusStart, focusEnd } = heatmapDisplayRange.value
+  const gridStart = displayStart.subtract((displayStart.day() + 6) % 7, 'day')
+  const gridEnd = displayEnd.add(6 - ((displayEnd.day() + 6) % 7), 'day')
   const totalDays = gridEnd.diff(gridStart, 'day') + 1
 
   return Array.from({ length: totalDays }, (_, index) => {
@@ -85,8 +146,10 @@ const heatmapCells = computed(() => {
       date: dateKey,
       value,
       level: getHeatLevel(value),
-      isInRange:
-        !currentDate.isBefore(rangeStart, 'day') && !currentDate.isAfter(rangeEnd, 'day'),
+      isInDisplayRange:
+        !currentDate.isBefore(displayStart, 'day') && !currentDate.isAfter(displayEnd, 'day'),
+      isInFocusRange:
+        !currentDate.isBefore(focusStart, 'day') && !currentDate.isAfter(focusEnd, 'day'),
     }
   })
 })
@@ -99,13 +162,22 @@ const heatmapSizingStyle = computed(() => ({
   '--heatmap-week-count': String(Math.max(heatmapWeekCount.value, 1)),
 }))
 
+const heatmapSpansMultipleYears = computed(() => {
+  if (!heatmapDisplayRange.value) {
+    return false
+  }
+
+  return heatmapDisplayRange.value.displayStart.year() !== heatmapDisplayRange.value.displayEnd.year()
+})
+
 const heatmapMonthLabels = computed(() => {
   const labels: Array<{ key: string; label: string; column: number }> = []
   let lastMonthKey = ''
+  let lastYear: number | null = null
 
   for (let index = 0; index < heatmapCells.value.length; index += 7) {
     const weekCells = heatmapCells.value.slice(index, index + 7)
-    const firstInRangeCell = weekCells.find((cell) => cell.isInRange)
+    const firstInRangeCell = weekCells.find((cell) => cell.isInDisplayRange)
 
     if (!firstInRangeCell) {
       continue
@@ -117,12 +189,17 @@ const heatmapMonthLabels = computed(() => {
       continue
     }
 
+    const currentDate = dayjs(firstInRangeCell.date)
+    const year = currentDate.year()
+    const shouldShowYear = heatmapSpansMultipleYears.value && year !== lastYear
+
     labels.push({
       key: monthKey,
-      label: `${dayjs(firstInRangeCell.date).month() + 1}月`,
+      label: shouldShowYear ? `${year}年${currentDate.month() + 1}月` : `${currentDate.month() + 1}月`,
       column: index / 7 + 1,
     })
     lastMonthKey = monthKey
+    lastYear = year
   }
 
   return labels
@@ -438,7 +515,10 @@ function getPatternCount(value: unknown) {
                       class="heatmap-cell"
                       :class="[
                         `heatmap-cell--level-${cell.level}`,
-                        { 'heatmap-cell--outside': !cell.isInRange },
+                        {
+                          'heatmap-cell--muted': cell.isInDisplayRange && !cell.isInFocusRange,
+                          'heatmap-cell--outside': !cell.isInDisplayRange,
+                        },
                       ]"
                       :title="`${cell.date} · ${cell.value} 字`"
                     ></div>
@@ -906,8 +986,14 @@ function getPatternCount(value: unknown) {
   box-sizing: border-box;
 }
 
+.heatmap-cell--muted {
+  border-color: rgba(138, 129, 109, 0.1);
+  background: #eceae4;
+}
+
 .heatmap-cell--outside {
-  opacity: 0.25;
+  border-color: transparent;
+  background: transparent;
 }
 
 .heatmap-cell--level-1 {
