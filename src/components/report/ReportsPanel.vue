@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import MoodTrendChart from './MoodTrendChart.vue'
 import TagCloudView from './TagCloudView.vue'
@@ -52,6 +52,144 @@ const activeSummaryGroups = computed(() => {
       items: props.activeReport.summary.memorableMoments,
     },
   ].filter((group) => group.items.length > 0)
+})
+
+const heatmapWeekdayLabels = ['周一', '', '周三', '', '周五', '', '']
+const heatmapScrollerRef = ref<HTMLElement | null>(null)
+const heatmapCellGap = 3
+const heatmapMinCellSize = 10
+const heatmapMaxCellSize = 22
+const heatmapDefaultCellSize = 12
+const heatmapCellSize = ref(heatmapDefaultCellSize)
+let heatmapResizeObserver: ResizeObserver | null = null
+
+const heatmapCells = computed(() => {
+  if (!props.activeReport || props.activeHeatmapPoints.length === 0) {
+    return []
+  }
+
+  const pointMap = new Map(props.activeHeatmapPoints.map((point) => [point.date, point]))
+  const rangeStart = dayjs(props.activeReport.period.startDate)
+  const rangeEnd = dayjs(props.activeReport.period.endDate)
+  const gridStart = rangeStart.subtract((rangeStart.day() + 6) % 7, 'day')
+  const gridEnd = rangeEnd.add(6 - ((rangeEnd.day() + 6) % 7), 'day')
+  const totalDays = gridEnd.diff(gridStart, 'day') + 1
+
+  return Array.from({ length: totalDays }, (_, index) => {
+    const currentDate = gridStart.add(index, 'day')
+    const dateKey = currentDate.format('YYYY-MM-DD')
+    const point = pointMap.get(dateKey)
+    const value = point?.value ?? 0
+
+    return {
+      date: dateKey,
+      value,
+      level: getHeatLevel(value),
+      isInRange:
+        !currentDate.isBefore(rangeStart, 'day') && !currentDate.isAfter(rangeEnd, 'day'),
+    }
+  })
+})
+
+const heatmapWeekCount = computed(() => Math.ceil(heatmapCells.value.length / 7))
+
+const heatmapSizingStyle = computed(() => ({
+  '--heatmap-cell-size': `${heatmapCellSize.value}px`,
+  '--heatmap-cell-gap': `${heatmapCellGap}px`,
+  '--heatmap-week-count': String(Math.max(heatmapWeekCount.value, 1)),
+}))
+
+const heatmapMonthLabels = computed(() => {
+  const labels: Array<{ key: string; label: string; column: number }> = []
+  let lastMonthKey = ''
+
+  for (let index = 0; index < heatmapCells.value.length; index += 7) {
+    const weekCells = heatmapCells.value.slice(index, index + 7)
+    const firstInRangeCell = weekCells.find((cell) => cell.isInRange)
+
+    if (!firstInRangeCell) {
+      continue
+    }
+
+    const monthKey = firstInRangeCell.date.slice(0, 7)
+
+    if (monthKey === lastMonthKey) {
+      continue
+    }
+
+    labels.push({
+      key: monthKey,
+      label: `${dayjs(firstInRangeCell.date).month() + 1}月`,
+      column: index / 7 + 1,
+    })
+    lastMonthKey = monthKey
+  }
+
+  return labels
+})
+
+function updateHeatmapCellSize() {
+  const weekCount = Math.max(heatmapWeekCount.value, 1)
+  const scrollerWidth = heatmapScrollerRef.value?.clientWidth ?? 0
+
+  if (scrollerWidth <= 0) {
+    heatmapCellSize.value = heatmapDefaultCellSize
+    return
+  }
+
+  const totalGap = Math.max(weekCount - 1, 0) * heatmapCellGap
+  const nextCellSize = (scrollerWidth - totalGap) / weekCount
+
+  heatmapCellSize.value = Math.max(
+    heatmapMinCellSize,
+    Math.min(heatmapMaxCellSize, nextCellSize),
+  )
+}
+
+function bindHeatmapResizeObserver(element: HTMLElement | null) {
+  if (!heatmapResizeObserver) {
+    return
+  }
+
+  heatmapResizeObserver.disconnect()
+
+  if (element) {
+    heatmapResizeObserver.observe(element)
+  }
+}
+
+onMounted(() => {
+  if (typeof ResizeObserver !== 'undefined') {
+    heatmapResizeObserver = new ResizeObserver(() => {
+      updateHeatmapCellSize()
+    })
+    bindHeatmapResizeObserver(heatmapScrollerRef.value)
+  }
+
+  updateHeatmapCellSize()
+})
+
+watch(
+  heatmapScrollerRef,
+  async (element) => {
+    bindHeatmapResizeObserver(element)
+    await nextTick()
+    updateHeatmapCellSize()
+  },
+  { flush: 'post' },
+)
+
+watch(
+  heatmapWeekCount,
+  async () => {
+    await nextTick()
+    updateHeatmapCellSize()
+  },
+  { flush: 'post' },
+)
+
+onBeforeUnmount(() => {
+  heatmapResizeObserver?.disconnect()
 })
 
 function formatPreset(presetValue: ReportPreset) {
@@ -268,15 +406,45 @@ function getPatternCount(value: unknown) {
             <span>{{ activeHeatmapPoints.length }} 天</span>
           </div>
 
-          <div class="heatmap-grid">
-            <div
-              v-for="point in activeHeatmapPoints"
-              :key="point.date"
-              class="heatmap-cell"
-              :class="`heatmap-cell--level-${getHeatLevel(point.value)}`"
-              :title="`${point.date} · ${point.value} 字`"
-            >
-              <span>{{ dayjs(point.date).date() }}</span>
+          <div class="heatmap-shell" :style="heatmapSizingStyle">
+            <div class="heatmap-body">
+              <div class="heatmap-weekdays" aria-hidden="true">
+                <span
+                  v-for="(label, index) in heatmapWeekdayLabels"
+                  :key="`${label}-${index}`"
+                  class="heatmap-weekday-label"
+                >
+                  {{ label }}
+                </span>
+              </div>
+
+              <div ref="heatmapScrollerRef" class="heatmap-scroller">
+                <div class="heatmap-scroll-content">
+                  <div v-if="heatmapMonthLabels.length > 0" class="heatmap-months">
+                    <span
+                      v-for="month in heatmapMonthLabels"
+                      :key="month.key"
+                      class="heatmap-month-label"
+                      :style="{ gridColumn: String(month.column) }"
+                    >
+                      {{ month.label }}
+                    </span>
+                  </div>
+
+                  <div class="heatmap-grid">
+                    <div
+                      v-for="cell in heatmapCells"
+                      :key="cell.date"
+                      class="heatmap-cell"
+                      :class="[
+                        `heatmap-cell--level-${cell.level}`,
+                        { 'heatmap-cell--outside': !cell.isInRange },
+                      ]"
+                      :title="`${cell.date} · ${cell.value} 字`"
+                    ></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -647,38 +815,115 @@ function getPatternCount(value: unknown) {
 
 .heatmap-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(2.4rem, 1fr));
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--heatmap-cell-size));
+  grid-auto-columns: var(--heatmap-cell-size);
+  gap: var(--heatmap-cell-gap);
+}
+
+.heatmap-shell {
+  --heatmap-cell-size: 12px;
+  --heatmap-cell-gap: 3px;
+  --heatmap-label-top-offset: 1.4rem;
+
+  display: grid;
   gap: 0.45rem;
   margin-top: 1rem;
 }
 
-.heatmap-cell {
+.heatmap-months {
   display: grid;
-  place-items: center;
-  aspect-ratio: 1 / 1;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 8px;
-  background: #fcfbf6;
+  grid-template-columns: repeat(var(--heatmap-week-count), var(--heatmap-cell-size));
+  column-gap: var(--heatmap-cell-gap);
+}
+
+.heatmap-month-label {
+  font-size: 0.84rem;
+  line-height: 1;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.heatmap-body {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+}
+
+.heatmap-weekdays {
+  display: grid;
+  grid-template-rows: repeat(7, var(--heatmap-cell-size));
+  gap: var(--heatmap-cell-gap);
+  flex: 0 0 2.5rem;
+  padding-top: var(--heatmap-label-top-offset);
+  box-sizing: border-box;
+}
+
+.heatmap-weekday-label {
+  display: flex;
+  align-items: center;
+  height: var(--heatmap-cell-size);
   font-size: 0.82rem;
   color: var(--color-text-subtle);
 }
 
+.heatmap-scroller {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
+.heatmap-scroller::-webkit-scrollbar {
+  height: 8px;
+}
+
+.heatmap-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.heatmap-scroller::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(206, 192, 155, 0.9);
+}
+
+.heatmap-scroll-content {
+  display: grid;
+  gap: 0.45rem;
+  width: max-content;
+}
+
+.heatmap-cell {
+  width: var(--heatmap-cell-size);
+  height: var(--heatmap-cell-size);
+  border: 1px solid rgba(217, 203, 159, 0.18);
+  border-radius: 3px;
+  background: #f4efe1;
+  box-sizing: border-box;
+}
+
+.heatmap-cell--outside {
+  opacity: 0.25;
+}
+
 .heatmap-cell--level-1 {
-  background: #f8f2df;
+  background: #e7dcc0;
 }
 
 .heatmap-cell--level-2 {
-  background: #f3e7c4;
+  background: #d9c89d;
 }
 
 .heatmap-cell--level-3 {
-  background: #ead89f;
-  color: #54472d;
+  background: #c8ad6f;
 }
 
 .heatmap-cell--level-4 {
-  background: #ddc170;
-  color: #47391f;
+  background: #a5803c;
 }
 
 .tag-cloud {
