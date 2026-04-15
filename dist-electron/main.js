@@ -1893,7 +1893,7 @@ function jr(t, e, n) {
   return t === "month" ? `${e.format("YYYY 年 M 月")}总结` : t === "year" ? `${e.format("YYYY 年")}总结` : `${e.format("YYYY 年 M 月 D 日")} 至 ${n.format("YYYY 年 M 月 D 日")}总结`;
 }
 function Yr(t, e, n) {
-  return t === "month" ? `${e.format("YYYY 年 M 月")}还没有任何日记，无法生成报告。` : t === "year" ? `${e.format("YYYY 年")}还没有任何日记，无法生成报告。` : `${e.format("YYYY-MM-DD")} 至 ${n.format("YYYY-MM-DD")} 这段时间还没有任何日记，无法生成报告。`;
+  return t === "month" ? `${e.format("YYYY 年 M 月")}没有任何日记，无法生成报告。` : t === "year" ? `${e.format("YYYY 年")}没有任何日记，无法生成报告。` : `${e.format("YYYY-MM-DD")} 至 ${n.format("YYYY-MM-DD")} 这段时间没有任何日记，无法生成报告。`;
 }
 function wr(t, e, n) {
   return t === "month" ? `month_${e.format("YYYY-MM")}` : t === "year" ? `year_${e.format("YYYY")}` : `custom_${e.format("YYYY-MM-DD")}_${n.format("YYYY-MM-DD")}_${Date.now()}`;
@@ -2091,7 +2091,7 @@ function zr() {
 }
 function Fe() {
   xe.setApplicationMenu(null), lt = !1, ct = !1, k = new Ft({
-    width: 1440,
+    width: 1600,
     height: 1e3,
     minWidth: 1080,
     minHeight: 720,

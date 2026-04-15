@@ -211,7 +211,7 @@ function goToCurrentYear() {
           type="button"
           @click="emit('update:preset', 'month')"
         >
-          本月
+          月度
         </button>
         <button
           class="preset-tab"
@@ -219,7 +219,7 @@ function goToCurrentYear() {
           type="button"
           @click="emit('update:preset', 'year')"
         >
-          本年
+          年度
         </button>
         <button
           class="preset-tab"

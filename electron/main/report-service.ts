@@ -589,14 +589,14 @@ function buildEmptyReportMessage(
   endDate: dayjs.Dayjs,
 ) {
   if (preset === 'month') {
-    return `${startDate.format('YYYY 年 M 月')}还没有任何日记，无法生成报告。`
+    return `${startDate.format('YYYY 年 M 月')}没有任何日记，无法生成报告。`
   }
 
   if (preset === 'year') {
-    return `${startDate.format('YYYY 年')}还没有任何日记，无法生成报告。`
+    return `${startDate.format('YYYY 年')}没有任何日记，无法生成报告。`
   }
 
-  return `${startDate.format('YYYY-MM-DD')} 至 ${endDate.format('YYYY-MM-DD')} 这段时间还没有任何日记，无法生成报告。`
+  return `${startDate.format('YYYY-MM-DD')} 至 ${endDate.format('YYYY-MM-DD')} 这段时间没有任何日记，无法生成报告。`
 }
 
 function createReportId(

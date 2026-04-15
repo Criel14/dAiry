@@ -34,7 +34,7 @@ export function createMainWindow() {
   isForceClosingWindow = false
 
   win = new BrowserWindow({
-    width: 1440,
+    width: 1600,
     height: 1000,
     minWidth: 1080,
     minHeight: 720,

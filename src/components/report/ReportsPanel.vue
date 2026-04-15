@@ -61,6 +61,7 @@ const heatmapMinCellSize = 10
 const heatmapMaxCellSize = 22
 const heatmapDefaultCellSize = 12
 const heatmapCustomContextMonthCount = 13
+const maxPatternItems = 6
 const heatmapCellSize = ref(heatmapDefaultCellSize)
 let heatmapMeasureFrame = 0
 let heatmapResizeObserver: ResizeObserver | null = null
@@ -171,6 +172,9 @@ const heatmapSpansMultipleYears = computed(() => {
 
   return heatmapDisplayRange.value.displayStart.year() !== heatmapDisplayRange.value.displayEnd.year()
 })
+
+const visibleLocationRanking = computed(() => props.activeLocationPatterns?.ranking.slice(0, maxPatternItems) ?? [])
+const visibleTimeBuckets = computed(() => props.activeTimePatterns?.buckets.slice(0, maxPatternItems) ?? [])
 
 const heatmapMonthLabels = computed(() => {
   const labels: Array<{ key: string; label: string; column: number }> = []
@@ -613,9 +617,9 @@ function getPatternCount(value: unknown) {
             </article>
           </div>
 
-          <div v-if="activeLocationPatterns.ranking.length > 0" class="pattern-compact-list">
+          <div v-if="visibleLocationRanking.length > 0" class="pattern-compact-list">
             <div
-              v-for="(item, index) in activeLocationPatterns.ranking"
+              v-for="(item, index) in visibleLocationRanking"
               :key="item.name"
               class="pattern-compact-row"
             >
@@ -662,9 +666,9 @@ function getPatternCount(value: unknown) {
             </article>
           </div>
 
-          <div v-if="activeTimePatterns.buckets.length > 0" class="pattern-compact-list">
+          <div v-if="visibleTimeBuckets.length > 0" class="pattern-compact-list">
             <div
-              v-for="(item, index) in activeTimePatterns.buckets"
+              v-for="(item, index) in visibleTimeBuckets"
               :key="item.label"
               class="pattern-compact-row"
             >
