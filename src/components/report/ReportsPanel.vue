@@ -988,7 +988,15 @@ function getPatternCount(value: unknown) {
 
 .heatmap-cell--muted {
   border-color: rgba(138, 129, 109, 0.1);
-  background: #eceae4;
+  background:
+    linear-gradient(
+      135deg,
+      transparent calc(50% - 0.7px),
+      rgba(138, 129, 109, 0.2) calc(50% - 0.7px),
+      rgba(138, 129, 109, 0.2) calc(50% + 0.7px),
+      transparent calc(50% + 0.7px)
+    ),
+    #f1efea;
 }
 
 .heatmap-cell--outside {
