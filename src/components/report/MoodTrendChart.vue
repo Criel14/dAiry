@@ -356,6 +356,8 @@ const xTicks = computed(() => {
 const hasRenderablePoints = computed(() => renderPoints.value.length > 0)
 const positiveClipId = `${chartId}-positive`
 const negativeClipId = `${chartId}-negative`
+const positiveAreaGradientId = `${chartId}-positive-area`
+const negativeAreaGradientId = `${chartId}-negative-area`
 const tooltipStyle = computed(() => {
   if (!hoveredPoint.value) {
     return null
@@ -402,6 +404,16 @@ onBeforeUnmount(() => {
         @mouseleave="handleChartLeave"
       >
         <defs>
+          <linearGradient :id="positiveAreaGradientId" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#66a86e" stop-opacity="0.18" />
+            <stop offset="55%" stop-color="#66a86e" stop-opacity="0.08" />
+            <stop offset="100%" stop-color="#66a86e" stop-opacity="0.02" />
+          </linearGradient>
+          <linearGradient :id="negativeAreaGradientId" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#cb6363" stop-opacity="0.02" />
+            <stop offset="45%" stop-color="#cb6363" stop-opacity="0.08" />
+            <stop offset="100%" stop-color="#cb6363" stop-opacity="0.18" />
+          </linearGradient>
           <clipPath :id="positiveClipId">
             <rect
               :x="PADDING_LEFT"
@@ -475,6 +487,7 @@ onBeforeUnmount(() => {
             :key="`${segment.key}-positive`"
             :d="segment.areaPath"
             class="mood-chart-area mood-chart-area--positive"
+            :fill="`url(#${positiveAreaGradientId})`"
             :clip-path="`url(#${positiveClipId})`"
           />
           <path
@@ -482,6 +495,7 @@ onBeforeUnmount(() => {
             :key="`${segment.key}-negative`"
             :d="segment.areaPath"
             class="mood-chart-area mood-chart-area--negative"
+            :fill="`url(#${negativeAreaGradientId})`"
             :clip-path="`url(#${negativeClipId})`"
           />
         </g>
@@ -569,11 +583,11 @@ onBeforeUnmount(() => {
     <div class="mood-chart-legend">
       <span class="legend-item">
         <i class="legend-swatch legend-swatch--positive" />
-        正向情绪
+        正面情绪
       </span>
       <span class="legend-item">
         <i class="legend-swatch legend-swatch--negative" />
-        负向情绪
+        负面情绪
       </span>
     </div>
   </div>
@@ -646,14 +660,6 @@ onBeforeUnmount(() => {
 
 .mood-chart-area {
   stroke: none;
-}
-
-.mood-chart-area--positive {
-  fill: rgba(102, 168, 110, 0.24);
-}
-
-.mood-chart-area--negative {
-  fill: rgba(203, 99, 99, 0.24);
 }
 
 .mood-chart-line {
