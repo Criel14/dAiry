@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string[]
@@ -16,8 +16,6 @@ const isInputVisible = ref(false)
 const inputValue = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
 
-const items = computed(() => props.modelValue)
-
 function normalizeItems(values: string[]) {
   const uniqueItems = new Set<string>()
 
@@ -33,14 +31,42 @@ function normalizeItems(values: string[]) {
   return [...uniqueItems]
 }
 
+const currentItems = ref<string[]>(normalizeItems(props.modelValue))
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    currentItems.value = normalizeItems(value)
+  },
+  { deep: true },
+)
+
+watch(
+  () => props.disabled,
+  (value) => {
+    if (value) {
+      hideInput()
+    }
+  },
+)
+
+const items = computed(() => currentItems.value)
+
+function emitItems(nextItems: string[]) {
+  const normalizedItems = normalizeItems(nextItems)
+  currentItems.value = normalizedItems
+  emit('update:modelValue', normalizedItems)
+}
+
 function showInput() {
-  if (props.disabled) {
+  if (props.disabled || isInputVisible.value) {
     return
   }
 
   isInputVisible.value = true
   void nextTick(() => {
     inputRef.value?.focus()
+    inputRef.value?.select()
   })
 }
 
@@ -57,15 +83,17 @@ function commitItem(rawValue: string) {
     return
   }
 
-  emit('update:modelValue', normalizeItems([...props.modelValue, nextValue]))
+  if (currentItems.value.includes(nextValue)) {
+    hideInput()
+    return
+  }
+
+  emitItems([...currentItems.value, nextValue])
   hideInput()
 }
 
 function removeItem(itemToRemove: string) {
-  emit(
-    'update:modelValue',
-    props.modelValue.filter((item) => item !== itemToRemove),
-  )
+  emitItems(currentItems.value.filter((item) => item !== itemToRemove))
 }
 
 function handleInputBlur() {
@@ -105,6 +133,8 @@ function handleInputBlur() {
         class="add-button"
         type="button"
         :disabled="disabled"
+        aria-label="添加词库项"
+        @pointerdown.prevent="showInput"
         @click="showInput"
       >
         添加
@@ -114,6 +144,7 @@ function handleInputBlur() {
         v-else
         ref="inputRef"
         v-model="inputValue"
+        autofocus
         class="editor-input"
         type="text"
         :placeholder="placeholder"
