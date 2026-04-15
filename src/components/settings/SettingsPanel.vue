@@ -31,10 +31,8 @@ const props = defineProps<{
   isSavingWorkspaceLibraries: boolean
   workspaceLibrariesSaveMessage: string
   aiSettingsStatus: AiSettingsStatus
-  isSavingAiSettings: boolean
-  aiSettingsSaveMessage: string
-  isSavingAiApiKey: boolean
-  aiApiKeySaveMessage: string
+  isSavingAiConfig: boolean
+  aiSaveMessage: string
   activeSectionId: SettingsSectionId
 }>()
 
@@ -49,10 +47,8 @@ const emit = defineEmits<{
       locationOptions: string[]
     },
   ]
-  saveAiSettings: [value: AiSettings]
-  saveAiApiKey: [
-    value: {
-      providerType: AiSettings['providerType']
+  saveAiConfiguration: [
+    value: AiSettings & {
       apiKey: string
     },
   ]
@@ -110,12 +106,9 @@ function openDebugPanel() {
       <SettingsAiSection
         v-else-if="activeSectionId === 'llm'"
         :ai-settings-status="props.aiSettingsStatus"
-        :is-saving-ai-settings="props.isSavingAiSettings"
-        :ai-settings-save-message="props.aiSettingsSaveMessage"
-        :is-saving-ai-api-key="props.isSavingAiApiKey"
-        :ai-api-key-save-message="props.aiApiKeySaveMessage"
-        @save-ai-settings="emit('saveAiSettings', $event)"
-        @save-ai-api-key="emit('saveAiApiKey', $event)"
+        :is-saving-ai-config="props.isSavingAiConfig"
+        :ai-save-message="props.aiSaveMessage"
+        @save-ai-configuration="emit('saveAiConfiguration', $event)"
       />
 
       <SettingsLibrariesSection

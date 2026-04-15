@@ -6,17 +6,13 @@ import { AI_PROVIDER_OPTIONS, getAiDefaults } from './config'
 
 const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
-  isSavingAiSettings: boolean
-  aiSettingsSaveMessage: string
-  isSavingAiApiKey: boolean
-  aiApiKeySaveMessage: string
+  isSavingAiConfig: boolean
+  aiSaveMessage: string
 }>()
 
 const emit = defineEmits<{
-  saveAiSettings: [value: AiSettings]
-  saveAiApiKey: [
-    value: {
-      providerType: AiProviderType
+  saveAiConfiguration: [
+    value: AiSettings & {
       apiKey: string
     },
   ]
@@ -28,50 +24,40 @@ const draftApiKey = ref('')
 watch(
   () => props.aiSettingsStatus,
   (value) => {
+    if (props.isSavingAiConfig) {
+      return
+    }
+
     draftAiSettings.value = { ...value.settings }
-    if (!props.isSavingAiApiKey) {
+  },
+  { deep: true, immediate: true },
+)
+
+watch(
+  () => props.isSavingAiConfig,
+  (value, previousValue) => {
+    if (!value && previousValue) {
+      draftAiSettings.value = { ...props.aiSettingsStatus.settings }
       draftApiKey.value = ''
     }
   },
-  { deep: true, immediate: true },
 )
 
 const isAiSettingsDirty = computed(() => {
   return JSON.stringify(draftAiSettings.value) !== JSON.stringify(props.aiSettingsStatus.settings)
 })
 
-const canSaveAiSettings = computed(() => {
-  return (
-    !props.isSavingAiSettings &&
-    Boolean(draftAiSettings.value.baseURL.trim()) &&
-    Boolean(draftAiSettings.value.model.trim()) &&
-    isAiSettingsDirty.value
-  )
+const canSaveAiConfiguration = computed(() => {
+  return !props.isSavingAiConfig && (isAiSettingsDirty.value || Boolean(draftApiKey.value.trim()))
 })
-
-const canSaveAiApiKey = computed(
-  () => !props.isSavingAiApiKey && Boolean(draftApiKey.value.trim()),
-)
 
 const isViewingSavedProvider = computed(
   () => draftAiSettings.value.providerType === props.aiSettingsStatus.settings.providerType,
 )
 
-const apiKeyStatusText = computed(() => {
-  if (!isViewingSavedProvider.value) {
-    return '待保存'
-  }
-
-  return props.aiSettingsStatus.hasApiKey ? '已配置密钥' : '未配置密钥'
-})
-
 const apiKeyInputPlaceholder = computed(() => {
-  if (draftApiKey.value.trim()) {
-    return '输入 API Key'
-  }
-
   if (isViewingSavedProvider.value && props.aiSettingsStatus.hasApiKey) {
-    return '密钥已保存，输入新值可覆盖'
+    return '已保存密钥，输入新值可覆盖'
   }
 
   return '输入 API Key'
@@ -93,12 +79,31 @@ function handleProviderTypeChange(event: Event) {
   }
 }
 
-function emitSaveAiSettings() {
-  emit('saveAiSettings', {
+function emitSaveAiConfiguration() {
+  if (!draftAiSettings.value.baseURL.trim()) {
+    window.alert('请先填写 Base URL。')
+    return
+  }
+
+  if (!draftAiSettings.value.model.trim()) {
+    window.alert('请先填写 Model Name。')
+    return
+  }
+
+  const hasSavedApiKeyForCurrentDraftProvider =
+    isViewingSavedProvider.value && props.aiSettingsStatus.hasApiKey
+
+  if (!draftApiKey.value.trim() && !hasSavedApiKeyForCurrentDraftProvider) {
+    window.alert('请先填写 API Key。')
+    return
+  }
+
+  emit('saveAiConfiguration', {
     providerType: draftAiSettings.value.providerType,
     baseURL: draftAiSettings.value.baseURL,
     model: draftAiSettings.value.model,
     timeoutMs: draftAiSettings.value.timeoutMs,
+    apiKey: draftApiKey.value,
   })
 }
 </script>
@@ -127,7 +132,7 @@ function emitSaveAiSettings() {
           <select
             class="field-input"
             :value="draftAiSettings.providerType"
-            :disabled="isSavingAiSettings"
+            :disabled="isSavingAiConfig"
             @change="handleProviderTypeChange"
           >
             <option
@@ -149,7 +154,7 @@ function emitSaveAiSettings() {
             v-model="draftAiSettings.baseURL"
             class="field-input"
             type="text"
-            :disabled="isSavingAiSettings"
+            :disabled="isSavingAiConfig"
             placeholder="https://api.openai.com/v1"
           />
         </label>
@@ -163,8 +168,22 @@ function emitSaveAiSettings() {
             v-model="draftAiSettings.model"
             class="field-input"
             type="text"
-            :disabled="isSavingAiSettings"
+            :disabled="isSavingAiConfig"
             placeholder="gpt-4.1-mini"
+          />
+        </label>
+
+        <label class="field">
+          <span class="field-label field-label--with-tip">
+            API Key
+            <SettingsInfoTip text="这里只会保存当前 provider 的 API Key，写入系统安全存储后不会回显明文。" />
+          </span>
+          <input
+            v-model="draftApiKey"
+            class="field-input"
+            type="password"
+            :disabled="isSavingAiConfig"
+            :placeholder="apiKeyInputPlaceholder"
           />
         </label>
       </div>
@@ -173,67 +192,15 @@ function emitSaveAiSettings() {
         <button
           class="save-button"
           type="button"
-          :disabled="!canSaveAiSettings"
-          @click="emitSaveAiSettings"
+          :disabled="!canSaveAiConfiguration"
+          @click="emitSaveAiConfiguration"
         >
-          {{ isSavingAiSettings ? '正在保存' : '保存' }}
+          {{ isSavingAiConfig ? '正在保存' : '保存' }}
         </button>
       </div>
 
-      <p v-if="aiSettingsSaveMessage" class="setting-feedback">
-        {{ aiSettingsSaveMessage }}
-      </p>
-    </section>
-
-    <section class="settings-card">
-      <div class="panel-heading">
-        <span class="panel-label">API Key</span>
-        <SettingsInfoTip text="这里只会写入当前 provider 的 API Key，保存后不会回显明文。" />
-      </div>
-
-      <div class="workspace-summary">
-        <div class="workspace-summary-copy">
-          <p class="panel-description">
-            {{
-              isViewingSavedProvider
-                ? '切换 provider 后，如需使用新的服务商，请重新保存对应密钥。'
-                : '你正在编辑尚未保存的 provider，密钥状态会在保存后更新。'
-            }}
-          </p>
-        </div>
-      </div>
-
-      <label class="field">
-        <span class="field-label">当前密钥</span>
-        <input
-          v-model="draftApiKey"
-          class="field-input"
-          type="password"
-          :disabled="isSavingAiApiKey"
-          :placeholder="apiKeyInputPlaceholder"
-        />
-      </label>
-
-      <p class="setting-feedback">当前状态：{{ apiKeyStatusText }}</p>
-
-      <div class="library-actions">
-        <button
-          class="save-button"
-          type="button"
-          :disabled="!canSaveAiApiKey"
-          @click="
-            emit('saveAiApiKey', {
-              providerType: draftAiSettings.providerType,
-              apiKey: draftApiKey,
-            })
-          "
-        >
-          {{ isSavingAiApiKey ? '正在保存' : '保存' }}
-        </button>
-      </div>
-
-      <p v-if="aiApiKeySaveMessage" class="setting-feedback">
-        {{ aiApiKeySaveMessage }}
+      <p v-if="aiSaveMessage" class="setting-feedback">
+        {{ aiSaveMessage }}
       </p>
     </section>
   </div>

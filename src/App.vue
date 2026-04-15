@@ -147,8 +147,7 @@ const heatmapSaveMessage = ref('')
 const dayStartHourSaveMessage = ref('')
 const frontmatterVisibilitySaveMessage = ref('')
 const workspaceLibrariesSaveMessage = ref('')
-const aiSettingsSaveMessage = ref('')
-const aiApiKeySaveMessage = ref('')
+const aiSaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
 const isSavingMetadata = ref(false)
@@ -157,8 +156,7 @@ const isSavingJournalHeatmap = ref(false)
 const isSavingDayStartHour = ref(false)
 const isSavingFrontmatterVisibility = ref(false)
 const isSavingWorkspaceLibraries = ref(false)
-const isSavingAiSettings = ref(false)
-const isSavingAiApiKey = ref(false)
+const isSavingAiConfig = ref(false)
 const isJournalHeatmapEnabled = ref(false)
 const dayStartHour = ref(0)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
@@ -840,42 +838,46 @@ async function handleSaveWorkspaceLibraries(input: {
   }
 }
 
-async function handleSaveAiSettings(nextSettings: AiSettings) {
-  isSavingAiSettings.value = true
-  aiSettingsSaveMessage.value = ''
+async function handleSaveAiConfiguration(
+  input: AiSettings & {
+    apiKey: string
+  },
+) {
+  isSavingAiConfig.value = true
+  aiSaveMessage.value = ''
 
   try {
-    const nextStatus = await window.dairy.saveAiSettings({
-      providerType: nextSettings.providerType,
-      baseURL: nextSettings.baseURL,
-      model: nextSettings.model,
-      timeoutMs: nextSettings.timeoutMs,
+    const settingsStatus = await window.dairy.saveAiSettings({
+      providerType: input.providerType,
+      baseURL: input.baseURL,
+      model: input.model,
+      timeoutMs: input.timeoutMs,
     })
-    aiSettingsStatus.value = nextStatus
-    aiSettingsSaveMessage.value = nextStatus.hasApiKey
-      ? '大模型配置已保存。'
-      : '大模型配置已保存，请继续设置当前 provider 的 API Key。'
+    aiSettingsStatus.value = settingsStatus
+
+    const apiKey = input.apiKey.trim()
+    if (!apiKey) {
+      aiSaveMessage.value = '大模型配置已保存。'
+      return
+    }
+
+    try {
+      const nextStatus = await window.dairy.saveAiApiKey({
+        providerType: input.providerType,
+        apiKey,
+      })
+      aiSettingsStatus.value = nextStatus
+      aiSaveMessage.value = '大模型配置和 API Key 已保存。'
+    } catch (error) {
+      aiSaveMessage.value = `大模型配置已保存，但 API Key 保存失败：${
+        error instanceof Error ? error.message : '请稍后重试。'
+      }`
+    }
   } catch (error) {
-    aiSettingsSaveMessage.value =
+    aiSaveMessage.value =
       error instanceof Error ? error.message : '保存大模型配置失败，请稍后重试。'
   } finally {
-    isSavingAiSettings.value = false
-  }
-}
-
-async function handleSaveAiApiKey(input: { providerType: AiSettings['providerType']; apiKey: string }) {
-  isSavingAiApiKey.value = true
-  aiApiKeySaveMessage.value = ''
-
-  try {
-    const nextStatus = await window.dairy.saveAiApiKey(input)
-    aiSettingsStatus.value = nextStatus
-    aiApiKeySaveMessage.value = 'API Key 已保存。'
-  } catch (error) {
-    aiApiKeySaveMessage.value =
-      error instanceof Error ? error.message : '保存 API Key 失败，请稍后重试。'
-  } finally {
-    isSavingAiApiKey.value = false
+    isSavingAiConfig.value = false
   }
 }
 </script>
@@ -988,17 +990,14 @@ async function handleSaveAiApiKey(input: { providerType: AiSettings['providerTyp
         :is-saving-workspace-libraries="isSavingWorkspaceLibraries"
         :workspace-libraries-save-message="workspaceLibrariesSaveMessage"
         :ai-settings-status="aiSettingsStatus"
-        :is-saving-ai-settings="isSavingAiSettings"
-        :ai-settings-save-message="aiSettingsSaveMessage"
-        :is-saving-ai-api-key="isSavingAiApiKey"
-        :ai-api-key-save-message="aiApiKeySaveMessage"
+        :is-saving-ai-config="isSavingAiConfig"
+        :ai-save-message="aiSaveMessage"
         :active-section-id="activeSettingsSectionId"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
-        @save-ai-settings="handleSaveAiSettings"
-        @save-ai-api-key="handleSaveAiApiKey"
+        @save-ai-configuration="handleSaveAiConfiguration"
       />
 
       <ReportsPanel
