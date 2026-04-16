@@ -176,6 +176,18 @@ const heatmapSpansMultipleYears = computed(() => {
 const visibleLocationRanking = computed(() => props.activeLocationPatterns?.ranking.slice(0, maxPatternItems) ?? [])
 const visibleTimeBuckets = computed(() => props.activeTimePatterns?.buckets.slice(0, maxPatternItems) ?? [])
 
+function getPatternListClass(count: number) {
+  if (count >= 5) {
+    return 'pattern-compact-list--cols-3'
+  }
+
+  if (count >= 3) {
+    return 'pattern-compact-list--cols-2'
+  }
+
+  return 'pattern-compact-list--cols-1'
+}
+
 const heatmapMonthLabels = computed(() => {
   const labels: Array<{ key: string; label: string; column: number }> = []
   let lastMonthKey = ''
@@ -597,7 +609,10 @@ function getPatternCount(value: unknown) {
             <h4>地点分析</h4>
           </div>
 
-          <div class="pattern-overview">
+          <div
+            class="pattern-layout"
+            :class="{ 'pattern-layout--single': visibleLocationRanking.length === 0 }"
+          >
             <article class="pattern-summary-card">
               <span class="pattern-summary-label">最常地点</span>
               <div class="pattern-summary-main">
@@ -615,28 +630,32 @@ function getPatternCount(value: unknown) {
                 </em>
               </div>
             </article>
-          </div>
 
-          <div v-if="visibleLocationRanking.length > 0" class="pattern-compact-list">
             <div
-              v-for="(item, index) in visibleLocationRanking"
-              :key="item.name"
-              class="pattern-compact-row"
+              v-if="visibleLocationRanking.length > 0"
+              class="pattern-compact-list"
+              :class="getPatternListClass(visibleLocationRanking.length)"
             >
-              <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
-              <strong class="pattern-compact-label">{{ item.name }}</strong>
-              <div class="pattern-compact-track">
-                <div
-                  class="pattern-compact-fill"
-                  :style="{
-                    width: getRankingFillWidth(
-                      item.count,
-                      activeLocationPatterns.topLocation?.count ?? item.count,
-                    ),
-                  }"
-                ></div>
+              <div
+                v-for="(item, index) in visibleLocationRanking"
+                :key="item.name"
+                class="pattern-compact-row"
+              >
+                <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
+                <strong class="pattern-compact-label">{{ item.name }}</strong>
+                <div class="pattern-compact-track">
+                  <div
+                    class="pattern-compact-fill"
+                    :style="{
+                      width: getRankingFillWidth(
+                        item.count,
+                        activeLocationPatterns.topLocation?.count ?? item.count,
+                      ),
+                    }"
+                  ></div>
+                </div>
+                <span class="pattern-compact-count">{{ item.count }} 次</span>
               </div>
-              <span class="pattern-compact-count">{{ item.count }} 次</span>
             </div>
           </div>
         </section>
@@ -646,7 +665,10 @@ function getPatternCount(value: unknown) {
             <h4>时间段分析</h4>
           </div>
 
-          <div class="pattern-overview">
+          <div
+            class="pattern-layout"
+            :class="{ 'pattern-layout--single': visibleTimeBuckets.length === 0 }"
+          >
             <article class="pattern-summary-card">
               <span class="pattern-summary-label">最常时间段</span>
               <div class="pattern-summary-main">
@@ -656,7 +678,7 @@ function getPatternCount(value: unknown) {
             </article>
 
             <article class="pattern-summary-card pattern-summary-card--accent">
-              <span class="pattern-summary-label">特别时段</span>
+              <span class="pattern-summary-label">特别时间段</span>
               <div class="pattern-summary-main">
                 <strong>{{ activeTimePatterns.uniqueTimeBucket?.label ?? '暂无' }}</strong>
                 <em v-if="getPatternCount(activeTimePatterns.uniqueTimeBucket) !== null">
@@ -664,28 +686,32 @@ function getPatternCount(value: unknown) {
                 </em>
               </div>
             </article>
-          </div>
 
-          <div v-if="visibleTimeBuckets.length > 0" class="pattern-compact-list">
             <div
-              v-for="(item, index) in visibleTimeBuckets"
-              :key="item.label"
-              class="pattern-compact-row"
+              v-if="visibleTimeBuckets.length > 0"
+              class="pattern-compact-list"
+              :class="getPatternListClass(visibleTimeBuckets.length)"
             >
-              <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
-              <strong class="pattern-compact-label">{{ item.label }}</strong>
-              <div class="pattern-compact-track">
-                <div
-                  class="pattern-compact-fill"
-                  :style="{
-                    width: getRankingFillWidth(
-                      item.count,
-                      activeTimePatterns.topTimeBucket?.count ?? item.count,
-                    ),
-                  }"
-                ></div>
+              <div
+                v-for="(item, index) in visibleTimeBuckets"
+                :key="item.label"
+                class="pattern-compact-row"
+              >
+                <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
+                <strong class="pattern-compact-label">{{ item.label }}</strong>
+                <div class="pattern-compact-track">
+                  <div
+                    class="pattern-compact-fill"
+                    :style="{
+                      width: getRankingFillWidth(
+                        item.count,
+                        activeTimePatterns.topTimeBucket?.count ?? item.count,
+                      ),
+                    }"
+                  ></div>
+                </div>
+                <span class="pattern-compact-count">{{ item.count }} 次</span>
               </div>
-              <span class="pattern-compact-count">{{ item.count }} 次</span>
             </div>
           </div>
         </section>
@@ -912,6 +938,18 @@ function getPatternCount(value: unknown) {
   border: 1px solid rgba(229, 220, 197, 0.9);
   border-radius: 12px;
   background: rgba(250, 246, 234, 0.42);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.report-hero-stat:hover {
+  background: #f8f3e7;
+  border-color: #dbcba4;
+  box-shadow: 0 8px 18px rgba(102, 82, 32, 0.06);
+  transform: translateY(-1px);
 }
 
 .report-hero-stat span {
@@ -1134,19 +1172,20 @@ function getPatternCount(value: unknown) {
 }
 
 .summary-item-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: 0.75rem;
+  align-items: start;
 }
 
 .summary-item-card {
   display: grid;
+  align-content: start;
   gap: 0.28rem;
-  min-width: min(100%, 16rem);
-  max-width: 22rem;
-  padding: 0.2rem 0;
+  min-width: 0;
+  padding: 0.2rem 0 0.2rem 0.85rem;
+  border-left: 1px solid rgba(217, 203, 159, 0.38);
   background: transparent;
-  flex: 1 1 15rem;
 }
 
 .summary-item-time {
@@ -1218,19 +1257,26 @@ function getPatternCount(value: unknown) {
   line-height: 1.7;
 }
 
-.pattern-overview {
+.pattern-layout {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
+  grid-template-columns: minmax(9.8rem, 10.6rem) minmax(9.8rem, 10.6rem) minmax(0, 1fr);
+  gap: 0.85rem;
   margin-top: 0.85rem;
+  align-items: stretch;
+}
+
+.pattern-layout--single {
+  grid-template-columns: repeat(2, minmax(9.8rem, 10.6rem));
 }
 
 .pattern-summary-card {
   display: grid;
-  gap: 0.32rem;
-  padding: 0.8rem 0.9rem;
+  align-content: start;
+  gap: 0.28rem;
+  min-height: 4.9rem;
+  padding: 0.72rem 0.9rem;
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 14px;
   background: #fffef9;
   transition:
     background-color 180ms ease,
@@ -1244,7 +1290,7 @@ function getPatternCount(value: unknown) {
 }
 
 .pattern-summary-card:hover {
-  background: #faf6eb;
+  background: #f8f3e7;
   border-color: #dccda8;
   box-shadow: 0 10px 22px rgba(102, 82, 32, 0.08);
   transform: translateY(-1px);
@@ -1252,45 +1298,65 @@ function getPatternCount(value: unknown) {
 
 .pattern-summary-label {
   color: var(--color-text-subtle);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   letter-spacing: 0.02em;
 }
 
 .pattern-summary-main {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
+  display: grid;
+  gap: 0.16rem;
 }
 
 .pattern-summary-main strong {
   color: var(--color-text-main);
-  font-size: 1rem;
-  line-height: 1.35;
+  font-size: 1.02rem;
+  line-height: 1.25;
 }
 
 .pattern-summary-main em {
   font-style: normal;
   color: #9d8657;
-  font-size: 0.8rem;
+  font-size: 0.77rem;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
 .pattern-compact-list {
   display: grid;
+  --pattern-label-column: minmax(0, 1.45fr);
+  --pattern-track-column: minmax(3.8rem, 1.05fr);
+  gap: 0.55rem 0.7rem;
+  align-content: start;
+}
+
+.pattern-compact-list--cols-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pattern-compact-list--cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem 0.65rem;
-  margin-top: 0.8rem;
+}
+
+.pattern-compact-list--cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  --pattern-label-column: minmax(0, 1.2fr);
+  --pattern-track-column: minmax(2.8rem, 0.9fr);
+}
+
+.pattern-compact-list--cols-3 .pattern-compact-row {
+  grid-template-columns: 2rem var(--pattern-label-column) var(--pattern-track-column) auto;
+  gap: 0.45rem;
 }
 
 .pattern-compact-row {
   display: grid;
-  grid-template-columns: 2rem minmax(0, 1fr) minmax(3.2rem, 6.5rem) auto;
+  grid-template-columns: 2rem var(--pattern-label-column) var(--pattern-track-column) auto;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.62rem 0.72rem;
+  min-height: 3rem;
+  padding: 0.68rem 0.76rem;
   border: 1px solid var(--color-border-soft);
-  border-radius: 9px;
+  border-radius: 11px;
   background: #fffef9;
   transition:
     background-color 180ms ease,
@@ -1323,6 +1389,10 @@ function getPatternCount(value: unknown) {
   font-size: 0.88rem;
   line-height: 1.35;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: keep-all;
 }
 
 .pattern-compact-track {
@@ -1372,14 +1442,31 @@ function getPatternCount(value: unknown) {
     padding-top: 1rem;
   }
 
-  .pattern-overview,
+  .pattern-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .pattern-compact-list {
-    grid-template-columns: 1fr;
+    grid-column: 1 / -1;
+  }
+
+  .pattern-compact-list--cols-1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pattern-compact-list--cols-2,
+  .pattern-compact-list--cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 520px) {
   .report-hero-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pattern-layout,
+  .pattern-compact-list {
     grid-template-columns: 1fr;
   }
 }
