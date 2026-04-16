@@ -14,6 +14,7 @@ const props = defineProps<{
   editorContent: string
   statusMessage: string
   isCreatingEntry: boolean
+  isSelectedDateToday: boolean
 }>()
 
 const emit = defineEmits<{
@@ -85,6 +86,9 @@ function handlePreviewClick(event: MouseEvent) {
   <section v-else-if="viewState === 'history-empty'" class="empty-state">
     <h3>这一天没有写日记</h3>
     <p>也许是忘记了呢...</p>
+    <button class="primary-button" type="button" :disabled="isCreatingEntry" @click="$emit('createEntry')">
+      {{ isCreatingEntry ? '正在创建...' : '补写日记' }}
+    </button>
   </section>
 
   <section v-else-if="viewState === 'future-empty'" class="empty-state">
@@ -105,7 +109,7 @@ function handlePreviewClick(event: MouseEvent) {
       v-if="editorMode === 'source'"
       v-model="editorContentModel"
       class="editor-textarea"
-      placeholder="在这里开始写今天的内容吧..."
+      :placeholder="isSelectedDateToday ? '在这里开始写今天的内容吧...' : '在这里开始写这一天的内容吧...'"
       spellcheck="false"
       @keydown="handleEditorKeydown"
     />

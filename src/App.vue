@@ -179,8 +179,11 @@ const isMetadataDirty = computed(
     metadataToSnapshot(metadataDraft.value) !== savedMetadataSnapshot.value,
 )
 const isDirty = computed(() => isBodyDirty.value || isMetadataDirty.value)
-const canCreateTodayEntry = computed(
-  () => hasWorkspace.value && viewState.value === 'today-empty' && !isCreatingEntry.value,
+const canCreateEntry = computed(
+  () =>
+    hasWorkspace.value &&
+    (viewState.value === 'today-empty' || viewState.value === 'history-empty') &&
+    !isCreatingEntry.value,
 )
 const isJournalReady = computed(() => viewState.value === 'ready')
 const canSaveEntry = computed(
@@ -512,7 +515,7 @@ async function loadEntryForDate(dateText: string) {
 }
 
 async function handleCreateEntry() {
-  if (!workspacePath.value || !canCreateTodayEntry.value) {
+  if (!workspacePath.value || !canCreateEntry.value) {
     return
   }
 
@@ -530,7 +533,9 @@ async function handleCreateEntry() {
       loadWorkspaceWeatherOptions(),
       loadWorkspaceTags(),
     ])
-    statusMessage.value = '已经创建今天的日记，可以开始写了。'
+    statusMessage.value = isSelectedDateToday.value
+      ? '已经创建今天的日记，可以开始写了。'
+      : `已经创建 ${selectedDateText.value} 的日记，可以开始补写了。`
   } catch (error) {
     applyErrorState(error)
   } finally {
@@ -1023,6 +1028,7 @@ async function handleSaveAiConfiguration(
         :editor-content="editorContent"
         :status-message="statusMessage"
         :is-creating-entry="isCreatingEntry"
+        :is-selected-date-today="isSelectedDateToday"
         @update:editor-content="editorContent = $event"
         @create-entry="handleCreateEntry"
         @choose-workspace="handleChooseWorkspace"
