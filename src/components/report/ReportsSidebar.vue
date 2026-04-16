@@ -365,20 +365,26 @@ function goToCurrentYear() {
         </div>
       </div>
 
-      <button
-        class="primary-button"
-        type="button"
-        :disabled="isGenerating"
-        @click="emit('generate')"
-      >
-        <span>{{ generateButtonText }}</span>
-        <Icon
-          v-if="isGenerating"
-          class="button-loading-icon"
-          icon="lucide:loader-circle"
-          aria-hidden="true"
-        />
-      </button>
+      <div class="generate-action">
+        <button
+          class="primary-button"
+          type="button"
+          :disabled="isGenerating"
+          @click="emit('generate')"
+        >
+          <span>{{ generateButtonText }}</span>
+          <Icon
+            v-if="isGenerating"
+            class="button-loading-icon"
+            icon="lucide:loader-circle"
+            aria-hidden="true"
+          />
+        </button>
+
+        <p v-if="isGenerating" class="generate-hint">
+          文字较多，可能需要几分钟的时间...
+        </p>
+      </div>
 
       <p v-if="statusMessage" class="report-status-inline">{{ statusMessage }}</p>
     </section>
@@ -456,6 +462,18 @@ function goToCurrentYear() {
   font-size: 0.88rem;
   line-height: 1.6;
   color: var(--color-text-subtle);
+}
+
+.generate-action {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.generate-hint {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--color-text-soft);
 }
 
 .button-loading-icon {
