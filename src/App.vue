@@ -23,6 +23,7 @@ import type {
 import type { EditorMode, RightPanel, ViewState } from './types/ui'
 import { useReportsPanel } from './components/report/useReportsPanel'
 import { SETTINGS_SECTIONS, type SettingsSectionId } from './components/settings/config'
+import { formatWindowZoomPercent } from './shared/window-zoom'
 
 function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
   return {
@@ -143,6 +144,7 @@ const savedMetadataSnapshot = ref(metadataToSnapshot(createEmptyMetadata()))
 const statusMessage = ref('')
 const metadataStatusMessage = ref('')
 const dailyInsightsStatusMessage = ref('')
+const windowZoomFactorSaveMessage = ref('')
 const heatmapSaveMessage = ref('')
 const dayStartHourSaveMessage = ref('')
 const frontmatterVisibilitySaveMessage = ref('')
@@ -152,18 +154,21 @@ const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
 const isSavingMetadata = ref(false)
 const isGeneratingDailyInsights = ref(false)
+const isSavingWindowZoomFactor = ref(false)
 const isSavingJournalHeatmap = ref(false)
 const isSavingDayStartHour = ref(false)
 const isSavingFrontmatterVisibility = ref(false)
 const isSavingWorkspaceLibraries = ref(false)
 const isSavingAiConfig = ref(false)
 const isJournalHeatmapEnabled = ref(false)
+const windowZoomFactor = ref(1)
 const dayStartHour = ref(0)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
 const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
 const lastSavedAt = ref<string | null>(null)
 const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
 let loadSequence = 0
+let removeWindowZoomListener: (() => void) | null = null
 const reportsPanel = useReportsPanel(workspacePath)
 
 const todayText = computed(() => getJournalDateText(dayStartHour.value))
@@ -249,11 +254,16 @@ watch(
 )
 
 onMounted(async () => {
+  removeWindowZoomListener = window.dairy.onWindowZoomFactorChanged((nextZoomFactor) => {
+    windowZoomFactor.value = nextZoomFactor
+  })
   window.addEventListener('keydown', handleWindowKeydown)
   await bootstrapApp()
 })
 
 onBeforeUnmount(() => {
+  removeWindowZoomListener?.()
+  removeWindowZoomListener = null
   window.removeEventListener('keydown', handleWindowKeydown)
 })
 
@@ -292,6 +302,7 @@ async function bootstrapApp() {
 
 function syncConfigState(config: AppConfig) {
   workspacePath.value = config.lastOpenedWorkspace
+  windowZoomFactor.value = config.ui.zoomFactor
   isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
   dayStartHour.value = config.ui.dayStartHour
   frontmatterVisibility.value = {
@@ -749,6 +760,27 @@ async function handleUpdateJournalHeatmapEnabled(nextValue: boolean) {
   }
 }
 
+async function handleUpdateWindowZoomFactor(nextValue: number) {
+  isSavingWindowZoomFactor.value = true
+  windowZoomFactorSaveMessage.value = ''
+
+  try {
+    const nextConfig = await window.dairy.setWindowZoomFactor({
+      zoomFactor: nextValue,
+    })
+
+    syncConfigState(nextConfig)
+    windowZoomFactorSaveMessage.value = `界面缩放已调整为 ${formatWindowZoomPercent(
+      nextConfig.ui.zoomFactor,
+    )}。`
+  } catch (error) {
+    windowZoomFactorSaveMessage.value =
+      error instanceof Error ? error.message : '保存界面缩放失败，请稍后重试。'
+  } finally {
+    isSavingWindowZoomFactor.value = false
+  }
+}
+
 async function handleUpdateDayStartHour(nextValue: number) {
   const wasSelectedToday = isSelectedDateToday.value
   isSavingDayStartHour.value = true
@@ -980,6 +1012,9 @@ async function handleSaveAiConfiguration(
       <SettingsPanel
         v-if="rightPanel === 'settings'"
         :workspace-path="workspacePath"
+        :window-zoom-factor="windowZoomFactor"
+        :is-saving-window-zoom-factor="isSavingWindowZoomFactor"
+        :window-zoom-factor-save-message="windowZoomFactorSaveMessage"
         :journal-heatmap-enabled="isJournalHeatmapEnabled"
         :is-saving-journal-heatmap="isSavingJournalHeatmap"
         :heatmap-save-message="heatmapSaveMessage"
@@ -998,6 +1033,7 @@ async function handleSaveAiConfiguration(
         :is-saving-ai-config="isSavingAiConfig"
         :ai-save-message="aiSaveMessage"
         :active-section-id="activeSettingsSectionId"
+        @update:window-zoom-factor="handleUpdateWindowZoomFactor"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"

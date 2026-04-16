@@ -6,6 +6,23 @@ import type { DairyApi } from '../src/types/dairy'
 const dairyApi: DairyApi = {
   getAppBootstrap: () => ipcRenderer.invoke('app:get-bootstrap'),
   getAiSettingsStatus: () => ipcRenderer.invoke('app:get-ai-settings-status'),
+  setWindowZoomFactor: (input) => ipcRenderer.invoke('app:set-window-zoom-factor', input),
+  onWindowZoomFactorChanged: (listener) => {
+    const wrappedListener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { zoomFactor?: unknown } | undefined,
+    ) => {
+      if (typeof payload?.zoomFactor === 'number') {
+        listener(payload.zoomFactor)
+      }
+    }
+
+    ipcRenderer.on('app:window-zoom-changed', wrappedListener)
+
+    return () => {
+      ipcRenderer.removeListener('app:window-zoom-changed', wrappedListener)
+    }
+  },
   saveAiSettings: (input) => ipcRenderer.invoke('app:save-ai-settings', input),
   saveAiApiKey: (input) => ipcRenderer.invoke('app:save-ai-api-key', input),
   chooseWorkspace: () => ipcRenderer.invoke('workspace:choose'),

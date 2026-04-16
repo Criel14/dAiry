@@ -15,6 +15,7 @@ import type {
   SaveAiApiKeyInput,
   SaveAiSettingsInput,
   WindowDirtyStateInput,
+  WindowZoomPreferenceInput,
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
 } from '../../src/types/dairy'
@@ -38,7 +39,12 @@ import {
   saveJournalEntryMetadata,
 } from './journal-service'
 import { generateRangeReport, getRangeReport, listRangeReports } from './report-service'
-import { getMainWindow, openMainWindowDevTools, setWindowDirtyState } from './window'
+import {
+  getMainWindow,
+  openMainWindowDevTools,
+  setWindowDirtyState,
+  updateWindowZoomFactor,
+} from './window'
 import {
   getWorkspaceLocationOptions,
   getWorkspaceTags,
@@ -56,6 +62,10 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.getAiSettingsStatus, () => {
     return getAiSettingsStatus()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.setWindowZoomFactor, (_event, input: WindowZoomPreferenceInput) => {
+    return updateWindowZoomFactor(input.zoomFactor)
   })
 
   ipcMain.handle(IPC_CHANNELS.saveAiSettings, (_event, input: SaveAiSettingsInput) => {

@@ -18,6 +18,7 @@ export interface AppConfig {
   recentWorkspaces: string[]
   ui: {
     theme: 'system' | 'light' | 'dark'
+    zoomFactor: number
     journalHeatmapEnabled: boolean
     dayStartHour: number
     frontmatterVisibility: FrontmatterVisibilityConfig
@@ -272,6 +273,10 @@ export interface JournalHeatmapPreferenceInput {
   enabled: boolean
 }
 
+export interface WindowZoomPreferenceInput {
+  zoomFactor: number
+}
+
 export interface FrontmatterVisibilityInput {
   visibility: FrontmatterVisibilityConfig
 }
@@ -341,6 +346,8 @@ export interface DairyApi {
   setWorkspaceTags: (input: WorkspaceStringListInput) => Promise<string[]>
   setWorkspaceWeatherOptions: (input: WorkspaceStringListInput) => Promise<string[]>
   setWorkspaceLocationOptions: (input: WorkspaceStringListInput) => Promise<string[]>
+  setWindowZoomFactor: (input: WindowZoomPreferenceInput) => Promise<AppConfig>
+  onWindowZoomFactorChanged: (listener: (zoomFactor: number) => void) => () => void
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
   setDayStartHour: (input: DayStartHourPreferenceInput) => Promise<AppConfig>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>

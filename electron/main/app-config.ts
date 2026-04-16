@@ -9,8 +9,10 @@ import type {
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
   SaveAiSettingsInput,
+  WindowZoomPreferenceInput,
 } from '../../src/types/dairy'
 import { DEFAULT_AI_SETTINGS, DEFAULT_APP_CONFIG } from './constants'
+import { normalizeWindowZoomFactor } from '../../src/shared/window-zoom'
 
 function getConfigFilePath() {
   return path.join(app.getPath('userData'), 'config.json')
@@ -26,6 +28,10 @@ function normalizeDayStartHour(rawValue: unknown) {
   }
 
   return rawValue
+}
+
+function normalizeUiZoomFactor(rawValue: unknown) {
+  return normalizeWindowZoomFactor(rawValue)
 }
 
 function normalizeTimeoutMs(rawValue: unknown) {
@@ -97,6 +103,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
     config.ui?.theme === 'light' || config.ui?.theme === 'dark' || config.ui?.theme === 'system'
       ? config.ui.theme
       : 'system'
+  const zoomFactor = normalizeUiZoomFactor(config.ui?.zoomFactor)
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
@@ -108,6 +115,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
     recentWorkspaces,
     ui: {
       theme,
+      zoomFactor,
       journalHeatmapEnabled,
       dayStartHour,
       frontmatterVisibility,
@@ -215,6 +223,20 @@ export async function setJournalHeatmapEnabled(
     ui: {
       ...currentConfig.ui,
       journalHeatmapEnabled: input.enabled,
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setWindowZoomFactor(input: WindowZoomPreferenceInput): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      zoomFactor: normalizeUiZoomFactor(input.zoomFactor),
     },
   }
 

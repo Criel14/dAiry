@@ -7,5 +7,5 @@ registerWindowLifecycleEvents()
 
 app.whenReady().then(() => {
   registerIpcHandlers()
-  createMainWindow()
+  void createMainWindow()
 })

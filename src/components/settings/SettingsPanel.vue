@@ -7,6 +7,7 @@ import SettingsAiSection from './SettingsAiSection.vue'
 import SettingsAppearanceSection from './SettingsAppearanceSection.vue'
 import SettingsEditorSection from './SettingsEditorSection.vue'
 import SettingsLibrariesSection from './SettingsLibrariesSection.vue'
+import SettingsShortcutsSection from './SettingsShortcutsSection.vue'
 import {
   SETTINGS_SECTIONS,
   type SettingsSectionId,
@@ -16,6 +17,9 @@ import SettingsWorkspaceSection from './SettingsWorkspaceSection.vue'
 
 const props = defineProps<{
   workspacePath: string | null
+  windowZoomFactor: number
+  isSavingWindowZoomFactor: boolean
+  windowZoomFactorSaveMessage: string
   journalHeatmapEnabled: boolean
   isSavingJournalHeatmap: boolean
   heatmapSaveMessage: string
@@ -37,6 +41,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'update:windowZoomFactor': [value: number]
   'update:journalHeatmapEnabled': [value: boolean]
   'update:dayStartHour': [value: number]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
@@ -85,9 +90,13 @@ function openDebugPanel() {
 
       <SettingsAppearanceSection
         v-if="activeSectionId === 'appearance'"
+        :window-zoom-factor="props.windowZoomFactor"
+        :is-saving-window-zoom-factor="props.isSavingWindowZoomFactor"
+        :window-zoom-factor-save-message="props.windowZoomFactorSaveMessage"
         :journal-heatmap-enabled="props.journalHeatmapEnabled"
         :is-saving-journal-heatmap="props.isSavingJournalHeatmap"
         :heatmap-save-message="props.heatmapSaveMessage"
+        @update:window-zoom-factor="emit('update:windowZoomFactor', $event)"
         @update:journal-heatmap-enabled="emit('update:journalHeatmapEnabled', $event)"
       />
 
@@ -101,6 +110,10 @@ function openDebugPanel() {
         :frontmatter-visibility-save-message="props.frontmatterVisibilitySaveMessage"
         @update:day-start-hour="emit('update:dayStartHour', $event)"
         @update:frontmatter-visibility="emit('update:frontmatterVisibility', $event)"
+      />
+
+      <SettingsShortcutsSection
+        v-else-if="activeSectionId === 'shortcuts'"
       />
 
       <SettingsAiSection

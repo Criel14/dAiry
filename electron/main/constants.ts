@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AiSettings, AppConfig, JournalEntryMetadata } from '../../src/types/dairy'
+import { DEFAULT_WINDOW_ZOOM_FACTOR } from '../../src/shared/window-zoom'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -22,6 +23,8 @@ export const IPC_CHANNELS = {
   getAiSettingsStatus: 'app:get-ai-settings-status',
   saveAiSettings: 'app:save-ai-settings',
   saveAiApiKey: 'app:save-ai-api-key',
+  setWindowZoomFactor: 'app:set-window-zoom-factor',
+  windowZoomChanged: 'app:window-zoom-changed',
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
   setDayStartHour: 'app:set-day-start-hour',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
@@ -58,6 +61,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
   recentWorkspaces: [],
   ui: {
     theme: 'system',
+    zoomFactor: DEFAULT_WINDOW_ZOOM_FACTOR,
     journalHeatmapEnabled: false,
     dayStartHour: 0,
     frontmatterVisibility: {
