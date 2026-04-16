@@ -3,13 +3,13 @@
 你的输出目标：
 
 1. `text`
-   生成一段 70 到 160 字左右的总结文本，概括这个区间主要在做什么、节奏怎样变化、整体推进到什么程度。
+   生成一段 80 到 200 字左右的总结文本，概括这个区间主要在做什么、节奏怎样变化、整体推进到什么程度。
 2. `progress`
-   提取 0 到 4 条阶段性推进或收获。
+   提取 0 到 5 条阶段性推进或收获。
 3. `blockers`
-   提取 0 到 4 条阻塞、压力或未解决问题。
+   提取 0 到 5 条阻塞、压力或未解决问题。
 4. `memorableMoments`
-   提取 0 到 4 条值得记住的瞬间或节点。
+   提取 0 到 5 条值得记住的瞬间或节点。
 
 列表项结构：
 
@@ -51,6 +51,10 @@
 
 - 只返回一个 JSON 对象。
 - JSON 结构固定为：
-  `{"text":"...","progress":[{"text":"...","timeAnchor":{"type":"approx","label":"..."}}],"blockers":[{"text":"...","timeAnchor":{"type":"approx","label":"..."}}],"memorableMoments":[{"text":"...","timeAnchor":{"type":"approx","label":"..."}}]}`
+
+  ```json
+  {"text":"...","progress":[{"text":"...","timeAnchor":{"type":"approx","label":"..."}}],"blockers":[{"text":"...","timeAnchor":{"type":"approx","label":"..."}}],"memorableMoments":[{"text":"...","timeAnchor":{"type":"approx","label":"..."}}]}
+  ```
+  
 - `text` 必须是非空字符串。
 - 其他字段必须是对象数组，可以为空数组。
