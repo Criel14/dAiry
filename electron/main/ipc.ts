@@ -2,6 +2,7 @@ import { dialog, ipcMain, shell, type OpenDialogOptions } from 'electron'
 import type {
   AppBootstrap,
   DayStartHourPreferenceInput,
+  ExportRangeReportInput,
   FrontmatterVisibilityInput,
   GenerateDailyInsightsInput,
   GenerateRangeReportInput,
@@ -11,6 +12,8 @@ import type {
   JournalHeatmapPreferenceInput,
   OpenExternalLinkInput,
   JournalMonthActivityQuery,
+  ReportExportPayloadQuery,
+  ReportExportReadyInput,
   ReportQuery,
   SaveAiApiKeyInput,
   SaveAiSettingsInput,
@@ -39,6 +42,11 @@ import {
   saveJournalEntryMetadata,
 } from './journal-service'
 import { generateRangeReport, getRangeReport, listRangeReports } from './report-service'
+import {
+  exportRangeReportPng,
+  getReportExportPayload,
+  notifyReportExportReady,
+} from './report-export-service'
 import {
   getMainWindow,
   openMainWindowDevTools,
@@ -210,5 +218,17 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.listRangeReports, (_event, workspacePath: string) => {
     return listRangeReports(workspacePath)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.exportRangeReportPng, (_event, input: ExportRangeReportInput) => {
+    return exportRangeReportPng(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getReportExportPayload, (_event, input: ReportExportPayloadQuery) => {
+    return getReportExportPayload(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.notifyReportExportReady, (_event, input: ReportExportReadyInput) => {
+    return notifyReportExportReady(input)
   })
 }

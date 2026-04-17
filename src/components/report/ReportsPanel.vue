@@ -5,6 +5,7 @@ import MoodTrendChart from './MoodTrendChart.vue'
 import TagCloudView from './TagCloudView.vue'
 import type {
   RangeReport,
+  ReportExportSectionKey,
   ReportHeatmapPoint,
   ReportLocationPatternsSection,
   ReportMoodPoint,
@@ -15,8 +16,14 @@ import type {
   ReportTagCloudItem,
   ReportTimePatternsSection,
 } from '../../types/dairy'
+import {
+  REPORT_EXPORT_SECTION_OPTIONS,
+  getAvailableExportSections,
+  getDefaultExportSections,
+} from './export-config'
 
 const props = defineProps<{
+  workspacePath: string | null
   hasWorkspace: boolean
   emptyStateTitle: string
   emptyStateDescription: string
@@ -53,6 +60,162 @@ const activeSummaryGroups = computed(() => {
     },
   ].filter((group) => group.items.length > 0)
 })
+
+const DEFAULT_EXPORT_IMAGE_SCALE = '1.5'
+const MIN_EXPORT_IMAGE_SCALE = 1
+const MAX_EXPORT_IMAGE_SCALE = 4
+
+const isExportDialogVisible = ref(false)
+const isExporting = ref(false)
+const exportDialogMessage = ref('')
+const selectedExportSections = ref<ReportExportSectionKey[]>([])
+const selectedExportImageScale = ref(DEFAULT_EXPORT_IMAGE_SCALE)
+const exportSectionOptions = REPORT_EXPORT_SECTION_OPTIONS
+
+const availableExportSections = computed(() => getAvailableExportSections(props.activeReport))
+const parsedExportImageScale = computed(() => parseExportImageScale(selectedExportImageScale.value))
+const canOpenExportDialog = computed(
+  () => Boolean(props.activeReport) && !props.isLoadingReport,
+)
+const canStartExport = computed(
+  () =>
+    Boolean(props.activeReport) &&
+    Boolean(props.workspacePath?.trim()) &&
+    selectedExportSections.value.length > 0 &&
+    parsedExportImageScale.value !== null &&
+    !isExporting.value,
+)
+
+watch(
+  () => props.activeReport?.reportId,
+  () => {
+    isExportDialogVisible.value = false
+    exportDialogMessage.value = ''
+    selectedExportSections.value = getDefaultExportSections(props.activeReport)
+    selectedExportImageScale.value = DEFAULT_EXPORT_IMAGE_SCALE
+  },
+  { immediate: true },
+)
+
+function openExportDialog() {
+  if (!canOpenExportDialog.value) {
+    return
+  }
+
+  exportDialogMessage.value = ''
+  selectedExportSections.value = getDefaultExportSections(props.activeReport)
+  selectedExportImageScale.value = DEFAULT_EXPORT_IMAGE_SCALE
+  isExportDialogVisible.value = true
+}
+
+function closeExportDialog() {
+  if (isExporting.value) {
+    return
+  }
+
+  exportDialogMessage.value = ''
+  isExportDialogVisible.value = false
+}
+
+function isExportSectionSelected(sectionKey: ReportExportSectionKey) {
+  return selectedExportSections.value.includes(sectionKey)
+}
+
+function isExportSectionAvailable(sectionKey: ReportExportSectionKey) {
+  return availableExportSections.value.has(sectionKey)
+}
+
+function toggleExportSection(sectionKey: ReportExportSectionKey) {
+  if (!isExportSectionAvailable(sectionKey) || isExporting.value) {
+    return
+  }
+
+  if (isExportSectionSelected(sectionKey)) {
+    selectedExportSections.value = selectedExportSections.value.filter((item) => item !== sectionKey)
+    return
+  }
+
+  selectedExportSections.value = [...selectedExportSections.value, sectionKey]
+}
+
+function parseExportImageScale(rawValue: string) {
+  const trimmedValue = rawValue.trim()
+
+  if (!trimmedValue) {
+    return null
+  }
+
+  const parsedValue = Number(trimmedValue)
+
+  if (!Number.isFinite(parsedValue)) {
+    return null
+  }
+
+  if (parsedValue < MIN_EXPORT_IMAGE_SCALE || parsedValue > MAX_EXPORT_IMAGE_SCALE) {
+    return null
+  }
+
+  return Math.round(parsedValue * 10) / 10
+}
+
+function formatExportImageScale(value: number) {
+  const normalizedValue = Math.round(value * 10) / 10
+
+  return Number.isInteger(normalizedValue)
+    ? String(normalizedValue)
+    : normalizedValue.toFixed(1)
+}
+
+function stepExportImageScale(delta: number) {
+  const currentValue = parseExportImageScale(selectedExportImageScale.value) ?? Number(DEFAULT_EXPORT_IMAGE_SCALE)
+  const nextValue = Math.min(
+    MAX_EXPORT_IMAGE_SCALE,
+    Math.max(MIN_EXPORT_IMAGE_SCALE, currentValue + delta),
+  )
+
+  selectedExportImageScale.value = formatExportImageScale(nextValue)
+}
+
+async function handleExportReport() {
+  if (!props.activeReport || !props.workspacePath?.trim()) {
+    exportDialogMessage.value = '当前没有可导出的报告。'
+    return
+  }
+
+  if (selectedExportSections.value.length === 0) {
+    exportDialogMessage.value = '请至少选择一个导出内容。'
+    return
+  }
+
+  if (parsedExportImageScale.value === null) {
+    exportDialogMessage.value = `渲染倍率请输入 ${MIN_EXPORT_IMAGE_SCALE} 到 ${MAX_EXPORT_IMAGE_SCALE} 之间的数字。`
+    return
+  }
+
+  isExporting.value = true
+  exportDialogMessage.value = '正在准备图片...'
+
+  try {
+    const result = await window.dairy.exportRangeReportPng({
+      workspacePath: props.workspacePath,
+      reportId: props.activeReport.reportId,
+      sections: [...selectedExportSections.value],
+      imageScale: parsedExportImageScale.value,
+    })
+
+    if (result.canceled) {
+      exportDialogMessage.value = '已取消导出。'
+      return
+    }
+
+    exportDialogMessage.value = '图片已导出。'
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '导出失败，请稍后重试。'
+    exportDialogMessage.value = message
+  } finally {
+    isExporting.value = false
+  }
+}
 
 const heatmapWeekdayLabels = ['周一', '', '周三', '', '周五', '', '']
 const heatmapCellGap = 3
@@ -430,6 +593,17 @@ function getPatternCount(value: unknown) {
         <h2 class="reports-title">总结报告</h2>
         <p class="reports-description">这段时间你过得怎么样呢</p>
       </div>
+
+      <div class="reports-actions">
+        <button
+          class="report-export-button"
+          type="button"
+          :disabled="!canOpenExportDialog"
+          @click="openExportDialog"
+        >
+          导出 PNG
+        </button>
+      </div>
     </header>
 
     <section class="report-content">
@@ -717,11 +891,123 @@ function getPatternCount(value: unknown) {
         </section>
       </article>
     </section>
+
+    <div
+      v-if="isExportDialogVisible"
+      class="export-dialog-mask"
+      @click.self="closeExportDialog"
+    >
+      <section class="export-dialog">
+        <header class="export-dialog-header">
+          <h3>导出图片</h3>
+          <p>仅导出当前已打开报告，未生成的模块会禁用显示。</p>
+        </header>
+
+        <div class="export-dialog-content">
+          <section class="export-setting-group">
+            <h4>导出内容</h4>
+
+            <div class="export-check-list">
+              <label
+                v-for="option in exportSectionOptions"
+                :key="option.key"
+                class="export-check-row"
+                :class="{ 'export-check-row--disabled': !isExportSectionAvailable(option.key) }"
+              >
+                <input
+                  :checked="isExportSectionSelected(option.key)"
+                  :disabled="!isExportSectionAvailable(option.key)"
+                  type="checkbox"
+                  @change="toggleExportSection(option.key)"
+                />
+                <span class="export-check-copy">
+                  <strong>{{ option.label }}</strong>
+                  <small>
+                    {{ option.description }}
+                    <template v-if="!isExportSectionAvailable(option.key)">
+                      （当前报告未生成该模块）
+                    </template>
+                  </small>
+                </span>
+              </label>
+            </div>
+          </section>
+
+          <section class="export-setting-group">
+            <h4>渲染倍率</h4>
+
+            <div class="export-scale-field">
+              <label class="export-scale-input-wrap">
+                <span>倍率</span>
+                <div class="export-scale-control">
+                  <input
+                    v-model="selectedExportImageScale"
+                    class="export-scale-input"
+                    type="number"
+                    inputmode="decimal"
+                    :min="MIN_EXPORT_IMAGE_SCALE"
+                    :max="MAX_EXPORT_IMAGE_SCALE"
+                    step="0.5"
+                  />
+                  <div class="export-scale-stepper">
+                    <button
+                      class="export-scale-stepper-button export-scale-stepper-button--up"
+                      type="button"
+                      :disabled="isExporting"
+                      @click="stepExportImageScale(0.5)"
+                    >
+                      <span aria-hidden="true">+</span>
+                    </button>
+                    <button
+                      class="export-scale-stepper-button export-scale-stepper-button--down"
+                      type="button"
+                      :disabled="isExporting"
+                      @click="stepExportImageScale(-0.5)"
+                    >
+                      <span aria-hidden="true">-</span>
+                    </button>
+                  </div>
+                </div>
+                <em>x</em>
+              </label>
+
+              <p class="export-scale-hint">
+                可输入 {{ MIN_EXPORT_IMAGE_SCALE }} 到 {{ MAX_EXPORT_IMAGE_SCALE }} 之间的数字，数值越大越清晰，但导出越慢。
+              </p>
+            </div>
+          </section>
+        </div>
+
+        <p v-if="exportDialogMessage" class="export-dialog-status">
+          {{ exportDialogMessage }}
+        </p>
+
+        <footer class="export-dialog-footer">
+          <button
+            class="export-button export-button--ghost"
+            type="button"
+            :disabled="isExporting"
+            @click="closeExportDialog"
+          >
+            取消
+          </button>
+          <button
+            class="export-button export-button--primary"
+            type="button"
+            :disabled="!canStartExport"
+            @click="handleExportReport"
+          >
+            {{ isExporting ? '正在导出...' : '开始导出' }}
+          </button>
+        </footer>
+      </section>
+    </div>
   </section>
 </template>
 
 <style scoped>
 .reports-panel {
+  position: relative;
   display: grid;
   gap: 1rem;
   min-height: 0;
@@ -733,6 +1019,966 @@ function getPatternCount(value: unknown) {
   gap: 1rem;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.reports-actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: end;
+}
+
+.reports-heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.reports-kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.report-label {
+  margin: 0;
+  font-size: 0.92rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-subtle);
+}
+
+.reports-title,
+.report-title {
+  margin: 0;
+  color: var(--color-text-main);
+}
+
+.reports-title {
+  font-size: 1.9rem;
+}
+
+.reports-description {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.7;
+}
+
+.report-content {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.report-empty-state {
+  display: grid;
+  gap: 0.55rem;
+  align-content: center;
+  justify-items: start;
+  min-height: min(27rem, 100%);
+  padding: 2.4rem 2.2rem;
+  border: 1px dashed rgba(217, 203, 159, 0.8);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.report-empty-state h2,
+.report-empty-state h3 {
+  margin: 0;
+  color: var(--color-text-main);
+}
+
+.report-empty-state p {
+  margin: 0;
+  max-width: 32rem;
+  color: var(--color-text-subtle);
+  line-height: 1.8;
+}
+
+.report-article {
+  display: grid;
+  gap: 1rem;
+}
+
+.report-hero {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem 1.55rem;
+  border: 1px solid rgba(217, 203, 159, 0.72);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), transparent 52%),
+    linear-gradient(180deg, rgba(252, 247, 234, 0.97), rgba(249, 244, 231, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 18px 38px rgba(61, 56, 45, 0.08);
+}
+
+.report-title {
+  font-size: clamp(1.55rem, 2vw, 2rem);
+}
+
+.report-subtitle {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.7;
+}
+
+.report-hero-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(217, 203, 159, 0.92), rgba(217, 203, 159, 0.12));
+}
+
+.report-hero-stats {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.report-hero-stats-label {
+  margin: 0;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.report-hero-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.report-hero-stat {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(217, 203, 159, 0.78);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.report-hero-stat span {
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.report-hero-stat strong {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  color: var(--color-text-main);
+  font-size: 1.22rem;
+}
+
+.report-hero-stat small {
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+}
+
+.summary-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid rgba(217, 203, 159, 0.82);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 252, 243, 0.82));
+}
+
+.summary-card-head {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.summary-kicker {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-text-soft);
+}
+
+.summary-card-head h4 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.08rem;
+}
+
+.summary-overview {
+  margin: 0;
+  color: var(--color-text-main);
+  line-height: 1.95;
+}
+
+.summary-groups {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.summary-group-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.summary-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.summary-group-title {
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.summary-item-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.summary-item-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 0.95rem;
+  border: 1px solid rgba(229, 220, 197, 0.92);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.summary-item-time {
+  color: #9d8657;
+  font-size: 0.78rem;
+}
+
+.summary-item-text {
+  margin: 0;
+  color: var(--color-text-main);
+  line-height: 1.75;
+}
+
+.summary-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-text-main);
+}
+
+.content-card {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid rgba(229, 220, 197, 0.95);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.content-card--warning {
+  border-color: rgba(217, 203, 159, 0.88);
+  background: rgba(252, 248, 239, 0.92);
+}
+
+.content-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.content-card-header h4 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1rem;
+}
+
+.content-card-header span {
+  color: var(--color-text-soft);
+  font-size: 0.84rem;
+}
+
+.heatmap-shell {
+  --heatmap-cell-size: 12px;
+  --heatmap-cell-gap: 3px;
+  --heatmap-weekdays-width: 2.5rem;
+  --heatmap-body-gap: 0.55rem;
+  --heatmap-label-top-offset: 1.4rem;
+
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+}
+
+.heatmap-months {
+  display: grid;
+  grid-template-columns: repeat(var(--heatmap-week-count), var(--heatmap-cell-size));
+  column-gap: var(--heatmap-cell-gap);
+}
+
+.heatmap-month-label {
+  font-size: 0.84rem;
+  line-height: 1;
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+}
+
+.heatmap-body {
+  display: flex;
+  gap: var(--heatmap-body-gap);
+  align-items: flex-start;
+}
+
+.heatmap-weekdays {
+  display: grid;
+  grid-template-rows: repeat(7, var(--heatmap-cell-size));
+  gap: var(--heatmap-cell-gap);
+  flex: 0 0 var(--heatmap-weekdays-width);
+  padding-top: var(--heatmap-label-top-offset);
+  box-sizing: border-box;
+}
+
+.heatmap-weekday-label {
+  display: flex;
+  align-items: center;
+  height: var(--heatmap-cell-size);
+  font-size: 0.82rem;
+  color: var(--color-text-subtle);
+}
+
+.heatmap-scroller {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
+.heatmap-scroller::-webkit-scrollbar {
+  height: 8px;
+}
+
+.heatmap-scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.heatmap-scroller::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(206, 192, 155, 0.9);
+}
+
+.heatmap-scroll-content {
+  display: grid;
+  gap: 0.45rem;
+  width: max-content;
+}
+
+.heatmap-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, var(--heatmap-cell-size));
+  grid-auto-columns: var(--heatmap-cell-size);
+  gap: var(--heatmap-cell-gap);
+}
+
+.heatmap-cell {
+  position: relative;
+  width: var(--heatmap-cell-size);
+  height: var(--heatmap-cell-size);
+  border: 1px solid rgba(217, 203, 159, 0.18);
+  border-radius: 3px;
+  background-color: #f4efe1;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.heatmap-cell--level-1:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #e7dcc0;
+}
+
+.heatmap-cell--level-2:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #d9c89d;
+}
+
+.heatmap-cell--level-3:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #c8ad6f;
+}
+
+.heatmap-cell--level-4:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
+  background-color: #a5803c;
+}
+
+.heatmap-cell--muted {
+  border-color: rgba(138, 129, 109, 0.1);
+  background-color: #f1efea;
+}
+
+.heatmap-cell--muted::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  width: 140%;
+  height: 1.4px;
+  border-radius: 999px;
+  background: rgba(138, 129, 109, 0.2);
+  transform: translateY(-50%) rotate(-45deg);
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.heatmap-cell--outside {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.tag-cloud--compact {
+  margin-top: 0.55rem;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  background: #faf6ea;
+  color: var(--color-text-main);
+}
+
+.tag-pill span {
+  color: var(--color-text-subtle);
+  font-size: 0.82rem;
+}
+
+.pattern-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr minmax(0, 1.35fr);
+  gap: 0.8rem;
+  margin-top: 0.1rem;
+}
+
+.pattern-layout--single {
+  grid-template-columns: 1fr 1fr;
+}
+
+.pattern-summary-card {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+  min-height: 8.4rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid rgba(229, 220, 197, 0.92);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(252, 247, 235, 0.86));
+}
+
+.pattern-summary-card--accent {
+  border-color: rgba(217, 203, 159, 0.8);
+  background: linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(248, 240, 219, 0.78));
+}
+
+.pattern-summary-label {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+}
+
+.pattern-summary-main {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.pattern-summary-main strong {
+  color: var(--color-text-main);
+  font-size: 1.08rem;
+}
+
+.pattern-summary-main em {
+  color: #9d8657;
+  font-size: 0.8rem;
+  font-style: normal;
+}
+
+.pattern-compact-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pattern-compact-list--cols-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pattern-compact-list--cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.pattern-compact-list--cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pattern-compact-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(3.2rem, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 3.05rem;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid rgba(229, 220, 197, 0.88);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.pattern-compact-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.5rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: #f6efdf;
+  color: #9d8657;
+  font-size: 0.74rem;
+}
+
+.pattern-compact-label {
+  min-width: 0;
+  color: var(--color-text-main);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pattern-compact-track {
+  width: 100%;
+  height: 0.34rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #efe6d3;
+}
+
+.pattern-compact-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #ccb278;
+}
+
+.pattern-compact-count {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.reports-status {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  text-align: right;
+}
+
+.report-export-button {
+  min-height: 2.5rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f7efd1, #f3e6bb);
+  color: var(--color-text-main);
+  box-shadow: 0 10px 20px rgba(95, 82, 42, 0.08);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.report-export-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(95, 82, 42, 0.11);
+}
+
+.report-export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+.export-dialog-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  overflow-y: auto;
+  padding: clamp(1rem, 3vh, 2rem);
+  background: rgba(61, 56, 45, 0.26);
+  backdrop-filter: blur(2px);
+}
+
+.export-dialog {
+  width: min(34rem, calc(100vw - 2rem));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 1rem;
+  max-height: min(34rem, calc(100vh - 4.5rem));
+  margin: auto 0;
+  overflow: hidden;
+  padding: 1.15rem 1.15rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fffef9;
+  box-shadow: 0 20px 48px rgba(61, 56, 45, 0.18);
+}
+
+.export-dialog-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.export-dialog-header h3 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.08rem;
+}
+
+.export-dialog-header p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.7;
+  font-size: 0.88rem;
+}
+
+.export-dialog-content {
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
+.export-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.export-dialog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.export-dialog-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(206, 192, 155, 0.9);
+}
+
+.export-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(193, 176, 134, 0.95);
+}
+
+.export-dialog-content::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.export-setting-group {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.export-dialog-content h4 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 0.94rem;
+}
+
+.export-check-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.export-check-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.78rem;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 11px;
+  background: rgba(255, 254, 249, 0.75);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.export-check-row input {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.15rem;
+  accent-color: #ccb278;
+}
+
+.export-check-copy {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.export-check-copy strong {
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+}
+
+.export-check-copy small {
+  color: var(--color-text-subtle);
+  line-height: 1.6;
+}
+
+.export-check-row--disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.export-check-row--disabled input {
+  cursor: not-allowed;
+}
+
+.export-scale-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.export-scale-input-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 7.5rem) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 11px;
+  background: rgba(255, 254, 249, 0.75);
+}
+
+.export-scale-input-wrap span,
+.export-scale-input-wrap em {
+  color: var(--color-text-subtle);
+  font-size: 0.88rem;
+  font-style: normal;
+}
+
+.export-scale-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  min-width: 0;
+  border: 1px solid rgba(217, 203, 159, 0.9);
+  border-radius: 9px;
+  background: #fffdfa;
+  overflow: hidden;
+}
+
+.export-scale-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.2rem;
+  padding: 0 0.8rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-main);
+  font: inherit;
+  text-align: right;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.export-scale-input::-webkit-outer-spin-button,
+.export-scale-input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.export-scale-input:focus {
+  outline: none;
+}
+
+.export-scale-control:focus-within {
+  border-color: #ccb278;
+  box-shadow: 0 0 0 3px rgba(204, 178, 120, 0.15);
+}
+
+.export-scale-stepper {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  width: 2.3rem;
+  border-left: 1px solid rgba(217, 203, 159, 0.75);
+  background: linear-gradient(180deg, #fdfaf1, #faf4e3);
+}
+
+.export-scale-stepper-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8f7a4d;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.export-scale-stepper-button + .export-scale-stepper-button {
+  border-top: 1px solid rgba(217, 203, 159, 0.75);
+}
+
+.export-scale-stepper-button:not(:disabled):hover {
+  background: rgba(249, 242, 220, 0.96);
+  color: #6f5a2f;
+}
+
+.export-scale-stepper-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.export-scale-hint {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.83rem;
+  line-height: 1.7;
+}
+
+.export-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(217, 203, 159, 0.5);
+}
+
+.export-button {
+  min-height: 2.2rem;
+  padding: 0 0.95rem;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.export-button--ghost {
+  background: #fffdf8;
+  color: var(--color-text-main);
+}
+
+.export-button--primary {
+  background: #f5ebc3;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-main);
+}
+
+.export-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+}
+
+.export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+.export-dialog-status {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.6;
+  font-size: 0.88rem;
+  min-height: 1.4rem;
+}
+
+@media (max-width: 768px) {
+  .reports-header {
+    flex-direction: column;
+  }
+
+  .reports-actions {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .reports-status {
+    text-align: left;
+  }
+
+  .report-hero-stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pattern-layout,
+  .pattern-layout--single {
+    grid-template-columns: 1fr;
+  }
+
+  .pattern-compact-list--cols-2,
+  .pattern-compact-list--cols-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .export-dialog-mask {
+    padding: 0.7rem;
+  }
+
+  .export-dialog {
+    width: min(100vw - 1.4rem, 34rem);
+    max-height: min(32rem, calc(100vh - 2rem));
+  }
+
+  .export-dialog-footer {
+    flex-direction: column-reverse;
+  }
+
+  .export-button {
+    width: 100%;
+  }
+}
+.reports-panel {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.reports-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.reports-actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: end;
 }
 
 .reports-heading {
@@ -776,6 +2022,34 @@ function getPatternCount(value: unknown) {
 .reports-status {
   max-width: 24rem;
   text-align: right;
+}
+
+.report-export-button {
+  min-height: 2.35rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: #fffdf8;
+  color: var(--color-text-main);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.report-export-button:hover {
+  transform: translateY(-1px);
+  border-color: #d7c68f;
+  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+}
+
+.report-export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
 }
 
 .report-content,
@@ -1416,9 +2690,198 @@ function getPatternCount(value: unknown) {
   font-variant-numeric: tabular-nums;
 }
 
+.export-dialog-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  overflow-y: auto;
+  padding: clamp(1rem, 3vh, 2rem);
+  background: rgba(61, 56, 45, 0.26);
+  backdrop-filter: blur(2px);
+}
+
+.export-dialog {
+  width: min(38rem, calc(100vw - 2rem));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 1rem;
+  max-height: min(34rem, calc(100vh - 4.5rem));
+  margin: auto 0;
+  overflow: hidden;
+  padding: 1.15rem 1.15rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: #fffef9;
+  box-shadow: 0 20px 48px rgba(61, 56, 45, 0.18);
+}
+
+.export-dialog-header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.export-dialog-header h3 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.08rem;
+}
+
+.export-dialog-header p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.7;
+  font-size: 0.88rem;
+}
+
+.export-dialog-content {
+  display: grid;
+  gap: 0.7rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #d8ccb0 transparent;
+}
+
+.export-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.export-dialog-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.export-dialog-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(206, 192, 155, 0.9);
+}
+
+.export-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(193, 176, 134, 0.95);
+}
+
+.export-dialog-content::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.export-dialog-content h4 {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 0.94rem;
+}
+
+.export-check-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.export-check-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.78rem;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 11px;
+  background: rgba(255, 254, 249, 0.75);
+  cursor: pointer;
+}
+
+.export-check-row input {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.15rem;
+  accent-color: #ccb278;
+}
+
+.export-check-copy {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.export-check-copy strong {
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+}
+
+.export-check-copy small {
+  color: var(--color-text-subtle);
+  line-height: 1.6;
+}
+
+.export-check-row--disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.export-check-row--disabled input {
+  cursor: not-allowed;
+}
+
+.export-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid rgba(217, 203, 159, 0.5);
+}
+
+.export-button {
+  min-height: 2.2rem;
+  padding: 0 0.95rem;
+  border-radius: 9px;
+  border: 1px solid var(--color-border);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    opacity 160ms ease;
+}
+
+.export-button--ghost {
+  background: #fffdf8;
+  color: var(--color-text-main);
+}
+
+.export-button--primary {
+  background: #f5ebc3;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-main);
+}
+
+.export-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+}
+
+.export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+.export-dialog-status {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.6;
+  font-size: 0.88rem;
+  min-height: 1.4rem;
+}
+
 @media (max-width: 768px) {
   .reports-header {
     flex-direction: column;
+  }
+
+  .reports-actions {
+    width: 100%;
+    justify-items: start;
   }
 
   .reports-status {
@@ -1468,6 +2931,21 @@ function getPatternCount(value: unknown) {
   .pattern-layout,
   .pattern-compact-list {
     grid-template-columns: 1fr;
+  }
+
+  .export-dialog-mask {
+    padding: 1rem;
+  }
+
+  .export-dialog {
+    width: min(100%, calc(100vw - 1rem));
+    max-height: min(30rem, calc(100vh - 1rem));
+    padding: 1rem;
+  }
+
+  .export-dialog-footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
   }
 }
 </style>

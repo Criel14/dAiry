@@ -132,6 +132,45 @@ export interface ReportQuery {
   reportId: string
 }
 
+export type ReportExportSectionKey =
+  | 'cover'
+  | 'stats'
+  | 'summary'
+  | 'heatmap'
+  | 'moodTrend'
+  | 'tagCloud'
+  | 'locationPatterns'
+  | 'timePatterns'
+
+export interface ExportRangeReportInput {
+  workspacePath: string
+  reportId: string
+  sections: ReportExportSectionKey[]
+  imageScale?: number
+}
+
+export interface ExportRangeReportResult {
+  canceled: boolean
+  filePaths: string[]
+  exportedSections: ReportExportSectionKey[]
+  imageCount: number
+}
+
+export interface ReportExportPayloadQuery {
+  sessionId: string
+}
+
+export interface ReportExportReadyInput {
+  sessionId: string
+  contentHeight: number
+}
+
+export interface ReportExportPayload {
+  report: RangeReport
+  sections: ReportExportSectionKey[]
+  documentWidth: number
+}
+
 export type ReportSummaryTimeAnchorType = 'day' | 'range' | 'multiple' | 'approx'
 
 export interface ReportSummaryTimeAnchor {
@@ -340,6 +379,9 @@ export interface DairyApi {
   generateRangeReport: (input: GenerateRangeReportInput) => Promise<RangeReport>
   getRangeReport: (input: ReportQuery) => Promise<RangeReport>
   listRangeReports: (workspacePath: string) => Promise<ReportListItem[]>
+  exportRangeReportPng: (input: ExportRangeReportInput) => Promise<ExportRangeReportResult>
+  getReportExportPayload: (input: ReportExportPayloadQuery) => Promise<ReportExportPayload>
+  notifyReportExportReady: (input: ReportExportReadyInput) => Promise<void>
   getWorkspaceTags: (workspacePath: string) => Promise<string[]>
   getWorkspaceWeatherOptions: (workspacePath: string) => Promise<string[]>
   getWorkspaceLocationOptions: (workspacePath: string) => Promise<string[]>

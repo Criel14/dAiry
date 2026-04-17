@@ -35,6 +35,9 @@ const dairyApi: DairyApi = {
   generateRangeReport: (input) => ipcRenderer.invoke('report:generate-range-report', input),
   getRangeReport: (input) => ipcRenderer.invoke('report:get-range-report', input),
   listRangeReports: (workspacePath) => ipcRenderer.invoke('report:list-range-reports', workspacePath),
+  exportRangeReportPng: (input) => ipcRenderer.invoke('report:export-png', input),
+  getReportExportPayload: (input) => ipcRenderer.invoke('report:get-export-payload', input),
+  notifyReportExportReady: (input) => ipcRenderer.invoke('report:export-ready', input),
   getWorkspaceTags: (workspacePath) => ipcRenderer.invoke('workspace:get-tags', workspacePath),
   getWorkspaceWeatherOptions: (workspacePath) =>
     ipcRenderer.invoke('workspace:get-weather-options', workspacePath),

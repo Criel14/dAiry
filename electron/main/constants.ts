@@ -47,6 +47,9 @@ export const IPC_CHANNELS = {
   generateRangeReport: 'report:generate-range-report',
   getRangeReport: 'report:get-range-report',
   listRangeReports: 'report:list-range-reports',
+  exportRangeReportPng: 'report:export-png',
+  getReportExportPayload: 'report:get-export-payload',
+  notifyReportExportReady: 'report:export-ready',
 } as const
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {

@@ -9,6 +9,7 @@ import JournalEditorPanel from './components/journal/JournalEditorPanel.vue'
 import JournalMetadataPanel from './components/journal/JournalMetadataPanel.vue'
 import ReportsPanel from './components/report/ReportsPanel.vue'
 import ReportsSidebar from './components/report/ReportsSidebar.vue'
+import ReportExportPage from './components/report/export/ReportExportPage.vue'
 import JournalCalendar from './components/journal/JournalCalendar.vue'
 import type {
   AiSettings,
@@ -169,6 +170,7 @@ const lastSavedAt = ref<string | null>(null)
 const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
 let loadSequence = 0
 let removeWindowZoomListener: (() => void) | null = null
+const isReportExportMode = new URLSearchParams(window.location.search).get('mode') === 'report-export'
 const reportsPanel = useReportsPanel(workspacePath)
 
 const todayText = computed(() => getJournalDateText(dayStartHour.value))
@@ -248,12 +250,20 @@ const saveMetaText = computed(() => {
 watch(
   isDirty,
   (value) => {
+    if (isReportExportMode) {
+      return
+    }
+
     void window.dairy.setWindowDirtyState({ isDirty: value })
   },
   { immediate: true },
 )
 
 onMounted(async () => {
+  if (isReportExportMode) {
+    return
+  }
+
   removeWindowZoomListener = window.dairy.onWindowZoomFactorChanged((nextZoomFactor) => {
     windowZoomFactor.value = nextZoomFactor
   })
@@ -262,6 +272,10 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  if (isReportExportMode) {
+    return
+  }
+
   removeWindowZoomListener?.()
   removeWindowZoomListener = null
   window.removeEventListener('keydown', handleWindowKeydown)
@@ -920,7 +934,9 @@ async function handleSaveAiConfiguration(
 </script>
 
 <template>
-  <div class="app-shell">
+  <ReportExportPage v-if="isReportExportMode" />
+
+  <div v-else class="app-shell">
     <WorkspaceSidebar
       :workspace-path="workspacePath"
       :active-panel="rightPanel"
@@ -1043,6 +1059,7 @@ async function handleSaveAiConfiguration(
 
       <ReportsPanel
         v-else-if="rightPanel === 'reports'"
+        :workspace-path="workspacePath"
         :has-workspace="reportsPanel.hasWorkspace.value"
         :empty-state-title="reportsPanel.emptyStateTitle.value"
         :empty-state-description="reportsPanel.emptyStateDescription.value"
