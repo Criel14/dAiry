@@ -340,6 +340,10 @@ const visibleLocationRanking = computed(() => props.activeLocationPatterns?.rank
 const visibleTimeBuckets = computed(() => props.activeTimePatterns?.buckets.slice(0, maxPatternItems) ?? [])
 
 function getPatternListClass(count: number) {
+  if (count === 1) {
+    return 'pattern-compact-list--single'
+  }
+
   if (count >= 5) {
     return 'pattern-compact-list--cols-3'
   }
@@ -1211,50 +1215,73 @@ function getPatternCount(value: unknown) {
 
 .summary-groups {
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 1.1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(217, 203, 159, 0.8);
 }
 
 .summary-group-panel {
   display: grid;
-  gap: 0.75rem;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: 0.95rem;
+  align-items: start;
+  min-width: 0;
+  padding: 0.9rem 0;
+  background: transparent;
+}
+
+.summary-group-panel + .summary-group-panel {
+  border-top: 1px solid rgba(229, 220, 197, 0.9);
 }
 
 .summary-group-header {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
+  padding-top: 0.2rem;
 }
 
 .summary-group-title {
   color: var(--color-text-main);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .summary-item-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: 0.75rem;
+  align-items: start;
 }
 
 .summary-item-card {
   display: grid;
-  gap: 0.35rem;
-  padding: 0.9rem 0.95rem;
-  border: 1px solid rgba(229, 220, 197, 0.92);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.78);
+  align-content: start;
+  gap: 0.28rem;
+  min-width: 0;
+  padding: 0.2rem 0 0.2rem 0.85rem;
+  border-left: 1px solid rgba(217, 203, 159, 0.38);
+  background: transparent;
 }
 
 .summary-item-time {
-  color: #9d8657;
-  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #ad945f;
+  font-size: 0.76rem;
+  font-weight: 500;
 }
 
 .summary-item-text {
   margin: 0;
   color: var(--color-text-main);
-  line-height: 1.75;
+  line-height: 1.72;
 }
 
 .summary-list {
@@ -2600,19 +2627,28 @@ function getPatternCount(value: unknown) {
   --pattern-label-column: minmax(0, 1.45fr);
   --pattern-track-column: minmax(3.8rem, 1.05fr);
   gap: 0.55rem 0.7rem;
-  align-content: start;
+  height: 100%;
+  align-content: stretch;
+}
+
+.pattern-compact-list--single {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .pattern-compact-list--cols-1 {
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(2, minmax(0, 1fr));
 }
 
 .pattern-compact-list--cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
 }
 
 .pattern-compact-list--cols-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   --pattern-label-column: minmax(0, 1.2fr);
   --pattern-track-column: minmax(2.8rem, 0.9fr);
 }
@@ -2626,7 +2662,9 @@ function getPatternCount(value: unknown) {
   display: grid;
   grid-template-columns: 2rem var(--pattern-label-column) var(--pattern-track-column) auto;
   align-items: center;
+  align-content: center;
   gap: 0.55rem;
+  height: 100%;
   min-height: 3rem;
   padding: 0.68rem 0.76rem;
   border: 1px solid var(--color-border-soft);
