@@ -146,6 +146,7 @@ export interface ExportRangeReportInput {
   workspacePath: string
   reportId: string
   sections: ReportExportSectionKey[]
+  documentWidth?: number
   imageScale?: number
 }
 

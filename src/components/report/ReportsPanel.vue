@@ -64,15 +64,20 @@ const activeSummaryGroups = computed(() => {
 const DEFAULT_EXPORT_IMAGE_SCALE = '1.5'
 const MIN_EXPORT_IMAGE_SCALE = 1
 const MAX_EXPORT_IMAGE_SCALE = 3
+const DEFAULT_EXPORT_DOCUMENT_WIDTH = '1200'
+const MIN_EXPORT_DOCUMENT_WIDTH = 1000
+const MAX_EXPORT_DOCUMENT_WIDTH = 2400
 
 const isExportDialogVisible = ref(false)
 const isExporting = ref(false)
 const exportDialogMessage = ref('')
 const selectedExportSections = ref<ReportExportSectionKey[]>([])
+const selectedExportDocumentWidth = ref(DEFAULT_EXPORT_DOCUMENT_WIDTH)
 const selectedExportImageScale = ref(DEFAULT_EXPORT_IMAGE_SCALE)
 const exportSectionOptions = REPORT_EXPORT_SECTION_OPTIONS
 
 const availableExportSections = computed(() => getAvailableExportSections(props.activeReport))
+const parsedExportDocumentWidth = computed(() => parseExportDocumentWidth(selectedExportDocumentWidth.value))
 const parsedExportImageScale = computed(() => parseExportImageScale(selectedExportImageScale.value))
 const canOpenExportDialog = computed(
   () => Boolean(props.activeReport) && !props.isLoadingReport,
@@ -82,6 +87,7 @@ const canStartExport = computed(
     Boolean(props.activeReport) &&
     Boolean(props.workspacePath?.trim()) &&
     selectedExportSections.value.length > 0 &&
+    parsedExportDocumentWidth.value !== null &&
     parsedExportImageScale.value !== null &&
     !isExporting.value,
 )
@@ -92,6 +98,7 @@ watch(
     isExportDialogVisible.value = false
     exportDialogMessage.value = ''
     selectedExportSections.value = getDefaultExportSections(props.activeReport)
+    selectedExportDocumentWidth.value = DEFAULT_EXPORT_DOCUMENT_WIDTH
     selectedExportImageScale.value = DEFAULT_EXPORT_IMAGE_SCALE
   },
   { immediate: true },
@@ -104,6 +111,7 @@ function openExportDialog() {
 
   exportDialogMessage.value = ''
   selectedExportSections.value = getDefaultExportSections(props.activeReport)
+  selectedExportDocumentWidth.value = DEFAULT_EXPORT_DOCUMENT_WIDTH
   selectedExportImageScale.value = DEFAULT_EXPORT_IMAGE_SCALE
   isExportDialogVisible.value = true
 }
@@ -138,6 +146,26 @@ function toggleExportSection(sectionKey: ReportExportSectionKey) {
   selectedExportSections.value = [...selectedExportSections.value, sectionKey]
 }
 
+function parseExportDocumentWidth(rawValue: string) {
+  const trimmedValue = rawValue.trim()
+
+  if (!trimmedValue) {
+    return null
+  }
+
+  const parsedValue = Number(trimmedValue)
+
+  if (!Number.isFinite(parsedValue)) {
+    return null
+  }
+
+  if (parsedValue < MIN_EXPORT_DOCUMENT_WIDTH || parsedValue > MAX_EXPORT_DOCUMENT_WIDTH) {
+    return null
+  }
+
+  return Math.round(parsedValue)
+}
+
 function parseExportImageScale(rawValue: string) {
   const trimmedValue = rawValue.trim()
 
@@ -166,6 +194,17 @@ function formatExportImageScale(value: number) {
     : normalizedValue.toFixed(1)
 }
 
+function stepExportDocumentWidth(delta: number) {
+  const currentValue =
+    parseExportDocumentWidth(selectedExportDocumentWidth.value) ?? Number(DEFAULT_EXPORT_DOCUMENT_WIDTH)
+  const nextValue = Math.min(
+    MAX_EXPORT_DOCUMENT_WIDTH,
+    Math.max(MIN_EXPORT_DOCUMENT_WIDTH, currentValue + delta),
+  )
+
+  selectedExportDocumentWidth.value = String(Math.round(nextValue))
+}
+
 function stepExportImageScale(delta: number) {
   const currentValue = parseExportImageScale(selectedExportImageScale.value) ?? Number(DEFAULT_EXPORT_IMAGE_SCALE)
   const nextValue = Math.min(
@@ -187,6 +226,11 @@ async function handleExportReport() {
     return
   }
 
+  if (parsedExportDocumentWidth.value === null) {
+    exportDialogMessage.value = `导出宽度请输入 ${MIN_EXPORT_DOCUMENT_WIDTH} 到 ${MAX_EXPORT_DOCUMENT_WIDTH} 之间的数字。`
+    return
+  }
+
   if (parsedExportImageScale.value === null) {
     exportDialogMessage.value = `渲染倍率请输入 ${MIN_EXPORT_IMAGE_SCALE} 到 ${MAX_EXPORT_IMAGE_SCALE} 之间的数字。`
     return
@@ -200,6 +244,7 @@ async function handleExportReport() {
       workspacePath: props.workspacePath,
       reportId: props.activeReport.reportId,
       sections: [...selectedExportSections.value],
+      documentWidth: parsedExportDocumentWidth.value,
       imageScale: parsedExportImageScale.value,
     })
 
@@ -938,6 +983,50 @@ function getPatternCount(value: unknown) {
           </section>
 
           <section class="export-setting-group">
+            <h4>导出宽度</h4>
+
+            <div class="export-scale-field">
+              <label class="export-scale-input-wrap">
+                <span>宽度</span>
+                <div class="export-scale-control">
+                  <input
+                    v-model="selectedExportDocumentWidth"
+                    class="export-scale-input"
+                    type="number"
+                    inputmode="numeric"
+                    :min="MIN_EXPORT_DOCUMENT_WIDTH"
+                    :max="MAX_EXPORT_DOCUMENT_WIDTH"
+                    step="100"
+                  />
+                  <div class="export-scale-stepper">
+                    <button
+                      class="export-scale-stepper-button export-scale-stepper-button--up"
+                      type="button"
+                      :disabled="isExporting"
+                      @click="stepExportDocumentWidth(100)"
+                    >
+                      <span aria-hidden="true">+</span>
+                    </button>
+                    <button
+                      class="export-scale-stepper-button export-scale-stepper-button--down"
+                      type="button"
+                      :disabled="isExporting"
+                      @click="stepExportDocumentWidth(-100)"
+                    >
+                      <span aria-hidden="true">-</span>
+                    </button>
+                  </div>
+                </div>
+                <em>px</em>
+              </label>
+
+              <p class="export-scale-hint">
+                可输入 {{ MIN_EXPORT_DOCUMENT_WIDTH }} 到 {{ MAX_EXPORT_DOCUMENT_WIDTH }} 之间的数字，单位为像素。
+              </p>
+            </div>
+          </section>
+
+          <section class="export-setting-group">
             <h4>渲染倍率</h4>
 
             <div class="export-scale-field">
@@ -976,7 +1065,7 @@ function getPatternCount(value: unknown) {
               </label>
 
               <p class="export-scale-hint">
-                可输入 {{ MIN_EXPORT_IMAGE_SCALE }} 到 {{ MAX_EXPORT_IMAGE_SCALE }} 之间的数字，数值越大越清晰，导出速度越慢。
+                可输入 {{ MIN_EXPORT_IMAGE_SCALE }} 到 {{ MAX_EXPORT_IMAGE_SCALE }} 之间的数字，数值越大越清晰，但导出速度越慢。
               </p>
             </div>
           </section>

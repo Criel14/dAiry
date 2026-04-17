@@ -22,7 +22,9 @@ interface ExportSessionState {
   isReady: boolean
 }
 
-const EXPORT_DOCUMENT_WIDTH = 1200
+const EXPORT_DEFAULT_DOCUMENT_WIDTH = 1200
+const EXPORT_MIN_DOCUMENT_WIDTH = 600
+const EXPORT_MAX_DOCUMENT_WIDTH = 2400
 const EXPORT_INITIAL_HEIGHT = 900
 const EXPORT_MIN_HEIGHT = 420
 const EXPORT_MAX_HEIGHT = 12000
@@ -137,6 +139,19 @@ function normalizeExportImageScale(imageScale: number | undefined) {
   )
 }
 
+function normalizeExportDocumentWidth(documentWidth: number | undefined) {
+  if (!Number.isFinite(documentWidth)) {
+    return EXPORT_DEFAULT_DOCUMENT_WIDTH
+  }
+
+  const normalizedWidth = Math.round(documentWidth ?? EXPORT_DEFAULT_DOCUMENT_WIDTH)
+
+  return Math.min(
+    EXPORT_MAX_DOCUMENT_WIDTH,
+    Math.max(EXPORT_MIN_DOCUMENT_WIDTH, normalizedWidth),
+  )
+}
+
 function createExportSession(payload: ReportExportPayload) {
   const sessionId = `report_export_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
@@ -160,10 +175,16 @@ function removeExportSession(sessionId: string) {
 }
 
 async function createExportWindow(sessionId: string) {
+  const session = exportSessions.get(sessionId)
+
+  if (!session) {
+    throw new Error('导出会话不存在，请重新尝试导出。')
+  }
+
   const exportWindow = new BrowserWindow({
     show: false,
     useContentSize: true,
-    width: EXPORT_DOCUMENT_WIDTH,
+    width: session.payload.documentWidth,
     height: EXPORT_INITIAL_HEIGHT,
     backgroundColor: '#f6f2e8',
     webPreferences: {
@@ -240,6 +261,7 @@ export async function exportRangeReportPng(
 ): Promise<ExportRangeReportResult> {
   const workspacePath = input.workspacePath.trim()
   const reportId = input.reportId.trim()
+  const documentWidth = normalizeExportDocumentWidth(input.documentWidth)
   const imageScale = normalizeExportImageScale(input.imageScale)
 
   if (!workspacePath) {
@@ -287,7 +309,7 @@ export async function exportRangeReportPng(
   const sessionId = createExportSession({
     report,
     sections: normalizedSections,
-    documentWidth: EXPORT_DOCUMENT_WIDTH,
+    documentWidth,
     imageScale,
   })
 
@@ -298,7 +320,7 @@ export async function exportRangeReportPng(
     const contentHeight = await waitForExportReady(sessionId)
     const captureHeight = normalizeExportHeight(contentHeight)
     const scaledCaptureSize = getScaledCaptureSize(
-      EXPORT_DOCUMENT_WIDTH,
+      documentWidth,
       captureHeight,
       imageScale,
     )

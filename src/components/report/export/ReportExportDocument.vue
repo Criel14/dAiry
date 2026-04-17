@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import dayjs from 'dayjs'
 import MoodTrendChart from '../MoodTrendChart.vue'
 import TagCloudView from '../TagCloudView.vue'
@@ -20,10 +20,16 @@ const props = withDefaults(defineProps<{
 
 const maxPatternItems = 6
 const heatmapCellGap = 3
+const heatmapScrollerRef = ref<HTMLElement | null>(null)
 const heatmapMinCellSize = 10
 const heatmapMaxCellSize = 22
+const heatmapDefaultCellSize = 12
 const heatmapCustomContextMonthCount = 13
 const heatmapWeekdayLabels = ['周一', '', '周三', '', '周五', '', '']
+const heatmapCellSize = ref(heatmapDefaultCellSize)
+let heatmapMeasureFrame = 0
+let heatmapResizeObserver: ResizeObserver | null = null
+let pendingHeatmapWidth: number | null = null
 
 const sectionSet = computed(() => new Set(props.sections))
 const summaryGroups = computed(() => [
@@ -154,14 +160,72 @@ const heatmapSpansMultipleYears = computed(() => {
   return heatmapDisplayRange.value.displayStart.year() !== heatmapDisplayRange.value.displayEnd.year()
 })
 
-const heatmapCellSize = computed(() => {
+function updateHeatmapCellSize(scrollerWidth = heatmapScrollerRef.value?.clientWidth ?? 0) {
   const weekCount = Math.max(heatmapWeekCount.value, 1)
-  const contentWidth = Math.max(props.documentWidth - 180, 360)
-  const totalGap = Math.max(weekCount - 1, 0) * heatmapCellGap
-  const rawSize = Math.floor((contentWidth - totalGap) / weekCount)
 
-  return Math.max(heatmapMinCellSize, Math.min(heatmapMaxCellSize, rawSize))
-})
+  if (scrollerWidth <= 0) {
+    heatmapCellSize.value = heatmapDefaultCellSize
+    return
+  }
+
+  const totalGap = Math.max(weekCount - 1, 0) * heatmapCellGap
+  const rawSize = Math.floor((scrollerWidth - totalGap) / weekCount)
+  const nextSize = Math.max(heatmapMinCellSize, Math.min(heatmapMaxCellSize, rawSize))
+
+  if (nextSize !== heatmapCellSize.value) {
+    heatmapCellSize.value = nextSize
+  }
+}
+
+function scheduleHeatmapCellSizeUpdate(scrollerWidth?: number) {
+  if (typeof scrollerWidth === 'number') {
+    pendingHeatmapWidth = scrollerWidth
+  }
+
+  if (heatmapMeasureFrame) {
+    cancelAnimationFrame(heatmapMeasureFrame)
+  }
+
+  heatmapMeasureFrame = window.requestAnimationFrame(() => {
+    heatmapMeasureFrame = 0
+    updateHeatmapCellSize(pendingHeatmapWidth ?? undefined)
+    pendingHeatmapWidth = null
+  })
+}
+
+function stopObservingHeatmapScroller() {
+  heatmapResizeObserver?.disconnect()
+  heatmapResizeObserver = null
+}
+
+function startObservingHeatmapScroller() {
+  stopObservingHeatmapScroller()
+
+  if (!heatmapScrollerRef.value) {
+    return
+  }
+
+  scheduleHeatmapCellSizeUpdate(heatmapScrollerRef.value.clientWidth)
+
+  if (typeof ResizeObserver === 'undefined') {
+    return
+  }
+
+  heatmapResizeObserver = new ResizeObserver((entries) => {
+    const entry = entries[0]
+
+    if (!entry) {
+      return
+    }
+
+    const nextWidth = Math.round(entry.contentRect.width)
+
+    if (nextWidth > 0) {
+      scheduleHeatmapCellSizeUpdate(nextWidth)
+    }
+  })
+  heatmapResizeObserver.observe(heatmapScrollerRef.value)
+}
 
 const heatmapSizingStyle = computed(() => ({
   '--heatmap-cell-size': `${heatmapCellSize.value}px`,
@@ -313,6 +377,36 @@ function getPatternListClass(count: number) {
 
   return 'pattern-list--cols-1'
 }
+
+onMounted(() => {
+  startObservingHeatmapScroller()
+})
+
+watch(
+  [heatmapWeekCount, () => props.report.reportId, () => props.documentWidth],
+  async () => {
+    await nextTick()
+    scheduleHeatmapCellSizeUpdate()
+  },
+  { flush: 'post' },
+)
+
+watch(
+  heatmapScrollerRef,
+  async () => {
+    await nextTick()
+    startObservingHeatmapScroller()
+  },
+  { flush: 'post' },
+)
+
+onBeforeUnmount(() => {
+  if (heatmapMeasureFrame) {
+    cancelAnimationFrame(heatmapMeasureFrame)
+  }
+
+  stopObservingHeatmapScroller()
+})
 </script>
 
 <template>
@@ -409,7 +503,7 @@ function getPatternListClass(count: number) {
             </span>
           </div>
 
-          <div class="heatmap-scroller">
+          <div ref="heatmapScrollerRef" class="heatmap-scroller">
             <div class="heatmap-scroll-content">
               <div v-if="heatmapMonthLabels.length > 0" class="heatmap-months">
                 <span
@@ -612,7 +706,7 @@ function getPatternListClass(count: number) {
 
 .content-card {
   display: grid;
-  gap: 14px;
+  gap: 6px;
   padding: 20px;
 }
 
@@ -637,6 +731,19 @@ function getPatternListClass(count: number) {
 .card-header span {
   color: var(--color-text-soft);
   font-size: 0.84rem;
+}
+
+.content-card :deep(.mood-chart),
+.content-card :deep(.word-cloud-card) {
+  margin-top: 0;
+}
+
+.content-card :deep(.mood-chart) {
+  gap: 0.55rem;
+}
+
+.content-card :deep(.word-cloud-card) {
+  gap: 0.55rem;
 }
 
 .stats-grid {
@@ -682,7 +789,7 @@ function getPatternListClass(count: number) {
 .summary-groups {
   display: grid;
   gap: 0;
-  padding-top: 12px;
+  padding-top: 6px;
   border-top: 1px solid rgba(217, 203, 159, 0.75);
 }
 
@@ -739,7 +846,7 @@ function getPatternListClass(count: number) {
 
   display: grid;
   gap: 0.45rem;
-  margin-top: 1rem;
+  margin-top: 0.35rem;
 }
 
 .heatmap-body {

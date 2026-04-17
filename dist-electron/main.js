@@ -2748,7 +2748,9 @@ function registerWindowLifecycleEvents() {
     }
   });
 }
-const EXPORT_DOCUMENT_WIDTH = 1200;
+const EXPORT_DEFAULT_DOCUMENT_WIDTH = 1200;
+const EXPORT_MIN_DOCUMENT_WIDTH = 600;
+const EXPORT_MAX_DOCUMENT_WIDTH = 2400;
 const EXPORT_INITIAL_HEIGHT = 900;
 const EXPORT_MIN_HEIGHT = 420;
 const EXPORT_MAX_HEIGHT = 12e3;
@@ -2829,6 +2831,16 @@ function normalizeExportImageScale(imageScale) {
     Math.max(EXPORT_MIN_IMAGE_SCALE, normalizedScale)
   );
 }
+function normalizeExportDocumentWidth(documentWidth) {
+  if (!Number.isFinite(documentWidth)) {
+    return EXPORT_DEFAULT_DOCUMENT_WIDTH;
+  }
+  const normalizedWidth = Math.round(documentWidth ?? EXPORT_DEFAULT_DOCUMENT_WIDTH);
+  return Math.min(
+    EXPORT_MAX_DOCUMENT_WIDTH,
+    Math.max(EXPORT_MIN_DOCUMENT_WIDTH, normalizedWidth)
+  );
+}
 function createExportSession(payload) {
   const sessionId = `report_export_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   let resolveReady = () => {
@@ -2848,10 +2860,14 @@ function removeExportSession(sessionId) {
   exportSessions.delete(sessionId);
 }
 async function createExportWindow(sessionId) {
+  const session = exportSessions.get(sessionId);
+  if (!session) {
+    throw new Error("导出会话不存在，请重新尝试导出。");
+  }
   const exportWindow = new BrowserWindow({
     show: false,
     useContentSize: true,
-    width: EXPORT_DOCUMENT_WIDTH,
+    width: session.payload.documentWidth,
     height: EXPORT_INITIAL_HEIGHT,
     backgroundColor: "#f6f2e8",
     webPreferences: {
@@ -2913,6 +2929,7 @@ function waitForNextFrame() {
 async function exportRangeReportPng(input) {
   const workspacePath = input.workspacePath.trim();
   const reportId = input.reportId.trim();
+  const documentWidth = normalizeExportDocumentWidth(input.documentWidth);
   const imageScale = normalizeExportImageScale(input.imageScale);
   if (!workspacePath) {
     throw new Error("当前没有可用工作区，无法导出报告。");
@@ -2951,7 +2968,7 @@ async function exportRangeReportPng(input) {
   const sessionId = createExportSession({
     report,
     sections: normalizedSections,
-    documentWidth: EXPORT_DOCUMENT_WIDTH,
+    documentWidth,
     imageScale
   });
   let exportWindow = null;
@@ -2960,7 +2977,7 @@ async function exportRangeReportPng(input) {
     const contentHeight = await waitForExportReady(sessionId);
     const captureHeight = normalizeExportHeight(contentHeight);
     const scaledCaptureSize = getScaledCaptureSize(
-      EXPORT_DOCUMENT_WIDTH,
+      documentWidth,
       captureHeight,
       imageScale
     );
