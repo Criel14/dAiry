@@ -29,7 +29,7 @@ const EXPORT_MAX_HEIGHT = 12000
 const EXPORT_READY_TIMEOUT_MS = 20_000
 const EXPORT_DEFAULT_IMAGE_SCALE = 1.5
 const EXPORT_MIN_IMAGE_SCALE = 1
-const EXPORT_MAX_IMAGE_SCALE = 4
+const EXPORT_MAX_IMAGE_SCALE = 3
 
 const EXPORT_SECTION_ORDER: ReportExportSectionKey[] = [
   'cover',
@@ -188,36 +188,11 @@ async function createExportWindow(sessionId: string) {
   return exportWindow
 }
 
-function applyExportCaptureQuality(
-  exportWindow: BrowserWindow,
-  width: number,
-  height: number,
-  imageScale: number,
-) {
-  const deviceScaleFactor = imageScale
-
-  if (deviceScaleFactor <= 1) {
-    exportWindow.webContents.disableDeviceEmulation()
-    return
+function getScaledCaptureSize(width: number, height: number, imageScale: number) {
+  return {
+    width: Math.max(1, Math.ceil(width * imageScale)),
+    height: Math.max(1, Math.ceil(height * imageScale)),
   }
-
-  exportWindow.webContents.enableDeviceEmulation({
-    screenPosition: 'desktop',
-    screenSize: {
-      width,
-      height,
-    },
-    viewPosition: {
-      x: 0,
-      y: 0,
-    },
-    deviceScaleFactor,
-    viewSize: {
-      width,
-      height,
-    },
-    scale: 1,
-  })
 }
 
 async function waitForExportReady(sessionId: string) {
@@ -313,35 +288,30 @@ export async function exportRangeReportPng(
     report,
     sections: normalizedSections,
     documentWidth: EXPORT_DOCUMENT_WIDTH,
+    imageScale,
   })
 
   let exportWindow: BrowserWindow | null = null
 
   try {
     exportWindow = await createExportWindow(sessionId)
-    applyExportCaptureQuality(
-      exportWindow,
-      EXPORT_DOCUMENT_WIDTH,
-      EXPORT_INITIAL_HEIGHT,
-      imageScale,
-    )
     const contentHeight = await waitForExportReady(sessionId)
     const captureHeight = normalizeExportHeight(contentHeight)
-
-    exportWindow.setContentSize(EXPORT_DOCUMENT_WIDTH, captureHeight)
-    applyExportCaptureQuality(
-      exportWindow,
+    const scaledCaptureSize = getScaledCaptureSize(
       EXPORT_DOCUMENT_WIDTH,
       captureHeight,
       imageScale,
     )
+
+    exportWindow.setContentSize(scaledCaptureSize.width, scaledCaptureSize.height)
+    await waitForNextFrame()
     await waitForNextFrame()
 
     const image = await exportWindow.webContents.capturePage({
       x: 0,
       y: 0,
-      width: EXPORT_DOCUMENT_WIDTH,
-      height: captureHeight,
+      width: scaledCaptureSize.width,
+      height: scaledCaptureSize.height,
     })
 
     if (image.isEmpty()) {

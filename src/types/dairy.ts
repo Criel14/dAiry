@@ -169,6 +169,7 @@ export interface ReportExportPayload {
   report: RangeReport
   sections: ReportExportSectionKey[]
   documentWidth: number
+  imageScale: number
 }
 
 export type ReportSummaryTimeAnchorType = 'day' | 'range' | 'multiple' | 'approx'

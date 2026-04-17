@@ -63,7 +63,7 @@ const activeSummaryGroups = computed(() => {
 
 const DEFAULT_EXPORT_IMAGE_SCALE = '1.5'
 const MIN_EXPORT_IMAGE_SCALE = 1
-const MAX_EXPORT_IMAGE_SCALE = 4
+const MAX_EXPORT_IMAGE_SCALE = 3
 
 const isExportDialogVisible = ref(false)
 const isExporting = ref(false)
@@ -972,7 +972,7 @@ function getPatternCount(value: unknown) {
               </label>
 
               <p class="export-scale-hint">
-                可输入 {{ MIN_EXPORT_IMAGE_SCALE }} 到 {{ MAX_EXPORT_IMAGE_SCALE }} 之间的数字，数值越大越清晰，但导出越慢。
+                可输入 {{ MIN_EXPORT_IMAGE_SCALE }} 到 {{ MAX_EXPORT_IMAGE_SCALE }} 之间的数字，数值越大越清晰，导出速度越慢。
               </p>
             </div>
           </section>

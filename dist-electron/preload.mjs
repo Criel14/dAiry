@@ -1,1 +1,46 @@
-"use strict";const r=require("electron"),n={getAppBootstrap:()=>r.ipcRenderer.invoke("app:get-bootstrap"),getAiSettingsStatus:()=>r.ipcRenderer.invoke("app:get-ai-settings-status"),setWindowZoomFactor:e=>r.ipcRenderer.invoke("app:set-window-zoom-factor",e),onWindowZoomFactorChanged:e=>{const t=(i,o)=>{typeof(o==null?void 0:o.zoomFactor)=="number"&&e(o.zoomFactor)};return r.ipcRenderer.on("app:window-zoom-changed",t),()=>{r.ipcRenderer.removeListener("app:window-zoom-changed",t)}},saveAiSettings:e=>r.ipcRenderer.invoke("app:save-ai-settings",e),saveAiApiKey:e=>r.ipcRenderer.invoke("app:save-ai-api-key",e),chooseWorkspace:()=>r.ipcRenderer.invoke("workspace:choose"),readJournalEntry:e=>r.ipcRenderer.invoke("journal:read-entry",e),createJournalEntry:e=>r.ipcRenderer.invoke("journal:create-entry",e),saveJournalEntryBody:e=>r.ipcRenderer.invoke("journal:save-entry-body",e),saveJournalEntryMetadata:e=>r.ipcRenderer.invoke("journal:save-entry-metadata",e),getJournalMonthActivity:e=>r.ipcRenderer.invoke("journal:get-month-activity",e),generateDailyInsights:e=>r.ipcRenderer.invoke("journal:generate-daily-insights",e),generateRangeReport:e=>r.ipcRenderer.invoke("report:generate-range-report",e),getRangeReport:e=>r.ipcRenderer.invoke("report:get-range-report",e),listRangeReports:e=>r.ipcRenderer.invoke("report:list-range-reports",e),exportRangeReportPng:e=>r.ipcRenderer.invoke("report:export-png",e),getReportExportPayload:e=>r.ipcRenderer.invoke("report:get-export-payload",e),notifyReportExportReady:e=>r.ipcRenderer.invoke("report:export-ready",e),getWorkspaceTags:e=>r.ipcRenderer.invoke("workspace:get-tags",e),getWorkspaceWeatherOptions:e=>r.ipcRenderer.invoke("workspace:get-weather-options",e),getWorkspaceLocationOptions:e=>r.ipcRenderer.invoke("workspace:get-location-options",e),setWorkspaceTags:e=>r.ipcRenderer.invoke("workspace:set-tags",e),setWorkspaceWeatherOptions:e=>r.ipcRenderer.invoke("workspace:set-weather-options",e),setWorkspaceLocationOptions:e=>r.ipcRenderer.invoke("workspace:set-location-options",e),setJournalHeatmapEnabled:e=>r.ipcRenderer.invoke("app:set-journal-heatmap-enabled",e),setDayStartHour:e=>r.ipcRenderer.invoke("app:set-day-start-hour",e),setFrontmatterVisibility:e=>r.ipcRenderer.invoke("app:set-frontmatter-visibility",e),setWindowDirtyState:e=>r.ipcRenderer.invoke("app:set-window-dirty-state",e),openExternalLink:e=>r.ipcRenderer.invoke("app:open-external-link",e),openDevTools:()=>r.ipcRenderer.invoke("app:open-dev-tools")};r.contextBridge.exposeInMainWorld("dairy",n);
+"use strict";
+const electron = require("electron");
+const dairyApi = {
+  getAppBootstrap: () => electron.ipcRenderer.invoke("app:get-bootstrap"),
+  getAiSettingsStatus: () => electron.ipcRenderer.invoke("app:get-ai-settings-status"),
+  setWindowZoomFactor: (input) => electron.ipcRenderer.invoke("app:set-window-zoom-factor", input),
+  onWindowZoomFactorChanged: (listener) => {
+    const wrappedListener = (_event, payload) => {
+      if (typeof (payload == null ? void 0 : payload.zoomFactor) === "number") {
+        listener(payload.zoomFactor);
+      }
+    };
+    electron.ipcRenderer.on("app:window-zoom-changed", wrappedListener);
+    return () => {
+      electron.ipcRenderer.removeListener("app:window-zoom-changed", wrappedListener);
+    };
+  },
+  saveAiSettings: (input) => electron.ipcRenderer.invoke("app:save-ai-settings", input),
+  saveAiApiKey: (input) => electron.ipcRenderer.invoke("app:save-ai-api-key", input),
+  chooseWorkspace: () => electron.ipcRenderer.invoke("workspace:choose"),
+  readJournalEntry: (input) => electron.ipcRenderer.invoke("journal:read-entry", input),
+  createJournalEntry: (input) => electron.ipcRenderer.invoke("journal:create-entry", input),
+  saveJournalEntryBody: (input) => electron.ipcRenderer.invoke("journal:save-entry-body", input),
+  saveJournalEntryMetadata: (input) => electron.ipcRenderer.invoke("journal:save-entry-metadata", input),
+  getJournalMonthActivity: (input) => electron.ipcRenderer.invoke("journal:get-month-activity", input),
+  generateDailyInsights: (input) => electron.ipcRenderer.invoke("journal:generate-daily-insights", input),
+  generateRangeReport: (input) => electron.ipcRenderer.invoke("report:generate-range-report", input),
+  getRangeReport: (input) => electron.ipcRenderer.invoke("report:get-range-report", input),
+  listRangeReports: (workspacePath) => electron.ipcRenderer.invoke("report:list-range-reports", workspacePath),
+  exportRangeReportPng: (input) => electron.ipcRenderer.invoke("report:export-png", input),
+  getReportExportPayload: (input) => electron.ipcRenderer.invoke("report:get-export-payload", input),
+  notifyReportExportReady: (input) => electron.ipcRenderer.invoke("report:export-ready", input),
+  getWorkspaceTags: (workspacePath) => electron.ipcRenderer.invoke("workspace:get-tags", workspacePath),
+  getWorkspaceWeatherOptions: (workspacePath) => electron.ipcRenderer.invoke("workspace:get-weather-options", workspacePath),
+  getWorkspaceLocationOptions: (workspacePath) => electron.ipcRenderer.invoke("workspace:get-location-options", workspacePath),
+  setWorkspaceTags: (input) => electron.ipcRenderer.invoke("workspace:set-tags", input),
+  setWorkspaceWeatherOptions: (input) => electron.ipcRenderer.invoke("workspace:set-weather-options", input),
+  setWorkspaceLocationOptions: (input) => electron.ipcRenderer.invoke("workspace:set-location-options", input),
+  setJournalHeatmapEnabled: (input) => electron.ipcRenderer.invoke("app:set-journal-heatmap-enabled", input),
+  setDayStartHour: (input) => electron.ipcRenderer.invoke("app:set-day-start-hour", input),
+  setFrontmatterVisibility: (input) => electron.ipcRenderer.invoke("app:set-frontmatter-visibility", input),
+  setWindowDirtyState: (input) => electron.ipcRenderer.invoke("app:set-window-dirty-state", input),
+  openExternalLink: (input) => electron.ipcRenderer.invoke("app:open-external-link", input),
+  openDevTools: () => electron.ipcRenderer.invoke("app:open-dev-tools")
+};
+electron.contextBridge.exposeInMainWorld("dairy", dairyApi);

@@ -1,12 +1,40 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { ReportExportPayload } from '../../../types/dairy'
 import ReportExportDocument from './ReportExportDocument.vue'
 
 const containerRef = ref<HTMLElement | null>(null)
+const documentLayerRef = ref<HTMLElement | null>(null)
 const payload = ref<ReportExportPayload | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')
+const measuredContentHeight = ref(0)
+
+const exportStageStyle = computed(() => {
+  if (!payload.value) {
+    return {}
+  }
+
+  return {
+    width: `${Math.ceil(payload.value.documentWidth * payload.value.imageScale)}px`,
+    height:
+      measuredContentHeight.value > 0
+        ? `${Math.ceil(measuredContentHeight.value * payload.value.imageScale)}px`
+        : 'auto',
+  }
+})
+
+const exportLayerStyle = computed(() => {
+  if (!payload.value) {
+    return {}
+  }
+
+  return {
+    width: `${payload.value.documentWidth}px`,
+    transform: `scale(${payload.value.imageScale})`,
+    transformOrigin: 'top left',
+  }
+})
 
 function getSessionId() {
   const searchParams = new URLSearchParams(window.location.search)
@@ -40,12 +68,13 @@ async function waitRenderStable() {
 }
 
 function getContentHeight() {
+  const documentHeight = documentLayerRef.value?.scrollHeight ?? 0
   const containerHeight = containerRef.value?.scrollHeight ?? 0
   const rootHeight = document.documentElement.scrollHeight
   const bodyHeight = document.body.scrollHeight
   const appHeight = document.getElementById('app')?.scrollHeight ?? 0
 
-  return Math.ceil(Math.max(containerHeight, rootHeight, bodyHeight, appHeight))
+  return Math.ceil(Math.max(documentHeight, containerHeight, rootHeight, bodyHeight, appHeight))
 }
 
 async function initExportPage() {
@@ -63,6 +92,8 @@ async function initExportPage() {
     await waitRenderStable()
 
     const contentHeight = getContentHeight()
+    measuredContentHeight.value = contentHeight
+    await waitRenderStable()
     await window.dairy.notifyReportExportReady({
       sessionId,
       contentHeight,
@@ -95,12 +126,23 @@ onBeforeUnmount(() => {
       <p>{{ loadError }}</p>
     </div>
 
-    <ReportExportDocument
+    <div
       v-else-if="payload"
-      :report="payload.report"
-      :sections="payload.sections"
-      :document-width="payload.documentWidth"
-    />
+      class="report-export-stage"
+      :style="exportStageStyle"
+    >
+      <div
+        ref="documentLayerRef"
+        class="report-export-layer"
+        :style="exportLayerStyle"
+      >
+        <ReportExportDocument
+          :report="payload.report"
+          :sections="payload.sections"
+          :document-width="payload.documentWidth"
+        />
+      </div>
+    </div>
   </section>
 </template>
 
@@ -110,6 +152,14 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   overflow-x: hidden;
   background: var(--color-background);
+}
+
+.report-export-stage {
+  overflow: hidden;
+}
+
+.report-export-layer {
+  will-change: transform;
 }
 
 .export-state {

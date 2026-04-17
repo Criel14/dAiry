@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
   documentWidth: 1200,
 })
 
-const maxPatternItems = 8
+const maxPatternItems = 6
 const heatmapCellGap = 3
 const heatmapMinCellSize = 10
 const heatmapMaxCellSize = 22
@@ -303,7 +303,7 @@ function getPatternCount(value: unknown) {
 }
 
 function getPatternListClass(count: number) {
-  if (count >= 6) {
+  if (count >= 5) {
     return 'pattern-list--cols-3'
   }
 
