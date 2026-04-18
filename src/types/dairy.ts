@@ -13,6 +13,10 @@ export interface AiSettingsStatus {
   isConfigured: boolean
 }
 
+export interface AiContextDocument {
+  content: string
+}
+
 export interface AppConfig {
   lastOpenedWorkspace: string | null
   recentWorkspaces: string[]
@@ -346,6 +350,10 @@ export interface SaveAiApiKeyInput {
   apiKey: string
 }
 
+export interface SaveAiContextInput {
+  content: string
+}
+
 export interface GenerateDailyInsightsInput {
   workspacePath: string
   date: string
@@ -401,6 +409,8 @@ export interface DairyApi {
   getAiSettingsStatus: () => Promise<AiSettingsStatus>
   saveAiSettings: (input: SaveAiSettingsInput) => Promise<AiSettingsStatus>
   saveAiApiKey: (input: SaveAiApiKeyInput) => Promise<AiSettingsStatus>
+  getAiContext: () => Promise<AiContextDocument>
+  saveAiContext: (input: SaveAiContextInput) => Promise<AiContextDocument>
   generateDailyInsights: (
     input: GenerateDailyInsightsInput,
   ) => Promise<GenerateDailyInsightsResult>

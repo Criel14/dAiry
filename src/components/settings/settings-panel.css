@@ -133,6 +133,27 @@
   opacity: 0.6;
 }
 
+.field-textarea {
+  min-height: 10rem;
+  resize: vertical;
+  line-height: 1.9;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-text-main);
+  caret-color: var(--color-text-main);
+  white-space: pre-wrap;
+}
+
+.field-textarea--ai-context {
+  min-height: 16rem;
+}
+
+.field-textarea::placeholder {
+  color: var(--color-text-subtle);
+  opacity: 0.92;
+}
+
 .setting-row {
   display: flex;
   gap: 1rem;

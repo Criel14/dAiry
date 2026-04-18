@@ -6,6 +6,7 @@ import type {
   ReportSummaryTimeAnchor,
 } from '../../../src/types/dairy'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
+import { readAiContext } from '../ai-context'
 import { readAiApiKey } from '../ai-secrets'
 import { createAiChatClient } from './provider-factory'
 import { loadPrompt } from './prompt-loader'
@@ -40,6 +41,10 @@ interface FocusSelectionPayload {
 interface FocusSelectionItem {
   date: string
   reason: string
+}
+
+interface RangeReportWithAiContext extends RangeReport {
+  aiContext: string
 }
 
 interface TimeAnchorPayload {
@@ -352,21 +357,23 @@ function buildSummaryFacts(report: RangeReport) {
   }
 }
 
-function buildFocusSelectionPrompt(report: RangeReport, sourceEntries: RangeReportSummarySourceEntry[]) {
-  return JSON.stringify(
+function buildFocusSelectionPrompt(
+  report: RangeReportWithAiContext,
+  sourceEntries: RangeReportSummarySourceEntry[],
+) {
+  return buildPromptWithAiContext(
     {
       period: report.period,
       source: report.source,
       facts: buildSummaryFacts(report),
       dailyCandidates: sourceEntries.map((entry) => buildEntryCompactDigest(entry)),
     },
-    null,
-    2,
+    report.aiContext,
   )
 }
 
 function buildSummaryPrompt(
-  report: RangeReport,
+  report: RangeReportWithAiContext,
   sourceEntries: RangeReportSummarySourceEntry[],
   focusSelection: FocusSelectionItem[],
 ) {
@@ -394,7 +401,7 @@ function buildSummaryPrompt(
 
   const compactTimeline = sourceEntries.slice(0, 20).map((entry) => buildEntryCompactDigest(entry))
 
-  return JSON.stringify(
+  return buildPromptWithAiContext(
     {
       period: report.period,
       source: report.source,
@@ -409,9 +416,25 @@ function buildSummaryPrompt(
         focusEntries,
       },
     },
-    null,
-    2,
+    report.aiContext,
   )
+}
+
+function buildPromptWithAiContext(payload: unknown, aiContext: string) {
+  const promptParts = [JSON.stringify(payload, null, 2)]
+  const normalizedContext = aiContext.trim()
+
+  if (normalizedContext) {
+    promptParts.push(
+      [
+        '你在整理和总结时，可以参考以下补充知识。',
+        '这些内容用于帮助你理解用户的长期背景、固定术语和偏好；如果与本次区间的实际事实冲突，以区间事实和日记内容为准。',
+        normalizedContext,
+      ].join('\n'),
+    )
+  }
+
+  return promptParts.join('\n\n')
 }
 
 function buildHeuristicFocusSelection(
@@ -522,7 +545,7 @@ function normalizeFocusSelection(
 }
 
 async function selectFocusEntries(
-  report: RangeReport,
+  report: RangeReportWithAiContext,
   sourceEntries: RangeReportSummarySourceEntry[],
   systemPrompt: string,
   summaryClient: ReturnType<typeof createAiChatClient>,
@@ -561,10 +584,11 @@ export async function generateRangeReportSummaryWithAi(
   report: RangeReport,
   sourceEntries: RangeReportSummarySourceEntry[],
 ) {
-  const [config, focusPrompt, summaryPrompt] = await Promise.all([
+  const [config, focusPrompt, summaryPrompt, aiContext] = await Promise.all([
     readAppConfig(),
     loadPrompt('rangeReportSummaryFocusSystem'),
     loadPrompt('rangeReportSummarySystem'),
+    readAiContext(),
   ])
   const settings = ensureAiSettingsReady(config)
   const apiKey = await readAiApiKey(settings.providerType)
@@ -582,13 +606,17 @@ export async function generateRangeReportSummaryWithAi(
   }
 
   const client = createAiChatClient(settings, apiKey)
-  const focusSelection = await selectFocusEntries(report, availableEntries, focusPrompt, client)
+  const reportWithAiContext = {
+    ...report,
+    aiContext,
+  }
+  const focusSelection = await selectFocusEntries(reportWithAiContext, availableEntries, focusPrompt, client)
   const responseText = await client.completeJson({
     messages: [
       { role: 'system', content: summaryPrompt },
       {
         role: 'user',
-        content: buildSummaryPrompt(report, availableEntries, focusSelection),
+        content: buildSummaryPrompt(reportWithAiContext, availableEntries, focusSelection),
       },
     ],
   })

@@ -12,6 +12,7 @@ import ReportsSidebar from './components/report/ReportsSidebar.vue'
 import ReportExportPage from './components/report/export/ReportExportPage.vue'
 import JournalCalendar from './components/journal/JournalCalendar.vue'
 import type {
+  AiContextDocument,
   AiSettings,
   AiSettingsStatus,
   AppConfig,
@@ -46,6 +47,12 @@ function createDefaultAiSettingsStatus(): AiSettingsStatus {
     },
     hasApiKey: false,
     isConfigured: false,
+  }
+}
+
+function createDefaultAiContextDocument(): AiContextDocument {
+  return {
+    content: '',
   }
 }
 
@@ -151,6 +158,7 @@ const dayStartHourSaveMessage = ref('')
 const frontmatterVisibilitySaveMessage = ref('')
 const workspaceLibrariesSaveMessage = ref('')
 const aiSaveMessage = ref('')
+const aiContextSaveMessage = ref('')
 const isCreatingEntry = ref(false)
 const isSavingEntry = ref(false)
 const isSavingMetadata = ref(false)
@@ -161,11 +169,13 @@ const isSavingDayStartHour = ref(false)
 const isSavingFrontmatterVisibility = ref(false)
 const isSavingWorkspaceLibraries = ref(false)
 const isSavingAiConfig = ref(false)
+const isSavingAiContext = ref(false)
 const isJournalHeatmapEnabled = ref(false)
 const windowZoomFactor = ref(1)
 const dayStartHour = ref(0)
 const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(createDefaultFrontmatterVisibility())
 const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
+const aiContextDocument = ref<AiContextDocument>(createDefaultAiContextDocument())
 const lastSavedAt = ref<string | null>(null)
 const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
 let loadSequence = 0
@@ -286,13 +296,15 @@ async function bootstrapApp() {
   viewState.value = 'loading'
 
   try {
-    const [bootstrap, nextAiSettingsStatus] = await Promise.all([
+    const [bootstrap, nextAiSettingsStatus, nextAiContextDocument] = await Promise.all([
       window.dairy.getAppBootstrap(),
       window.dairy.getAiSettingsStatus(),
+      window.dairy.getAiContext(),
     ])
 
     syncConfigState(bootstrap.config)
     aiSettingsStatus.value = nextAiSettingsStatus
+    aiContextDocument.value = nextAiContextDocument
     selectedDate.value = todayText.value
 
     if (!workspacePath.value) {
@@ -931,6 +943,22 @@ async function handleSaveAiConfiguration(
     isSavingAiConfig.value = false
   }
 }
+
+async function handleSaveAiContext(content: string) {
+  isSavingAiContext.value = true
+  aiContextSaveMessage.value = ''
+
+  try {
+    const nextDocument = await window.dairy.saveAiContext({ content })
+    aiContextDocument.value = nextDocument
+    aiContextSaveMessage.value = '补充知识已保存。'
+  } catch (error) {
+    aiContextSaveMessage.value =
+      error instanceof Error ? error.message : '保存补充知识失败，请稍后重试。'
+  } finally {
+    isSavingAiContext.value = false
+  }
+}
 </script>
 
 <template>
@@ -1048,6 +1076,9 @@ async function handleSaveAiConfiguration(
         :ai-settings-status="aiSettingsStatus"
         :is-saving-ai-config="isSavingAiConfig"
         :ai-save-message="aiSaveMessage"
+        :ai-context-document="aiContextDocument"
+        :is-saving-ai-context="isSavingAiContext"
+        :ai-context-save-message="aiContextSaveMessage"
         :active-section-id="activeSettingsSectionId"
         @update:window-zoom-factor="handleUpdateWindowZoomFactor"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
@@ -1055,6 +1086,7 @@ async function handleSaveAiConfiguration(
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
         @save-ai-configuration="handleSaveAiConfiguration"
+        @save-ai-context="handleSaveAiContext"
       />
 
       <ReportsPanel

@@ -5,6 +5,7 @@ import type {
 import { normalizeAiSettings } from '../app-config'
 import { assertValidDate } from '../workspace-paths'
 import { readAppConfig } from '../app-config'
+import { readAiContext } from '../ai-context'
 import { readAiApiKey } from '../ai-secrets'
 import { normalizeStringList } from '../journal-document'
 import { createAiChatClient } from './provider-factory'
@@ -20,6 +21,10 @@ interface EnsureDailyInsightsInput extends GenerateDailyInsightsInput {
   currentSummary?: string
   currentTags?: string[]
   currentMood?: number
+}
+
+interface DailyInsightsPromptInput extends GenerateDailyInsightsInput {
+  aiContext: string
 }
 
 function extractJsonObject(text: string) {
@@ -95,7 +100,7 @@ function normalizeMood(value: unknown): number {
   return value
 }
 
-function buildDailyInsightsPrompt(input: GenerateDailyInsightsInput) {
+function buildDailyInsightsPrompt(input: DailyInsightsPromptInput) {
   const body = input.body.trim()
   if (!body) {
     throw new Error('正文为空，暂时无法自动整理。')
@@ -107,9 +112,25 @@ function buildDailyInsightsPrompt(input: GenerateDailyInsightsInput) {
   return [
     `业务日期：${input.date}`,
     `当前工作区已有标签：${workspaceTags}`,
+    buildAiContextPromptBlock(input.aiContext),
     '当日日记正文：',
     body,
-  ].join('\n\n')
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+function buildAiContextPromptBlock(aiContext: string) {
+  const normalizedContext = aiContext.trim()
+  if (!normalizedContext) {
+    return ''
+  }
+
+  return [
+    '你在整理和总结时，可以参考以下补充知识。',
+    '这些内容用于帮助你理解用户的长期背景、固定术语和偏好；如果与当天日记事实冲突，以当天日记为准。',
+    normalizedContext,
+  ].join('\n')
 }
 
 function ensureAiSettingsReady(config: Awaited<ReturnType<typeof readAppConfig>>) {
@@ -139,7 +160,11 @@ export async function generateDailyInsights(
     throw new Error('正文为空，暂时无法自动整理。')
   }
 
-  const [config, systemPrompt] = await Promise.all([readAppConfig(), loadPrompt('dailyOrganizeSystem')])
+  const [config, systemPrompt, aiContext] = await Promise.all([
+    readAppConfig(),
+    loadPrompt('dailyOrganizeSystem'),
+    readAiContext(),
+  ])
   const settings = ensureAiSettingsReady(config)
   const apiKey = await readAiApiKey(settings.providerType)
 
@@ -151,7 +176,7 @@ export async function generateDailyInsights(
   const responseText = await client.completeJson({
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: buildDailyInsightsPrompt(input) },
+      { role: 'user', content: buildDailyInsightsPrompt({ ...input, aiContext }) },
     ],
   })
 

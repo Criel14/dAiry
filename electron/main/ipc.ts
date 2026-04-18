@@ -16,6 +16,7 @@ import type {
   ReportExportReadyInput,
   ReportQuery,
   SaveAiApiKeyInput,
+  SaveAiContextInput,
   SaveAiSettingsInput,
   WindowDirtyStateInput,
   WindowZoomPreferenceInput,
@@ -31,6 +32,7 @@ import {
   writeAppConfig,
 } from './app-config'
 import { getAiSettingsStatus, saveAiSettings } from './ai-config'
+import { getAiContextDocument, saveAiContext } from './ai-context'
 import { saveAiApiKey } from './ai-secrets'
 import { generateDailyInsights } from './ai'
 import { IPC_CHANNELS } from './constants'
@@ -82,6 +84,14 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.saveAiApiKey, (_event, input: SaveAiApiKeyInput) => {
     return saveAiApiKey(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getAiContext, () => {
+    return getAiContextDocument()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.saveAiContext, (_event, input: SaveAiContextInput) => {
+    return saveAiContext(input)
   })
 
   ipcMain.handle(

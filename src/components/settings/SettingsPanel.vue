@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import packageJson from '../../../package.json'
-import type { AiSettings, AiSettingsStatus, FrontmatterVisibilityConfig } from '../../types/dairy'
+import type {
+  AiContextDocument,
+  AiSettings,
+  AiSettingsStatus,
+  FrontmatterVisibilityConfig,
+} from '../../types/dairy'
 import SettingsAboutSection from './SettingsAboutSection.vue'
 import SettingsAiSection from './SettingsAiSection.vue'
 import SettingsAppearanceSection from './SettingsAppearanceSection.vue'
@@ -37,6 +42,9 @@ const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
   isSavingAiConfig: boolean
   aiSaveMessage: string
+  aiContextDocument: AiContextDocument
+  isSavingAiContext: boolean
+  aiContextSaveMessage: string
   activeSectionId: SettingsSectionId
 }>()
 
@@ -57,6 +65,7 @@ const emit = defineEmits<{
       apiKey: string
     },
   ]
+  saveAiContext: [value: string]
 }>()
 
 const appVersion = packageJson.version ?? '0.0.0'
@@ -121,7 +130,11 @@ function openDebugPanel() {
         :ai-settings-status="props.aiSettingsStatus"
         :is-saving-ai-config="props.isSavingAiConfig"
         :ai-save-message="props.aiSaveMessage"
+        :ai-context-document="props.aiContextDocument"
+        :is-saving-ai-context="props.isSavingAiContext"
+        :ai-context-save-message="props.aiContextSaveMessage"
         @save-ai-configuration="emit('saveAiConfiguration', $event)"
+        @save-ai-context="emit('saveAiContext', $event)"
       />
 
       <SettingsLibrariesSection

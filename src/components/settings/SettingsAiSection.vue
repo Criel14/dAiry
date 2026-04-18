@@ -1,13 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import SettingsInfoTip from './SettingsInfoTip.vue'
-import type { AiProviderType, AiSettings, AiSettingsStatus } from '../../types/dairy'
+import type {
+  AiContextDocument,
+  AiProviderType,
+  AiSettings,
+  AiSettingsStatus,
+} from '../../types/dairy'
 import { AI_PROVIDER_OPTIONS, getAiDefaults } from './config'
 
 const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
   isSavingAiConfig: boolean
   aiSaveMessage: string
+  aiContextDocument: AiContextDocument
+  isSavingAiContext: boolean
+  aiContextSaveMessage: string
 }>()
 
 const emit = defineEmits<{
@@ -16,10 +24,12 @@ const emit = defineEmits<{
       apiKey: string
     },
   ]
+  saveAiContext: [value: string]
 }>()
 
 const draftAiSettings = ref<AiSettings>({ ...props.aiSettingsStatus.settings })
 const draftApiKey = ref('')
+const draftAiContext = ref(props.aiContextDocument.content)
 
 watch(
   () => props.aiSettingsStatus,
@@ -43,12 +53,32 @@ watch(
   },
 )
 
+watch(
+  () => props.aiContextDocument.content,
+  (value) => {
+    if (props.isSavingAiContext) {
+      return
+    }
+
+    draftAiContext.value = value
+  },
+  { immediate: true },
+)
+
 const isAiSettingsDirty = computed(() => {
   return JSON.stringify(draftAiSettings.value) !== JSON.stringify(props.aiSettingsStatus.settings)
 })
 
+const isAiContextDirty = computed(() => {
+  return draftAiContext.value !== props.aiContextDocument.content
+})
+
 const canSaveAiConfiguration = computed(() => {
   return !props.isSavingAiConfig && (isAiSettingsDirty.value || Boolean(draftApiKey.value.trim()))
+})
+
+const canSaveAiContext = computed(() => {
+  return !props.isSavingAiContext && isAiContextDirty.value
 })
 
 const isViewingSavedProvider = computed(
@@ -105,6 +135,21 @@ function emitSaveAiConfiguration() {
     timeoutMs: draftAiSettings.value.timeoutMs,
     apiKey: draftApiKey.value,
   })
+}
+
+function emitSaveAiContext() {
+  emit('saveAiContext', draftAiContext.value)
+}
+
+function handleAiContextKeydown(event: KeyboardEvent) {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+    event.preventDefault()
+    event.stopPropagation()
+
+    if (canSaveAiContext.value) {
+      emitSaveAiContext()
+    }
+  }
 }
 </script>
 
@@ -201,6 +246,51 @@ function emitSaveAiConfiguration() {
 
       <p v-if="aiSaveMessage" class="setting-feedback">
         {{ aiSaveMessage }}
+      </p>
+    </section>
+
+    <section class="settings-card">
+      <div class="panel-heading">
+        <span class="panel-label">补充知识</span>
+      </div>
+
+      <div class="workspace-summary">
+        <div class="workspace-summary-copy">
+          <p class="panel-description">
+            这里可以记录一些长期背景、固定术语、人物关系、项目上下文或你希望 AI
+            了解的偏好。日总结和区间总结时会把这份内容一并发给 AI 参考。
+          </p>
+        </div>
+      </div>
+
+      <label class="field">
+        <span class="field-label field-label--with-tip">
+          AI Context
+          <SettingsInfoTip text="文件会保存为用户配置目录下的 ai-context.md。" />
+        </span>
+        <textarea
+          v-model="draftAiContext"
+          class="field-input field-textarea field-textarea--ai-context"
+          :disabled="isSavingAiContext"
+          placeholder="例如：我正在做的项目背景、常用缩写、专有名词、重要人物、长期目标、写作习惯等。"
+          spellcheck="false"
+          @keydown="handleAiContextKeydown"
+        ></textarea>
+      </label>
+
+      <div class="library-actions">
+        <button
+          class="save-button"
+          type="button"
+          :disabled="!canSaveAiContext"
+          @click="emitSaveAiContext"
+        >
+          {{ isSavingAiContext ? '正在保存' : '保存' }}
+        </button>
+      </div>
+
+      <p v-if="aiContextSaveMessage" class="setting-feedback">
+        {{ aiContextSaveMessage }}
       </p>
     </section>
   </div>
