@@ -16,6 +16,9 @@ export interface AiSettingsStatus {
 export interface AppConfig {
   lastOpenedWorkspace: string | null
   recentWorkspaces: string[]
+  reportExport: {
+    lastDirectory: string | null
+  }
   ui: {
     theme: 'system' | 'light' | 'dark'
     zoomFactor: number

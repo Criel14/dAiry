@@ -62,6 +62,9 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
 export const DEFAULT_APP_CONFIG: AppConfig = {
   lastOpenedWorkspace: null,
   recentWorkspaces: [],
+  reportExport: {
+    lastDirectory: null,
+  },
   ui: {
     theme: 'system',
     zoomFactor: DEFAULT_WINDOW_ZOOM_FACTOR,

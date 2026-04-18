@@ -12,6 +12,7 @@ import type {
   RangeReport,
 } from '../../src/types/dairy'
 import { MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL } from './constants'
+import { readAppConfig, setLastReportExportDirectory } from './app-config'
 import { getRangeReport } from './report-service'
 import { getMainWindow } from './window'
 
@@ -245,9 +246,10 @@ function normalizeExportHeight(contentHeight: number) {
   return Math.max(height, EXPORT_MIN_HEIGHT)
 }
 
-function buildSaveDialogDefaultPath(fileName: string) {
-  const downloadsPath = app.getPath('downloads')
-  return path.join(downloadsPath, `${fileName}.png`)
+async function buildSaveDialogDefaultPath(fileName: string) {
+  const config = await readAppConfig()
+  const baseDirectory = config.reportExport.lastDirectory || app.getPath('downloads')
+  return path.join(baseDirectory, `${fileName}.png`)
 }
 
 function waitForNextFrame() {
@@ -286,7 +288,7 @@ export async function exportRangeReportPng(
   const saveDialogOptions: SaveDialogOptions = {
     title: '导出报告 PNG',
     buttonLabel: '保存图片',
-    defaultPath: buildSaveDialogDefaultPath(defaultFileName),
+    defaultPath: await buildSaveDialogDefaultPath(defaultFileName),
     filters: [
       { name: 'PNG 图片', extensions: ['png'] },
     ],
@@ -306,6 +308,13 @@ export async function exportRangeReportPng(
   }
 
   const filePath = ensurePngExtension(saveResult.filePath)
+
+  try {
+    await setLastReportExportDirectory(path.dirname(filePath))
+  } catch (error) {
+    console.warn('保存报告导出目录失败，下次将继续使用默认目录。', error)
+  }
+
   const sessionId = createExportSession({
     report,
     sections: normalizedSections,

@@ -90,6 +90,12 @@ function normalizeFrontmatterVisibility(
   }
 }
 
+function normalizeReportExportConfig(rawValue: AppConfig['reportExport'] | null | undefined) {
+  return {
+    lastDirectory: typeof rawValue?.lastDirectory === 'string' ? rawValue.lastDirectory : null,
+  }
+}
+
 function normalizeAppConfig(rawValue: unknown): AppConfig {
   if (!rawValue || typeof rawValue !== 'object') {
     return DEFAULT_APP_CONFIG
@@ -108,11 +114,13 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
   const ai = normalizeAiSettings(config.ai)
+  const reportExport = normalizeReportExportConfig(config.reportExport)
 
   return {
     lastOpenedWorkspace:
       typeof config.lastOpenedWorkspace === 'string' ? config.lastOpenedWorkspace : null,
     recentWorkspaces,
+    reportExport,
     ui: {
       theme,
       zoomFactor,
@@ -155,11 +163,19 @@ async function sanitizeAppConfig(config: AppConfig): Promise<AppConfig> {
     lastOpenedWorkspace && !validRecentWorkspaces.includes(lastOpenedWorkspace)
       ? [lastOpenedWorkspace, ...validRecentWorkspaces]
       : validRecentWorkspaces
+  const lastReportExportDirectory =
+    config.reportExport.lastDirectory && (await isExistingDirectory(config.reportExport.lastDirectory))
+      ? config.reportExport.lastDirectory
+      : null
 
   return {
     ...config,
     lastOpenedWorkspace,
     recentWorkspaces: nextRecentWorkspaces,
+    reportExport: {
+      ...config.reportExport,
+      lastDirectory: lastReportExportDirectory,
+    },
   }
 }
 
@@ -279,6 +295,21 @@ export async function setAiSettings(input: SaveAiSettingsInput): Promise<AppConf
   const nextConfig: AppConfig = {
     ...currentConfig,
     ai: normalizeAiSettings(input),
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setLastReportExportDirectory(directoryPath: string): Promise<AppConfig> {
+  const normalizedDirectoryPath = directoryPath.trim()
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    reportExport: {
+      ...currentConfig.reportExport,
+      lastDirectory: normalizedDirectoryPath || null,
+    },
   }
 
   await writeAppConfig(nextConfig)
