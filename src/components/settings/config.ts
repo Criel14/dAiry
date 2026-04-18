@@ -83,7 +83,7 @@ export const SETTINGS_SECTIONS: SettingsSectionItem[] = [
   {
     id: 'about',
     label: '关于',
-    description: '查看版本信息、项目入口和调试工具，方便排查与反馈。',
+    description: '',
   },
 ]
 

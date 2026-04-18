@@ -14,15 +14,6 @@ const emit = defineEmits<{
 
 <template>
   <div class="settings-section">
-    <section class="settings-card">
-      <div class="about-basic">
-        <h4 class="about-name">dAiry</h4>
-        <p class="panel-description">一个本地优先的桌面日记工具。</p>
-        <p class="panel-description">
-          日记内容保存在你自己的工作区目录中，以 Markdown 作为主要存储格式。
-        </p>
-      </div>
-    </section>
 
     <section class="settings-card">
       <div class="panel-heading">
@@ -31,7 +22,7 @@ const emit = defineEmits<{
 
       <div class="about-version-card">
         <strong class="about-version-value">{{ appVersion }}</strong>
-        <p class="panel-description">当前版本已完成日记写作与 AI 每日整理能力。</p>
+        <p class="panel-description">不支持检查更新，访问代码仓库以查看更新信息。</p>
       </div>
     </section>
 
@@ -41,7 +32,7 @@ const emit = defineEmits<{
       </div>
 
       <div class="about-version-card">
-        <p class="panel-description">用于查看渲染进程的控制台日志、报错信息和页面状态。</p>
+        <p class="panel-description">内核提供的调试界面。</p>
         <div class="about-action-row">
           <button class="about-action-button" type="button" @click="emit('openDebugPanel')">
             打开开发者工具
