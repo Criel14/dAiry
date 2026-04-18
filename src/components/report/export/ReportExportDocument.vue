@@ -422,31 +422,33 @@ onBeforeUnmount(() => {
         <h2>基础统计</h2>
       </div>
 
-      <div class="stats-grid">
-        <article class="stat-item">
-          <span>记录天数</span>
-          <strong>{{ report.source.entryDays }}<small>天</small></strong>
-        </article>
-        <article class="stat-item">
-          <span>缺失天数</span>
-          <strong>{{ report.source.missingDays }}<small>天</small></strong>
-        </article>
-        <article class="stat-item">
-          <span>总字数</span>
-          <strong>{{ report.source.totalWords }}<small>字</small></strong>
-        </article>
-        <article class="stat-item">
-          <span>最长连续记录</span>
-          <strong>{{ report.source.longestStreak }}<small>天</small></strong>
-        </article>
-        <article class="stat-item">
-          <span>平均字数</span>
-          <strong>{{ report.source.averageWords }}<small>字</small></strong>
-        </article>
-        <article class="stat-item">
-          <span>单日最高字数</span>
-          <strong>{{ maxWordsInOneDay }}<small>字</small></strong>
-        </article>
+      <div class="section-body">
+        <div class="stats-grid">
+          <article class="stat-item">
+            <span>记录天数</span>
+            <strong>{{ report.source.entryDays }}<small>天</small></strong>
+          </article>
+          <article class="stat-item">
+            <span>缺失天数</span>
+            <strong>{{ report.source.missingDays }}<small>天</small></strong>
+          </article>
+          <article class="stat-item">
+            <span>总字数</span>
+            <strong>{{ report.source.totalWords }}<small>字</small></strong>
+          </article>
+          <article class="stat-item">
+            <span>最长连续记录</span>
+            <strong>{{ report.source.longestStreak }}<small>天</small></strong>
+          </article>
+          <article class="stat-item">
+            <span>平均字数</span>
+            <strong>{{ report.source.averageWords }}<small>字</small></strong>
+          </article>
+          <article class="stat-item">
+            <span>单日最高字数</span>
+            <strong>{{ maxWordsInOneDay }}<small>字</small></strong>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -455,30 +457,32 @@ onBeforeUnmount(() => {
         <h2>区间概览</h2>
       </div>
 
-      <p class="summary-text">{{ report.summary.text }}</p>
+      <div class="section-body section-body--summary">
+        <p class="summary-text">{{ report.summary.text }}</p>
 
-      <div v-if="summaryGroups.length > 0" class="summary-groups">
-        <section
-          v-for="group in summaryGroups"
-          :key="group.key"
-          class="summary-group"
-        >
-          <header class="summary-group-head">
-            <span>{{ group.title }}</span>
-          </header>
+        <div v-if="summaryGroups.length > 0" class="summary-groups">
+          <section
+            v-for="group in summaryGroups"
+            :key="group.key"
+            class="summary-group"
+          >
+            <header class="summary-group-head">
+              <span>{{ group.title }}</span>
+            </header>
 
-          <div class="summary-items">
-            <article
-              v-for="item in group.items"
-              :key="getSummaryItemKey(group.key, item)"
-              class="summary-item"
-              :title="buildTimeAnchorTitle(item.timeAnchor)"
-            >
-              <span class="summary-item-time">{{ item.timeAnchor.label }}</span>
-              <p>{{ item.text }}</p>
-            </article>
-          </div>
-        </section>
+            <div class="summary-items">
+              <article
+                v-for="item in group.items"
+                :key="getSummaryItemKey(group.key, item)"
+                class="summary-item"
+                :title="buildTimeAnchorTitle(item.timeAnchor)"
+              >
+                <span class="summary-item-time">{{ item.timeAnchor.label }}</span>
+                <p>{{ item.text }}</p>
+              </article>
+            </div>
+          </section>
+        </div>
       </div>
     </section>
 
@@ -491,44 +495,46 @@ onBeforeUnmount(() => {
         <span>{{ report.sections.heatmap.points.length }} 天</span>
       </div>
 
-      <div class="heatmap-shell" :style="heatmapSizingStyle">
-        <div class="heatmap-body">
-          <div class="heatmap-weekdays" aria-hidden="true">
-            <span
-              v-for="(label, index) in heatmapWeekdayLabels"
-              :key="`${label}-${index}`"
-              class="heatmap-weekday-label"
-            >
-              {{ label }}
-            </span>
-          </div>
+      <div class="section-body">
+        <div class="heatmap-shell" :style="heatmapSizingStyle">
+          <div class="heatmap-body">
+            <div class="heatmap-weekdays" aria-hidden="true">
+              <span
+                v-for="(label, index) in heatmapWeekdayLabels"
+                :key="`${label}-${index}`"
+                class="heatmap-weekday-label"
+              >
+                {{ label }}
+              </span>
+            </div>
 
-          <div ref="heatmapScrollerRef" class="heatmap-scroller">
-            <div class="heatmap-scroll-content">
-              <div v-if="heatmapMonthLabels.length > 0" class="heatmap-months">
-                <span
-                  v-for="month in heatmapMonthLabels"
-                  :key="month.key"
-                  class="heatmap-month-label"
-                  :style="{ gridColumn: String(month.column) }"
-                >
-                  {{ month.label }}
-                </span>
-              </div>
+            <div ref="heatmapScrollerRef" class="heatmap-scroller">
+              <div class="heatmap-scroll-content">
+                <div v-if="heatmapMonthLabels.length > 0" class="heatmap-months">
+                  <span
+                    v-for="month in heatmapMonthLabels"
+                    :key="month.key"
+                    class="heatmap-month-label"
+                    :style="{ gridColumn: String(month.column) }"
+                  >
+                    {{ month.label }}
+                  </span>
+                </div>
 
-              <div class="heatmap-grid">
-                <div
-                  v-for="cell in heatmapCells"
-                  :key="cell.date"
-                  class="heatmap-cell"
-                  :class="[
-                    `heatmap-cell--level-${cell.level}`,
-                    {
-                      'heatmap-cell--muted': cell.isInDisplayRange && !cell.isInFocusRange,
-                      'heatmap-cell--outside': !cell.isInDisplayRange,
-                    },
-                  ]"
-                ></div>
+                <div class="heatmap-grid">
+                  <div
+                    v-for="cell in heatmapCells"
+                    :key="cell.date"
+                    class="heatmap-cell"
+                    :class="[
+                      `heatmap-cell--level-${cell.level}`,
+                      {
+                        'heatmap-cell--muted': cell.isInDisplayRange && !cell.isInFocusRange,
+                        'heatmap-cell--outside': !cell.isInDisplayRange,
+                      },
+                    ]"
+                  ></div>
+                </div>
               </div>
             </div>
           </div>
@@ -544,7 +550,9 @@ onBeforeUnmount(() => {
         <h2>情绪变化</h2>
         <span>平均心情 {{ report.sections.moodTrend.averageMood ?? '暂无' }}</span>
       </div>
-      <MoodTrendChart :points="report.sections.moodTrend.points" />
+      <div class="section-body section-body--flush">
+        <MoodTrendChart :points="report.sections.moodTrend.points" />
+      </div>
     </section>
 
     <section
@@ -554,7 +562,9 @@ onBeforeUnmount(() => {
       <div class="card-header">
         <h2>标签词云</h2>
       </div>
-      <TagCloudView :items="report.sections.tagCloud.items" />
+      <div class="section-body section-body--flush">
+        <TagCloudView :items="report.sections.tagCloud.items" />
+      </div>
     </section>
 
     <section
@@ -565,42 +575,44 @@ onBeforeUnmount(() => {
         <h2>地点分析</h2>
       </div>
 
-      <div class="pattern-layout" :class="{ 'pattern-layout--single': visibleLocationRanking.length === 0 }">
-        <article class="pattern-summary-card">
-          <span>最常地点</span>
-          <strong>{{ report.sections.locationPatterns.topLocation?.name ?? '暂无' }}</strong>
-          <em v-if="report.sections.locationPatterns.topLocation">
-            {{ report.sections.locationPatterns.topLocation.count }} 次
-          </em>
-        </article>
+      <div class="section-body">
+        <div class="pattern-layout" :class="{ 'pattern-layout--single': visibleLocationRanking.length === 0 }">
+          <article class="pattern-summary-card">
+            <span>最常地点</span>
+            <strong>{{ report.sections.locationPatterns.topLocation?.name ?? '暂无' }}</strong>
+            <em v-if="report.sections.locationPatterns.topLocation">
+              {{ report.sections.locationPatterns.topLocation.count }} 次
+            </em>
+          </article>
 
-        <article class="pattern-summary-card pattern-summary-card--accent">
-          <span>特别地点</span>
-          <strong>{{ report.sections.locationPatterns.uniqueLocation?.name ?? '暂无' }}</strong>
-          <em v-if="getPatternCount(report.sections.locationPatterns.uniqueLocation) !== null">
-            {{ getPatternCount(report.sections.locationPatterns.uniqueLocation) }} 次
-          </em>
-        </article>
+          <article class="pattern-summary-card pattern-summary-card--accent">
+            <span>特别地点</span>
+            <strong>{{ report.sections.locationPatterns.uniqueLocation?.name ?? '暂无' }}</strong>
+            <em v-if="getPatternCount(report.sections.locationPatterns.uniqueLocation) !== null">
+              {{ getPatternCount(report.sections.locationPatterns.uniqueLocation) }} 次
+            </em>
+          </article>
 
-        <div
-          v-if="visibleLocationRanking.length > 0"
-          class="pattern-list"
-          :class="getPatternListClass(visibleLocationRanking.length)"
-        >
           <div
-            v-for="(item, index) in visibleLocationRanking"
-            :key="item.name"
-            class="pattern-row"
+            v-if="visibleLocationRanking.length > 0"
+            class="pattern-list"
+            :class="getPatternListClass(visibleLocationRanking.length)"
           >
-            <span class="rank">{{ String(index + 1).padStart(2, '0') }}</span>
-            <strong class="label">{{ item.name }}</strong>
-            <div class="track">
-              <div
-                class="fill"
-                :style="{ width: getRankingFillWidth(item.count, report.sections.locationPatterns.topLocation?.count ?? item.count) }"
-              ></div>
+            <div
+              v-for="(item, index) in visibleLocationRanking"
+              :key="item.name"
+              class="pattern-row"
+            >
+              <span class="rank">{{ String(index + 1).padStart(2, '0') }}</span>
+              <strong class="label">{{ item.name }}</strong>
+              <div class="track">
+                <div
+                  class="fill"
+                  :style="{ width: getRankingFillWidth(item.count, report.sections.locationPatterns.topLocation?.count ?? item.count) }"
+                ></div>
+              </div>
+              <span class="count">{{ item.count }} 次</span>
             </div>
-            <span class="count">{{ item.count }} 次</span>
           </div>
         </div>
       </div>
@@ -614,42 +626,44 @@ onBeforeUnmount(() => {
         <h2>时间段分析</h2>
       </div>
 
-      <div class="pattern-layout" :class="{ 'pattern-layout--single': visibleTimeBuckets.length === 0 }">
-        <article class="pattern-summary-card">
-          <span>最常时间段</span>
-          <strong>{{ report.sections.timePatterns.topTimeBucket?.label ?? '暂无' }}</strong>
-          <em v-if="report.sections.timePatterns.topTimeBucket">
-            {{ report.sections.timePatterns.topTimeBucket.count }} 次
-          </em>
-        </article>
+      <div class="section-body">
+        <div class="pattern-layout" :class="{ 'pattern-layout--single': visibleTimeBuckets.length === 0 }">
+          <article class="pattern-summary-card">
+            <span>最常时间段</span>
+            <strong>{{ report.sections.timePatterns.topTimeBucket?.label ?? '暂无' }}</strong>
+            <em v-if="report.sections.timePatterns.topTimeBucket">
+              {{ report.sections.timePatterns.topTimeBucket.count }} 次
+            </em>
+          </article>
 
-        <article class="pattern-summary-card pattern-summary-card--accent">
-          <span>特别时间段</span>
-          <strong>{{ report.sections.timePatterns.uniqueTimeBucket?.label ?? '暂无' }}</strong>
-          <em v-if="getPatternCount(report.sections.timePatterns.uniqueTimeBucket) !== null">
-            {{ getPatternCount(report.sections.timePatterns.uniqueTimeBucket) }} 次
-          </em>
-        </article>
+          <article class="pattern-summary-card pattern-summary-card--accent">
+            <span>特别时间段</span>
+            <strong>{{ report.sections.timePatterns.uniqueTimeBucket?.label ?? '暂无' }}</strong>
+            <em v-if="getPatternCount(report.sections.timePatterns.uniqueTimeBucket) !== null">
+              {{ getPatternCount(report.sections.timePatterns.uniqueTimeBucket) }} 次
+            </em>
+          </article>
 
-        <div
-          v-if="visibleTimeBuckets.length > 0"
-          class="pattern-list"
-          :class="getPatternListClass(visibleTimeBuckets.length)"
-        >
           <div
-            v-for="(item, index) in visibleTimeBuckets"
-            :key="item.label"
-            class="pattern-row"
+            v-if="visibleTimeBuckets.length > 0"
+            class="pattern-list"
+            :class="getPatternListClass(visibleTimeBuckets.length)"
           >
-            <span class="rank">{{ String(index + 1).padStart(2, '0') }}</span>
-            <strong class="label">{{ item.label }}</strong>
-            <div class="track">
-              <div
-                class="fill"
-                :style="{ width: getRankingFillWidth(item.count, report.sections.timePatterns.topTimeBucket?.count ?? item.count) }"
-              ></div>
+            <div
+              v-for="(item, index) in visibleTimeBuckets"
+              :key="item.label"
+              class="pattern-row"
+            >
+              <span class="rank">{{ String(index + 1).padStart(2, '0') }}</span>
+              <strong class="label">{{ item.label }}</strong>
+              <div class="track">
+                <div
+                  class="fill"
+                  :style="{ width: getRankingFillWidth(item.count, report.sections.timePatterns.topTimeBucket?.count ?? item.count) }"
+                ></div>
+              </div>
+              <span class="count">{{ item.count }} 次</span>
             </div>
-            <span class="count">{{ item.count }} 次</span>
           </div>
         </div>
       </div>
@@ -706,7 +720,7 @@ onBeforeUnmount(() => {
 
 .content-card {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   padding: 20px;
 }
 
@@ -733,16 +747,30 @@ onBeforeUnmount(() => {
   font-size: 0.84rem;
 }
 
-.content-card :deep(.mood-chart),
-.content-card :deep(.word-cloud-card) {
+.section-body {
+  display: grid;
+  gap: 6px;
   margin-top: 0;
 }
 
-.content-card :deep(.mood-chart) {
+.section-body--summary {
+  gap: 6px;
+}
+
+.section-body--flush {
+  gap: 0;
+}
+
+.section-body--flush :deep(.mood-chart),
+.section-body--flush :deep(.word-cloud-card) {
+  margin-top: 0.1rem !important;
+}
+
+.section-body--flush :deep(.mood-chart) {
   gap: 0.55rem;
 }
 
-.content-card :deep(.word-cloud-card) {
+.section-body--flush :deep(.word-cloud-card) {
   gap: 0.55rem;
 }
 
@@ -789,7 +817,7 @@ onBeforeUnmount(() => {
 .summary-groups {
   display: grid;
   gap: 0;
-  padding-top: 6px;
+  padding-top: 8px;
   border-top: 1px solid rgba(217, 203, 159, 0.75);
 }
 
@@ -846,7 +874,7 @@ onBeforeUnmount(() => {
 
   display: grid;
   gap: 0.45rem;
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
 }
 
 .heatmap-body {
@@ -962,6 +990,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr 1fr minmax(0, 1.6fr);
   gap: 12px;
+  margin-top: 0.1rem;
 }
 
 .pattern-layout--single {

@@ -1270,7 +1270,7 @@ function getPatternCount(value: unknown) {
 
 .summary-card {
   display: grid;
-  gap: 1rem;
+  gap: 0.5rem;
   padding: 1.25rem 1.35rem;
   border: 1px solid rgba(217, 203, 159, 0.82);
   border-radius: 18px;
@@ -1279,7 +1279,7 @@ function getPatternCount(value: unknown) {
 
 .summary-card-head {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.12rem;
 }
 
 .summary-kicker {
@@ -1306,8 +1306,8 @@ function getPatternCount(value: unknown) {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
-  margin-top: 1.1rem;
-  padding-top: 1rem;
+  margin-top: 0.38rem;
+  padding-top: 0.58rem;
   border-top: 1px solid rgba(217, 203, 159, 0.8);
 }
 
@@ -1383,7 +1383,7 @@ function getPatternCount(value: unknown) {
 
 .content-card {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.42rem;
   padding: 1.1rem 1.15rem;
   border: 1px solid rgba(229, 220, 197, 0.95);
   border-radius: 18px;
@@ -1400,6 +1400,17 @@ function getPatternCount(value: unknown) {
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
+}
+
+.content-card > .content-card-header + .summary-list,
+.content-card > .content-card-header + .heatmap-shell,
+.content-card > .content-card-header + .pattern-layout {
+  margin-top: -0.02rem;
+}
+
+.content-card :deep(.mood-chart),
+.content-card :deep(.word-cloud-card) {
+  margin-top: 0.1rem;
 }
 
 .content-card-header h4 {
@@ -1422,7 +1433,7 @@ function getPatternCount(value: unknown) {
 
   display: grid;
   gap: 0.45rem;
-  margin-top: 1rem;
+  margin-top: 0.12rem;
 }
 
 .heatmap-months {
@@ -1554,7 +1565,7 @@ function getPatternCount(value: unknown) {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0.2rem;
 }
 
 .tag-cloud--compact {
@@ -1580,7 +1591,7 @@ function getPatternCount(value: unknown) {
   display: grid;
   grid-template-columns: 1fr 1fr minmax(0, 1.35fr);
   gap: 0.8rem;
-  margin-top: 0.1rem;
+  margin-top: 0.08rem;
 }
 
 .pattern-layout--single {
@@ -2187,6 +2198,8 @@ function getPatternCount(value: unknown) {
 }
 
 .summary-card {
+  display: grid;
+  gap: 0.42rem;
   position: relative;
   overflow: hidden;
   padding: 1.25rem;
@@ -2220,8 +2233,8 @@ function getPatternCount(value: unknown) {
 
 .summary-card-head {
   display: grid;
-  gap: 0.18rem;
-  padding-bottom: 0.5rem;
+  gap: 0.1rem;
+  padding-bottom: 0.28rem;
 }
 
 .summary-kicker {
@@ -2289,7 +2302,7 @@ function getPatternCount(value: unknown) {
 
 .report-hero {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.5rem;
   padding: 1.2rem 1.25rem;
   border: 1px solid var(--color-border);
   border-radius: 16px;
@@ -2298,7 +2311,7 @@ function getPatternCount(value: unknown) {
 
 .report-hero-divider {
   height: 1px;
-  margin: 0.2rem 0 0.05rem;
+  margin: 0.08rem 0 0;
   background: var(--color-border);
 }
 
@@ -2531,8 +2544,8 @@ function getPatternCount(value: unknown) {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0;
-  margin-top: 1.1rem;
-  padding-top: 1rem;
+  margin-top: 0.6rem;
+  padding-top: 0.72rem;
   border-top: 1px solid rgba(217, 203, 159, 0.8);
 }
 
