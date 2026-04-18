@@ -4,6 +4,9 @@ import { computed, nextTick, ref, watch } from 'vue'
 const props = defineProps<{
   modelValue: string[]
   suggestions: string[]
+  placeholder?: string
+  addButtonAriaLabel?: string
+  removeAriaLabelPrefix?: string
   disabled?: boolean
 }>()
 
@@ -14,6 +17,10 @@ const emit = defineEmits<{
 const isInputVisible = ref(false)
 const tagInputValue = ref('')
 const inputRef = ref<HTMLInputElement | null>(null)
+
+const inputPlaceholder = computed(() => props.placeholder ?? '输入标签后回车')
+const addButtonAriaLabel = computed(() => props.addButtonAriaLabel ?? '添加标签')
+const removeAriaLabelPrefix = computed(() => props.removeAriaLabelPrefix ?? '删除标签')
 
 function normalizeTag(tag: string) {
   return tag.trim()
@@ -48,7 +55,8 @@ watch(
   () => props.disabled,
   (value) => {
     if (value) {
-      hideInput()
+      isInputVisible.value = false
+      tagInputValue.value = ''
     }
   },
 )
@@ -77,7 +85,7 @@ function emitTags(nextTags: string[]) {
 }
 
 function showInput() {
-  if (props.disabled) {
+  if (props.disabled || isInputVisible.value) {
     return
   }
 
@@ -95,7 +103,6 @@ function hideInput() {
 function commitTag(rawTag: string) {
   const nextTag = normalizeTag(rawTag)
   if (!nextTag) {
-    hideInput()
     return
   }
 
@@ -113,9 +120,11 @@ function removeTag(tagToRemove: string) {
 }
 
 function handleInputBlur() {
-  if (!tagInputValue.value.trim()) {
-    hideInput()
-  }
+  window.setTimeout(() => {
+    if (!tagInputValue.value.trim()) {
+      hideInput()
+    }
+  }, 120)
 }
 
 function handleSuggestionPointerDown(tag: string) {
@@ -132,7 +141,7 @@ function handleSuggestionPointerDown(tag: string) {
           class="tag-chip-remove"
           type="button"
           :disabled="disabled"
-          :aria-label="`删除标签 ${tag}`"
+          :aria-label="`${removeAriaLabelPrefix} ${tag}`"
           @click="removeTag(tag)"
         >
           ×
@@ -144,26 +153,27 @@ function handleSuggestionPointerDown(tag: string) {
         class="tag-add-button"
         type="button"
         :disabled="disabled"
-        aria-label="添加标签"
+        :aria-label="addButtonAriaLabel"
         @click="showInput"
       >
         +
       </button>
-    </div>
 
-    <div v-if="isInputVisible" class="tag-composer">
       <input
+        v-else
         ref="inputRef"
         v-model="tagInputValue"
-        class="tag-input-field"
+        class="tag-input-inline"
         type="text"
-        placeholder="输入标签后回车"
+        :placeholder="inputPlaceholder"
         :disabled="disabled"
         @keydown.enter.prevent="commitTag(tagInputValue)"
         @keydown.esc.prevent="hideInput"
         @blur="handleInputBlur"
       />
+    </div>
 
+    <div v-if="isInputVisible" class="tag-composer">
       <div v-if="filteredSuggestions.length > 0" class="tag-suggestion-list">
         <button
           v-for="tag in filteredSuggestions.slice(0, 8)"
@@ -245,22 +255,22 @@ function handleSuggestionPointerDown(tag: string) {
 }
 
 .tag-composer {
-  position: relative;
   display: grid;
   gap: 0.5rem;
 }
 
-.tag-input-field {
-  min-height: 2.6rem;
+.tag-input-inline {
+  min-width: 9rem;
+  min-height: 2rem;
   padding: 0 0.9rem;
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 999px;
   background: #fffef9;
   color: var(--color-text-main);
   outline: none;
 }
 
-.tag-input-field:focus {
+.tag-input-inline:focus {
   border-color: var(--color-border-strong);
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string[]
@@ -12,9 +12,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
 }>()
 
-const isInputVisible = ref(false)
 const inputValue = ref('')
-const inputRef = ref<HTMLInputElement | null>(null)
 
 function normalizeItems(values: string[]) {
   const uniqueItems = new Set<string>()
@@ -45,7 +43,7 @@ watch(
   () => props.disabled,
   (value) => {
     if (value) {
-      hideInput()
+      inputValue.value = ''
     }
   },
 )
@@ -58,53 +56,24 @@ function emitItems(nextItems: string[]) {
   emit('update:modelValue', normalizedItems)
 }
 
-function showInput() {
-  if (props.disabled || isInputVisible.value) {
-    return
-  }
-
-  isInputVisible.value = true
-  void nextTick(() => {
-    inputRef.value?.focus()
-    inputRef.value?.select()
-  })
-}
-
-function hideInput() {
-  isInputVisible.value = false
-  inputValue.value = ''
-}
-
 function commitItem(rawValue: string) {
   const nextValue = rawValue.trim()
 
   if (!nextValue) {
-    hideInput()
     return
   }
 
   if (currentItems.value.includes(nextValue)) {
-    hideInput()
+    inputValue.value = ''
     return
   }
 
   emitItems([...currentItems.value, nextValue])
-  hideInput()
+  inputValue.value = ''
 }
 
 function removeItem(itemToRemove: string) {
   emitItems(currentItems.value.filter((item) => item !== itemToRemove))
-}
-
-function handleInputBlur() {
-  window.setTimeout(() => {
-    if (inputValue.value.trim()) {
-      commitItem(inputValue.value)
-      return
-    }
-
-    hideInput()
-  }, 120)
 }
 </script>
 
@@ -128,31 +97,24 @@ function handleInputBlur() {
     <p v-else class="empty-text">{{ emptyText }}</p>
 
     <div class="editor-actions">
-      <button
-        v-if="!isInputVisible"
-        class="add-button"
-        type="button"
-        :disabled="disabled"
-        aria-label="添加词库项"
-        @pointerdown.prevent="showInput"
-        @click="showInput"
-      >
-        添加
-      </button>
-
       <input
-        v-else
-        ref="inputRef"
         v-model="inputValue"
-        autofocus
         class="editor-input"
         type="text"
         :placeholder="placeholder"
         :disabled="disabled"
         @keydown.enter.prevent="commitItem(inputValue)"
-        @keydown.esc.prevent="hideInput"
-        @blur="handleInputBlur"
       />
+
+      <button
+        class="add-button"
+        type="button"
+        :disabled="disabled"
+        aria-label="添加词库项"
+        @click="commitItem(inputValue)"
+      >
+        添加
+      </button>
     </div>
   </div>
 </template>
@@ -223,7 +185,9 @@ function handleInputBlur() {
 
 .editor-actions {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .editor-input {

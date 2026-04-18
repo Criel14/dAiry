@@ -51,19 +51,31 @@ const filteredSuggestions = computed(() => {
 })
 
 function openMenu() {
-  if (props.disabled) {
+  if (props.disabled || isOpen.value) {
     return
   }
 
   isOpen.value = true
-  void nextTick(() => {
-    inputRef.value?.focus()
-    inputRef.value?.select()
-  })
 }
 
 function closeMenu() {
   isOpen.value = false
+}
+
+function focusInput() {
+  void nextTick(() => {
+    inputRef.value?.focus()
+  })
+}
+
+function toggleMenu() {
+  if (isOpen.value) {
+    closeMenu()
+    return
+  }
+
+  openMenu()
+  focusInput()
 }
 
 function commitValue(rawValue: string) {
@@ -114,7 +126,7 @@ function handleSuggestionPointerDown(item: string) {
         type="button"
         :disabled="disabled"
         :aria-label="toggleAriaLabel"
-        @click="isOpen ? closeMenu() : openMenu()"
+        @click="toggleMenu"
       >
         <Icon
           class="suggestion-toggle-icon"

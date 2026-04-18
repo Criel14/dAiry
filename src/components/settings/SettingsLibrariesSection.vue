@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import SettingsInfoTip from './SettingsInfoTip.vue'
-import StringListEditor from '../form/StringListEditor.vue'
+import TagInput from '../form/TagInput.vue'
 import type { WorkspaceLibrariesValue } from './config'
 
 const props = defineProps<{
@@ -70,11 +70,13 @@ const isWorkspaceLibrariesDirty = computed(() => {
           <div class="setting-title-row">
             <strong class="panel-value">天气词库</strong>
           </div>
-          <StringListEditor
+          <TagInput
             v-model="draftWeatherOptions"
+            :suggestions="[]"
             :disabled="isSavingWorkspaceLibraries"
             placeholder="输入天气后回车"
-            empty-text="还没有天气候选词，点击添加开始维护。"
+            add-button-aria-label="添加天气"
+            remove-aria-label-prefix="删除天气"
           />
         </div>
 
@@ -82,11 +84,13 @@ const isWorkspaceLibrariesDirty = computed(() => {
           <div class="setting-title-row">
             <strong class="panel-value">地点词库</strong>
           </div>
-          <StringListEditor
+          <TagInput
             v-model="draftLocationOptions"
+            :suggestions="[]"
             :disabled="isSavingWorkspaceLibraries"
             placeholder="输入地点后回车"
-            empty-text="还没有地点候选词，点击添加开始维护。"
+            add-button-aria-label="添加地点"
+            remove-aria-label-prefix="删除地点"
           />
         </div>
 
@@ -94,11 +98,13 @@ const isWorkspaceLibrariesDirty = computed(() => {
           <div class="setting-title-row">
             <strong class="panel-value">标签词库</strong>
           </div>
-          <StringListEditor
+          <TagInput
             v-model="draftTags"
+            :suggestions="[]"
             :disabled="isSavingWorkspaceLibraries"
             placeholder="输入标签后回车"
-            empty-text="还没有标签候选词，点击添加开始维护。"
+            add-button-aria-label="添加标签"
+            remove-aria-label-prefix="删除标签"
           />
         </div>
 
