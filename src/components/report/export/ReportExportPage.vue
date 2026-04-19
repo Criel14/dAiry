@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { ReportExportPayload } from '../../../types/dairy'
 import ReportExportDocument from './ReportExportDocument.vue'
@@ -146,48 +146,5 @@ onBeforeUnmount(() => {
   </section>
 </template>
 
-<style scoped>
-.report-export-page {
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background: var(--color-background);
-}
+<style scoped src="./ReportExportPage.css"></style>
 
-.report-export-stage {
-  overflow: hidden;
-}
-
-.report-export-layer {
-  will-change: transform;
-}
-
-.export-state {
-  display: grid;
-  gap: 8px;
-  align-content: center;
-  justify-items: center;
-  min-height: 360px;
-  padding: 24px;
-  text-align: center;
-  color: var(--color-text-main);
-}
-
-.export-state h1 {
-  margin: 0;
-  font-size: 1.3rem;
-}
-
-.export-state p {
-  margin: 0;
-  color: var(--color-text-subtle);
-}
-
-.export-state--error h1 {
-  color: #8a544d;
-}
-
-.export-state--error p {
-  color: #9a6b5e;
-}
-</style>

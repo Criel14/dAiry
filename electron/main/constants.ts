@@ -25,6 +25,7 @@ export const IPC_CHANNELS = {
   saveAiApiKey: 'app:save-ai-api-key',
   getAiContext: 'app:get-ai-context',
   saveAiContext: 'app:save-ai-context',
+  setThemePreference: 'app:set-theme-preference',
   setWindowZoomFactor: 'app:set-window-zoom-factor',
   windowZoomChanged: 'app:window-zoom-changed',
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',

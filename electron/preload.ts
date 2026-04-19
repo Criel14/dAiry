@@ -6,6 +6,7 @@ import type { DairyApi } from '../src/types/dairy'
 const dairyApi: DairyApi = {
   getAppBootstrap: () => ipcRenderer.invoke('app:get-bootstrap'),
   getAiSettingsStatus: () => ipcRenderer.invoke('app:get-ai-settings-status'),
+  setThemePreference: (input) => ipcRenderer.invoke('app:set-theme-preference', input),
   setWindowZoomFactor: (input) => ipcRenderer.invoke('app:set-window-zoom-factor', input),
   onWindowZoomFactorChanged: (listener) => {
     const wrappedListener = (

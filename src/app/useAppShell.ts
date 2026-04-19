@@ -5,6 +5,7 @@ import type {
   AiSettings,
   AiSettingsStatus,
   AppConfig,
+  AppTheme,
   FrontmatterVisibilityConfig,
   JournalEntryMetadata,
   JournalEntryReadResult,
@@ -14,6 +15,7 @@ import type {
 import type { EditorMode, RightPanel, ViewState } from '../types/ui'
 import { useReportsPanel } from '../components/report/useReportsPanel'
 import type { SettingsSectionId } from '../components/settings/config'
+import { applyThemePreference, observeSystemThemeChange } from '../shared/theme'
 import { formatWindowZoomPercent } from '../shared/window-zoom'
 
 function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
@@ -142,6 +144,7 @@ export function useAppShell() {
   const statusMessage = ref('')
   const metadataStatusMessage = ref('')
   const dailyInsightsStatusMessage = ref('')
+  const themeSaveMessage = ref('')
   const windowZoomFactorSaveMessage = ref('')
   const heatmapSaveMessage = ref('')
   const dayStartHourSaveMessage = ref('')
@@ -153,6 +156,7 @@ export function useAppShell() {
   const isSavingEntry = ref(false)
   const isSavingMetadata = ref(false)
   const isGeneratingDailyInsights = ref(false)
+  const isSavingTheme = ref(false)
   const isSavingWindowZoomFactor = ref(false)
   const isSavingJournalHeatmap = ref(false)
   const isSavingDayStartHour = ref(false)
@@ -161,6 +165,7 @@ export function useAppShell() {
   const isSavingAiConfig = ref(false)
   const isSavingAiContext = ref(false)
   const isJournalHeatmapEnabled = ref(false)
+  const theme = ref<AppTheme>('system')
   const windowZoomFactor = ref(1)
   const dayStartHour = ref(0)
   const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(
@@ -172,6 +177,7 @@ export function useAppShell() {
   const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
   let loadSequence = 0
   let removeWindowZoomListener: (() => void) | null = null
+  let removeSystemThemeListener: (() => void) | null = null
   const isReportExportMode =
     new URLSearchParams(window.location.search).get('mode') === 'report-export'
   const reportsPanel = useReportsPanel(workspacePath)
@@ -264,6 +270,14 @@ export function useAppShell() {
     { immediate: true },
   )
 
+  watch(
+    theme,
+    (value) => {
+      applyThemePreference(value)
+    },
+    { immediate: true },
+  )
+
   onMounted(async () => {
     if (isReportExportMode) {
       return
@@ -271,6 +285,11 @@ export function useAppShell() {
 
     removeWindowZoomListener = window.dairy.onWindowZoomFactorChanged((nextZoomFactor) => {
       windowZoomFactor.value = nextZoomFactor
+    })
+    removeSystemThemeListener = observeSystemThemeChange(() => {
+      if (theme.value === 'system') {
+        applyThemePreference(theme.value)
+      }
     })
     window.addEventListener('keydown', handleWindowKeydown)
     await bootstrapApp()
@@ -283,6 +302,8 @@ export function useAppShell() {
 
     removeWindowZoomListener?.()
     removeWindowZoomListener = null
+    removeSystemThemeListener?.()
+    removeSystemThemeListener = null
     window.removeEventListener('keydown', handleWindowKeydown)
   })
 
@@ -323,6 +344,7 @@ export function useAppShell() {
 
   function syncConfigState(config: AppConfig) {
     workspacePath.value = config.lastOpenedWorkspace
+    theme.value = config.ui.theme
     windowZoomFactor.value = config.ui.zoomFactor
     isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
     dayStartHour.value = config.ui.dayStartHour
@@ -340,6 +362,7 @@ export function useAppShell() {
     statusMessage.value = ''
     metadataStatusMessage.value = ''
     dailyInsightsStatusMessage.value = ''
+    themeSaveMessage.value = ''
     lastSavedAt.value = null
   }
 
@@ -781,6 +804,28 @@ export function useAppShell() {
     }
   }
 
+  async function handleUpdateTheme(nextValue: AppTheme) {
+    isSavingTheme.value = true
+    themeSaveMessage.value = ''
+
+    try {
+      const nextConfig = await window.dairy.setThemePreference({
+        theme: nextValue,
+      })
+
+      syncConfigState(nextConfig)
+      themeSaveMessage.value =
+        nextValue === 'system'
+          ? '主题模式已切换为跟随系统，当前先保留现有视觉。'
+          : `主题模式已切换为${nextValue === 'light' ? '浅色' : '深色'}，样式方案会后续补齐。`
+    } catch (error) {
+      themeSaveMessage.value =
+        error instanceof Error ? error.message : '保存主题模式失败，请稍后重试。'
+    } finally {
+      isSavingTheme.value = false
+    }
+  }
+
   async function handleUpdateWindowZoomFactor(nextValue: number) {
     isSavingWindowZoomFactor.value = true
     windowZoomFactorSaveMessage.value = ''
@@ -1004,6 +1049,7 @@ export function useAppShell() {
     isSavingEntry,
     isSavingJournalHeatmap,
     isSavingMetadata,
+    isSavingTheme,
     isSavingWindowZoomFactor,
     isSavingWorkspaceLibraries,
     isSavingFrontmatterVisibility,
@@ -1020,6 +1066,8 @@ export function useAppShell() {
     selectedDateText,
     setEditorMode,
     statusMessage,
+    theme,
+    themeSaveMessage,
     todayText,
     viewState,
     windowZoomFactor,
@@ -1030,5 +1078,6 @@ export function useAppShell() {
     workspaceTags,
     workspaceWeatherOptions,
     isSelectedDateToday,
+    handleUpdateTheme,
   }
 }

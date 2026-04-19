@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { ReportTagCloudItem } from '../../types/dairy'
 
@@ -250,55 +250,5 @@ function buildWordCloudLayout(items: ReportTagCloudItem[], measuredWidth: number
   </div>
 </template>
 
-<style scoped>
-.word-cloud-card {
-  display: grid;
-  gap: 0.85rem;
-  margin-top: 1rem;
-}
+<style scoped src="./TagCloudView.css"></style>
 
-.word-cloud-stage {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(217, 203, 159, 0.68);
-  border-radius: 20px;
-  background: #fcfaf4;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 8px 18px rgba(61, 56, 45, 0.03);
-}
-
-.word-cloud-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 15rem;
-}
-
-.word-cloud-text {
-  letter-spacing: 0.02em;
-  cursor: default;
-  user-select: none;
-  transition:
-    fill-opacity 180ms ease,
-    opacity 180ms ease;
-  paint-order: stroke;
-  stroke: rgba(252, 250, 244, 0.96);
-  stroke-width: 2.2px;
-  stroke-linejoin: round;
-}
-
-.word-cloud-text:hover {
-  fill-opacity: 1;
-}
-
-@media (max-width: 768px) {
-  .word-cloud-card {
-    gap: 0.7rem;
-  }
-
-  .word-cloud-svg {
-    min-height: 13.5rem;
-  }
-}
-</style>

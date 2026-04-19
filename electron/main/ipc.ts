@@ -18,6 +18,7 @@ import type {
   SaveAiApiKeyInput,
   SaveAiContextInput,
   SaveAiSettingsInput,
+  ThemePreferenceInput,
   WindowDirtyStateInput,
   WindowZoomPreferenceInput,
   WorkspaceSelectionResult,
@@ -29,6 +30,7 @@ import {
   setDayStartHour,
   setFrontmatterVisibility,
   setJournalHeatmapEnabled,
+  setThemePreference,
   writeAppConfig,
 } from './app-config'
 import { getAiSettingsStatus, saveAiSettings } from './ai-config'
@@ -72,6 +74,10 @@ export function registerIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.getAiSettingsStatus, () => {
     return getAiSettingsStatus()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.setThemePreference, (_event, input: ThemePreferenceInput) => {
+    return setThemePreference(input)
   })
 
   ipcMain.handle(IPC_CHANNELS.setWindowZoomFactor, (_event, input: WindowZoomPreferenceInput) => {

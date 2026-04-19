@@ -7,15 +7,49 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
+}
+
+:root,
+html[data-theme='light'],
+html[data-theme='dark'] {
   --color-background: #f6f2e8;
   --color-surface: #ffffff;
   --color-surface-muted: #faf6ea;
+  --color-surface-elevated: #fffef9;
   --color-text-main: #3d382d;
   --color-text-subtle: #8a816d;
   --color-text-soft: #aaa08d;
   --color-border: #e5dcc5;
   --color-border-soft: #efe7d4;
   --color-border-strong: #d9cb9f;
+  --color-accent-soft: #f5ebc3;
+  --color-accent-muted: #f8f0d7;
+  --color-accent-strong: #ccb278;
+  --color-selection: rgba(204, 178, 120, 0.18);
+  --shadow-soft: 0 8px 14px rgba(95, 82, 42, 0.08);
+  --shadow-medium: 0 14px 24px rgba(95, 82, 42, 0.11);
+  --overlay-scrim: rgba(61, 56, 45, 0.26);
+}
+
+html[data-theme='dark'] {
+  /* 先预留深色主题入口，当前保持与浅色一致，后续再逐步替换为真正的深色变量。 */
+  --color-background: #f6f2e8;
+  --color-surface: #ffffff;
+  --color-surface-muted: #faf6ea;
+  --color-surface-elevated: #fffef9;
+  --color-text-main: #3d382d;
+  --color-text-subtle: #8a816d;
+  --color-text-soft: #aaa08d;
+  --color-border: #e5dcc5;
+  --color-border-soft: #efe7d4;
+  --color-border-strong: #d9cb9f;
+  --color-accent-soft: #f5ebc3;
+  --color-accent-muted: #f8f0d7;
+  --color-accent-strong: #ccb278;
+  --color-selection: rgba(204, 178, 120, 0.18);
+  --shadow-soft: 0 8px 14px rgba(95, 82, 42, 0.08);
+  --shadow-medium: 0 14px 24px rgba(95, 82, 42, 0.11);
+  --overlay-scrim: rgba(61, 56, 45, 0.26);
 }
 
 * {

@@ -39,6 +39,7 @@ const {
   handleSaveMetadata,
   handleSaveWorkspaceLibraries,
   handleSelectDate,
+  handleUpdateTheme,
   handleUpdateDayStartHour,
   handleUpdateFrontmatterVisibility,
   handleUpdateJournalHeatmapEnabled,
@@ -59,6 +60,7 @@ const {
   isSavingFrontmatterVisibility,
   isSavingJournalHeatmap,
   isSavingMetadata,
+  isSavingTheme,
   isSavingWindowZoomFactor,
   isSavingWorkspaceLibraries,
   isSelectedDateToday,
@@ -75,6 +77,8 @@ const {
   selectedDateText,
   setEditorMode,
   statusMessage,
+  theme,
+  themeSaveMessage,
   todayText,
   viewState,
   windowZoomFactor,
@@ -182,6 +186,9 @@ const {
       <SettingsPanel
         v-if="rightPanel === 'settings'"
         :workspace-path="workspacePath"
+        :theme="theme"
+        :is-saving-theme="isSavingTheme"
+        :theme-save-message="themeSaveMessage"
         :window-zoom-factor="windowZoomFactor"
         :is-saving-window-zoom-factor="isSavingWindowZoomFactor"
         :window-zoom-factor-save-message="windowZoomFactorSaveMessage"
@@ -206,6 +213,7 @@ const {
         :is-saving-ai-context="isSavingAiContext"
         :ai-context-save-message="aiContextSaveMessage"
         :active-section-id="activeSettingsSectionId"
+        @update:theme="handleUpdateTheme"
         @update:window-zoom-factor="handleUpdateWindowZoomFactor"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"

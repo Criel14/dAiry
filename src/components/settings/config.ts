@@ -1,4 +1,4 @@
-import type { AiProviderType, AiSettings } from '../../types/dairy'
+import type { AiProviderType, AiSettings, AppTheme } from '../../types/dairy'
 import {
   WINDOW_ZOOM_PRESET_FACTORS,
   formatWindowZoomPercent,
@@ -21,6 +21,11 @@ export interface SettingsSectionItem {
 
 export interface AiProviderOption {
   value: AiProviderType
+  label: string
+}
+
+export interface ThemeOption {
+  value: AppTheme
   label: string
 }
 
@@ -100,6 +105,12 @@ export const WINDOW_ZOOM_OPTIONS = WINDOW_ZOOM_PRESET_FACTORS.map((value) => ({
   value,
   label: formatWindowZoomPercent(value),
 }))
+
+export const THEME_OPTIONS: ThemeOption[] = [
+  { value: 'system', label: '跟随系统' },
+  { value: 'light', label: '浅色' },
+  { value: 'dark', label: '深色' },
+]
 
 export const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {

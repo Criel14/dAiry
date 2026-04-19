@@ -5,6 +5,7 @@ import type {
   AiContextDocument,
   AiSettings,
   AiSettingsStatus,
+  AppTheme,
   FrontmatterVisibilityConfig,
 } from '../../types/dairy'
 import SettingsAboutSection from './SettingsAboutSection.vue'
@@ -22,6 +23,9 @@ import SettingsWorkspaceSection from './SettingsWorkspaceSection.vue'
 
 const props = defineProps<{
   workspacePath: string | null
+  theme: AppTheme
+  isSavingTheme: boolean
+  themeSaveMessage: string
   windowZoomFactor: number
   isSavingWindowZoomFactor: boolean
   windowZoomFactorSaveMessage: string
@@ -49,6 +53,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  'update:theme': [value: AppTheme]
   'update:windowZoomFactor': [value: number]
   'update:journalHeatmapEnabled': [value: boolean]
   'update:dayStartHour': [value: number]
@@ -99,12 +104,16 @@ function openDebugPanel() {
 
       <SettingsAppearanceSection
         v-if="activeSectionId === 'appearance'"
+        :theme="props.theme"
+        :is-saving-theme="props.isSavingTheme"
+        :theme-save-message="props.themeSaveMessage"
         :window-zoom-factor="props.windowZoomFactor"
         :is-saving-window-zoom-factor="props.isSavingWindowZoomFactor"
         :window-zoom-factor-save-message="props.windowZoomFactorSaveMessage"
         :journal-heatmap-enabled="props.journalHeatmapEnabled"
         :is-saving-journal-heatmap="props.isSavingJournalHeatmap"
         :heatmap-save-message="props.heatmapSaveMessage"
+        @update:theme="emit('update:theme', $event)"
         @update:window-zoom-factor="emit('update:windowZoomFactor', $event)"
         @update:journal-heatmap-enabled="emit('update:journalHeatmapEnabled', $event)"
       />

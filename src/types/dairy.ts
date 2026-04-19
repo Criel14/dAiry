@@ -1,4 +1,5 @@
 export type AiProviderType = 'openai' | 'deepseek' | 'alibaba' | 'openai-compatible'
+export type AppTheme = 'system' | 'light' | 'dark'
 
 export interface AiSettings {
   providerType: AiProviderType
@@ -24,7 +25,7 @@ export interface AppConfig {
     lastDirectory: string | null
   }
   ui: {
-    theme: 'system' | 'light' | 'dark'
+    theme: AppTheme
     zoomFactor: number
     journalHeatmapEnabled: boolean
     dayStartHour: number
@@ -321,6 +322,10 @@ export interface JournalHeatmapPreferenceInput {
   enabled: boolean
 }
 
+export interface ThemePreferenceInput {
+  theme: AppTheme
+}
+
 export interface WindowZoomPreferenceInput {
   zoomFactor: number
 }
@@ -401,6 +406,7 @@ export interface DairyApi {
   setWorkspaceTags: (input: WorkspaceStringListInput) => Promise<string[]>
   setWorkspaceWeatherOptions: (input: WorkspaceStringListInput) => Promise<string[]>
   setWorkspaceLocationOptions: (input: WorkspaceStringListInput) => Promise<string[]>
+  setThemePreference: (input: ThemePreferenceInput) => Promise<AppConfig>
   setWindowZoomFactor: (input: WindowZoomPreferenceInput) => Promise<AppConfig>
   onWindowZoomFactorChanged: (listener: (zoomFactor: number) => void) => () => void
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>

@@ -3,12 +3,14 @@ import { app } from 'electron'
 import { mkdir, stat, readFile, writeFile } from 'node:fs/promises'
 import type {
   AiSettings,
+  AppTheme,
   AppConfig,
   DayStartHourPreferenceInput,
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
   SaveAiSettingsInput,
+  ThemePreferenceInput,
   WindowZoomPreferenceInput,
 } from '../../src/types/dairy'
 import { DEFAULT_AI_SETTINGS, DEFAULT_APP_CONFIG } from './constants'
@@ -32,6 +34,12 @@ function normalizeDayStartHour(rawValue: unknown) {
 
 function normalizeUiZoomFactor(rawValue: unknown) {
   return normalizeWindowZoomFactor(rawValue)
+}
+
+function normalizeTheme(rawValue: unknown): AppTheme {
+  return rawValue === 'light' || rawValue === 'dark' || rawValue === 'system'
+    ? rawValue
+    : 'system'
 }
 
 function normalizeTimeoutMs(rawValue: unknown) {
@@ -105,10 +113,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const recentWorkspaces = Array.isArray(config.recentWorkspaces)
     ? config.recentWorkspaces.filter((item): item is string => typeof item === 'string')
     : []
-  const theme =
-    config.ui?.theme === 'light' || config.ui?.theme === 'dark' || config.ui?.theme === 'system'
-      ? config.ui.theme
-      : 'system'
+  const theme = normalizeTheme(config.ui?.theme)
   const zoomFactor = normalizeUiZoomFactor(config.ui?.zoomFactor)
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
@@ -239,6 +244,20 @@ export async function setJournalHeatmapEnabled(
     ui: {
       ...currentConfig.ui,
       journalHeatmapEnabled: input.enabled,
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setThemePreference(input: ThemePreferenceInput): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      theme: normalizeTheme(input.theme),
     },
   }
 
