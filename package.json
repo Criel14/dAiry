@@ -2,6 +2,8 @@
   "name": "dairy",
   "private": true,
   "version": "1.0.0",
+  "description": "结合了LLM的桌面日记工具",
+  "author": "Criel",
   "license": "MIT",
   "type": "module",
   "scripts": {

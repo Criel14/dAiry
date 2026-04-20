@@ -19,7 +19,7 @@
     "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
   },
   "win": {
-    "icon": "build/icons/app.ico",
+    "icon": "icons/app.ico",
     "target": [
       {
         "target": "nsis",
