@@ -17,13 +17,23 @@
 主要目录职责：
 
 - `src/`：渲染进程 UI
+- `src/app/`：应用壳层与页面级组合逻辑
 - `src/components/journal/`：日记主流程
 - `src/components/settings/`：设置页
 - `src/components/form/`：表单复用组件
+- `src/components/report/`：报告与导出相关 UI
 - `src/components/workspace/`：工作区侧栏
+- `src/shared/`：跨业务共享工具与主题逻辑
 - `src/types/`：共享类型
 - `electron/main/`：主进程模块
 - `electron/preload.ts`：安全桥接
+
+前端目录约定：
+
+- 继续保持按业务域组织目录，不要把所有组件重新摊平成一个大平层
+- 业务域内部优先按职责拆分，如 `components/`、`sections/`、`panel/`、`composables/`、`config/`、`shared/`
+- `.vue` 与其专属 `.css` 优先同目录放置，避免跨目录散落
+- 仅在确实跨业务复用时再放入 `src/shared/` 或通用表单目录，避免“看起来通用、实际只被一个页面使用”的过早抽象
 
 约束：
 

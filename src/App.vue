@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import WorkspaceSidebar from './components/workspace/WorkspaceSidebar.vue'
-import JournalHeader from './components/journal/JournalHeader.vue'
-import SettingsPanel from './components/settings/SettingsPanel.vue'
-import SettingsNav from './components/settings/SettingsNav.vue'
-import JournalEditorPanel from './components/journal/JournalEditorPanel.vue'
-import JournalMetadataPanel from './components/journal/JournalMetadataPanel.vue'
-import ReportsPanel from './components/report/ReportsPanel.vue'
-import ReportsSidebar from './components/report/ReportsSidebar.vue'
-import ReportExportPage from './components/report/export/ReportExportPage.vue'
-import JournalCalendar from './components/journal/JournalCalendar.vue'
-import { SETTINGS_SECTIONS } from './components/settings/config'
-import { useAppShell } from './app/useAppShell'
+import WorkspaceSidebar from './components/workspace/components/WorkspaceSidebar/WorkspaceSidebar.vue'
+import JournalHeader from './components/journal/components/JournalHeader/JournalHeader.vue'
+import SettingsPanel from './components/settings/panel/SettingsPanel.vue'
+import SettingsNav from './components/settings/components/SettingsNav/SettingsNav.vue'
+import JournalEditorPanel from './components/journal/components/JournalEditorPanel/JournalEditorPanel.vue'
+import JournalMetadataPanel from './components/journal/components/JournalMetadataPanel/JournalMetadataPanel.vue'
+import ReportsPanel from './components/report/components/ReportsPanel/ReportsPanel.vue'
+import ReportsSidebar from './components/report/components/ReportsSidebar/ReportsSidebar.vue'
+import ReportExportPage from './components/report/export/components/ReportExportPage/ReportExportPage.vue'
+import JournalCalendar from './components/journal/components/JournalCalendar/JournalCalendar.vue'
+import { SETTINGS_SECTIONS } from './components/settings/config/config'
+import { useAppShell } from './app/composables/useAppShell'
 
 const {
   activeSettingsSectionId,
@@ -258,4 +258,4 @@ const {
   </div>
 </template>
 
-<style scoped src="./app/app-shell.css"></style>
+<style scoped src="./app/styles/app-shell.css"></style>
