@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { CodeXml, Eye } from 'lucide-vue-next'
 import type { EditorMode } from '../../../../types/ui'
 
 defineProps<{
@@ -55,7 +55,7 @@ defineEmits<{
             :disabled="!isJournalReady"
             @click="$emit('update:editorMode', 'source')"
           >
-            <Icon class="view-mode-icon" icon="lucide:code-xml" aria-hidden="true" />
+            <CodeXml class="view-mode-icon" aria-hidden="true" />
           </button>
 
           <button
@@ -67,7 +67,7 @@ defineEmits<{
             :disabled="!isJournalReady"
             @click="$emit('update:editorMode', 'preview')"
           >
-            <Icon class="view-mode-icon" icon="lucide:eye" aria-hidden="true" />
+            <Eye class="view-mode-icon" aria-hidden="true" />
           </button>
         </div>
       </div>

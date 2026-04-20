@@ -1,5 +1,10 @@
-﻿<script setup lang="ts">
-import { Icon } from '@iconify/vue'
+<script setup lang="ts">
+import {
+  ChartColumn,
+  FolderOpen,
+  PencilLine,
+  SlidersHorizontal,
+} from 'lucide-vue-next'
 
 defineProps<{
   workspacePath: string | null
@@ -42,7 +47,7 @@ defineEmits<{
               aria-label="打开或切换日记目录"
               @click="$emit('chooseWorkspace')"
             >
-              <Icon class="icon-svg" icon="lucide:folder-open" aria-hidden="true" />
+              <FolderOpen class="icon-svg" aria-hidden="true" />
             </button>
           </div>
         </header>
@@ -55,7 +60,7 @@ defineEmits<{
           type="button"
           @click="$emit('openJournal')"
         >
-          <Icon class="nav-button-icon" icon="lucide:pencil-line" aria-hidden="true" />
+          <PencilLine class="nav-button-icon" aria-hidden="true" />
           <span>写作</span>
         </button>
         <button
@@ -64,7 +69,7 @@ defineEmits<{
           type="button"
           @click="$emit('openReports')"
         >
-          <Icon class="nav-button-icon" icon="lucide:chart-column" aria-hidden="true" />
+          <ChartColumn class="nav-button-icon" aria-hidden="true" />
           <span>报告</span>
         </button>
         <button
@@ -73,7 +78,7 @@ defineEmits<{
           type="button"
           @click="$emit('openSettings')"
         >
-          <Icon class="nav-button-icon" icon="lucide:sliders-horizontal" aria-hidden="true" />
+          <SlidersHorizontal class="nav-button-icon" aria-hidden="true" />
           <span>设置</span>
         </button>
       </nav>
@@ -86,4 +91,3 @@ defineEmits<{
 </template>
 
 <style scoped src="./WorkspaceSidebar.css"></style>
-

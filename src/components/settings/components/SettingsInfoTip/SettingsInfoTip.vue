@@ -1,5 +1,5 @@
-﻿<script setup lang="ts">
-import { Icon } from '@iconify/vue'
+<script setup lang="ts">
+import { CircleHelp } from 'lucide-vue-next'
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 defineProps<{
@@ -122,7 +122,7 @@ onBeforeUnmount(() => {
       @focus="openTip"
       @blur="closeTip"
     >
-      <Icon class="info-tip-icon" icon="lucide:circle-help" aria-hidden="true" />
+      <CircleHelp class="info-tip-icon" aria-hidden="true" />
     </button>
 
     <Teleport to="body">
@@ -142,4 +142,3 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped src="./SettingsInfoTip.css"></style>
-

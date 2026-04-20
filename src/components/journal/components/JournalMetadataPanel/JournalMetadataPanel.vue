@@ -1,6 +1,6 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Icon } from '@iconify/vue'
+import { ChevronDown, ChevronUp, LoaderCircle } from 'lucide-vue-next'
 import TagInput from '../../../form/components/TagInput/TagInput.vue'
 import SuggestionInput from '../../../form/components/SuggestionInput/SuggestionInput.vue'
 import SettingsInfoTip from '../../../settings/components/SettingsInfoTip/SettingsInfoTip.vue'
@@ -102,8 +102,7 @@ function handleMoodInput(event: Event) {
       <div class="metadata-header-actions">
         <span v-if="statusMessage" class="metadata-feedback">{{ statusMessage }}</span>
         <button class="ghost-button" type="button" @click="isCollapsed = !isCollapsed">
-          <Icon class="toggle-icon" :icon="isCollapsed ? 'lucide:chevron-down' : 'lucide:chevron-up'"
-            aria-hidden="true" />
+          <component :is="isCollapsed ? ChevronDown : ChevronUp" class="toggle-icon" aria-hidden="true" />
           {{ isCollapsed ? '展开' : '收起' }}
         </button>
       </div>
@@ -181,7 +180,7 @@ function handleMoodInput(event: Event) {
     <footer v-if="!isCollapsed" class="metadata-footer">
       <button class="ghost-button" type="button" :disabled="!canGenerateInsights" @click="$emit('generateInsights')">
         <span>{{ generateButtonText }}</span>
-        <Icon v-if="isGeneratingInsights" class="button-loading-icon" icon="lucide:loader-circle" aria-hidden="true" />
+        <LoaderCircle v-if="isGeneratingInsights" class="button-loading-icon" aria-hidden="true" />
       </button>
 
       <button class="save-button" type="button" :disabled="!canSave" @click="$emit('save')">
@@ -192,4 +191,3 @@ function handleMoodInput(event: Event) {
 </template>
 
 <style scoped src="./JournalMetadataPanel.css"></style>
-

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { Icon } from '@iconify/vue'
+import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue: string
@@ -129,11 +129,7 @@ function handleSuggestionPointerDown(item: string) {
         :aria-label="toggleAriaLabel"
         @click="toggleMenu"
       >
-        <Icon
-          class="suggestion-toggle-icon"
-          :icon="isOpen ? 'lucide:chevron-up' : 'lucide:chevron-down'"
-          aria-hidden="true"
-        />
+        <component :is="isOpen ? ChevronUp : ChevronDown" class="suggestion-toggle-icon" aria-hidden="true" />
       </button>
     </div>
 

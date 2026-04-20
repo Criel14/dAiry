@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import {
+  ChevronDown,
+  ChevronUp,
+  ChevronsLeft,
+  ChevronsRight,
+  LoaderCircle,
+} from 'lucide-vue-next'
 import {
   useReportsSidebar,
   type ReportsSidebarEmits,
@@ -73,11 +79,11 @@ const {
       <section v-if="preset === 'month'" class="selector-card">
         <header class="selector-toolbar">
           <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftMonthPickerYear(-1)">
-            <Icon class="toolbar-icon" icon="lucide:chevrons-left" aria-hidden="true" />
+            <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
           </button>
           <strong class="selector-title">{{ monthPickerTitle }}</strong>
           <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftMonthPickerYear(1)">
-            <Icon class="toolbar-icon" icon="lucide:chevrons-right" aria-hidden="true" />
+            <ChevronsRight class="toolbar-icon" aria-hidden="true" />
           </button>
         </header>
 
@@ -106,11 +112,11 @@ const {
       <section v-else-if="preset === 'year'" class="selector-card">
         <header class="selector-toolbar">
           <button class="toolbar-button" type="button" title="上一组年份" aria-label="上一组年份" @click="shiftYearPickerPage(-1)">
-            <Icon class="toolbar-icon" icon="lucide:chevrons-left" aria-hidden="true" />
+            <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
           </button>
           <strong class="selector-title">{{ yearPickerTitle }}</strong>
           <button class="toolbar-button" type="button" title="下一组年份" aria-label="下一组年份" @click="shiftYearPickerPage(1)">
-            <Icon class="toolbar-icon" icon="lucide:chevrons-right" aria-hidden="true" />
+            <ChevronsRight class="toolbar-icon" aria-hidden="true" />
           </button>
         </header>
 
@@ -173,9 +179,9 @@ const {
             <span class="section-toggle-label">总结选项</span>
             <strong class="section-toggle-summary">{{ selectedSectionSummary }}</strong>
           </span>
-          <Icon
+          <component
+            :is="isSectionOptionsExpanded ? ChevronUp : ChevronDown"
             class="section-toggle-icon"
-            :icon="isSectionOptionsExpanded ? 'lucide:chevron-up' : 'lucide:chevron-down'"
             aria-hidden="true"
           />
         </button>
@@ -212,10 +218,9 @@ const {
           @click="emit('generate')"
         >
           <span>{{ generateButtonText }}</span>
-          <Icon
+          <LoaderCircle
             v-if="isGenerating"
             class="button-loading-icon"
-            icon="lucide:loader-circle"
             aria-hidden="true"
           />
         </button>

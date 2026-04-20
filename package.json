@@ -12,9 +12,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.101",
-    "@iconify/vue": "^5.0.0",
     "dayjs": "^1.11.20",
+    "lucide-vue-next": "^1.0.0",
     "markdown-it": "^14.1.1",
     "vue": "^3.4.21"
   },

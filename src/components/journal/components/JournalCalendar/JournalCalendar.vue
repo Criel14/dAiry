@@ -1,6 +1,11 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { Icon } from '@iconify/vue'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-vue-next'
 import dayjs from 'dayjs'
 import type { JournalDayActivity } from '../../../../types/journal'
 
@@ -209,10 +214,10 @@ function getDayTitle(day: {
     <header class="calendar-toolbar">
       <div class="calendar-switches">
         <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftYear(-1)">
-          <Icon class="toolbar-icon" icon="lucide:chevrons-left" aria-hidden="true" />
+          <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
         </button>
         <button class="toolbar-button" type="button" title="上个月" aria-label="上个月" @click="shiftMonth(-1)">
-          <Icon class="toolbar-icon" icon="lucide:chevron-left" aria-hidden="true" />
+          <ChevronLeft class="toolbar-icon" aria-hidden="true" />
         </button>
       </div>
 
@@ -220,10 +225,10 @@ function getDayTitle(day: {
 
       <div class="calendar-switches calendar-switches--end">
         <button class="toolbar-button" type="button" title="下个月" aria-label="下个月" @click="shiftMonth(1)">
-          <Icon class="toolbar-icon" icon="lucide:chevron-right" aria-hidden="true" />
+          <ChevronRight class="toolbar-icon" aria-hidden="true" />
         </button>
         <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftYear(1)">
-          <Icon class="toolbar-icon" icon="lucide:chevrons-right" aria-hidden="true" />
+          <ChevronsRight class="toolbar-icon" aria-hidden="true" />
         </button>
       </div>
     </header>
@@ -255,4 +260,3 @@ function getDayTitle(day: {
 </template>
 
 <style scoped src="./JournalCalendar.css"></style>
-
