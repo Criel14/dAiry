@@ -40,12 +40,12 @@
 
 .settings-nav-item:hover {
   transform: translateY(-1px);
-  background: rgba(245, 235, 195, 0.28);
+  background: var(--color-glass-accent-28);
 }
 
 .settings-nav-item--active {
   border-color: var(--color-border);
-  background: #f4ead1;
+  background: var(--color-surface-nav-active);
 }
 
 .settings-nav-item-label {
@@ -53,3 +53,4 @@
   font-size: 0.95rem;
   font-weight: 600;
 }
+

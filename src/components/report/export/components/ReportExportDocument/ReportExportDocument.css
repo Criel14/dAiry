@@ -15,7 +15,7 @@
 .content-card {
   border: 1px solid var(--color-border);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--color-glass-white-92);
 }
 
 .report-hero {
@@ -51,8 +51,8 @@
 }
 
 .summary-card {
-  border-color: rgba(217, 203, 159, 0.95);
-  background: rgba(255, 255, 255, 0.88);
+  border-color: var(--color-glass-accent-95);
+  background: var(--color-glass-white-88);
 }
 
 .card-header {
@@ -110,9 +110,9 @@
   display: grid;
   gap: 5px;
   padding: 12px;
-  border: 1px solid rgba(229, 220, 197, 0.9);
+  border: 1px solid var(--color-glass-border-90);
   border-radius: 12px;
-  background: rgba(250, 246, 234, 0.42);
+  background: var(--color-glass-report-fill);
 }
 
 .stat-item span {
@@ -144,7 +144,7 @@
   display: grid;
   gap: 0;
   padding-top: 8px;
-  border-top: 1px solid rgba(217, 203, 159, 0.75);
+  border-top: 1px solid var(--color-glass-accent-75);
 }
 
 .summary-group {
@@ -155,7 +155,7 @@
 }
 
 .summary-group + .summary-group {
-  border-top: 1px solid rgba(229, 220, 197, 0.85);
+  border-top: 1px solid var(--color-glass-border-85);
 }
 
 .summary-group-head {
@@ -177,11 +177,11 @@
   display: grid;
   gap: 4px;
   padding: 4px 0 4px 12px;
-  border-left: 1px solid rgba(217, 203, 159, 0.45);
+  border-left: 1px solid var(--color-glass-accent-45);
 }
 
 .summary-item-time {
-  color: #a08855;
+  color: var(--color-text-report-time);
   font-size: 0.78rem;
 }
 
@@ -265,9 +265,9 @@
   position: relative;
   width: var(--heatmap-cell-size);
   height: var(--heatmap-cell-size);
-  border: 1px solid rgba(217, 203, 159, 0.18);
+  border: 1px solid var(--color-glass-accent-18);
   border-radius: 3px;
-  background-color: #f4efe1;
+  background-color: var(--color-surface-status);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -278,24 +278,24 @@
 }
 
 .heatmap-cell--level-1:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: #e7dcc0;
+  background-color: var(--color-surface-report-heat-1);
 }
 
 .heatmap-cell--level-2:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: #d9c89d;
+  background-color: var(--color-surface-report-heat-2);
 }
 
 .heatmap-cell--level-3:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: #c8ad6f;
+  background-color: var(--color-surface-report-heat-3);
 }
 
 .heatmap-cell--level-4:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: #a5803c;
+  background-color: var(--color-surface-report-heat-4);
 }
 
 .heatmap-cell--muted {
-  border-color: rgba(138, 129, 109, 0.1);
-  background-color: #f1efea;
+  border-color: var(--color-glass-shadow-10);
+  background-color: var(--color-surface-report-heat-0);
 }
 
 .heatmap-cell--muted::after {
@@ -306,7 +306,7 @@
   width: 140%;
   height: 1.4px;
   border-radius: 999px;
-  background: rgba(138, 129, 109, 0.2);
+  background: var(--color-glass-shadow-20);
   transform: translateY(-50%) rotate(-45deg);
   transform-origin: center;
   pointer-events: none;
@@ -331,7 +331,7 @@
   padding: 12px;
   border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: #fffef9;
+  background: var(--color-surface-elevated);
 }
 
 .pattern-summary-card span {
@@ -345,7 +345,7 @@
 }
 
 .pattern-summary-card em {
-  color: #9d8657;
+  color: var(--color-text-report-soft);
   font-size: 0.76rem;
   font-style: normal;
 }
@@ -376,7 +376,7 @@
   padding: 10px;
   border: 1px solid var(--color-border-soft);
   border-radius: 11px;
-  background: #fffef9;
+  background: var(--color-surface-elevated);
 }
 
 .rank {
@@ -385,8 +385,8 @@
   align-items: center;
   min-height: 1.4rem;
   border-radius: 999px;
-  background: #f6efdf;
-  color: #9d8657;
+  background: var(--color-surface-report-note);
+  color: var(--color-text-report-soft);
   font-size: 0.74rem;
 }
 
@@ -403,13 +403,13 @@
   height: 5px;
   border-radius: 999px;
   overflow: hidden;
-  background: #efe6d3;
+  background: var(--color-surface-report-chip);
 }
 
 .fill {
   height: 100%;
   border-radius: inherit;
-  background: #ccb278;
+  background: var(--color-accent-strong);
 }
 
 .count {
@@ -417,3 +417,5 @@
   font-size: 0.78rem;
   white-space: nowrap;
 }
+
+

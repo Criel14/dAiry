@@ -17,7 +17,7 @@
   padding: 0 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: #fcf7e7;
+  background: var(--color-surface-chip);
   color: var(--color-text-main);
   font-size: 0.9rem;
 }
@@ -32,7 +32,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: #fffdf8;
+  background: var(--color-surface-interactive);
   color: var(--color-text-main);
   transition:
     transform 160ms ease,
@@ -50,7 +50,7 @@
 .item-chip-remove:hover:not(:disabled),
 .add-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+  box-shadow: var(--shadow-soft);
 }
 
 .item-chip-remove:disabled,
@@ -73,7 +73,7 @@
   padding: 0.7rem 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #fffef9;
+  background: var(--color-surface-elevated);
   color: var(--color-text-main);
   outline: none;
 }
@@ -87,3 +87,4 @@
   color: var(--color-text-soft);
   line-height: 1.7;
 }
+

@@ -24,6 +24,7 @@
 - `src/components/report/`：报告与导出相关 UI
 - `src/components/workspace/`：工作区侧栏
 - `src/shared/`：跨业务共享工具与主题逻辑
+- `src/shared/theme/`：主题 token、全局基础样式与主题入口
 - `src/types/`：共享类型
 - `electron/main/`：主进程模块
 - `electron/preload.ts`：安全桥接
@@ -34,6 +35,11 @@
 - 业务域内部优先按职责拆分，如 `components/`、`sections/`、`panel/`、`composables/`、`config/`、`shared/`
 - `.vue` 与其专属 `.css` 优先同目录放置，避免跨目录散落
 - 仅在确实跨业务复用时再放入 `src/shared/` 或通用表单目录，避免“看起来通用、实际只被一个页面使用”的过早抽象
+- `src/style.css` 仅作为全局样式入口使用，不再堆积主题 token 或大段基础样式
+- 主题相关资源集中维护在 `src/shared/theme/`：
+  - `tokens.css`：主题 token，包含颜色、阴影、渐变、图表色板等可替换设计值
+  - `base.css`：全局基础样式，如 `html/body/#app`、字体、box-sizing、导出模式基础布局
+  - `index.css`：主题样式聚合入口
 
 约束：
 
@@ -89,6 +95,7 @@
 - 改 Electron 入口或 preload 时，同步检查 `vite.config.ts`
 - 改打包行为时，同步检查 `electron-builder.json5`
 - 改 preload API 时，同步更新调用侧与共享类型
+- 改主题切换逻辑时，同步检查 `src/shared/theme.ts`、`src/shared/theme/tokens.css`、`src/shared/theme/base.css`
 - 若新增稳定命令或约定，记得同步更新本文件
 
 ## 5. 数据与配置规则
@@ -676,6 +683,19 @@ Text Subtle: #8A816D
 Border: #E5DCC5
 Border Deep: #D9CB9F
 ```
+
+主题与样式约束：
+
+- 当前主题切换机制由 `src/shared/theme.ts` 统一负责，通过 `html[data-theme]` 与 `html[data-theme-preference]` 驱动
+- 新增或修改视觉样式时，优先复用 `src/shared/theme/tokens.css` 中已有 token；不要在业务组件 CSS 中重新写十六进制颜色、`rgba(...)`、阴影或渐变
+- 若现有 token 不足，优先补充 token，再在组件中引用；不要为了图省事把颜色直接写回组件
+- token 命名优先使用语义化命名，如 `--color-text-main`、`--color-surface-muted`、`--shadow-soft`，避免使用纯值导向命名
+- 仅当某个视觉值明确只服务于单一业务域时，才允许增加少量业务语义 token；但仍应放在 `tokens.css` 中集中管理
+- `html[data-theme='dark']` 是深色主题唯一正式覆盖入口；后续深色主题落地时，优先通过覆盖 token 完成，而不是复制一套组件 CSS
+- 报告图表、导出页、滚动条、悬浮态、选中态等也属于主题系统的一部分，新增这类视觉时同样要走 token
+- 若导出视图需要固定浅色方案，应通过独立 token 或明确的导出模式约束实现，不要回退到分散硬编码
+- `base.css` 只放全局基础规则，不承载业务组件样式
+- 组件本地 CSS 应主要描述布局、间距、结构和状态关系；主题值交给 token 层统一管理
 
 ## 10. 一句话原则
 

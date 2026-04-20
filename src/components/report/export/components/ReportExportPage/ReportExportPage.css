@@ -35,9 +35,10 @@
 }
 
 .export-state--error h1 {
-  color: #8a544d;
+  color: var(--color-text-danger);
 }
 
 .export-state--error p {
-  color: #9a6b5e;
+  color: var(--color-text-danger-soft);
 }
+

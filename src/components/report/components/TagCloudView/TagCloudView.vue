@@ -16,6 +16,15 @@ interface PositionedWord {
   opacity: number
 }
 
+const TAG_CLOUD_PALETTE = [
+  'var(--color-tag-cloud-1)',
+  'var(--color-tag-cloud-2)',
+  'var(--color-tag-cloud-3)',
+  'var(--color-tag-cloud-4)',
+  'var(--color-tag-cloud-5)',
+  'var(--color-tag-cloud-6)',
+]
+
 const containerRef = ref<HTMLElement | null>(null)
 const containerWidth = ref(0)
 let resizeObserver: ResizeObserver | null = null
@@ -78,8 +87,7 @@ function estimateLabelWidth(label: string, fontSize: number) {
 }
 
 function getWordColor(index: number, total: number) {
-  const palette = ['#4e4331', '#62523a', '#756246', '#8a7250', '#9b7e56', '#6b5a41']
-  return palette[index % Math.min(palette.length, Math.max(total, 1))]
+  return TAG_CLOUD_PALETTE[index % Math.min(TAG_CLOUD_PALETTE.length, Math.max(total, 1))]
 }
 
 function createWordBox(

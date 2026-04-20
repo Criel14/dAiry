@@ -405,14 +405,14 @@ onBeforeUnmount(() => {
       >
         <defs>
           <linearGradient :id="positiveAreaGradientId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#66a86e" stop-opacity="0.18" />
-            <stop offset="55%" stop-color="#66a86e" stop-opacity="0.08" />
-            <stop offset="100%" stop-color="#66a86e" stop-opacity="0.02" />
+            <stop class="mood-chart-stop mood-chart-stop--positive-start" offset="0%" />
+            <stop class="mood-chart-stop mood-chart-stop--positive-mid" offset="55%" />
+            <stop class="mood-chart-stop mood-chart-stop--positive-end" offset="100%" />
           </linearGradient>
           <linearGradient :id="negativeAreaGradientId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#cb6363" stop-opacity="0.02" />
-            <stop offset="45%" stop-color="#cb6363" stop-opacity="0.08" />
-            <stop offset="100%" stop-color="#cb6363" stop-opacity="0.18" />
+            <stop class="mood-chart-stop mood-chart-stop--negative-start" offset="0%" />
+            <stop class="mood-chart-stop mood-chart-stop--negative-mid" offset="45%" />
+            <stop class="mood-chart-stop mood-chart-stop--negative-end" offset="100%" />
           </linearGradient>
           <clipPath :id="positiveClipId">
             <rect

@@ -1,0 +1,49 @@
+html {
+  font-family: 'Avenir Next', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-width: 320px;
+  height: 100vh;
+  margin: 0;
+}
+
+html.report-export-mode,
+body.report-export-mode,
+#app.report-export-mode {
+  height: auto;
+  min-height: 100%;
+}
+
+body {
+  overflow: hidden;
+  background: var(--color-background);
+  color: var(--color-text-main);
+}
+
+body.report-export-mode,
+#app.report-export-mode {
+  overflow: visible;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}

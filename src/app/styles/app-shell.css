@@ -1,4 +1,4 @@
-.app-shell {
+﻿.app-shell {
   display: grid;
   grid-template-columns: 390px minmax(0, 1fr);
   height: 100vh;
@@ -44,3 +44,4 @@
     padding: 1.2rem;
   }
 }
+

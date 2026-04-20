@@ -22,7 +22,7 @@
   padding: 1.5rem;
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #fffef9;
+  background: var(--color-surface-elevated);
 }
 
 .empty-state h3 {
@@ -39,7 +39,7 @@
 }
 
 .empty-state--error {
-  border-color: #dbcfa3;
+  border-color: var(--color-border-editor-error);
 }
 
 .primary-button {
@@ -47,8 +47,8 @@
   padding: 0 1.2rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #f5ebc3;
-  color: #4f4630;
+  background: var(--color-accent-soft);
+  color: var(--color-text-accent);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -58,7 +58,7 @@
 
 .primary-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 14px rgba(95, 82, 42, 0.08);
+  box-shadow: var(--shadow-soft);
 }
 
 .primary-button:disabled {
@@ -85,13 +85,13 @@
   resize: none;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #d8ccb0 transparent;
+  scrollbar-color: var(--scrollbar-thumb-color) transparent;
 }
 
 .markdown-preview {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #d8ccb0 transparent;
+  scrollbar-color: var(--scrollbar-thumb-color) transparent;
 }
 
 .editor-textarea::-webkit-scrollbar,
@@ -108,13 +108,13 @@
 .markdown-preview::-webkit-scrollbar-thumb {
   border: 3px solid transparent;
   border-radius: 999px;
-  background: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
+  background: var(--gradient-scrollbar-thumb);
   background-clip: padding-box;
 }
 
 .editor-textarea::-webkit-scrollbar-thumb:hover,
 .markdown-preview::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
+  background: var(--gradient-scrollbar-thumb-hover);
   background-clip: padding-box;
 }
 
@@ -201,7 +201,7 @@
 .markdown-body :deep(code) {
   padding: 0.12rem 0.38rem;
   border-radius: 6px;
-  background: #f3ede0;
+  background: var(--color-surface-code-inline);
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 0.92em;
 }
@@ -211,7 +211,7 @@
   padding: 1rem 1.1rem;
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  background: #fcfbf6;
+  background: var(--color-surface-soft);
 }
 
 .markdown-body :deep(pre code) {
@@ -226,7 +226,7 @@
 }
 
 .markdown-body :deep(a) {
-  color: #7c6a3b;
+  color: var(--color-text-link);
   text-decoration: underline;
 }
 
@@ -251,7 +251,7 @@
 }
 
 .markdown-body :deep(th) {
-  background: #fbf6e7;
+  background: var(--color-surface-table-head);
 }
 
 .markdown-placeholder {
@@ -260,6 +260,7 @@
   height: 100%;
   border: 1px dashed var(--color-border);
   border-radius: 10px;
-  background: #fffef9;
+  background: var(--color-surface-elevated);
   text-align: center;
 }
+
