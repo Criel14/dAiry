@@ -114,6 +114,7 @@ function handleSuggestionPointerDown(item: string) {
         type="text"
         :placeholder="placeholder"
         :disabled="disabled"
+        spellcheck="false"
         @focus="openMenu"
         @input="handleInput"
         @keydown.enter.prevent="commitValue(inputValue)"

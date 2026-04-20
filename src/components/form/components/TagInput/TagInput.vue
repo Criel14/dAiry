@@ -167,6 +167,7 @@ function handleSuggestionPointerDown(tag: string) {
         type="text"
         :placeholder="inputPlaceholder"
         :disabled="disabled"
+        spellcheck="false"
         @keydown.enter.prevent="commitTag(tagInputValue)"
         @keydown.esc.prevent="hideInput"
         @blur="handleInputBlur"

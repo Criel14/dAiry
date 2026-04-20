@@ -164,6 +164,7 @@ function handleMoodInput(event: Event) {
             <span class="field-label">一句话总结</span>
             <textarea class="field-input field-textarea" :value="metadata.summary"
               :disabled="isSaving || isGeneratingInsights" rows="2" placeholder="可手动填写，也可以点击“自动整理”生成"
+              spellcheck="false"
               @input="updateField('summary', ($event.target as HTMLTextAreaElement).value)" />
           </label>
 

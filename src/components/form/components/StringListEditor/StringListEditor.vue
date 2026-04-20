@@ -103,6 +103,7 @@ function removeItem(itemToRemove: string) {
         type="text"
         :placeholder="placeholder"
         :disabled="disabled"
+        spellcheck="false"
         @keydown.enter.prevent="commitItem(inputValue)"
       />
 

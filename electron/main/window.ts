@@ -148,6 +148,7 @@ export async function createMainWindow() {
     webPreferences: {
       preload: path.join(MAIN_DIST, 'preload.mjs'),
       zoomFactor: initialZoomFactor,
+      spellcheck: false,
     },
   })
 
