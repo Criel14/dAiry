@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { app } from 'electron'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import type { AiContextDocument, SaveAiContextInput } from '../../src/types/dairy'
+import type { AiContextDocument, SaveAiContextInput } from '../../src/types/ai'
 
 function getAiContextFilePath() {
   return path.join(app.getPath('userData'), 'ai-context.md')

@@ -8,5 +8,5 @@ declare namespace NodeJS {
 }
 
 interface Window {
-  dairy: import('../src/types/dairy').DairyApi
+  dairy: import('../src/types/api').DairyApi
 }

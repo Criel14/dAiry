@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import type { ReportTagCloudItem } from '../../../../types/dairy'
+import type { ReportTagCloudItem } from '../../../../types/report'
 
 const props = defineProps<{
   items: ReportTagCloudItem[]

@@ -1,4 +1,4 @@
-import type { RangeReport, ReportExportSectionKey } from '../../../types/dairy'
+import type { RangeReport, ReportExportSectionKey } from '../../../types/report'
 
 export const REPORT_EXPORT_SECTION_OPTIONS: Array<{
   key: ReportExportSectionKey

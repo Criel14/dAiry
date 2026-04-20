@@ -1,5 +1,5 @@
 ﻿import { contextBridge, ipcRenderer } from 'electron'
-import type { DairyApi } from '../src/types/dairy'
+import type { DairyApi } from '../src/types/api'
 
 // preload 只暴露明确的业务接口，不把整个 ipcRenderer 敞开给渲染进程。
 // 这样后面排查权限边界或审计能力时会轻松很多。

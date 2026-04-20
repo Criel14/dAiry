@@ -1,7 +1,7 @@
 import type {
   GenerateDailyInsightsInput,
   GenerateDailyInsightsResult,
-} from '../../../src/types/dairy'
+} from '../../../src/types/ai'
 import { normalizeAiSettings } from '../app-config'
 import { assertValidDate } from '../workspace-paths'
 import { readAppConfig } from '../app-config'

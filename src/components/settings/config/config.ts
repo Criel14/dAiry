@@ -1,4 +1,5 @@
-import type { AiProviderType, AiSettings, AppTheme } from '../../../types/dairy'
+import type { AiProviderType, AiSettings } from '../../../types/ai'
+import type { AppTheme } from '../../../types/app'
 import {
   WINDOW_ZOOM_PRESET_FACTORS,
   formatWindowZoomPercent,

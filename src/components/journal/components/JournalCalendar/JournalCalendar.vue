@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import dayjs from 'dayjs'
-import type { JournalDayActivity } from '../../../../types/dairy'
+import type { JournalDayActivity } from '../../../../types/journal'
 
 const props = defineProps<{
   modelValue: string

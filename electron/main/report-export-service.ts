@@ -10,7 +10,7 @@ import type {
   ReportExportReadyInput,
   ReportExportSectionKey,
   RangeReport,
-} from '../../src/types/dairy'
+} from '../../src/types/report'
 import { MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL } from './constants'
 import { readAppConfig, setLastReportExportDirectory } from './app-config'
 import { getRangeReport } from './report-service'

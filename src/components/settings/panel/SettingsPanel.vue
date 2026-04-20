@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import packageJson from '../../../../package.json'
+import type { AiContextDocument, AiSettings, AiSettingsStatus } from '../../../types/ai'
 import type {
-  AiContextDocument,
-  AiSettings,
-  AiSettingsStatus,
   AppTheme,
   FrontmatterVisibilityConfig,
-} from '../../../types/dairy'
+} from '../../../types/app'
 import SettingsAboutSection from '../sections/SettingsAboutSection.vue'
 import SettingsAiSection from '../sections/SettingsAiSection.vue'
 import SettingsAppearanceSection from '../sections/SettingsAppearanceSection.vue'

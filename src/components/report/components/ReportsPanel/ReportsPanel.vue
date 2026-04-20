@@ -9,7 +9,7 @@ import type {
   ReportStatsSection,
   ReportTagCloudItem,
   ReportTimePatternsSection,
-} from '../../../../types/dairy'
+} from '../../../../types/report'
 import { useReportsPanelView } from '../../composables/useReportsPanelView'
 
 const props = defineProps<{

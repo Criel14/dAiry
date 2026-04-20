@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import MoodTrendChart from '../../../components/MoodTrendChart/MoodTrendChart.vue'
 import TagCloudView from '../../../components/TagCloudView/TagCloudView.vue'
-import type { RangeReport, ReportExportSectionKey } from '../../../../../types/dairy'
+import type { RangeReport, ReportExportSectionKey } from '../../../../../types/report'
 import { useReportExportDocument } from '../../composables/useReportExportDocument'
 
 const props = withDefaults(

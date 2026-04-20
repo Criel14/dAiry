@@ -1,5 +1,5 @@
 import path from 'node:path'
-import type { JournalEntryQuery } from '../../src/types/dairy'
+import type { JournalEntryQuery } from '../../src/types/journal'
 
 export function assertValidDate(dateText: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) {

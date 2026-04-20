@@ -5,7 +5,7 @@ import type {
   AiProviderType,
   AiSettingsStatus,
   SaveAiApiKeyInput,
-} from '../../src/types/dairy'
+} from '../../src/types/ai'
 import { readAppConfig } from './app-config'
 
 interface SecretsFile {

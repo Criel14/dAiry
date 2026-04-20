@@ -4,7 +4,7 @@ import type {
   RangeReportSummary,
   ReportSummaryItem,
   ReportSummaryTimeAnchor,
-} from '../../../src/types/dairy'
+} from '../../../src/types/report'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
 import { readAiContext } from '../ai-context'
 import { readAiApiKey } from '../ai-secrets'

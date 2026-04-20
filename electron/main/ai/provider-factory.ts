@@ -1,4 +1,4 @@
-import type { AiSettings } from '../../../src/types/dairy'
+import type { AiSettings } from '../../../src/types/ai'
 
 interface ChatCompletionMessage {
   role: 'system' | 'user'

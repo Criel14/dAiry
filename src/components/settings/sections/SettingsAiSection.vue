@@ -6,7 +6,7 @@ import type {
   AiProviderType,
   AiSettings,
   AiSettingsStatus,
-} from '../../../types/dairy'
+} from '../../../types/ai'
 import { AI_PROVIDER_OPTIONS, getAiDefaults } from '../config/config'
 
 const props = defineProps<{

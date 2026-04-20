@@ -5,7 +5,7 @@ import {
   type ReportListItem,
   type ReportPreset,
   type ReportSectionKey,
-} from '../../../types/dairy'
+} from '../../../types/report'
 
 export interface ReportsSidebarProps {
   hasWorkspace: boolean

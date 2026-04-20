@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import type { ReportExportPayload } from '../../../../../types/dairy'
+import type { ReportExportPayload } from '../../../../../types/report'
 import ReportExportDocument from '../ReportExportDocument/ReportExportDocument.vue'
 
 const containerRef = ref<HTMLElement | null>(null)

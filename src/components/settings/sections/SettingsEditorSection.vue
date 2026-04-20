@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
-import type { FrontmatterVisibilityConfig } from '../../../types/dairy'
+import type { FrontmatterVisibilityConfig } from '../../../types/app'
 import { DAY_START_HOUR_OPTIONS } from '../config/config'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 

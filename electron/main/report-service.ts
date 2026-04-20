@@ -13,7 +13,7 @@ import {
   type ReportSections,
   type ReportStatsSection,
   type ReportTagCloudItem,
-} from '../../src/types/dairy'
+} from '../../src/types/report'
 import {
   ensureDailyInsights,
   generateRangeReportSummaryWithAi,

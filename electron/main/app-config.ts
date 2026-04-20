@@ -1,18 +1,17 @@
 import path from 'node:path'
 import { app } from 'electron'
 import { mkdir, stat, readFile, writeFile } from 'node:fs/promises'
+import type { AiSettings, SaveAiSettingsInput } from '../../src/types/ai'
 import type {
-  AiSettings,
   AppTheme,
   AppConfig,
   DayStartHourPreferenceInput,
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
-  SaveAiSettingsInput,
   ThemePreferenceInput,
   WindowZoomPreferenceInput,
-} from '../../src/types/dairy'
+} from '../../src/types/app'
 import { DEFAULT_AI_SETTINGS, DEFAULT_APP_CONFIG } from './constants'
 import { normalizeWindowZoomFactor } from '../../src/shared/window-zoom'
 

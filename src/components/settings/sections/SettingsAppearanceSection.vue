@@ -2,7 +2,7 @@
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 import { THEME_OPTIONS, WINDOW_ZOOM_OPTIONS } from '../config/config'
 import { formatWindowZoomPercent } from '../../../shared/window-zoom'
-import type { AppTheme } from '../../../types/dairy'
+import type { AppTheme } from '../../../types/app'
 
 defineProps<{
   theme: AppTheme

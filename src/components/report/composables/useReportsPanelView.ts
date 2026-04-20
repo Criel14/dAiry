@@ -8,7 +8,7 @@ import type {
   ReportStatsSection,
   ReportTagCloudItem,
   ReportTimePatternsSection,
-} from '../../../types/dairy'
+} from '../../../types/report'
 import {
   REPORT_EXPORT_SECTION_OPTIONS,
   getAvailableExportSections,

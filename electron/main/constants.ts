@@ -1,6 +1,8 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { AiSettings, AppConfig, JournalEntryMetadata } from '../../src/types/dairy'
+import type { AiSettings } from '../../src/types/ai'
+import type { AppConfig } from '../../src/types/app'
+import type { JournalEntryMetadata } from '../../src/types/journal'
 import { DEFAULT_WINDOW_ZOOM_FACTOR } from '../../src/shared/window-zoom'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

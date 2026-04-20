@@ -4,7 +4,8 @@ import { Icon } from '@iconify/vue'
 import TagInput from '../../../form/components/TagInput/TagInput.vue'
 import SuggestionInput from '../../../form/components/SuggestionInput/SuggestionInput.vue'
 import SettingsInfoTip from '../../../settings/components/SettingsInfoTip/SettingsInfoTip.vue'
-import type { FrontmatterVisibilityConfig, JournalEntryMetadata } from '../../../../types/dairy'
+import type { FrontmatterVisibilityConfig } from '../../../../types/app'
+import type { JournalEntryMetadata } from '../../../../types/journal'
 
 const props = defineProps<{
   metadata: JournalEntryMetadata

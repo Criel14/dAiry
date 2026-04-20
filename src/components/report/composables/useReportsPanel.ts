@@ -7,7 +7,7 @@ import {
   type ReportListItem,
   type ReportPreset,
   type ReportSectionKey,
-} from '../../../types/dairy'
+} from '../../../types/report'
 import { getReadableErrorMessage } from '../../../utils/error'
 
 export const REPORT_SECTION_OPTIONS: Array<{

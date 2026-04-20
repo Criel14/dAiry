@@ -1,29 +1,37 @@
 import { dialog, ipcMain, shell, type OpenDialogOptions } from 'electron'
 import type {
-  AppBootstrap,
-  DayStartHourPreferenceInput,
-  ExportRangeReportInput,
-  FrontmatterVisibilityInput,
   GenerateDailyInsightsInput,
-  GenerateRangeReportInput,
-  JournalEntryBodySaveInput,
-  JournalEntryMetadataSaveInput,
-  JournalEntryQuery,
-  JournalHeatmapPreferenceInput,
-  OpenExternalLinkInput,
-  JournalMonthActivityQuery,
-  ReportExportPayloadQuery,
-  ReportExportReadyInput,
-  ReportQuery,
   SaveAiApiKeyInput,
   SaveAiContextInput,
   SaveAiSettingsInput,
+} from '../../src/types/ai'
+import type {
+  AppBootstrap,
+  DayStartHourPreferenceInput,
+  FrontmatterVisibilityInput,
+  JournalHeatmapPreferenceInput,
+  OpenExternalLinkInput,
   ThemePreferenceInput,
   WindowDirtyStateInput,
   WindowZoomPreferenceInput,
+} from '../../src/types/app'
+import type {
+  JournalEntryBodySaveInput,
+  JournalEntryMetadataSaveInput,
+  JournalEntryQuery,
+  JournalMonthActivityQuery,
+} from '../../src/types/journal'
+import type {
+  ExportRangeReportInput,
+  GenerateRangeReportInput,
+  ReportExportPayloadQuery,
+  ReportExportReadyInput,
+  ReportQuery,
+} from '../../src/types/report'
+import type {
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
-} from '../../src/types/dairy'
+} from '../../src/types/workspace'
 import {
   buildWorkspaceConfig,
   readAppConfig,

@@ -5,7 +5,7 @@ import type {
   ReportPreset,
   ReportSummaryItem,
   ReportSummaryTimeAnchor,
-} from '../../../types/dairy'
+} from '../../../types/report'
 
 export const REPORT_HEATMAP_WEEKDAY_LABELS = ['周一', '', '周三', '', '周五', '', '']
 export const REPORT_HEATMAP_CELL_GAP = 3

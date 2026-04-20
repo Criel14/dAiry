@@ -1,4 +1,4 @@
-import type { AiSettingsStatus, SaveAiSettingsInput } from '../../src/types/dairy'
+import type { AiSettingsStatus, SaveAiSettingsInput } from '../../src/types/ai'
 import { readAppConfig, setAiSettings } from './app-config'
 import { hasAiApiKey } from './ai-secrets'
 

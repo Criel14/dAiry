@@ -1,7 +1,7 @@
 ﻿<script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import dayjs from 'dayjs'
-import type { ReportMoodPoint } from '../../../../types/dairy'
+import type { ReportMoodPoint } from '../../../../types/report'
 
 interface RenderPoint {
   date: string

@@ -9,7 +9,7 @@ import type {
   JournalEntryWriteResult,
   JournalMonthActivityQuery,
   JournalMonthActivityResult,
-} from '../../src/types/dairy'
+} from '../../src/types/journal'
 import {
   countJournalWords,
   createDefaultFrontmatter,

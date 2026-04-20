@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
-import type { JournalEntryMetadata, JournalFrontmatter } from '../../src/types/dairy'
+import type { JournalEntryMetadata, JournalFrontmatter } from '../../src/types/journal'
 import { EMPTY_METADATA } from './constants'
 
 export function normalizeStringList(items: unknown) {

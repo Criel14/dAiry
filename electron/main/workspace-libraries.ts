@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import type { WorkspaceStringListInput } from '../../src/types/dairy'
+import type { WorkspaceStringListInput } from '../../src/types/workspace'
 import {
   DEFAULT_LOCATION_OPTIONS,
   DEFAULT_TAG_OPTIONS,

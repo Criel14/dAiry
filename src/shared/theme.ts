@@ -1,4 +1,4 @@
-import type { AppTheme } from '../types/dairy'
+import type { AppTheme } from '../types/app'
 
 const SYSTEM_DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)'
 

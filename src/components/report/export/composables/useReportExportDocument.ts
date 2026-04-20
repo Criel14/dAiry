@@ -1,5 +1,5 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { RangeReport, ReportExportSectionKey } from '../../../../types/dairy'
+import type { RangeReport, ReportExportSectionKey } from '../../../../types/report'
 import {
   REPORT_HEATMAP_CELL_GAP,
   REPORT_HEATMAP_DEFAULT_CELL_SIZE,
