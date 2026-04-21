@@ -1,9 +1,9 @@
-﻿.report-export-document {
+.report-export-document {
   display: grid;
   gap: 18px;
   margin: 0 auto;
   padding: 28px 24px 30px;
-  background: var(--color-background);
+  background: var(--report-export-document-background);
 }
 
 .report-export-document * {
@@ -13,9 +13,9 @@
 
 .report-hero,
 .content-card {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--report-export-card-border);
   border-radius: 16px;
-  background: var(--color-glass-white-92);
+  background: var(--report-export-card-background);
 }
 
 .report-hero {
@@ -26,21 +26,21 @@
 
 .report-label {
   margin: 0;
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   letter-spacing: 0.06em;
   font-size: 0.88rem;
 }
 
 .report-title {
   margin: 0;
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   font-size: 2rem;
   line-height: 1.35;
 }
 
 .report-subtitle {
   margin: 0;
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   line-height: 1.7;
 }
 
@@ -51,8 +51,8 @@
 }
 
 .summary-card {
-  border-color: var(--color-glass-accent-95);
-  background: var(--color-glass-white-88);
+  border-color: var(--report-export-summary-card-border);
+  background: var(--report-export-summary-card-background);
 }
 
 .card-header {
@@ -64,12 +64,12 @@
 
 .card-header h2 {
   margin: 0;
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   font-size: 1.1rem;
 }
 
 .card-header span {
-  color: var(--color-text-soft);
+  color: var(--report-export-meta-text);
   font-size: 0.84rem;
 }
 
@@ -110,13 +110,13 @@
   display: grid;
   gap: 5px;
   padding: 12px;
-  border: 1px solid var(--color-glass-border-90);
+  border: 1px solid var(--report-export-stat-border);
   border-radius: 12px;
-  background: var(--color-glass-report-fill);
+  background: var(--report-export-stat-background);
 }
 
 .stat-item span {
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   font-size: 0.82rem;
 }
 
@@ -124,19 +124,19 @@
   display: inline-flex;
   align-items: baseline;
   gap: 4px;
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   font-size: 1.2rem;
 }
 
 .stat-item small {
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   font-size: 0.76rem;
   font-weight: 500;
 }
 
 .summary-text {
   margin: 0;
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   line-height: 1.9;
 }
 
@@ -144,7 +144,7 @@
   display: grid;
   gap: 0;
   padding-top: 8px;
-  border-top: 1px solid var(--color-glass-accent-75);
+  border-top: 1px solid var(--report-export-summary-divider);
 }
 
 .summary-group {
@@ -155,7 +155,7 @@
 }
 
 .summary-group + .summary-group {
-  border-top: 1px solid var(--color-glass-border-85);
+  border-top: 1px solid var(--report-export-summary-group-border);
 }
 
 .summary-group-head {
@@ -163,7 +163,7 @@
 }
 
 .summary-group-head span {
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   font-weight: 600;
 }
 
@@ -177,17 +177,17 @@
   display: grid;
   gap: 4px;
   padding: 4px 0 4px 12px;
-  border-left: 1px solid var(--color-glass-accent-45);
+  border-left: 1px solid var(--report-export-summary-item-border);
 }
 
 .summary-item-time {
-  color: var(--color-text-report-time);
+  color: var(--report-export-time-text);
   font-size: 0.78rem;
 }
 
 .summary-item p {
   margin: 0;
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   line-height: 1.72;
 }
 
@@ -223,7 +223,7 @@
   align-items: center;
   height: var(--heatmap-cell-size);
   font-size: 0.82rem;
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
 }
 
 .heatmap-scroller {
@@ -243,7 +243,7 @@
 .heatmap-month-label {
   font-size: 0.84rem;
   line-height: 1;
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   white-space: nowrap;
 }
 
@@ -265,9 +265,9 @@
   position: relative;
   width: var(--heatmap-cell-size);
   height: var(--heatmap-cell-size);
-  border: 1px solid var(--color-glass-accent-18);
+  border: 1px solid var(--report-export-heatmap-border);
   border-radius: 3px;
-  background-color: var(--color-surface-status);
+  background-color: var(--report-export-heatmap-empty-background);
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -278,24 +278,24 @@
 }
 
 .heatmap-cell--level-1:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--color-surface-report-heat-1);
+  background-color: var(--report-export-heatmap-level-1);
 }
 
 .heatmap-cell--level-2:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--color-surface-report-heat-2);
+  background-color: var(--report-export-heatmap-level-2);
 }
 
 .heatmap-cell--level-3:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--color-surface-report-heat-3);
+  background-color: var(--report-export-heatmap-level-3);
 }
 
 .heatmap-cell--level-4:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--color-surface-report-heat-4);
+  background-color: var(--report-export-heatmap-level-4);
 }
 
 .heatmap-cell--muted {
-  border-color: var(--color-glass-shadow-10);
-  background-color: var(--color-surface-report-heat-0);
+  border-color: var(--report-export-heatmap-muted-border);
+  background-color: var(--report-export-heatmap-muted-background);
 }
 
 .heatmap-cell--muted::after {
@@ -306,7 +306,7 @@
   width: 140%;
   height: 1.4px;
   border-radius: 999px;
-  background: var(--color-glass-shadow-20);
+  background: var(--report-export-heatmap-muted-strike);
   transform: translateY(-50%) rotate(-45deg);
   transform-origin: center;
   pointer-events: none;
@@ -329,23 +329,23 @@
   align-content: start;
   min-height: 86px;
   padding: 12px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--report-export-pattern-card-border);
   border-radius: 14px;
-  background: var(--color-surface-elevated);
+  background: var(--report-export-pattern-card-background);
 }
 
 .pattern-summary-card span {
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   font-size: 0.78rem;
 }
 
 .pattern-summary-card strong {
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   font-size: 1.02rem;
 }
 
 .pattern-summary-card em {
-  color: var(--color-text-report-soft);
+  color: var(--report-export-note-text);
   font-size: 0.76rem;
   font-style: normal;
 }
@@ -374,9 +374,9 @@
   gap: 8px;
   min-height: 48px;
   padding: 10px;
-  border: 1px solid var(--color-border-soft);
+  border: 1px solid var(--report-export-pattern-row-border);
   border-radius: 11px;
-  background: var(--color-surface-elevated);
+  background: var(--report-export-pattern-row-background);
 }
 
 .rank {
@@ -385,13 +385,13 @@
   align-items: center;
   min-height: 1.4rem;
   border-radius: 999px;
-  background: var(--color-surface-report-note);
-  color: var(--color-text-report-soft);
+  background: var(--report-export-pattern-rank-background);
+  color: var(--report-export-note-text);
   font-size: 0.74rem;
 }
 
 .label {
-  color: var(--color-text-main);
+  color: var(--report-export-title-text);
   font-size: 0.86rem;
   white-space: nowrap;
   overflow: hidden;
@@ -403,19 +403,17 @@
   height: 5px;
   border-radius: 999px;
   overflow: hidden;
-  background: var(--color-surface-report-chip);
+  background: var(--report-export-pattern-track-background);
 }
 
 .fill {
   height: 100%;
   border-radius: inherit;
-  background: var(--color-accent-strong);
+  background: var(--report-export-pattern-fill-background);
 }
 
 .count {
-  color: var(--color-text-subtle);
+  color: var(--report-export-label-text);
   font-size: 0.78rem;
   white-space: nowrap;
 }
-
-

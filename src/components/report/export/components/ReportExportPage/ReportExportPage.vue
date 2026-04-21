@@ -1,6 +1,7 @@
-﻿<script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref } from 'vue'
 import type { ReportExportPayload } from '../../../../../types/report'
+import { useReportExportTheme } from '../../composables/useReportExportTheme'
 import ReportExportDocument from '../ReportExportDocument/ReportExportDocument.vue'
 
 const containerRef = ref<HTMLElement | null>(null)
@@ -9,6 +10,8 @@ const payload = ref<ReportExportPayload | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')
 const measuredContentHeight = ref(0)
+
+useReportExportTheme()
 
 const exportStageStyle = computed(() => {
   if (!payload.value) {
@@ -45,14 +48,6 @@ function waitFrame() {
   return new Promise<void>((resolve) => {
     window.requestAnimationFrame(() => resolve())
   })
-}
-
-function setExportLayoutMode(enabled: boolean) {
-  const method = enabled ? 'add' : 'remove'
-
-  document.documentElement.classList[method]('report-export-mode')
-  document.body.classList[method]('report-export-mode')
-  document.getElementById('app')?.classList[method]('report-export-mode')
 }
 
 async function waitRenderStable() {
@@ -105,12 +100,7 @@ async function initExportPage() {
 }
 
 onMounted(() => {
-  setExportLayoutMode(true)
   void initExportPage()
-})
-
-onBeforeUnmount(() => {
-  setExportLayoutMode(false)
 })
 </script>
 
@@ -147,4 +137,3 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped src="./ReportExportPage.css"></style>
-

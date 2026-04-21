@@ -81,6 +81,11 @@ export function registerIpcHandlers() {
     return { config }
   })
 
+  ipcMain.handle(IPC_CHANNELS.getThemePreference, async () => {
+    const config = await readAppConfig()
+    return config.ui.theme
+  })
+
   ipcMain.handle(IPC_CHANNELS.getAiSettingsStatus, () => {
     return getAiSettingsStatus()
   })

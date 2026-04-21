@@ -8,6 +8,7 @@ import type {
   SaveAiSettingsInput,
 } from './ai'
 import type {
+  AppTheme,
   AppBootstrap,
   AppConfig,
   DayStartHourPreferenceInput,
@@ -46,6 +47,7 @@ import type {
 
 export interface DairyApi {
   getAppBootstrap: () => Promise<AppBootstrap>
+  getThemePreference: () => Promise<AppTheme>
   chooseWorkspace: () => Promise<WorkspaceSelectionResult>
   openWorkspaceFolder: (input: OpenWorkspaceFolderInput) => Promise<void>
   readJournalEntry: (input: JournalEntryQuery) => Promise<JournalEntryReadResult>

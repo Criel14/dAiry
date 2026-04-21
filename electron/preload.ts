@@ -5,6 +5,7 @@ import type { DairyApi } from '../src/types/api'
 // 这样后面排查权限边界或审计能力时会轻松很多。
 const dairyApi: DairyApi = {
   getAppBootstrap: () => ipcRenderer.invoke('app:get-bootstrap'),
+  getThemePreference: () => ipcRenderer.invoke('app:get-theme-preference'),
   getAiSettingsStatus: () => ipcRenderer.invoke('app:get-ai-settings-status'),
   setThemePreference: (input) => ipcRenderer.invoke('app:set-theme-preference', input),
   setWindowZoomFactor: (input) => ipcRenderer.invoke('app:set-window-zoom-factor', input),

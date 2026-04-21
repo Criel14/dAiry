@@ -1,0 +1,49 @@
+:root,
+html[data-theme='light'],
+html[data-theme='dark'] {
+  --report-export-page-background: var(--color-background);
+  --report-export-state-text: var(--color-text-main);
+  --report-export-state-subtle-text: var(--color-text-subtle);
+  --report-export-state-error-text: var(--color-text-danger);
+  --report-export-state-error-subtle-text: var(--color-text-danger-soft);
+
+  --report-export-document-background: var(--color-background);
+  --report-export-card-border: var(--color-border);
+  --report-export-card-background: var(--color-glass-white-92);
+  --report-export-summary-card-border: var(--color-glass-accent-95);
+  --report-export-summary-card-background: var(--color-glass-white-88);
+
+  --report-export-label-text: var(--color-text-subtle);
+  --report-export-title-text: var(--color-text-main);
+  --report-export-meta-text: var(--color-text-soft);
+  --report-export-time-text: var(--color-text-report-time);
+  --report-export-note-text: var(--color-text-report-soft);
+
+  --report-export-stat-border: var(--color-glass-border-90);
+  --report-export-stat-background: var(--color-glass-report-fill);
+  --report-export-summary-divider: var(--color-glass-accent-75);
+  --report-export-summary-item-border: var(--color-glass-accent-45);
+  --report-export-summary-group-border: var(--color-glass-border-85);
+
+  --report-export-heatmap-border: var(--color-glass-accent-18);
+  --report-export-heatmap-empty-background: var(--color-surface-status);
+  --report-export-heatmap-level-1: var(--color-surface-report-heat-1);
+  --report-export-heatmap-level-2: var(--color-surface-report-heat-2);
+  --report-export-heatmap-level-3: var(--color-surface-report-heat-3);
+  --report-export-heatmap-level-4: var(--color-surface-report-heat-4);
+  --report-export-heatmap-muted-border: var(--color-glass-shadow-10);
+  --report-export-heatmap-muted-background: var(--color-surface-report-heat-0);
+  --report-export-heatmap-muted-strike: var(--color-glass-shadow-20);
+
+  --report-export-pattern-card-border: var(--color-border);
+  --report-export-pattern-card-background: var(--color-surface-elevated);
+  --report-export-pattern-row-border: var(--color-border-soft);
+  --report-export-pattern-row-background: var(--color-surface-elevated);
+  --report-export-pattern-rank-background: var(--color-surface-report-note);
+  --report-export-pattern-track-background: var(--color-surface-report-chip);
+  --report-export-pattern-fill-background: var(--color-accent-strong);
+}
+
+html[data-theme='dark'] {
+  /* 当前先保持与默认一致，后续可在这里单独收口导出页深色 token。 */
+}

@@ -22,6 +22,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
 
 export const IPC_CHANNELS = {
   getBootstrap: 'app:get-bootstrap',
+  getThemePreference: 'app:get-theme-preference',
   getAiSettingsStatus: 'app:get-ai-settings-status',
   saveAiSettings: 'app:save-ai-settings',
   saveAiApiKey: 'app:save-ai-api-key',

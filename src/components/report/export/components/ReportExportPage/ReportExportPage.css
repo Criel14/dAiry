@@ -1,8 +1,8 @@
-﻿.report-export-page {
+.report-export-page {
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--color-background);
+  background: var(--report-export-page-background);
 }
 
 .report-export-stage {
@@ -21,7 +21,7 @@
   min-height: 360px;
   padding: 24px;
   text-align: center;
-  color: var(--color-text-main);
+  color: var(--report-export-state-text);
 }
 
 .export-state h1 {
@@ -31,14 +31,13 @@
 
 .export-state p {
   margin: 0;
-  color: var(--color-text-subtle);
+  color: var(--report-export-state-subtle-text);
 }
 
 .export-state--error h1 {
-  color: var(--color-text-danger);
+  color: var(--report-export-state-error-text);
 }
 
 .export-state--error p {
-  color: var(--color-text-danger-soft);
+  color: var(--report-export-state-error-subtle-text);
 }
-
