@@ -29,6 +29,7 @@ const dairyApi: DairyApi = {
   getAiContext: () => ipcRenderer.invoke('app:get-ai-context'),
   saveAiContext: (input) => ipcRenderer.invoke('app:save-ai-context', input),
   chooseWorkspace: () => ipcRenderer.invoke('workspace:choose'),
+  openWorkspaceFolder: (input) => ipcRenderer.invoke('workspace:open-folder', input),
   readJournalEntry: (input) => ipcRenderer.invoke('journal:read-entry', input),
   createJournalEntry: (input) => ipcRenderer.invoke('journal:create-entry', input),
   saveJournalEntryBody: (input) => ipcRenderer.invoke('journal:save-entry-body', input),

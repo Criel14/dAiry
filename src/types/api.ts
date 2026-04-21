@@ -38,11 +38,16 @@ import type {
   ReportListItem,
   ReportQuery,
 } from './report'
-import type { WorkspaceSelectionResult, WorkspaceStringListInput } from './workspace'
+import type {
+  OpenWorkspaceFolderInput,
+  WorkspaceSelectionResult,
+  WorkspaceStringListInput,
+} from './workspace'
 
 export interface DairyApi {
   getAppBootstrap: () => Promise<AppBootstrap>
   chooseWorkspace: () => Promise<WorkspaceSelectionResult>
+  openWorkspaceFolder: (input: OpenWorkspaceFolderInput) => Promise<void>
   readJournalEntry: (input: JournalEntryQuery) => Promise<JournalEntryReadResult>
   createJournalEntry: (input: JournalEntryQuery) => Promise<JournalEntryReadResult>
   saveJournalEntryBody: (input: JournalEntryBodySaveInput) => Promise<JournalEntryWriteResult>

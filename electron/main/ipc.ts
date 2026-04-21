@@ -29,6 +29,7 @@ import type {
   ReportQuery,
 } from '../../src/types/report'
 import type {
+  OpenWorkspaceFolderInput,
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
 } from '../../src/types/workspace'
@@ -150,6 +151,7 @@ export function registerIpcHandlers() {
       title: '选择日记目录',
       buttonLabel: '选择这个目录',
       properties: ['openDirectory'],
+      defaultPath: currentConfig.lastOpenedWorkspace ?? undefined,
     }
     const win = getMainWindow()
     const result = win
@@ -174,6 +176,22 @@ export function registerIpcHandlers() {
       config: nextConfig,
     }
   })
+
+  ipcMain.handle(
+    IPC_CHANNELS.openWorkspaceFolder,
+    async (_event, input: OpenWorkspaceFolderInput) => {
+      const workspacePath = input.workspacePath.trim()
+
+      if (!workspacePath) {
+        throw new Error('当前还没有可打开的工作区目录。')
+      }
+
+      const errorMessage = await shell.openPath(workspacePath)
+      if (errorMessage) {
+        throw new Error(`打开目录失败：${errorMessage}`)
+      }
+    },
+  )
 
   ipcMain.handle(IPC_CHANNELS.getWorkspaceTags, (_event, workspacePath: string) => {
     return getWorkspaceTags(workspacePath)

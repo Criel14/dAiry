@@ -37,6 +37,7 @@ export const IPC_CHANNELS = {
   openExternalLink: 'app:open-external-link',
   openDevTools: 'app:open-dev-tools',
   chooseWorkspace: 'workspace:choose',
+  openWorkspaceFolder: 'workspace:open-folder',
   getWorkspaceTags: 'workspace:get-tags',
   getWorkspaceWeatherOptions: 'workspace:get-weather-options',
   getWorkspaceLocationOptions: 'workspace:get-location-options',

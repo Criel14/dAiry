@@ -259,6 +259,38 @@
   color: var(--color-text-warm);
 }
 
+.workspace-action-button {
+  min-height: 2.25rem;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-about-button);
+  color: var(--color-text-strong-subtle);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.workspace-action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  background: var(--color-accent-soft);
+}
+
+.workspace-action-button:focus-visible {
+  outline: 2px solid var(--color-glass-accent-90);
+  outline-offset: 3px;
+}
+
+.workspace-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
 .about-basic {
   display: grid;
   gap: 0.75rem;

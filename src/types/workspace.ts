@@ -6,6 +6,10 @@ export interface WorkspaceSelectionResult {
   config: AppConfig
 }
 
+export interface OpenWorkspaceFolderInput {
+  workspacePath: string
+}
+
 export interface WorkspaceStringListInput {
   workspacePath: string
   items: string[]

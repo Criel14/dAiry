@@ -7,6 +7,18 @@ const props = defineProps<{
 }>()
 
 const hasWorkspace = computed(() => Boolean(props.workspacePath))
+
+async function handleOpenWorkspaceFolder() {
+  if (!props.workspacePath) {
+    return
+  }
+
+  try {
+    await window.dairy.openWorkspaceFolder({ workspacePath: props.workspacePath })
+  } catch (error) {
+    window.alert(error instanceof Error ? error.message : '打开目录失败，请稍后重试。')
+  }
+}
 </script>
 
 <template>
@@ -29,9 +41,14 @@ const hasWorkspace = computed(() => Boolean(props.workspacePath))
           </p>
         </div>
 
-        <span class="workspace-status" :class="{ 'workspace-status--ready': hasWorkspace }">
-          {{ hasWorkspace ? '已连接' : '未连接' }}
-        </span>
+        <button
+          class="workspace-action-button"
+          type="button"
+          :disabled="!hasWorkspace"
+          @click="handleOpenWorkspaceFolder"
+        >
+          打开文件夹
+        </button>
       </div>
     </section>
   </div>
