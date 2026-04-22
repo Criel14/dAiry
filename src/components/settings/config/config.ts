@@ -1,5 +1,5 @@
 import type { AiProviderType, AiSettings } from '../../../types/ai'
-import type { AppTheme } from '../../../types/app'
+import type { AppTheme, WindowCloseBehavior } from '../../../types/app'
 import {
   WINDOW_ZOOM_PRESET_FACTORS,
   formatWindowZoomPercent,
@@ -27,6 +27,11 @@ export interface AiProviderOption {
 
 export interface ThemeOption {
   value: AppTheme
+  label: string
+}
+
+export interface WindowCloseBehaviorOption {
+  value: WindowCloseBehavior
   label: string
 }
 
@@ -64,7 +69,7 @@ export const SETTINGS_SECTIONS: SettingsSectionItem[] = [
   {
     id: 'display',
     label: '编辑器',
-    description: '调整写作时间规则和日记信息字段，减少不必要的录入压力。',
+    description: '调整写作时间规则、关闭窗口行为和日记信息字段，减少不必要的录入压力。',
   },
   {
     id: 'shortcuts',
@@ -101,6 +106,11 @@ export const AI_PROVIDER_OPTIONS: AiProviderOption[] = [
 ]
 
 export const DAY_START_HOUR_OPTIONS = [0, 1, 2, 3, 4, 5, 6]
+
+export const WINDOW_CLOSE_BEHAVIOR_OPTIONS: WindowCloseBehaviorOption[] = [
+  { value: 'tray', label: '最小化到托盘' },
+  { value: 'quit', label: '直接关闭应用' },
+]
 
 export const WINDOW_ZOOM_OPTIONS = WINDOW_ZOOM_PRESET_FACTORS.map((value) => ({
   value,

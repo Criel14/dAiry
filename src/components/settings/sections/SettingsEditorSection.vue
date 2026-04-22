@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
-import type { FrontmatterVisibilityConfig } from '../../../types/app'
-import { DAY_START_HOUR_OPTIONS } from '../config/config'
+import type { FrontmatterVisibilityConfig, WindowCloseBehavior } from '../../../types/app'
+import { DAY_START_HOUR_OPTIONS, WINDOW_CLOSE_BEHAVIOR_OPTIONS } from '../config/config'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 
 const props = defineProps<{
   dayStartHour: number
   isSavingDayStartHour: boolean
   dayStartHourSaveMessage: string
+  windowCloseBehavior: WindowCloseBehavior
+  isSavingWindowCloseBehavior: boolean
+  windowCloseBehaviorSaveMessage: string
   frontmatterVisibility: FrontmatterVisibilityConfig
   isSavingFrontmatterVisibility: boolean
   frontmatterVisibilitySaveMessage: string
@@ -15,6 +18,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:dayStartHour': [value: number]
+  'update:windowCloseBehavior': [value: WindowCloseBehavior]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
 }>()
 
@@ -25,6 +29,17 @@ function handleDayStartHourChange(event: Event) {
   }
 
   emit('update:dayStartHour', Number(target.value))
+}
+
+function handleWindowCloseBehaviorChange(event: Event) {
+  const target = event.target
+  if (!(target instanceof HTMLSelectElement)) {
+    return
+  }
+
+  if (target.value === 'tray' || target.value === 'quit') {
+    emit('update:windowCloseBehavior', target.value)
+  }
 }
 
 function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
@@ -67,6 +82,39 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
 
       <p v-if="dayStartHourSaveMessage" class="setting-feedback">
         {{ dayStartHourSaveMessage }}
+      </p>
+    </section>
+
+    <section class="settings-card">
+      <div class="panel-heading">
+        <span class="panel-label">应用关闭行为</span>
+      </div>
+      <p class="panel-description">决定点击右上角关闭按钮时，应用是直接退出还是隐藏到系统托盘。</p>
+
+      <div class="setting-row setting-row--compact">
+        <div class="setting-copy">
+          <div class="setting-title-row">
+            <strong class="panel-value">关闭窗口时</strong>
+            <SettingsInfoTip text="选择最小化到托盘后，可通过托盘右键菜单重新打开主窗口或退出应用。" />
+          </div>
+          <p class="panel-description">最小化到托盘时，通知功能才能生效</p>
+        </div>
+
+        <select
+          class="setting-select"
+          :value="windowCloseBehavior"
+          :disabled="isSavingWindowCloseBehavior"
+          aria-label="选择关闭窗口行为"
+          @change="handleWindowCloseBehaviorChange"
+        >
+          <option v-for="option in WINDOW_CLOSE_BEHAVIOR_OPTIONS" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <p v-if="windowCloseBehaviorSaveMessage" class="setting-feedback">
+        {{ windowCloseBehaviorSaveMessage }}
       </p>
     </section>
 

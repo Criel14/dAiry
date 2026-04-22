@@ -1,6 +1,7 @@
 import type { AiSettings } from './ai'
 
 export type AppTheme = 'system' | 'light' | 'dark'
+export type WindowCloseBehavior = 'tray' | 'quit'
 
 export interface FrontmatterVisibilityConfig {
   weather: boolean
@@ -21,6 +22,7 @@ export interface AppConfig {
     zoomFactor: number
     journalHeatmapEnabled: boolean
     dayStartHour: number
+    closeBehavior: WindowCloseBehavior
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
   ai: AiSettings
@@ -48,6 +50,10 @@ export interface FrontmatterVisibilityInput {
 
 export interface DayStartHourPreferenceInput {
   hour: number
+}
+
+export interface WindowCloseBehaviorPreferenceInput {
+  behavior: WindowCloseBehavior
 }
 
 export interface WindowDirtyStateInput {

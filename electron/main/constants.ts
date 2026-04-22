@@ -31,8 +31,10 @@ export const IPC_CHANNELS = {
   setThemePreference: 'app:set-theme-preference',
   setWindowZoomFactor: 'app:set-window-zoom-factor',
   windowZoomChanged: 'app:window-zoom-changed',
+  navigateMainPanel: 'app:navigate-main-panel',
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
   setDayStartHour: 'app:set-day-start-hour',
+  setWindowCloseBehavior: 'app:set-window-close-behavior',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
   openExternalLink: 'app:open-external-link',
@@ -77,6 +79,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     zoomFactor: DEFAULT_WINDOW_ZOOM_FACTOR,
     journalHeatmapEnabled: false,
     dayStartHour: 0,
+    closeBehavior: 'tray',
     frontmatterVisibility: {
       weather: true,
       location: true,

@@ -10,6 +10,8 @@ import type {
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
   ThemePreferenceInput,
+  WindowCloseBehavior,
+  WindowCloseBehaviorPreferenceInput,
   WindowZoomPreferenceInput,
 } from '../../src/types/app'
 import { DEFAULT_AI_SETTINGS, DEFAULT_APP_CONFIG } from './constants'
@@ -39,6 +41,10 @@ function normalizeTheme(rawValue: unknown): AppTheme {
   return rawValue === 'light' || rawValue === 'dark' || rawValue === 'system'
     ? rawValue
     : 'system'
+}
+
+function normalizeWindowCloseBehavior(rawValue: unknown): WindowCloseBehavior {
+  return rawValue === 'quit' ? 'quit' : 'tray'
 }
 
 function normalizeTimeoutMs(rawValue: unknown) {
@@ -116,6 +122,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const zoomFactor = normalizeUiZoomFactor(config.ui?.zoomFactor)
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
+  const closeBehavior = normalizeWindowCloseBehavior(config.ui?.closeBehavior)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
   const ai = normalizeAiSettings(config.ai)
   const reportExport = normalizeReportExportConfig(config.reportExport)
@@ -130,6 +137,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       zoomFactor,
       journalHeatmapEnabled,
       dayStartHour,
+      closeBehavior,
       frontmatterVisibility,
     },
     ai,
@@ -285,6 +293,22 @@ export async function setDayStartHour(input: DayStartHourPreferenceInput): Promi
     ui: {
       ...currentConfig.ui,
       dayStartHour: normalizeDayStartHour(input.hour),
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setWindowCloseBehavior(
+  input: WindowCloseBehaviorPreferenceInput,
+): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      closeBehavior: normalizeWindowCloseBehavior(input.behavior),
     },
   }
 

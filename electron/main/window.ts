@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog, nativeTheme } from 'electron'
+import { app, BrowserWindow, Menu, Tray, dialog, nativeTheme } from 'electron'
 import path from 'node:path'
 import {
   APP_ICON_PATH,
@@ -8,7 +8,8 @@ import {
   VITE_DEV_SERVER_URL,
 } from './constants'
 import { readAppConfig, setWindowZoomFactor as persistWindowZoomFactor } from './app-config'
-import type { AppTheme } from '../../src/types/app'
+import type { AppTheme, WindowCloseBehavior } from '../../src/types/app'
+import type { RightPanel } from '../../src/types/ui'
 import {
   DEFAULT_WINDOW_ZOOM_FACTOR,
   getNextWindowZoomFactor,
@@ -16,8 +17,11 @@ import {
 } from '../../src/shared/window-zoom'
 
 let win: BrowserWindow | null = null
+let tray: Tray | null = null
 let isWindowDirty = false
 let isForceClosingWindow = false
+let isQuitRequested = false
+let currentWindowCloseBehavior: WindowCloseBehavior = 'tray'
 
 export function applyNativeThemeSource(theme: AppTheme) {
   nativeTheme.themeSource = theme
@@ -42,6 +46,105 @@ export function openMainWindowDevTools() {
   }
 
   win.webContents.openDevTools({ mode: 'detach' })
+}
+
+function destroyTray() {
+  tray?.destroy()
+  tray = null
+}
+
+function showMainWindow() {
+  if (!win || win.isDestroyed()) {
+    return
+  }
+
+  win.setSkipTaskbar(false)
+
+  if (win.isMinimized()) {
+    win.restore()
+  }
+
+  win.show()
+  win.focus()
+}
+
+function navigateMainPanel(panel: RightPanel) {
+  if (!win || win.isDestroyed()) {
+    return
+  }
+
+  showMainWindow()
+  win.webContents.send(IPC_CHANNELS.navigateMainPanel, { panel })
+}
+
+function requestAppQuit() {
+  isQuitRequested = true
+  app.quit()
+}
+
+function buildTrayMenu() {
+  return Menu.buildFromTemplate([
+    {
+      label: '写作',
+      click: () => {
+        navigateMainPanel('journal')
+      },
+    },
+    {
+      label: '报告',
+      click: () => {
+        navigateMainPanel('reports')
+      },
+    },
+    {
+      label: '设置',
+      click: () => {
+        navigateMainPanel('settings')
+      },
+    },
+    {
+      label: '退出',
+      click: () => {
+        requestAppQuit()
+      },
+    },
+  ])
+}
+
+function ensureTray() {
+  if (tray) {
+    tray.setContextMenu(buildTrayMenu())
+    return tray
+  }
+
+  tray = new Tray(APP_ICON_PATH)
+  tray.setToolTip('dAiry')
+  tray.setContextMenu(buildTrayMenu())
+  tray.on('click', () => {
+    showMainWindow()
+  })
+  tray.on('double-click', () => {
+    showMainWindow()
+  })
+  return tray
+}
+
+function hideMainWindowToTray() {
+  if (!win || win.isDestroyed()) {
+    return
+  }
+
+  ensureTray()
+  win.setSkipTaskbar(true)
+  win.hide()
+}
+
+export function applyWindowCloseBehavior(closeBehavior: WindowCloseBehavior) {
+  currentWindowCloseBehavior = closeBehavior
+
+  if (closeBehavior === 'quit') {
+    destroyTray()
+  }
 }
 
 function applyWindowZoomFactor(zoomFactor: number) {
@@ -143,6 +246,7 @@ export async function createMainWindow() {
   const initialZoomFactor = initialConfig.ui.zoomFactor
 
   applyNativeThemeSource(initialConfig.ui.theme)
+  applyWindowCloseBehavior(initialConfig.ui.closeBehavior)
 
   win = new BrowserWindow({
     width: 1600,
@@ -179,7 +283,17 @@ export async function createMainWindow() {
   })
 
   win.on('close', async (event) => {
-    if (isForceClosingWindow || !isWindowDirty || !win) {
+    if (isForceClosingWindow || !win) {
+      return
+    }
+
+    if (currentWindowCloseBehavior === 'tray' && !isQuitRequested) {
+      event.preventDefault()
+      hideMainWindowToTray()
+      return
+    }
+
+    if (!isWindowDirty) {
       return
     }
 
@@ -197,6 +311,7 @@ export async function createMainWindow() {
     })
 
     if (response !== 0) {
+      isQuitRequested = false
       return
     }
 
@@ -207,13 +322,19 @@ export async function createMainWindow() {
   win.on('closed', () => {
     isWindowDirty = false
     isForceClosingWindow = false
+    isQuitRequested = false
     win = null
   })
 }
 
 export function registerWindowLifecycleEvents() {
+  app.on('before-quit', () => {
+    isQuitRequested = true
+  })
+
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
+      destroyTray()
       app.quit()
       win = null
     }

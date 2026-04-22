@@ -5,6 +5,7 @@ import type { AiContextDocument, AiSettings, AiSettingsStatus } from '../../../t
 import type {
   AppTheme,
   FrontmatterVisibilityConfig,
+  WindowCloseBehavior,
 } from '../../../types/app'
 import SettingsAboutSection from '../sections/SettingsAboutSection.vue'
 import SettingsAiSection from '../sections/SettingsAiSection.vue'
@@ -33,6 +34,9 @@ const props = defineProps<{
   dayStartHour: number
   isSavingDayStartHour: boolean
   dayStartHourSaveMessage: string
+  windowCloseBehavior: WindowCloseBehavior
+  isSavingWindowCloseBehavior: boolean
+  windowCloseBehaviorSaveMessage: string
   frontmatterVisibility: FrontmatterVisibilityConfig
   isSavingFrontmatterVisibility: boolean
   frontmatterVisibilitySaveMessage: string
@@ -55,6 +59,7 @@ const emit = defineEmits<{
   'update:windowZoomFactor': [value: number]
   'update:journalHeatmapEnabled': [value: boolean]
   'update:dayStartHour': [value: number]
+  'update:windowCloseBehavior': [value: WindowCloseBehavior]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
   saveWorkspaceLibraries: [
     value: {
@@ -121,10 +126,14 @@ function openDebugPanel() {
         :day-start-hour="props.dayStartHour"
         :is-saving-day-start-hour="props.isSavingDayStartHour"
         :day-start-hour-save-message="props.dayStartHourSaveMessage"
+        :window-close-behavior="props.windowCloseBehavior"
+        :is-saving-window-close-behavior="props.isSavingWindowCloseBehavior"
+        :window-close-behavior-save-message="props.windowCloseBehaviorSaveMessage"
         :frontmatter-visibility="props.frontmatterVisibility"
         :is-saving-frontmatter-visibility="props.isSavingFrontmatterVisibility"
         :frontmatter-visibility-save-message="props.frontmatterVisibilitySaveMessage"
         @update:day-start-hour="emit('update:dayStartHour', $event)"
+        @update:window-close-behavior="emit('update:windowCloseBehavior', $event)"
         @update:frontmatter-visibility="emit('update:frontmatterVisibility', $event)"
       />
 

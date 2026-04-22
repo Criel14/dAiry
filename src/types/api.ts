@@ -16,6 +16,7 @@ import type {
   JournalHeatmapPreferenceInput,
   OpenExternalLinkInput,
   ThemePreferenceInput,
+  WindowCloseBehaviorPreferenceInput,
   WindowDirtyStateInput,
   WindowZoomPreferenceInput,
 } from './app'
@@ -44,6 +45,7 @@ import type {
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
 } from './workspace'
+import type { RightPanel } from './ui'
 
 export interface DairyApi {
   getAppBootstrap: () => Promise<AppBootstrap>
@@ -74,8 +76,10 @@ export interface DairyApi {
   setThemePreference: (input: ThemePreferenceInput) => Promise<AppConfig>
   setWindowZoomFactor: (input: WindowZoomPreferenceInput) => Promise<AppConfig>
   onWindowZoomFactorChanged: (listener: (zoomFactor: number) => void) => () => void
+  onNavigateMainPanel: (listener: (panel: RightPanel) => void) => () => void
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
   setDayStartHour: (input: DayStartHourPreferenceInput) => Promise<AppConfig>
+  setWindowCloseBehavior: (input: WindowCloseBehaviorPreferenceInput) => Promise<AppConfig>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
   getAiSettingsStatus: () => Promise<AiSettingsStatus>
   saveAiSettings: (input: SaveAiSettingsInput) => Promise<AiSettingsStatus>

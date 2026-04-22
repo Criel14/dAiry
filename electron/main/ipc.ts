@@ -12,6 +12,7 @@ import type {
   JournalHeatmapPreferenceInput,
   OpenExternalLinkInput,
   ThemePreferenceInput,
+  WindowCloseBehaviorPreferenceInput,
   WindowDirtyStateInput,
   WindowZoomPreferenceInput,
 } from '../../src/types/app'
@@ -40,6 +41,7 @@ import {
   setFrontmatterVisibility,
   setJournalHeatmapEnabled,
   setThemePreference,
+  setWindowCloseBehavior,
   writeAppConfig,
 } from './app-config'
 import { getAiSettingsStatus, saveAiSettings } from './ai-config'
@@ -64,6 +66,7 @@ import {
   getMainWindow,
   openMainWindowDevTools,
   applyNativeThemeSource,
+  applyWindowCloseBehavior,
   setWindowDirtyState,
   updateWindowZoomFactor,
 } from './window'
@@ -127,6 +130,15 @@ export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.setDayStartHour, (_event, input: DayStartHourPreferenceInput) => {
     return setDayStartHour(input)
   })
+
+  ipcMain.handle(
+    IPC_CHANNELS.setWindowCloseBehavior,
+    async (_event, input: WindowCloseBehaviorPreferenceInput) => {
+      const nextConfig = await setWindowCloseBehavior(input)
+      applyWindowCloseBehavior(nextConfig.ui.closeBehavior)
+      return nextConfig
+    },
+  )
 
   ipcMain.handle(
     IPC_CHANNELS.setFrontmatterVisibility,

@@ -54,6 +54,7 @@
 - Markdown 编辑与预览
 - Frontmatter 元信息编辑：`weather`、`location`、`mood`、`summary`、`tags`
 - 手动保存、快捷保存、未保存保护
+- 关闭窗口时可配置为直接退出或最小化到系统托盘
 - “自动整理”生成 `summary + tags`，但默认只回填前端草稿
 - 区间报告生成、历史列表读取、JSON 落盘
 - 报告 section：`stats`、`heatmap`、`moodTrend`、`tagCloud`、`highlights`、`locationPatterns`、`timePatterns`
@@ -124,6 +125,8 @@ tags: []
 - 工作区配置：`<workspace>/.dairy/workspace.json`
 - 应用配置：`<userData>/config.json`
 - 密钥配置：`<userData>/secrets.json`
+
+当前应用配置（`config.json`）中的 UI 配置除主题、缩放等外，还包含关闭窗口行为；默认应优先保持“关闭窗口最小化到托盘”的桌面工具体验。
 
 敏感信息约束：
 

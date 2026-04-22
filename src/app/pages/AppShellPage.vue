@@ -28,6 +28,7 @@ const {
   frontmatter,
   frontmatterVisibility,
   frontmatterVisibilitySaveMessage,
+  handleUpdateWindowCloseBehavior,
   handleChooseWorkspace,
   handleCreateEntry,
   handleGenerateDailyInsights,
@@ -59,6 +60,7 @@ const {
   isSavingJournalHeatmap,
   isSavingMetadata,
   isSavingTheme,
+  isSavingWindowCloseBehavior,
   isSavingWindowZoomFactor,
   isSavingWorkspaceLibraries,
   isSelectedDateToday,
@@ -79,6 +81,8 @@ const {
   themeSaveMessage,
   todayText,
   viewState,
+  windowCloseBehavior,
+  windowCloseBehaviorSaveMessage,
   windowZoomFactor,
   windowZoomFactorSaveMessage,
   workspaceLibrariesSaveMessage,
@@ -194,6 +198,9 @@ const {
         :day-start-hour="dayStartHour"
         :is-saving-day-start-hour="isSavingDayStartHour"
         :day-start-hour-save-message="dayStartHourSaveMessage"
+        :window-close-behavior="windowCloseBehavior"
+        :is-saving-window-close-behavior="isSavingWindowCloseBehavior"
+        :window-close-behavior-save-message="windowCloseBehaviorSaveMessage"
         :frontmatter-visibility="frontmatterVisibility"
         :is-saving-frontmatter-visibility="isSavingFrontmatterVisibility"
         :frontmatter-visibility-save-message="frontmatterVisibilitySaveMessage"
@@ -213,6 +220,7 @@ const {
         @update:window-zoom-factor="handleUpdateWindowZoomFactor"
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"
+        @update:window-close-behavior="handleUpdateWindowCloseBehavior"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
         @save-ai-configuration="handleSaveAiConfiguration"

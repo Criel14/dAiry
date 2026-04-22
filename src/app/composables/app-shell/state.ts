@@ -1,7 +1,11 @@
 import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 import type { AiContextDocument, AiSettingsStatus } from '../../../types/ai'
-import type { AppTheme, FrontmatterVisibilityConfig } from '../../../types/app'
+import type {
+  AppTheme,
+  FrontmatterVisibilityConfig,
+  WindowCloseBehavior,
+} from '../../../types/app'
 import type { JournalEntryMetadata, JournalFrontmatter } from '../../../types/journal'
 import type { EditorMode, RightPanel, ViewState } from '../../../types/ui'
 import type { SettingsSectionId } from '../../../components/settings/config/config'
@@ -137,6 +141,7 @@ export function useAppShellState() {
   const heatmapSaveMessage = ref('')
   const dayStartHourSaveMessage = ref('')
   const frontmatterVisibilitySaveMessage = ref('')
+  const windowCloseBehaviorSaveMessage = ref('')
   const workspaceLibrariesSaveMessage = ref('')
   const aiSaveMessage = ref('')
   const aiContextSaveMessage = ref('')
@@ -149,6 +154,7 @@ export function useAppShellState() {
   const isSavingJournalHeatmap = ref(false)
   const isSavingDayStartHour = ref(false)
   const isSavingFrontmatterVisibility = ref(false)
+  const isSavingWindowCloseBehavior = ref(false)
   const isSavingWorkspaceLibraries = ref(false)
   const isSavingAiConfig = ref(false)
   const isSavingAiContext = ref(false)
@@ -156,6 +162,7 @@ export function useAppShellState() {
   const theme = ref<AppTheme>('system')
   const windowZoomFactor = ref(1)
   const dayStartHour = ref(0)
+  const windowCloseBehavior = ref<WindowCloseBehavior>('tray')
   const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(
     createDefaultFrontmatterVisibility(),
   )
@@ -276,6 +283,7 @@ export function useAppShellState() {
     isSavingJournalHeatmap,
     isSavingMetadata,
     isSavingTheme,
+    isSavingWindowCloseBehavior,
     isSavingWindowZoomFactor,
     isSavingWorkspaceLibraries,
     isSelectedDateToday,
@@ -293,6 +301,8 @@ export function useAppShellState() {
     themeSaveMessage,
     todayText,
     viewState,
+    windowCloseBehavior,
+    windowCloseBehaviorSaveMessage,
     windowZoomFactor,
     windowZoomFactorSaveMessage,
     workspaceLibrariesSaveMessage,

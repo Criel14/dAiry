@@ -1,5 +1,6 @@
 ﻿import { contextBridge, ipcRenderer } from 'electron'
 import type { DairyApi } from '../src/types/api'
+import type { RightPanel } from '../src/types/ui'
 
 // preload 只暴露明确的业务接口，不把整个 ipcRenderer 敞开给渲染进程。
 // 这样后面排查权限边界或审计能力时会轻松很多。
@@ -23,6 +24,24 @@ const dairyApi: DairyApi = {
 
     return () => {
       ipcRenderer.removeListener('app:window-zoom-changed', wrappedListener)
+    }
+  },
+  onNavigateMainPanel: (listener) => {
+    const wrappedListener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { panel?: unknown } | undefined,
+    ) => {
+      const panel = payload?.panel
+
+      if (panel === 'journal' || panel === 'reports' || panel === 'settings') {
+        listener(panel as RightPanel)
+      }
+    }
+
+    ipcRenderer.on('app:navigate-main-panel', wrappedListener)
+
+    return () => {
+      ipcRenderer.removeListener('app:navigate-main-panel', wrappedListener)
     }
   },
   saveAiSettings: (input) => ipcRenderer.invoke('app:save-ai-settings', input),
@@ -53,6 +72,7 @@ const dairyApi: DairyApi = {
   setWorkspaceLocationOptions: (input) => ipcRenderer.invoke('workspace:set-location-options', input),
   setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
   setDayStartHour: (input) => ipcRenderer.invoke('app:set-day-start-hour', input),
+  setWindowCloseBehavior: (input) => ipcRenderer.invoke('app:set-window-close-behavior', input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),
   openExternalLink: (input) => ipcRenderer.invoke('app:open-external-link', input),

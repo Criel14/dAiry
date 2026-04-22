@@ -19,6 +19,7 @@ export function useAppShell() {
   const ai = useAppShellAi(state)
 
   let removeWindowZoomListener: (() => void) | null = null
+  let removeMainPanelNavigationListener: (() => void) | null = null
   let removeSystemThemeListener: (() => void) | null = null
 
   watch(
@@ -49,6 +50,9 @@ export function useAppShell() {
     removeWindowZoomListener = window.dairy.onWindowZoomFactorChanged((nextZoomFactor) => {
       state.windowZoomFactor.value = nextZoomFactor
     })
+    removeMainPanelNavigationListener = window.dairy.onNavigateMainPanel((panel) => {
+      state.rightPanel.value = panel
+    })
     removeSystemThemeListener = observeSystemThemeChange(() => {
       if (state.theme.value === 'system') {
         applyThemePreference(state.theme.value)
@@ -65,6 +69,8 @@ export function useAppShell() {
 
     removeWindowZoomListener?.()
     removeWindowZoomListener = null
+    removeMainPanelNavigationListener?.()
+    removeMainPanelNavigationListener = null
     removeSystemThemeListener?.()
     removeSystemThemeListener = null
     window.removeEventListener('keydown', journal.handleWindowKeydown)
@@ -92,6 +98,7 @@ export function useAppShell() {
     ...preferences,
     ...ai,
     handleUpdateTheme: preferences.handleUpdateTheme,
+    handleUpdateWindowCloseBehavior: preferences.handleUpdateWindowCloseBehavior,
     openJournalPage,
     openReportsPage,
     openSettingsPage,

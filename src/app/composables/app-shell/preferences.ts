@@ -1,4 +1,9 @@
-import type { AppConfig, AppTheme, FrontmatterVisibilityConfig } from '../../../types/app'
+import type {
+  AppConfig,
+  AppTheme,
+  FrontmatterVisibilityConfig,
+  WindowCloseBehavior,
+} from '../../../types/app'
 import { formatWindowZoomPercent } from '../../../shared/window-zoom'
 import { normalizeStringList, type AppShellState } from './state'
 
@@ -127,6 +132,28 @@ export function useAppShellPreferences(
     }
   }
 
+  async function handleUpdateWindowCloseBehavior(nextValue: WindowCloseBehavior) {
+    state.isSavingWindowCloseBehavior.value = true
+    state.windowCloseBehaviorSaveMessage.value = ''
+
+    try {
+      const nextConfig = await window.dairy.setWindowCloseBehavior({
+        behavior: nextValue,
+      })
+
+      deps.syncConfigState(nextConfig)
+      state.windowCloseBehaviorSaveMessage.value =
+        nextValue === 'tray'
+          ? '关闭窗口时将最小化到托盘。'
+          : '关闭窗口时将直接退出应用。'
+    } catch (error) {
+      state.windowCloseBehaviorSaveMessage.value =
+        error instanceof Error ? error.message : '保存关闭窗口行为失败，请稍后重试。'
+    } finally {
+      state.isSavingWindowCloseBehavior.value = false
+    }
+  }
+
   async function handleSaveWorkspaceLibraries(input: {
     tags: string[]
     weatherOptions: string[]
@@ -177,6 +204,7 @@ export function useAppShellPreferences(
     handleUpdateFrontmatterVisibility,
     handleUpdateJournalHeatmapEnabled,
     handleUpdateTheme,
+    handleUpdateWindowCloseBehavior,
     handleUpdateWindowZoomFactor,
   }
 }
