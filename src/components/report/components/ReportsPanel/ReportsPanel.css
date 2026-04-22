@@ -1202,14 +1202,14 @@
   gap: 0.5rem;
   padding: 1.2rem 1.25rem;
   border: 1px solid var(--color-border);
-  border-radius: 16px;
-  background: var(--color-glass-white-90);
+  border-radius: 14px;
+  background: var(--color-glass-white-82);
 }
 
 .report-hero-divider {
   height: 1px;
   margin: 0.08rem 0 0;
-  background: var(--color-border);
+  background: var(--color-border-soft);
 }
 
 .report-hero-stats {
@@ -1246,9 +1246,9 @@
 }
 
 .report-hero-stat:hover {
-  background: var(--color-surface-report-card);
-  border-color: var(--color-border-report-soft);
-  box-shadow: var(--shadow-report-card-soft);
+  background: var(--color-glass-white-88);
+  border-color: var(--color-border-report-hover);
+  box-shadow: var(--shadow-report-hover);
   transform: translateY(-1px);
 }
 
@@ -1525,6 +1525,10 @@
   border-color: var(--color-border-report-section-warm);
 }
 
+.content-card--heatmap {
+  background: var(--color-glass-white-92);
+}
+
 .highlight-list {
   display: grid;
   gap: 0.8rem;
@@ -1590,9 +1594,9 @@
 }
 
 .pattern-summary-card:hover {
-  background: var(--color-surface-report-card);
-  border-color: var(--color-border-report-soft-strong);
-  box-shadow: var(--shadow-report-card-soft-strong);
+  background: var(--color-glass-white-88);
+  border-color: var(--color-border-report-hover);
+  box-shadow: var(--shadow-report-hover);
   transform: translateY(-1px);
 }
 
@@ -1677,9 +1681,9 @@
 }
 
 .pattern-compact-row:hover {
-  background: var(--color-surface-report-card);
-  border-color: var(--color-border-report-soft);
-  box-shadow: var(--shadow-report-card-soft);
+  background: var(--color-glass-white-88);
+  border-color: var(--color-border-report-hover);
+  box-shadow: var(--shadow-report-hover);
   transform: translateY(-1px);
 }
 

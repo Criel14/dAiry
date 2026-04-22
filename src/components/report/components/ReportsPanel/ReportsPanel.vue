@@ -192,7 +192,7 @@ const {
           </ul>
         </section>
 
-        <section v-if="activeHeatmapPoints.length > 0" class="content-card">
+        <section v-if="activeHeatmapPoints.length > 0" class="content-card content-card--heatmap">
           <div class="content-card-header">
             <h4>字数热力图</h4>
             <span>{{ activeHeatmapPoints.length }} 天</span>

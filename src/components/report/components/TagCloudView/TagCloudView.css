@@ -7,7 +7,7 @@
 .word-cloud-stage {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--color-glass-accent-68);
+  border: 1px solid var(--color-border-soft);
   border-radius: 20px;
   background: var(--color-surface-tag-cloud);
   box-shadow: var(--shadow-tag-cloud);
@@ -27,10 +27,6 @@
   transition:
     fill-opacity 180ms ease,
     opacity 180ms ease;
-  paint-order: stroke;
-  stroke: var(--color-glass-tag-cloud-stroke);
-  stroke-width: 2.2px;
-  stroke-linejoin: round;
 }
 
 .word-cloud-text:hover {
