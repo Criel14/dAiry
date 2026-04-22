@@ -9,6 +9,7 @@ import type {
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
+  LaunchOnStartupPreferenceInput,
   NotificationConfig,
   NotificationPreferenceInput,
   ThemePreferenceInput,
@@ -51,6 +52,10 @@ function normalizeTheme(rawValue: unknown): AppTheme {
 
 function normalizeWindowCloseBehavior(rawValue: unknown): WindowCloseBehavior {
   return rawValue === 'quit' ? 'quit' : 'tray'
+}
+
+function normalizeLaunchOnStartup(rawValue: unknown) {
+  return rawValue !== false
 }
 
 function normalizeNotificationReminderTime(rawValue: unknown) {
@@ -149,6 +154,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
   const closeBehavior = normalizeWindowCloseBehavior(config.ui?.closeBehavior)
+  const launchOnStartup = normalizeLaunchOnStartup(config.ui?.launchOnStartup)
   const notification = normalizeNotificationConfig(config.ui?.notification)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
   const ai = normalizeAiSettings(config.ai)
@@ -165,6 +171,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       journalHeatmapEnabled,
       dayStartHour,
       closeBehavior,
+      launchOnStartup,
       notification,
       frontmatterVisibility,
     },
@@ -337,6 +344,22 @@ export async function setWindowCloseBehavior(
     ui: {
       ...currentConfig.ui,
       closeBehavior: normalizeWindowCloseBehavior(input.behavior),
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setLaunchOnStartupPreference(
+  input: LaunchOnStartupPreferenceInput,
+): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      launchOnStartup: normalizeLaunchOnStartup(input.enabled),
     },
   }
 

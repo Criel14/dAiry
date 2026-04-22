@@ -38,6 +38,7 @@ export function useAppShellJournal(state: AppShellState) {
     state.isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
     state.dayStartHour.value = config.ui.dayStartHour
     state.windowCloseBehavior.value = config.ui.closeBehavior
+    state.launchOnStartupEnabled.value = config.ui.launchOnStartup
     state.notification.value = {
       ...config.ui.notification,
     }
@@ -58,6 +59,7 @@ export function useAppShellJournal(state: AppShellState) {
     state.themeSaveMessage.value = ''
     state.notificationSaveMessage.value = ''
     state.windowCloseBehaviorSaveMessage.value = ''
+    state.launchOnStartupSaveMessage.value = ''
     state.lastSavedAt.value = null
   }
 

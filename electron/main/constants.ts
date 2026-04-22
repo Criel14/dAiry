@@ -35,6 +35,7 @@ export const IPC_CHANNELS = {
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
   setDayStartHour: 'app:set-day-start-hour',
   setWindowCloseBehavior: 'app:set-window-close-behavior',
+  setLaunchOnStartupPreference: 'app:set-launch-on-startup-preference',
   setNotificationPreference: 'app:set-notification-preference',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
@@ -86,6 +87,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     journalHeatmapEnabled: false,
     dayStartHour: 0,
     closeBehavior: 'tray',
+    launchOnStartup: true,
     notification: DEFAULT_NOTIFICATION_CONFIG,
     frontmatterVisibility: {
       weather: true,

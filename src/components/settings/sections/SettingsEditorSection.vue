@@ -11,6 +11,9 @@ const props = defineProps<{
   windowCloseBehavior: WindowCloseBehavior
   isSavingWindowCloseBehavior: boolean
   windowCloseBehaviorSaveMessage: string
+  launchOnStartupEnabled: boolean
+  isSavingLaunchOnStartup: boolean
+  launchOnStartupSaveMessage: string
   frontmatterVisibility: FrontmatterVisibilityConfig
   isSavingFrontmatterVisibility: boolean
   frontmatterVisibilitySaveMessage: string
@@ -19,6 +22,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:dayStartHour': [value: number]
   'update:windowCloseBehavior': [value: WindowCloseBehavior]
+  'update:launchOnStartupEnabled': [value: boolean]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
 }>()
 
@@ -87,9 +91,9 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
 
     <section class="settings-card">
       <div class="panel-heading">
-        <span class="panel-label">应用关闭行为</span>
+        <span class="panel-label">应用行为</span>
       </div>
-      <p class="panel-description">决定点击右上角关闭按钮时，应用是直接退出还是隐藏到系统托盘。</p>
+      <p class="panel-description">控制 dAiry 的启动方式，以及点击关闭按钮时的行为。</p>
 
       <div class="setting-row setting-row--compact">
         <div class="setting-copy">
@@ -115,6 +119,20 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
 
       <p v-if="windowCloseBehaviorSaveMessage" class="setting-feedback">
         {{ windowCloseBehaviorSaveMessage }}
+      </p>
+
+      <SettingsToggleRow
+        title="开机自启"
+        description="开启后，系统启动时会自动启动 dAiry。"
+        tip-text="适合配合托盘驻留和提醒通知一起使用。"
+        :active="launchOnStartupEnabled"
+        :disabled="isSavingLaunchOnStartup"
+        :button-label="launchOnStartupEnabled ? '关闭开机自启' : '开启开机自启'"
+        @toggle="emit('update:launchOnStartupEnabled', !launchOnStartupEnabled)"
+      />
+
+      <p v-if="launchOnStartupSaveMessage" class="setting-feedback">
+        {{ launchOnStartupSaveMessage }}
       </p>
     </section>
 

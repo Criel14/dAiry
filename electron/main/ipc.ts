@@ -10,6 +10,7 @@ import type {
   DayStartHourPreferenceInput,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
+  LaunchOnStartupPreferenceInput,
   NotificationPreferenceInput,
   OpenExternalLinkInput,
   ThemePreferenceInput,
@@ -41,6 +42,7 @@ import {
   setDayStartHour,
   setFrontmatterVisibility,
   setJournalHeatmapEnabled,
+  setLaunchOnStartupPreference,
   setNotificationPreference,
   setThemePreference,
   setWindowCloseBehavior,
@@ -64,6 +66,7 @@ import {
   getReportExportPayload,
   notifyReportExportReady,
 } from './report-export-service'
+import { applyLaunchOnStartup } from './launch-on-startup'
 import { configureDiaryReminder } from './notification'
 import {
   getMainWindow,
@@ -140,6 +143,14 @@ export function registerIpcHandlers() {
       const nextConfig = await setWindowCloseBehavior(input)
       applyWindowCloseBehavior(nextConfig.ui.closeBehavior)
       return nextConfig
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.setLaunchOnStartupPreference,
+    async (_event, input: LaunchOnStartupPreferenceInput) => {
+      applyLaunchOnStartup(input.enabled)
+      return setLaunchOnStartupPreference(input)
     },
   )
 

@@ -73,6 +73,8 @@ const dairyApi: DairyApi = {
   setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
   setDayStartHour: (input) => ipcRenderer.invoke('app:set-day-start-hour', input),
   setWindowCloseBehavior: (input) => ipcRenderer.invoke('app:set-window-close-behavior', input),
+  setLaunchOnStartupPreference: (input) =>
+    ipcRenderer.invoke('app:set-launch-on-startup-preference', input),
   setNotificationPreference: (input) => ipcRenderer.invoke('app:set-notification-preference', input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),

@@ -194,6 +194,26 @@ export function useAppShellPreferences(
     }
   }
 
+  async function handleUpdateLaunchOnStartupEnabled(nextValue: boolean) {
+    state.isSavingLaunchOnStartup.value = true
+    state.launchOnStartupSaveMessage.value = ''
+
+    try {
+      const nextConfig = await window.dairy.setLaunchOnStartupPreference({
+        enabled: nextValue,
+      })
+
+      deps.syncConfigState(nextConfig)
+      state.launchOnStartupSaveMessage.value =
+        nextValue ? '开机自启已开启。' : '开机自启已关闭。'
+    } catch (error) {
+      state.launchOnStartupSaveMessage.value =
+        error instanceof Error ? error.message : '保存开机自启设置失败，请稍后重试。'
+    } finally {
+      state.isSavingLaunchOnStartup.value = false
+    }
+  }
+
   async function handleSaveWorkspaceLibraries(input: {
     tags: string[]
     weatherOptions: string[]
@@ -243,6 +263,7 @@ export function useAppShellPreferences(
     handleUpdateDayStartHour,
     handleUpdateFrontmatterVisibility,
     handleUpdateJournalHeatmapEnabled,
+    handleUpdateLaunchOnStartupEnabled,
     handleUpdateNotificationEnabled,
     handleUpdateNotificationReminderTime,
     handleUpdateTheme,

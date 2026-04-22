@@ -97,6 +97,7 @@ export function useAppShell() {
     ...journal,
     ...preferences,
     ...ai,
+    handleUpdateLaunchOnStartupEnabled: preferences.handleUpdateLaunchOnStartupEnabled,
     handleUpdateNotificationEnabled: preferences.handleUpdateNotificationEnabled,
     handleUpdateNotificationReminderTime: preferences.handleUpdateNotificationReminderTime,
     handleUpdateTheme: preferences.handleUpdateTheme,

@@ -39,6 +39,7 @@ const {
   handleSaveMetadata,
   handleSaveWorkspaceLibraries,
   handleSelectDate,
+  handleUpdateLaunchOnStartupEnabled,
   handleUpdateNotificationEnabled,
   handleUpdateNotificationReminderTime,
   handleUpdateTheme,
@@ -60,6 +61,7 @@ const {
   isSavingEntry,
   isSavingFrontmatterVisibility,
   isSavingJournalHeatmap,
+  isSavingLaunchOnStartup,
   isSavingMetadata,
   isSavingNotification,
   isSavingTheme,
@@ -68,6 +70,8 @@ const {
   isSavingWorkspaceLibraries,
   isSelectedDateToday,
   loadEntryForDate,
+  launchOnStartupEnabled,
+  launchOnStartupSaveMessage,
   metadataDraft,
   metadataStatusMessage,
   notification,
@@ -206,6 +210,9 @@ const {
         :window-close-behavior="windowCloseBehavior"
         :is-saving-window-close-behavior="isSavingWindowCloseBehavior"
         :window-close-behavior-save-message="windowCloseBehaviorSaveMessage"
+        :launch-on-startup-enabled="launchOnStartupEnabled"
+        :is-saving-launch-on-startup="isSavingLaunchOnStartup"
+        :launch-on-startup-save-message="launchOnStartupSaveMessage"
         :notification-enabled="notification.enabled"
         :notification-reminder-time="notification.reminderTime"
         :is-saving-notification="isSavingNotification"
@@ -230,6 +237,7 @@ const {
         @update:journal-heatmap-enabled="handleUpdateJournalHeatmapEnabled"
         @update:day-start-hour="handleUpdateDayStartHour"
         @update:window-close-behavior="handleUpdateWindowCloseBehavior"
+        @update:launch-on-startup-enabled="handleUpdateLaunchOnStartupEnabled"
         @update:notification-enabled="handleUpdateNotificationEnabled"
         @update:notification-reminder-time="handleUpdateNotificationReminderTime"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"

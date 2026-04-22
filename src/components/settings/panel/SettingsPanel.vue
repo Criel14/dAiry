@@ -39,6 +39,9 @@ const props = defineProps<{
   windowCloseBehavior: WindowCloseBehavior
   isSavingWindowCloseBehavior: boolean
   windowCloseBehaviorSaveMessage: string
+  launchOnStartupEnabled: boolean
+  isSavingLaunchOnStartup: boolean
+  launchOnStartupSaveMessage: string
   notificationEnabled: NotificationConfig['enabled']
   notificationReminderTime: NotificationConfig['reminderTime']
   isSavingNotification: boolean
@@ -66,6 +69,7 @@ const emit = defineEmits<{
   'update:journalHeatmapEnabled': [value: boolean]
   'update:dayStartHour': [value: number]
   'update:windowCloseBehavior': [value: WindowCloseBehavior]
+  'update:launchOnStartupEnabled': [value: boolean]
   'update:notificationEnabled': [value: boolean]
   'update:notificationReminderTime': [value: string]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
@@ -137,11 +141,15 @@ function openDebugPanel() {
         :window-close-behavior="props.windowCloseBehavior"
         :is-saving-window-close-behavior="props.isSavingWindowCloseBehavior"
         :window-close-behavior-save-message="props.windowCloseBehaviorSaveMessage"
+        :launch-on-startup-enabled="props.launchOnStartupEnabled"
+        :is-saving-launch-on-startup="props.isSavingLaunchOnStartup"
+        :launch-on-startup-save-message="props.launchOnStartupSaveMessage"
         :frontmatter-visibility="props.frontmatterVisibility"
         :is-saving-frontmatter-visibility="props.isSavingFrontmatterVisibility"
         :frontmatter-visibility-save-message="props.frontmatterVisibilitySaveMessage"
         @update:day-start-hour="emit('update:dayStartHour', $event)"
         @update:window-close-behavior="emit('update:windowCloseBehavior', $event)"
+        @update:launch-on-startup-enabled="emit('update:launchOnStartupEnabled', $event)"
         @update:frontmatter-visibility="emit('update:frontmatterVisibility', $event)"
       />
 

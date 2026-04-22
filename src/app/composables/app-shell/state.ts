@@ -47,6 +47,10 @@ export function createDefaultNotificationConfig(): NotificationConfig {
   }
 }
 
+export function createDefaultLaunchOnStartupPreference() {
+  return true
+}
+
 export function normalizeStringList(values: string[]) {
   const uniqueValues = new Set<string>()
 
@@ -151,6 +155,7 @@ export function useAppShellState() {
   const notificationSaveMessage = ref('')
   const frontmatterVisibilitySaveMessage = ref('')
   const windowCloseBehaviorSaveMessage = ref('')
+  const launchOnStartupSaveMessage = ref('')
   const workspaceLibrariesSaveMessage = ref('')
   const aiSaveMessage = ref('')
   const aiContextSaveMessage = ref('')
@@ -165,6 +170,7 @@ export function useAppShellState() {
   const isSavingNotification = ref(false)
   const isSavingFrontmatterVisibility = ref(false)
   const isSavingWindowCloseBehavior = ref(false)
+  const isSavingLaunchOnStartup = ref(false)
   const isSavingWorkspaceLibraries = ref(false)
   const isSavingAiConfig = ref(false)
   const isSavingAiContext = ref(false)
@@ -173,6 +179,7 @@ export function useAppShellState() {
   const windowZoomFactor = ref(1)
   const dayStartHour = ref(0)
   const windowCloseBehavior = ref<WindowCloseBehavior>('tray')
+  const launchOnStartupEnabled = ref(createDefaultLaunchOnStartupPreference())
   const notification = ref<NotificationConfig>(createDefaultNotificationConfig())
   const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(
     createDefaultFrontmatterVisibility(),
@@ -292,6 +299,7 @@ export function useAppShellState() {
     isSavingEntry,
     isSavingFrontmatterVisibility,
     isSavingJournalHeatmap,
+    isSavingLaunchOnStartup,
     isSavingMetadata,
     isSavingNotification,
     isSavingTheme,
@@ -300,6 +308,8 @@ export function useAppShellState() {
     isSavingWorkspaceLibraries,
     isSelectedDateToday,
     lastSavedAt,
+    launchOnStartupEnabled,
+    launchOnStartupSaveMessage,
     metadataDraft,
     metadataStatusMessage,
     notification,

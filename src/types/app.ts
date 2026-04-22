@@ -28,6 +28,7 @@ export interface AppConfig {
     journalHeatmapEnabled: boolean
     dayStartHour: number
     closeBehavior: WindowCloseBehavior
+    launchOnStartup: boolean
     notification: NotificationConfig
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
@@ -60,6 +61,10 @@ export interface DayStartHourPreferenceInput {
 
 export interface WindowCloseBehaviorPreferenceInput {
   behavior: WindowCloseBehavior
+}
+
+export interface LaunchOnStartupPreferenceInput {
+  enabled: boolean
 }
 
 export interface NotificationPreferenceInput {
