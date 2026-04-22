@@ -139,12 +139,18 @@ function ensureTray() {
 
 function hideMainWindowToTray() {
   if (!win || win.isDestroyed()) {
-    return
+    return false
   }
 
-  ensureTray()
-  win.setSkipTaskbar(true)
-  win.hide()
+  try {
+    ensureTray()
+    win.setSkipTaskbar(true)
+    win.hide()
+    return true
+  } catch (error) {
+    console.error('Failed to hide main window to tray.', error)
+    return false
+  }
 }
 
 export function applyWindowCloseBehavior(closeBehavior: WindowCloseBehavior) {
@@ -297,7 +303,12 @@ export async function createMainWindow() {
 
     if (currentWindowCloseBehavior === 'tray' && !isQuitRequested) {
       event.preventDefault()
-      hideMainWindowToTray()
+
+      if (hideMainWindowToTray()) {
+        return
+      }
+
+      requestAppQuit()
       return
     }
 

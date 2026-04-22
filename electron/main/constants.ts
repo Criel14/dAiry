@@ -10,9 +10,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 process.env.APP_ROOT = path.join(__dirname, '..')
 
 export const APP_ICON_NAME = process.platform === 'win32' ? 'app.ico' : 'app.png'
-export const APP_ICON_PATH = path.join(process.env.APP_ROOT, 'build', 'icons', APP_ICON_NAME)
-
 export const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+const APP_ICON_BASE_PATH = VITE_DEV_SERVER_URL
+  ? path.join(process.env.APP_ROOT, 'build', 'icons')
+  : path.join(process.resourcesPath, 'build', 'icons')
+export const APP_ICON_PATH = path.join(APP_ICON_BASE_PATH, APP_ICON_NAME)
 export const MAIN_DIST = path.join(process.env.APP_ROOT, 'dist-electron')
 export const RENDERER_DIST = path.join(process.env.APP_ROOT, 'dist')
 

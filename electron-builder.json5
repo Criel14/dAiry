@@ -12,6 +12,12 @@
     "dist",
     "dist-electron"
   ],
+  "extraResources": [
+    {
+      "from": "build/icons",
+      "to": "build/icons"
+    }
+  ],
   "mac": {
     "target": [
       "dmg"
