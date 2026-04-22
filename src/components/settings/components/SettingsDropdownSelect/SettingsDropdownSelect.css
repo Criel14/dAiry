@@ -1,0 +1,139 @@
+.settings-dropdown {
+  position: relative;
+  min-width: 0;
+}
+
+.settings-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-interactive);
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+  outline: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.settings-dropdown-trigger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+}
+
+.settings-dropdown-trigger:focus-visible {
+  outline: 2px solid var(--color-glass-accent-90);
+  outline-offset: 3px;
+}
+
+.settings-dropdown-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.settings-dropdown-trigger-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-dropdown-trigger-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+
+.settings-dropdown-menu {
+  position: fixed;
+  z-index: 60;
+  display: grid;
+  max-height: min(18rem, calc(100vh - 24px));
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-popover);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-color) transparent;
+}
+
+.settings-dropdown-menu::-webkit-scrollbar {
+  width: 10px;
+}
+
+.settings-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-dropdown-menu::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--gradient-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+.settings-dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+.settings-dropdown-menu::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.settings-dropdown-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.15rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.settings-dropdown-option:hover {
+  background: var(--color-accent-soft);
+  color: var(--color-text-accent);
+}
+
+.settings-dropdown-option--selected {
+  background: var(--color-accent-soft);
+  color: var(--color-text-accent);
+}
+
+.settings-dropdown-option-check {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
+.settings-dropdown-fade-enter-active,
+.settings-dropdown-fade-leave-active {
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.settings-dropdown-fade-enter-from,
+.settings-dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}

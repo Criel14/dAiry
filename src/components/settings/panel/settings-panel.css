@@ -416,26 +416,26 @@
   outline: none;
 }
 
-.setting-time-input {
-  min-width: 8.5rem;
-  min-height: 2.5rem;
-  padding: 0 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface-interactive);
-  color: var(--color-text-main);
-  font-size: 0.92rem;
-  outline: none;
-}
-
 .setting-select:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.setting-time-input:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
+.setting-time-picker-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.setting-time-dropdown {
+  min-width: 6.4rem;
+}
+
+.setting-time-picker-separator {
+  color: var(--color-text-subtle);
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .switch-button {
@@ -582,6 +582,15 @@
 
   .setting-select {
     width: 100%;
+  }
+
+  .setting-time-picker-row {
+    width: 100%;
+  }
+
+  .setting-time-dropdown {
+    min-width: 0;
+    flex: 1 1 0;
   }
 
   .shortcut-keys {
