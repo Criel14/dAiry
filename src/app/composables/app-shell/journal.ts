@@ -38,6 +38,9 @@ export function useAppShellJournal(state: AppShellState) {
     state.isJournalHeatmapEnabled.value = config.ui.journalHeatmapEnabled
     state.dayStartHour.value = config.ui.dayStartHour
     state.windowCloseBehavior.value = config.ui.closeBehavior
+    state.notification.value = {
+      ...config.ui.notification,
+    }
     state.frontmatterVisibility.value = {
       ...config.ui.frontmatterVisibility,
     }
@@ -53,6 +56,7 @@ export function useAppShellJournal(state: AppShellState) {
     state.metadataStatusMessage.value = ''
     state.dailyInsightsStatusMessage.value = ''
     state.themeSaveMessage.value = ''
+    state.notificationSaveMessage.value = ''
     state.windowCloseBehaviorSaveMessage.value = ''
     state.lastSavedAt.value = null
   }

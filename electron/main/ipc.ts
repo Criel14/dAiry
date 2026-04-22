@@ -10,6 +10,7 @@ import type {
   DayStartHourPreferenceInput,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
+  NotificationPreferenceInput,
   OpenExternalLinkInput,
   ThemePreferenceInput,
   WindowCloseBehaviorPreferenceInput,
@@ -40,6 +41,7 @@ import {
   setDayStartHour,
   setFrontmatterVisibility,
   setJournalHeatmapEnabled,
+  setNotificationPreference,
   setThemePreference,
   setWindowCloseBehavior,
   writeAppConfig,
@@ -62,6 +64,7 @@ import {
   getReportExportPayload,
   notifyReportExportReady,
 } from './report-export-service'
+import { configureDiaryReminder } from './notification'
 import {
   getMainWindow,
   openMainWindowDevTools,
@@ -136,6 +139,15 @@ export function registerIpcHandlers() {
     async (_event, input: WindowCloseBehaviorPreferenceInput) => {
       const nextConfig = await setWindowCloseBehavior(input)
       applyWindowCloseBehavior(nextConfig.ui.closeBehavior)
+      return nextConfig
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.setNotificationPreference,
+    async (_event, input: NotificationPreferenceInput) => {
+      const nextConfig = await setNotificationPreference(input)
+      configureDiaryReminder(nextConfig.ui.notification)
       return nextConfig
     },
   )

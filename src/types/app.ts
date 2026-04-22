@@ -11,6 +11,11 @@ export interface FrontmatterVisibilityConfig {
   tags: boolean
 }
 
+export interface NotificationConfig {
+  enabled: boolean
+  reminderTime: string
+}
+
 export interface AppConfig {
   lastOpenedWorkspace: string | null
   recentWorkspaces: string[]
@@ -23,6 +28,7 @@ export interface AppConfig {
     journalHeatmapEnabled: boolean
     dayStartHour: number
     closeBehavior: WindowCloseBehavior
+    notification: NotificationConfig
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
   ai: AiSettings
@@ -54,6 +60,11 @@ export interface DayStartHourPreferenceInput {
 
 export interface WindowCloseBehaviorPreferenceInput {
   behavior: WindowCloseBehavior
+}
+
+export interface NotificationPreferenceInput {
+  enabled: boolean
+  reminderTime: string
 }
 
 export interface WindowDirtyStateInput {

@@ -97,7 +97,7 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
             <strong class="panel-value">关闭窗口时</strong>
             <SettingsInfoTip text="选择最小化到托盘后，可通过托盘右键菜单重新打开主窗口或退出应用。" />
           </div>
-          <p class="panel-description">最小化到托盘时，通知功能才能生效</p>
+          <p class="panel-description">最小化到托盘后应用会继续在后台运行；如果直接关闭应用，通知也会随之停止</p>
         </div>
 
         <select

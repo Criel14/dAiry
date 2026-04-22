@@ -68,13 +68,21 @@ function showMainWindow() {
   win.focus()
 }
 
-function navigateMainPanel(panel: RightPanel) {
+export function navigateMainPanel(panel: RightPanel) {
   if (!win || win.isDestroyed()) {
     return
   }
 
   showMainWindow()
   win.webContents.send(IPC_CHANNELS.navigateMainPanel, { panel })
+}
+
+export function canSendDiaryReminder() {
+  if (!win || win.isDestroyed()) {
+    return false
+  }
+
+  return true
 }
 
 function requestAppQuit() {

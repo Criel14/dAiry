@@ -2,6 +2,7 @@ import type {
   AppConfig,
   AppTheme,
   FrontmatterVisibilityConfig,
+  NotificationConfig,
   WindowCloseBehavior,
 } from '../../../types/app'
 import { formatWindowZoomPercent } from '../../../shared/window-zoom'
@@ -132,6 +133,45 @@ export function useAppShellPreferences(
     }
   }
 
+  async function saveNotificationPreference(
+    nextNotification: NotificationConfig,
+    successMessage: string,
+  ) {
+    state.isSavingNotification.value = true
+    state.notificationSaveMessage.value = ''
+
+    try {
+      const nextConfig = await window.dairy.setNotificationPreference(nextNotification)
+      deps.syncConfigState(nextConfig)
+      state.notificationSaveMessage.value = successMessage
+    } catch (error) {
+      state.notificationSaveMessage.value =
+        error instanceof Error ? error.message : '保存通知设置失败，请稍后重试。'
+    } finally {
+      state.isSavingNotification.value = false
+    }
+  }
+
+  async function handleUpdateNotificationEnabled(nextValue: boolean) {
+    await saveNotificationPreference(
+      {
+        ...state.notification.value,
+        enabled: nextValue,
+      },
+      nextValue ? '写日记提醒已开启。' : '写日记提醒已关闭。',
+    )
+  }
+
+  async function handleUpdateNotificationReminderTime(nextValue: string) {
+    await saveNotificationPreference(
+      {
+        ...state.notification.value,
+        reminderTime: nextValue,
+      },
+      '写日记提醒时间已保存。',
+    )
+  }
+
   async function handleUpdateWindowCloseBehavior(nextValue: WindowCloseBehavior) {
     state.isSavingWindowCloseBehavior.value = true
     state.windowCloseBehaviorSaveMessage.value = ''
@@ -203,6 +243,8 @@ export function useAppShellPreferences(
     handleUpdateDayStartHour,
     handleUpdateFrontmatterVisibility,
     handleUpdateJournalHeatmapEnabled,
+    handleUpdateNotificationEnabled,
+    handleUpdateNotificationReminderTime,
     handleUpdateTheme,
     handleUpdateWindowCloseBehavior,
     handleUpdateWindowZoomFactor,

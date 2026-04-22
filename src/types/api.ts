@@ -14,6 +14,7 @@ import type {
   DayStartHourPreferenceInput,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
+  NotificationPreferenceInput,
   OpenExternalLinkInput,
   ThemePreferenceInput,
   WindowCloseBehaviorPreferenceInput,
@@ -80,6 +81,7 @@ export interface DairyApi {
   setJournalHeatmapEnabled: (input: JournalHeatmapPreferenceInput) => Promise<AppConfig>
   setDayStartHour: (input: DayStartHourPreferenceInput) => Promise<AppConfig>
   setWindowCloseBehavior: (input: WindowCloseBehaviorPreferenceInput) => Promise<AppConfig>
+  setNotificationPreference: (input: NotificationPreferenceInput) => Promise<AppConfig>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
   getAiSettingsStatus: () => Promise<AiSettingsStatus>
   saveAiSettings: (input: SaveAiSettingsInput) => Promise<AiSettingsStatus>

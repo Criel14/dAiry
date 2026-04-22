@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AiSettings } from '../../src/types/ai'
-import type { AppConfig } from '../../src/types/app'
+import type { AppConfig, NotificationConfig } from '../../src/types/app'
 import type { JournalEntryMetadata } from '../../src/types/journal'
 import { DEFAULT_WINDOW_ZOOM_FACTOR } from '../../src/shared/window-zoom'
 
@@ -35,6 +35,7 @@ export const IPC_CHANNELS = {
   setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
   setDayStartHour: 'app:set-day-start-hour',
   setWindowCloseBehavior: 'app:set-window-close-behavior',
+  setNotificationPreference: 'app:set-notification-preference',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
   openExternalLink: 'app:open-external-link',
@@ -68,6 +69,11 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   timeoutMs: 30_000,
 }
 
+export const DEFAULT_NOTIFICATION_CONFIG: NotificationConfig = {
+  enabled: false,
+  reminderTime: '21:30',
+}
+
 export const DEFAULT_APP_CONFIG: AppConfig = {
   lastOpenedWorkspace: null,
   recentWorkspaces: [],
@@ -80,6 +86,7 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     journalHeatmapEnabled: false,
     dayStartHour: 0,
     closeBehavior: 'tray',
+    notification: DEFAULT_NOTIFICATION_CONFIG,
     frontmatterVisibility: {
       weather: true,
       location: true,

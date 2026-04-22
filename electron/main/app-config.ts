@@ -9,12 +9,18 @@ import type {
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
+  NotificationConfig,
+  NotificationPreferenceInput,
   ThemePreferenceInput,
   WindowCloseBehavior,
   WindowCloseBehaviorPreferenceInput,
   WindowZoomPreferenceInput,
 } from '../../src/types/app'
-import { DEFAULT_AI_SETTINGS, DEFAULT_APP_CONFIG } from './constants'
+import {
+  DEFAULT_AI_SETTINGS,
+  DEFAULT_APP_CONFIG,
+  DEFAULT_NOTIFICATION_CONFIG,
+} from './constants'
 import { normalizeWindowZoomFactor } from '../../src/shared/window-zoom'
 
 function getConfigFilePath() {
@@ -45,6 +51,17 @@ function normalizeTheme(rawValue: unknown): AppTheme {
 
 function normalizeWindowCloseBehavior(rawValue: unknown): WindowCloseBehavior {
   return rawValue === 'quit' ? 'quit' : 'tray'
+}
+
+function normalizeNotificationReminderTime(rawValue: unknown) {
+  if (typeof rawValue !== 'string') {
+    return DEFAULT_NOTIFICATION_CONFIG.reminderTime
+  }
+
+  const normalizedValue = rawValue.trim()
+  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(normalizedValue)
+    ? normalizedValue
+    : DEFAULT_NOTIFICATION_CONFIG.reminderTime
 }
 
 function normalizeTimeoutMs(rawValue: unknown) {
@@ -103,6 +120,15 @@ function normalizeFrontmatterVisibility(
   }
 }
 
+function normalizeNotificationConfig(
+  rawValue: Partial<NotificationConfig> | null | undefined,
+): NotificationConfig {
+  return {
+    enabled: rawValue?.enabled === true,
+    reminderTime: normalizeNotificationReminderTime(rawValue?.reminderTime),
+  }
+}
+
 function normalizeReportExportConfig(rawValue: AppConfig['reportExport'] | null | undefined) {
   return {
     lastDirectory: typeof rawValue?.lastDirectory === 'string' ? rawValue.lastDirectory : null,
@@ -123,6 +149,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const journalHeatmapEnabled = config.ui?.journalHeatmapEnabled === true
   const dayStartHour = normalizeDayStartHour(config.ui?.dayStartHour)
   const closeBehavior = normalizeWindowCloseBehavior(config.ui?.closeBehavior)
+  const notification = normalizeNotificationConfig(config.ui?.notification)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
   const ai = normalizeAiSettings(config.ai)
   const reportExport = normalizeReportExportConfig(config.reportExport)
@@ -138,6 +165,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       journalHeatmapEnabled,
       dayStartHour,
       closeBehavior,
+      notification,
       frontmatterVisibility,
     },
     ai,
@@ -309,6 +337,22 @@ export async function setWindowCloseBehavior(
     ui: {
       ...currentConfig.ui,
       closeBehavior: normalizeWindowCloseBehavior(input.behavior),
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setNotificationPreference(
+  input: NotificationPreferenceInput,
+): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      notification: normalizeNotificationConfig(input),
     },
   }
 

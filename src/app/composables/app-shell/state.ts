@@ -4,6 +4,7 @@ import type { AiContextDocument, AiSettingsStatus } from '../../../types/ai'
 import type {
   AppTheme,
   FrontmatterVisibilityConfig,
+  NotificationConfig,
   WindowCloseBehavior,
 } from '../../../types/app'
 import type { JournalEntryMetadata, JournalFrontmatter } from '../../../types/journal'
@@ -36,6 +37,13 @@ export function createDefaultAiSettingsStatus(): AiSettingsStatus {
 export function createDefaultAiContextDocument(): AiContextDocument {
   return {
     content: '',
+  }
+}
+
+export function createDefaultNotificationConfig(): NotificationConfig {
+  return {
+    enabled: false,
+    reminderTime: '21:30',
   }
 }
 
@@ -140,6 +148,7 @@ export function useAppShellState() {
   const windowZoomFactorSaveMessage = ref('')
   const heatmapSaveMessage = ref('')
   const dayStartHourSaveMessage = ref('')
+  const notificationSaveMessage = ref('')
   const frontmatterVisibilitySaveMessage = ref('')
   const windowCloseBehaviorSaveMessage = ref('')
   const workspaceLibrariesSaveMessage = ref('')
@@ -153,6 +162,7 @@ export function useAppShellState() {
   const isSavingWindowZoomFactor = ref(false)
   const isSavingJournalHeatmap = ref(false)
   const isSavingDayStartHour = ref(false)
+  const isSavingNotification = ref(false)
   const isSavingFrontmatterVisibility = ref(false)
   const isSavingWindowCloseBehavior = ref(false)
   const isSavingWorkspaceLibraries = ref(false)
@@ -163,6 +173,7 @@ export function useAppShellState() {
   const windowZoomFactor = ref(1)
   const dayStartHour = ref(0)
   const windowCloseBehavior = ref<WindowCloseBehavior>('tray')
+  const notification = ref<NotificationConfig>(createDefaultNotificationConfig())
   const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(
     createDefaultFrontmatterVisibility(),
   )
@@ -282,6 +293,7 @@ export function useAppShellState() {
     isSavingFrontmatterVisibility,
     isSavingJournalHeatmap,
     isSavingMetadata,
+    isSavingNotification,
     isSavingTheme,
     isSavingWindowCloseBehavior,
     isSavingWindowZoomFactor,
@@ -290,6 +302,8 @@ export function useAppShellState() {
     lastSavedAt,
     metadataDraft,
     metadataStatusMessage,
+    notification,
+    notificationSaveMessage,
     rightPanel,
     saveMetaText,
     savedContent,

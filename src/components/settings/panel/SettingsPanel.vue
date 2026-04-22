@@ -5,6 +5,7 @@ import type { AiContextDocument, AiSettings, AiSettingsStatus } from '../../../t
 import type {
   AppTheme,
   FrontmatterVisibilityConfig,
+  NotificationConfig,
   WindowCloseBehavior,
 } from '../../../types/app'
 import SettingsAboutSection from '../sections/SettingsAboutSection.vue'
@@ -12,6 +13,7 @@ import SettingsAiSection from '../sections/SettingsAiSection.vue'
 import SettingsAppearanceSection from '../sections/SettingsAppearanceSection.vue'
 import SettingsEditorSection from '../sections/SettingsEditorSection.vue'
 import SettingsLibrariesSection from '../sections/SettingsLibrariesSection.vue'
+import SettingsNotificationSection from '../sections/SettingsNotificationSection.vue'
 import SettingsShortcutsSection from '../sections/SettingsShortcutsSection.vue'
 import {
   SETTINGS_SECTIONS,
@@ -37,6 +39,10 @@ const props = defineProps<{
   windowCloseBehavior: WindowCloseBehavior
   isSavingWindowCloseBehavior: boolean
   windowCloseBehaviorSaveMessage: string
+  notificationEnabled: NotificationConfig['enabled']
+  notificationReminderTime: NotificationConfig['reminderTime']
+  isSavingNotification: boolean
+  notificationSaveMessage: string
   frontmatterVisibility: FrontmatterVisibilityConfig
   isSavingFrontmatterVisibility: boolean
   frontmatterVisibilitySaveMessage: string
@@ -60,6 +66,8 @@ const emit = defineEmits<{
   'update:journalHeatmapEnabled': [value: boolean]
   'update:dayStartHour': [value: number]
   'update:windowCloseBehavior': [value: WindowCloseBehavior]
+  'update:notificationEnabled': [value: boolean]
+  'update:notificationReminderTime': [value: string]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
   saveWorkspaceLibraries: [
     value: {
@@ -135,6 +143,17 @@ function openDebugPanel() {
         @update:day-start-hour="emit('update:dayStartHour', $event)"
         @update:window-close-behavior="emit('update:windowCloseBehavior', $event)"
         @update:frontmatter-visibility="emit('update:frontmatterVisibility', $event)"
+      />
+
+      <SettingsNotificationSection
+        v-else-if="activeSectionId === 'notifications'"
+        :notification-enabled="props.notificationEnabled"
+        :notification-reminder-time="props.notificationReminderTime"
+        :is-saving-notification="props.isSavingNotification"
+        :notification-save-message="props.notificationSaveMessage"
+        :window-close-behavior="props.windowCloseBehavior"
+        @update:notification-enabled="emit('update:notificationEnabled', $event)"
+        @update:notification-reminder-time="emit('update:notificationReminderTime', $event)"
       />
 
       <SettingsShortcutsSection

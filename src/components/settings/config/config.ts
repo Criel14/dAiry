@@ -8,6 +8,7 @@ import {
 export type SettingsSectionId =
   | 'appearance'
   | 'display'
+  | 'notifications'
   | 'shortcuts'
   | 'llm'
   | 'libraries'
@@ -70,6 +71,11 @@ export const SETTINGS_SECTIONS: SettingsSectionItem[] = [
     id: 'display',
     label: '编辑器',
     description: '调整写作时间规则、关闭窗口行为和日记信息字段，减少不必要的录入压力。',
+  },
+  {
+    id: 'notifications',
+    label: '通知',
+    description: '设置每日写日记提醒时间；应用运行时都可提醒，直接关闭应用后则不会继续通知。',
   },
   {
     id: 'shortcuts',
