@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog } from 'electron'
+import { app, BrowserWindow, Menu, dialog, nativeTheme } from 'electron'
 import path from 'node:path'
 import {
   APP_ICON_PATH,
@@ -8,6 +8,7 @@ import {
   VITE_DEV_SERVER_URL,
 } from './constants'
 import { readAppConfig, setWindowZoomFactor as persistWindowZoomFactor } from './app-config'
+import type { AppTheme } from '../../src/types/app'
 import {
   DEFAULT_WINDOW_ZOOM_FACTOR,
   getNextWindowZoomFactor,
@@ -17,6 +18,10 @@ import {
 let win: BrowserWindow | null = null
 let isWindowDirty = false
 let isForceClosingWindow = false
+
+export function applyNativeThemeSource(theme: AppTheme) {
+  nativeTheme.themeSource = theme
+}
 
 export function getMainWindow() {
   return win
@@ -136,6 +141,8 @@ export async function createMainWindow() {
   isForceClosingWindow = false
   const initialConfig = await readAppConfig()
   const initialZoomFactor = initialConfig.ui.zoomFactor
+
+  applyNativeThemeSource(initialConfig.ui.theme)
 
   win = new BrowserWindow({
     width: 1600,

@@ -63,6 +63,7 @@ import {
 import {
   getMainWindow,
   openMainWindowDevTools,
+  applyNativeThemeSource,
   setWindowDirtyState,
   updateWindowZoomFactor,
 } from './window'
@@ -90,8 +91,10 @@ export function registerIpcHandlers() {
     return getAiSettingsStatus()
   })
 
-  ipcMain.handle(IPC_CHANNELS.setThemePreference, (_event, input: ThemePreferenceInput) => {
-    return setThemePreference(input)
+  ipcMain.handle(IPC_CHANNELS.setThemePreference, async (_event, input: ThemePreferenceInput) => {
+    const nextConfig = await setThemePreference(input)
+    applyNativeThemeSource(nextConfig.ui.theme)
+    return nextConfig
   })
 
   ipcMain.handle(IPC_CHANNELS.setWindowZoomFactor, (_event, input: WindowZoomPreferenceInput) => {
