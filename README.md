@@ -31,6 +31,8 @@
 
 ![年度报告](docs/images/年度报告.png)
 
+![年度报告_深色](docs/images/年度报告_深色.png)
+
 # 下载
 
 请到[发布页面](https://github.com/Criel14/dAiry/releases)下载对应的安装包
