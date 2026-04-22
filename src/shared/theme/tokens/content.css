@@ -1,0 +1,55 @@
+:root,
+html[data-theme='light'],
+html[data-theme='dark'] {
+  --color-text-accent: #4f4630;
+  --color-text-warm: #6b5b38;
+  --color-text-warm-soft: #8a7242;
+  --color-text-strong-subtle: #5b513a;
+  --color-text-dirty: #b89133;
+  --color-text-link: #7c6a3b;
+  --color-text-weekend: #628190;
+  --color-text-outside: rgba(107, 119, 128, 0.48);
+  --color-text-calendar-heat-3: #54472d;
+  --color-text-calendar-heat-4: #47391f;
+  --color-text-report-soft: #9d8657;
+  --color-text-report-soft-strong: #ad945f;
+  --color-text-danger: #8a544d;
+  --color-text-danger-soft: #9a6b5e;
+  --color-text-chart-neutral: #97876b;
+  --color-text-stepper: #8f7a4d;
+  --color-text-stepper-hover: #6f5a2f;
+  --color-text-report-time: #a08855;
+
+  --color-border-status-ready: #d7c68a;
+  --color-border-status-ready-soft: #d7c68f;
+  --color-border-calendar-today: #d8c991;
+  --color-border-selected-strong: #766543;
+  --color-border-editor-error: #dbcfa3;
+  --color-border-report-soft: #dbcba4;
+  --color-border-report-soft-strong: #dccda8;
+  --color-border-report-hover: #d6c48f;
+  --color-border-report-section-warm: #e2d3a8;
+  --color-border-report-picker: #dfc98f;
+  --color-border-report-pill: #ccb97d;
+  --color-border-report-pill-active: #c0ab6d;
+  --color-border-report-pill-soft: #c5b177;
+  --color-border-report-pill-strong: #b59f63;
+  --color-border-slider-track: #eadfca;
+  --color-border-slider-thumb: #c8b47a;
+  --color-border-slider-thumb-hover: #b49a59;
+  --color-border-calendar-heat-1: #e8dcc0;
+  --color-border-calendar-heat-2: #dfcea1;
+  --color-border-calendar-heat-3: #cfb574;
+  --color-border-calendar-heat-4: #b89648;
+
+  --color-chart-positive: #5a9f61;
+  --color-chart-positive-soft: #66a86e;
+  --color-chart-negative: #c76767;
+  --color-chart-negative-soft: #cb6363;
+  --color-tag-cloud-1: #4e4331;
+  --color-tag-cloud-2: #62523a;
+  --color-tag-cloud-3: #756246;
+  --color-tag-cloud-4: #8a7250;
+  --color-tag-cloud-5: #9b7e56;
+  --color-tag-cloud-6: #6b5a41;
+}

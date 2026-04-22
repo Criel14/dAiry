@@ -35,7 +35,7 @@
 - 保持按业务域组织，不要重构成 `src/renderer + src/main + src/preload`
 - `.vue` 与其专属 `.css` 优先同目录放置
 - 仅在真实跨业务复用时才放到 `src/shared/`
-- 主题值集中维护在 `src/shared/theme/tokens.css`
+- 主题值集中维护在 `src/shared/theme/tokens/`，并由 `src/shared/theme/tokens.css` 统一聚合
 - `dist/`、`dist-electron/`、`release/` 不作为源码维护
 
 常用命令：
@@ -193,7 +193,7 @@ UI 原则：
 
 样式约束：
 
-- 优先复用 `src/shared/theme/tokens.css` 的 token，不要在业务组件中硬编码颜色、阴影、渐变
+- 优先复用 `src/shared/theme/tokens.css` 聚合的 token，不要在业务组件中硬编码颜色、阴影、渐变
 - 若 token 不足，先补 token，再在组件中使用
 - `html[data-theme='dark']` 是深色主题正式覆盖入口
 - 导出页、图表、滚动条、悬浮态、选中态也走主题体系

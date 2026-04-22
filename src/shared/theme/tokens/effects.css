@@ -1,0 +1,126 @@
+:root,
+html[data-theme='light'],
+html[data-theme='dark'] {
+  --color-glass-white-58: rgba(255, 255, 255, 0.58);
+  --color-glass-white-72: rgba(255, 255, 255, 0.72);
+  --color-glass-white-74: rgba(255, 255, 255, 0.74);
+  --color-glass-white-82: rgba(255, 255, 255, 0.82);
+  --color-glass-white-86: rgba(255, 255, 255, 0.86);
+  --color-glass-white-88: rgba(255, 255, 255, 0.88);
+  --color-glass-white-90: rgba(255, 255, 255, 0.9);
+  --color-glass-white-92: rgba(255, 255, 255, 0.92);
+  --color-glass-white-95: rgba(255, 255, 255, 0.95);
+  --color-glass-ivory-72: rgba(255, 254, 249, 0.72);
+  --color-glass-ivory-75: rgba(255, 254, 249, 0.75);
+  --color-glass-ivory-96: rgba(255, 253, 248, 0.96);
+  --color-glass-accent-18: rgba(217, 203, 159, 0.18);
+  --color-glass-accent-28: rgba(245, 235, 195, 0.28);
+  --color-glass-accent-38: rgba(217, 203, 159, 0.38);
+  --color-glass-accent-45: rgba(217, 203, 159, 0.45);
+  --color-glass-accent-50: rgba(217, 203, 159, 0.5);
+  --color-glass-accent-55: rgba(217, 203, 159, 0.55);
+  --color-glass-accent-68: rgba(217, 203, 159, 0.68);
+  --color-glass-accent-72: rgba(217, 203, 159, 0.72);
+  --color-glass-accent-75: rgba(217, 203, 159, 0.75);
+  --color-glass-accent-78: rgba(217, 203, 159, 0.78);
+  --color-glass-accent-80: rgba(217, 203, 159, 0.8);
+  --color-glass-accent-82: rgba(217, 203, 159, 0.82);
+  --color-glass-accent-88: rgba(217, 203, 159, 0.88);
+  --color-glass-accent-90: rgba(217, 203, 159, 0.9);
+  --color-glass-accent-92: rgba(217, 203, 159, 0.92);
+  --color-glass-accent-95: rgba(217, 203, 159, 0.95);
+  --color-glass-border-85: rgba(229, 220, 197, 0.85);
+  --color-glass-border-88: rgba(229, 220, 197, 0.88);
+  --color-glass-border-90: rgba(229, 220, 197, 0.9);
+  --color-glass-border-92: rgba(229, 220, 197, 0.92);
+  --color-glass-border-95: rgba(229, 220, 197, 0.95);
+  --color-glass-shadow-10: rgba(138, 129, 109, 0.1);
+  --color-glass-shadow-14: rgba(138, 129, 109, 0.14);
+  --color-glass-shadow-20: rgba(138, 129, 109, 0.2);
+  --color-glass-shadow-42: rgba(138, 129, 109, 0.42);
+  --color-glass-shadow-62: rgba(138, 129, 109, 0.62);
+  --color-glass-shadow-90: rgba(206, 192, 155, 0.9);
+  --color-glass-shadow-95: rgba(193, 176, 134, 0.95);
+  --color-glass-accent-shadow-12: rgba(120, 101, 52, 0.12);
+  --color-glass-selection-15: rgba(204, 178, 120, 0.15);
+  --color-glass-text-warm-35: rgba(107, 91, 56, 0.35);
+  --color-glass-text-accent-60: rgba(79, 70, 48, 0.6);
+  --color-glass-white-stroke-70: rgba(255, 255, 255, 0.7);
+  --color-glass-white-stroke-72: rgba(255, 255, 255, 0.72);
+  --color-glass-white-stroke-96: rgba(255, 255, 255, 0.96);
+  --color-glass-tag-cloud-stroke: rgba(252, 250, 244, 0.96);
+  --color-glass-report-fill: rgba(250, 246, 234, 0.42);
+  --color-glass-report-warning-fill: rgba(252, 248, 239, 0.92);
+  --color-glass-report-fill-strong: rgba(250, 245, 228, 0.92);
+  --color-glass-report-fill-soft: rgba(249, 242, 220, 0.96);
+  --color-glass-report-gradient-start: rgba(252, 247, 234, 0.97);
+  --color-glass-report-gradient-end: rgba(249, 244, 231, 0.94);
+  --color-glass-report-gradient-card-start: rgba(255, 255, 255, 0.92);
+  --color-glass-report-gradient-card-end: rgba(255, 252, 243, 0.82);
+  --color-glass-report-gradient-card-strong-end: rgba(252, 247, 235, 0.86);
+  --color-glass-report-gradient-card-hover-start: rgba(255, 253, 247, 0.98);
+  --color-glass-report-gradient-card-hover-end: rgba(248, 240, 219, 0.78);
+  --color-glass-report-grid: rgba(217, 203, 159, 0.34);
+  --color-glass-axis-zero: rgba(124, 110, 82, 0.48);
+  --color-glass-chart-positive: rgba(102, 168, 110, 0.72);
+  --color-glass-chart-negative: rgba(203, 99, 99, 0.72);
+  --color-glass-chart-positive-area-18: rgba(102, 168, 110, 0.18);
+  --color-glass-chart-positive-area-08: rgba(102, 168, 110, 0.08);
+  --color-glass-chart-positive-area-02: rgba(102, 168, 110, 0.02);
+  --color-glass-chart-negative-area-02: rgba(203, 99, 99, 0.02);
+  --color-glass-chart-negative-area-08: rgba(203, 99, 99, 0.08);
+  --color-glass-chart-negative-area-18: rgba(203, 99, 99, 0.18);
+
+  --scrollbar-thumb-color: #d8ccb0;
+  --gradient-scrollbar-thumb: linear-gradient(180deg, #ded3b8 0%, #cec09b 100%);
+  --gradient-scrollbar-thumb-hover: linear-gradient(180deg, #d3c5a0 0%, #bda977 100%);
+  --gradient-mood-track: linear-gradient(90deg, #eadbcc 0%, #f3e5c6 52%, #e8ddcf 100%);
+  --gradient-report-hero:
+    radial-gradient(circle at top left, var(--color-glass-white-92), transparent 52%),
+    linear-gradient(
+      180deg,
+      var(--color-glass-report-gradient-start),
+      var(--color-glass-report-gradient-end)
+    );
+  --gradient-report-divider: linear-gradient(
+    90deg,
+    var(--color-glass-accent-92),
+    rgba(217, 203, 159, 0.12)
+  );
+  --gradient-report-summary: linear-gradient(
+    180deg,
+    var(--color-glass-report-gradient-card-start),
+    var(--color-glass-report-gradient-card-end)
+  );
+  --gradient-report-card: linear-gradient(
+    180deg,
+    var(--color-glass-white-95),
+    var(--color-glass-report-gradient-card-strong-end)
+  );
+  --gradient-report-card-hover: linear-gradient(
+    180deg,
+    var(--color-glass-report-gradient-card-hover-start),
+    var(--color-glass-report-gradient-card-hover-end)
+  );
+  --gradient-report-action: linear-gradient(180deg, #f7efd1, #f3e6bb);
+  --gradient-report-side-panel: linear-gradient(180deg, #fdfaf1, #faf4e3);
+
+  --shadow-soft-sm: 0 6px 14px rgba(95, 82, 42, 0.08);
+  --shadow-soft-xs: 0 8px 14px rgba(95, 82, 42, 0.06);
+  --shadow-popover: 0 10px 24px rgba(61, 56, 45, 0.12);
+  --shadow-slider-thumb: 0 2px 6px rgba(95, 82, 42, 0.18);
+  --shadow-slider-thumb-hover: 0 4px 10px rgba(95, 82, 42, 0.22);
+  --shadow-tag-cloud:
+    inset 0 1px 0 var(--color-glass-white-stroke-70),
+    0 8px 18px rgba(61, 56, 45, 0.03);
+  --shadow-report-hero:
+    inset 0 1px 0 var(--color-glass-white-stroke-72),
+    0 18px 38px rgba(61, 56, 45, 0.08);
+  --shadow-report-card-soft: 0 8px 18px rgba(102, 82, 32, 0.06);
+  --shadow-report-card-soft-strong: 0 10px 22px rgba(102, 82, 32, 0.08);
+  --shadow-report-hover: 0 8px 18px rgba(95, 82, 42, 0.06);
+  --shadow-report-cta: 0 10px 20px rgba(95, 82, 42, 0.08);
+  --shadow-report-modal: 0 20px 48px rgba(61, 56, 45, 0.18);
+  --shadow-chart-point: 0 2px 6px rgba(61, 56, 45, 0.16);
+  --shadow-chart-tooltip: 0 10px 28px rgba(61, 56, 45, 0.1);
+}

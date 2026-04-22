@@ -1,0 +1,38 @@
+:root,
+html[data-theme='light'],
+html[data-theme='dark'] {
+  --color-surface-sidebar: #fbfaf4;
+  --color-surface-chip: #fcf7e7;
+  --color-surface-interactive: #fffdf8;
+  --color-surface-soft: #fcfbf6;
+  --color-surface-softest: #fdfbf5;
+  --color-surface-keycap: #fbf7ec;
+  --color-surface-status: #f4efe1;
+  --color-surface-status-ready: #f8f1d9;
+  --color-surface-nav-active: #f4ead1;
+  --color-surface-hover-soft: #f5efe0;
+  --color-surface-code-inline: #f3ede0;
+  --color-surface-table-head: #fbf6e7;
+  --color-surface-tag-cloud: #fcfaf4;
+  --color-surface-report-card: #f8f3e7;
+  --color-surface-report-note: #f6efdf;
+  --color-surface-report-chip: #efe6d3;
+  --color-surface-report-heat-0: #f1efea;
+  --color-surface-report-heat-1: #e7dcc0;
+  --color-surface-report-heat-2: #d9c89d;
+  --color-surface-report-heat-3: #c8ad6f;
+  --color-surface-report-heat-4: #a5803c;
+  --color-surface-report-picker-active: #f9f2dd;
+  --color-surface-report-picker-muted: #f8f3e4;
+  --color-surface-report-picker-selected: #cfbf88;
+  --color-surface-report-section-soft: #fff9eb;
+  --color-surface-about-button: #f8f3e5;
+  --color-surface-switch-track: #ddd2b9;
+  --color-surface-slider-thumb: #fffdf7;
+  --color-surface-control: #fffdfa;
+  --color-surface-calendar-outside: #fcfbf6;
+  --color-surface-calendar-heat-1: #f8f2df;
+  --color-surface-calendar-heat-2: #f3e7c4;
+  --color-surface-calendar-heat-3: #ead89f;
+  --color-surface-calendar-heat-4: #ddc170;
+}
