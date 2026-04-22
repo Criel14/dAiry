@@ -10,7 +10,7 @@ html[data-theme='dark'] {
   --report-export-document-background: var(--color-background);
   --report-export-card-border: var(--color-border);
   --report-export-card-background: var(--color-glass-white-92);
-  --report-export-summary-card-border: var(--color-glass-accent-95);
+  --report-export-summary-card-border: var(--report-export-card-border);
   --report-export-summary-card-background: var(--color-glass-white-88);
 
   --report-export-label-text: var(--color-text-subtle);

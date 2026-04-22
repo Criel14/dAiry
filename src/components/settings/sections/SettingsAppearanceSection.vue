@@ -53,10 +53,10 @@ function handleWindowZoomFactorChange(event: Event) {
       <div class="setting-row setting-row--compact">
         <div class="setting-copy">
           <div class="setting-title-row">
-            <strong class="panel-value">主题预留</strong>
+            <strong class="panel-value">主题切换</strong>
           </div>
           <p class="panel-description">
-            先接入主题变量和切换入口，当前视觉仍保持不变，后续再逐步补齐深色样式。
+            支持跟随系统、浅色和深色模式，深色主题会同步应用到写作、报告浏览和 PNG 导出。
           </p>
         </div>
 

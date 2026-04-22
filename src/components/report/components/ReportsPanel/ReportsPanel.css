@@ -1100,7 +1100,7 @@
   position: relative;
   overflow: hidden;
   padding: 1.25rem;
-  border-color: var(--color-glass-accent-95);
+  border-color: var(--color-border);
   border-radius: 18px;
   background: var(--color-glass-white-82);
 }
