@@ -259,8 +259,8 @@ export function getDefaultAiSettings(
     case 'deepseek':
       return {
         providerType,
-        baseURL: 'https://api.deepseek.com/v1',
-        model: 'deepseek-chat',
+        baseURL: 'https://api.deepseek.com',
+        model: 'deepseek-v4-flash',
         timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
       }
     case 'alibaba':
