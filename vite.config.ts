@@ -7,6 +7,7 @@ import vue from '@vitejs/plugin-vue'
 
 let electronProcess: ChildProcess | undefined
 let exitHookRegistered = false
+const appRoot = __dirname
 
 function stopElectronProcess() {
   if (!electronProcess?.pid) {
@@ -34,7 +35,8 @@ function stopElectronProcess() {
 function startElectronProcess() {
   stopElectronProcess()
 
-  electronProcess = spawn(String(electronPath), ['.'], {
+  electronProcess = spawn(String(electronPath), [appRoot], {
+    cwd: appRoot,
     stdio: 'inherit',
   })
 

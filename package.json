@@ -1,7 +1,7 @@
 {
   "name": "dairy",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "结合了LLM的桌面日记工具",
   "author": "Criel",
   "license": "MIT",
