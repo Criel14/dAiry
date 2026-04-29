@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, Tray, dialog, nativeTheme } from 'electron'
+import { app, BrowserWindow, Menu, Tray, dialog, nativeTheme, screen } from 'electron'
 import path from 'node:path'
 import {
   APP_ICON_PATH,
@@ -7,8 +7,17 @@ import {
   RENDERER_DIST,
   VITE_DEV_SERVER_URL,
 } from './constants'
-import { readAppConfig, setWindowZoomFactor as persistWindowZoomFactor } from './app-config'
-import type { AppTheme, WindowCloseBehavior } from '../../src/types/app'
+import {
+  readAppConfig,
+  setWindowState as persistWindowStateConfig,
+  setWindowZoomFactor as persistWindowZoomFactor,
+} from './app-config'
+import type {
+  AppTheme,
+  WindowBoundsConfig,
+  WindowCloseBehavior,
+  WindowStateConfig,
+} from '../../src/types/app'
 import type { RightPanel } from '../../src/types/ui'
 import {
   DEFAULT_WINDOW_ZOOM_FACTOR,
@@ -22,6 +31,13 @@ let isWindowDirty = false
 let isForceClosingWindow = false
 let isQuitRequested = false
 let currentWindowCloseBehavior: WindowCloseBehavior = 'tray'
+let windowStateSaveTimer: NodeJS.Timeout | null = null
+
+const MAIN_WINDOW_DEFAULT_WIDTH = 1600
+const MAIN_WINDOW_DEFAULT_HEIGHT = 1000
+const MAIN_WINDOW_MIN_WIDTH = 1080
+const MAIN_WINDOW_MIN_HEIGHT = 720
+const WINDOW_STATE_SAVE_DELAY_MS = 500
 
 export function applyNativeThemeSource(theme: AppTheme) {
   nativeTheme.themeSource = theme
@@ -251,6 +267,104 @@ export async function updateWindowZoomFactor(zoomFactor: number) {
   return nextConfig
 }
 
+function clampNumber(value: number, minValue: number, maxValue: number) {
+  return Math.min(Math.max(value, minValue), maxValue)
+}
+
+function getWindowBoundsCenter(bounds: WindowBoundsConfig) {
+  return {
+    x: Math.round(bounds.x + bounds.width / 2),
+    y: Math.round(bounds.y + bounds.height / 2),
+  }
+}
+
+function getVisibleWindowBounds(savedBounds: WindowBoundsConfig | null) {
+  if (!savedBounds) {
+    return {
+      width: MAIN_WINDOW_DEFAULT_WIDTH,
+      height: MAIN_WINDOW_DEFAULT_HEIGHT,
+    }
+  }
+
+  const display = screen.getDisplayNearestPoint(getWindowBoundsCenter(savedBounds))
+  const workArea = display.workArea
+  const minWidth = Math.min(MAIN_WINDOW_MIN_WIDTH, workArea.width)
+  const minHeight = Math.min(MAIN_WINDOW_MIN_HEIGHT, workArea.height)
+  const width = clampNumber(savedBounds.width, minWidth, workArea.width)
+  const height = clampNumber(savedBounds.height, minHeight, workArea.height)
+
+  return {
+    x: clampNumber(savedBounds.x, workArea.x, workArea.x + workArea.width - width),
+    y: clampNumber(savedBounds.y, workArea.y, workArea.y + workArea.height - height),
+    width,
+    height,
+  }
+}
+
+function getWindowStateForPersistence(targetWindow: BrowserWindow): WindowStateConfig {
+  const normalBounds = targetWindow.getNormalBounds()
+
+  return {
+    bounds: {
+      x: Math.round(normalBounds.x),
+      y: Math.round(normalBounds.y),
+      width: Math.round(normalBounds.width),
+      height: Math.round(normalBounds.height),
+    },
+    isMaximized: targetWindow.isMaximized(),
+    isFullScreen: targetWindow.isFullScreen(),
+  }
+}
+
+async function persistMainWindowState(targetWindow = win) {
+  if (!targetWindow || targetWindow.isDestroyed()) {
+    return
+  }
+
+  try {
+    await persistWindowStateConfig(getWindowStateForPersistence(targetWindow))
+  } catch (error) {
+    console.error('Failed to persist main window state.', error)
+  }
+}
+
+function scheduleWindowStateSave(targetWindow = win) {
+  if (!targetWindow || targetWindow.isDestroyed()) {
+    return
+  }
+
+  if (windowStateSaveTimer) {
+    clearTimeout(windowStateSaveTimer)
+  }
+
+  windowStateSaveTimer = setTimeout(() => {
+    windowStateSaveTimer = null
+    void persistMainWindowState(targetWindow)
+  }, WINDOW_STATE_SAVE_DELAY_MS)
+}
+
+async function flushWindowStateSave(targetWindow = win) {
+  if (windowStateSaveTimer) {
+    clearTimeout(windowStateSaveTimer)
+    windowStateSaveTimer = null
+  }
+
+  await persistMainWindowState(targetWindow)
+}
+
+function registerWindowStatePersistence(targetWindow: BrowserWindow) {
+  const scheduleSave = () => {
+    scheduleWindowStateSave(targetWindow)
+  }
+
+  targetWindow.on('resize', scheduleSave)
+  targetWindow.on('move', scheduleSave)
+  targetWindow.on('maximize', scheduleSave)
+  targetWindow.on('unmaximize', scheduleSave)
+  targetWindow.on('enter-full-screen', scheduleSave)
+  targetWindow.on('leave-full-screen', scheduleSave)
+}
+
 export async function createMainWindow() {
   Menu.setApplicationMenu(null)
 
@@ -258,15 +372,20 @@ export async function createMainWindow() {
   isForceClosingWindow = false
   const initialConfig = await readAppConfig()
   const initialZoomFactor = initialConfig.ui.zoomFactor
+  const initialWindowBounds = getVisibleWindowBounds(initialConfig.ui.windowState.bounds)
+  const shouldRestoreFullScreen = initialConfig.ui.windowState.isFullScreen
+  const shouldRestoreMaximized =
+    initialConfig.ui.windowState.isMaximized && !shouldRestoreFullScreen
 
   applyNativeThemeSource(initialConfig.ui.theme)
   applyWindowCloseBehavior(initialConfig.ui.closeBehavior)
 
   win = new BrowserWindow({
-    width: 1600,
-    height: 1000,
-    minWidth: 1080,
-    minHeight: 720,
+    ...initialWindowBounds,
+    show: false,
+    fullscreen: shouldRestoreFullScreen,
+    minWidth: MAIN_WINDOW_MIN_WIDTH,
+    minHeight: MAIN_WINDOW_MIN_HEIGHT,
     icon: APP_ICON_PATH,
     title: 'dAiry',
     backgroundColor: '#f7f7f4',
@@ -277,7 +396,20 @@ export async function createMainWindow() {
     },
   })
 
+  registerWindowStatePersistence(win)
   applyWindowZoomFactor(initialZoomFactor)
+
+  if (shouldRestoreMaximized) {
+    win.maximize()
+  }
+
+  if (shouldRestoreFullScreen && !win.isFullScreen()) {
+    win.setFullScreen(true)
+  }
+
+  win.once('ready-to-show', () => {
+    showMainWindow()
+  })
 
   if (VITE_DEV_SERVER_URL) {
     void win.loadURL(VITE_DEV_SERVER_URL)
@@ -303,6 +435,7 @@ export async function createMainWindow() {
 
     if (currentWindowCloseBehavior === 'tray' && !isQuitRequested) {
       event.preventDefault()
+      await flushWindowStateSave(win)
 
       if (hideMainWindowToTray()) {
         return
@@ -313,6 +446,10 @@ export async function createMainWindow() {
     }
 
     if (!isWindowDirty) {
+      event.preventDefault()
+      await flushWindowStateSave(win)
+      isForceClosingWindow = true
+      win.close()
       return
     }
 
@@ -334,11 +471,16 @@ export async function createMainWindow() {
       return
     }
 
+    await flushWindowStateSave(win)
     isForceClosingWindow = true
     win.close()
   })
 
   win.on('closed', () => {
+    if (windowStateSaveTimer) {
+      clearTimeout(windowStateSaveTimer)
+      windowStateSaveTimer = null
+    }
     isWindowDirty = false
     isForceClosingWindow = false
     isQuitRequested = false

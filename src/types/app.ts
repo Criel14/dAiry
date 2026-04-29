@@ -16,6 +16,19 @@ export interface NotificationConfig {
   reminderTime: string
 }
 
+export interface WindowBoundsConfig {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+export interface WindowStateConfig {
+  bounds: WindowBoundsConfig | null
+  isMaximized: boolean
+  isFullScreen: boolean
+}
+
 export interface AppConfig {
   lastOpenedWorkspace: string | null
   recentWorkspaces: string[]
@@ -30,6 +43,7 @@ export interface AppConfig {
     closeBehavior: WindowCloseBehavior
     launchOnStartup: boolean
     notification: NotificationConfig
+    windowState: WindowStateConfig
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
   ai: AiSettings

@@ -13,8 +13,10 @@ import type {
   NotificationConfig,
   NotificationPreferenceInput,
   ThemePreferenceInput,
+  WindowBoundsConfig,
   WindowCloseBehavior,
   WindowCloseBehaviorPreferenceInput,
+  WindowStateConfig,
   WindowZoomPreferenceInput,
 } from '../../src/types/app'
 import {
@@ -134,6 +136,40 @@ function normalizeNotificationConfig(
   }
 }
 
+function normalizeWindowBounds(rawValue: unknown): WindowBoundsConfig | null {
+  if (!rawValue || typeof rawValue !== 'object') {
+    return null
+  }
+
+  const bounds = rawValue as Partial<WindowBoundsConfig>
+  const values = [bounds.x, bounds.y, bounds.width, bounds.height]
+
+  if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value))) {
+    return null
+  }
+
+  if (Number(bounds.width) <= 0 || Number(bounds.height) <= 0) {
+    return null
+  }
+
+  return {
+    x: Math.round(Number(bounds.x)),
+    y: Math.round(Number(bounds.y)),
+    width: Math.round(Number(bounds.width)),
+    height: Math.round(Number(bounds.height)),
+  }
+}
+
+function normalizeWindowStateConfig(
+  rawValue: Partial<WindowStateConfig> | null | undefined,
+): WindowStateConfig {
+  return {
+    bounds: normalizeWindowBounds(rawValue?.bounds),
+    isMaximized: rawValue?.isMaximized === true,
+    isFullScreen: rawValue?.isFullScreen === true,
+  }
+}
+
 function normalizeReportExportConfig(rawValue: AppConfig['reportExport'] | null | undefined) {
   return {
     lastDirectory: typeof rawValue?.lastDirectory === 'string' ? rawValue.lastDirectory : null,
@@ -156,6 +192,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const closeBehavior = normalizeWindowCloseBehavior(config.ui?.closeBehavior)
   const launchOnStartup = normalizeLaunchOnStartup(config.ui?.launchOnStartup)
   const notification = normalizeNotificationConfig(config.ui?.notification)
+  const windowState = normalizeWindowStateConfig(config.ui?.windowState)
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
   const ai = normalizeAiSettings(config.ai)
   const reportExport = normalizeReportExportConfig(config.reportExport)
@@ -173,6 +210,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       closeBehavior,
       launchOnStartup,
       notification,
+      windowState,
       frontmatterVisibility,
     },
     ai,
@@ -344,6 +382,20 @@ export async function setWindowCloseBehavior(
     ui: {
       ...currentConfig.ui,
       closeBehavior: normalizeWindowCloseBehavior(input.behavior),
+    },
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setWindowState(input: WindowStateConfig): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    ui: {
+      ...currentConfig.ui,
+      windowState: normalizeWindowStateConfig(input),
     },
   }
 

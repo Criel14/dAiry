@@ -91,6 +91,11 @@ export const DEFAULT_APP_CONFIG: AppConfig = {
     closeBehavior: 'tray',
     launchOnStartup: true,
     notification: DEFAULT_NOTIFICATION_CONFIG,
+    windowState: {
+      bounds: null,
+      isMaximized: false,
+      isFullScreen: false,
+    },
     frontmatterVisibility: {
       weather: true,
       location: true,
