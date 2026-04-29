@@ -111,6 +111,24 @@
   stroke: var(--color-chart-negative);
 }
 
+.mood-chart-isolated-point {
+  stroke: var(--color-glass-white-stroke-96);
+  stroke-width: 1.6;
+  pointer-events: none;
+}
+
+.mood-chart-isolated-point--positive {
+  fill: var(--color-chart-positive);
+}
+
+.mood-chart-isolated-point--negative {
+  fill: var(--color-chart-negative);
+}
+
+.mood-chart-isolated-point--neutral {
+  fill: var(--color-text-chart-neutral);
+}
+
 .mood-chart-hover-line {
   stroke: var(--color-glass-shadow-42);
   stroke-width: 1;
@@ -151,6 +169,19 @@
   align-items: center;
   color: var(--color-text-subtle);
   font-size: 0.92rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.mood-chart-legend:hover {
+  color: var(--color-text-main);
+}
+
+.mood-chart-legend:focus-visible {
+  outline: 2px solid var(--color-glass-accent-90);
+  outline-offset: 3px;
 }
 
 .legend-item {

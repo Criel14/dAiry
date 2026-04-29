@@ -15,6 +15,7 @@ const props = defineProps<{
 }>()
 
 const hoveredPoint = ref<RenderPoint | null>(null)
+const showIsolatedPoints = ref(true)
 const shellRef = ref<HTMLElement | null>(null)
 const chartId = `mood-trend-${Math.random().toString(36).slice(2, 10)}`
 
@@ -142,6 +143,19 @@ function handleChartLeave() {
   hoveredPoint.value = null
 }
 
+function toggleIsolatedPoints() {
+  showIsolatedPoints.value = !showIsolatedPoints.value
+}
+
+function handleLegendKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Enter' && event.key !== ' ') {
+    return
+  }
+
+  event.preventDefault()
+  toggleIsolatedPoints()
+}
+
 function updateShellMetrics() {
   if (!shellRef.value) {
     return
@@ -260,6 +274,10 @@ const lineSegments = computed(() => {
 
   return segments
 })
+
+const isolatedPoints = computed(() =>
+  showIsolatedPoints.value ? lineSegments.value.flatMap((segment) => (segment.points.length === 1 ? segment.points : [])) : [],
+)
 
 const yTicks = computed(() =>
   Array.from({ length: MOOD_MAX - MOOD_MIN + 1 }, (_, index) => {
@@ -517,6 +535,17 @@ onBeforeUnmount(() => {
           />
         </g>
 
+        <g v-if="isolatedPoints.length > 0" class="mood-chart-isolated-points">
+          <circle
+            v-for="point in isolatedPoints"
+            :key="`${point.date}-${point.value}-isolated`"
+            :cx="point.x"
+            :cy="point.y"
+            r="3.4"
+            :class="`mood-chart-isolated-point mood-chart-isolated-point--${getPointTone(point.value)}`"
+          />
+        </g>
+
         <g v-if="hoveredPoint" class="mood-chart-hover">
           <line
             :x1="hoveredPoint.x"
@@ -580,7 +609,15 @@ onBeforeUnmount(() => {
       这个区间还没有可绘制的情绪数据。
     </div>
 
-    <div class="mood-chart-legend">
+    <div
+      class="mood-chart-legend"
+      role="button"
+      tabindex="0"
+      :aria-pressed="showIsolatedPoints"
+      title="点击切换孤立点显示"
+      @click="toggleIsolatedPoints"
+      @keydown="handleLegendKeydown"
+    >
       <span class="legend-item">
         <i class="legend-swatch legend-swatch--positive" />
         正面情绪
