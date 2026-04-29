@@ -39,6 +39,7 @@ const {
   handleSaveMetadata,
   handleSaveWorkspaceLibraries,
   handleSelectDate,
+  handleShiftSelectedDate,
   handleUpdateLaunchOnStartupEnabled,
   handleUpdateNotificationEnabled,
   handleUpdateNotificationReminderTime,
@@ -170,6 +171,8 @@ const {
           :can-save-entry="canSaveEntry"
           :is-saving-entry="isSavingEntry"
           @update:editor-mode="setEditorMode"
+          @previous-date="handleShiftSelectedDate(-1)"
+          @next-date="handleShiftSelectedDate(1)"
           @save-entry="handleSaveEntry"
         />
 

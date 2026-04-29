@@ -217,6 +217,15 @@ export function useAppShellJournal(state: AppShellState) {
     await loadEntryForDate(nextDate)
   }
 
+  async function handleShiftSelectedDate(dayOffset: number) {
+    const nextDate = dayjs(state.selectedDate.value).add(dayOffset, 'day')
+    if (!nextDate.isValid()) {
+      return
+    }
+
+    await handleSelectDate(nextDate.format('YYYY-MM-DD'))
+  }
+
   function applyWorkspaceSelection(result: WorkspaceSelectionResult) {
     syncConfigState(result.config)
     state.workspacePath.value = result.workspacePath
@@ -515,6 +524,7 @@ export function useAppShellJournal(state: AppShellState) {
     handleSaveEntry,
     handleSaveMetadata,
     handleSelectDate,
+    handleShiftSelectedDate,
     handleUpdateMetadata,
     handleWindowKeydown,
     loadEntryForDate,
