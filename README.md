@@ -35,13 +35,13 @@
 
 # 预览
 
-![日记信息](docs/images/日记信息.png)
+![bg-日记编写](docs/images/bg-日记编写.png)
 
-![日记编写](docs/images/日记编写.png)
+![bg-日记信息](docs/images/bg-日记信息.png)
 
-![年度报告](docs/images/年度报告.png)
+![bg-年度报告-深色](docs/images/bg-年度报告-深色.png)
 
-![年度报告_深色](docs/images/年度报告_深色.png)
+![bg-年度报告-浅色](docs/images/bg-年度报告-浅色.png)
 
 # 下载
 
