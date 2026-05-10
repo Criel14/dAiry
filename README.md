@@ -47,6 +47,18 @@
 
 请到[发布页面](https://github.com/Criel14/dAiry/releases)下载对应的安装包
 
+# 远程操作
+
+> 项目没有后端，因此无法直接远程操纵，也没有配备一个手机端；
+
+项目里提供了一个可以给 OpenClaw 使用的 [SKILL](https://github.com/Criel14/dAiry/blob/main/docs/dairy-journal-writer)  ，用手机连接 OpenClaw 后，即可远程实现每日日记的编写、日记信息整理；（不支持月/年度总结）
+
+使用前请修改 `SKILL.md` 中的**工作区目录**：
+
+```
+<WORKSPACE> = 存放日记文件的目录
+```
+
 # 开发与构建
 
 ```bash
