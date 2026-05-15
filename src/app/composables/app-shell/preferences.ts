@@ -20,9 +20,10 @@ function cloneNotificationConfig(config: NotificationConfig): NotificationConfig
     emailEnabled: config.emailEnabled,
     reminderTime: config.reminderTime,
     email: {
+      providerType: config.email.providerType,
       smtpHost: config.email.smtpHost,
       smtpPort: config.email.smtpPort,
-      secure: config.email.secure,
+      encryption: config.email.encryption,
       username: config.email.username,
       fromEmail: config.email.fromEmail,
       recipientEmail: config.email.recipientEmail,
@@ -211,9 +212,10 @@ export function useAppShellPreferences(
       const nextConfig = await window.dairy.setNotificationPreference({
         ...cloneNotificationConfig(state.notification.value),
         email: {
+          providerType: input.email.providerType,
           smtpHost: input.email.smtpHost,
           smtpPort: input.email.smtpPort,
-          secure: input.email.secure,
+          encryption: input.email.encryption,
           username: input.email.username,
           fromEmail: input.email.fromEmail,
           recipientEmail: input.email.recipientEmail,

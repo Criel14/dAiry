@@ -47,9 +47,10 @@ export function createDefaultNotificationConfig(): NotificationConfig {
     emailEnabled: false,
     reminderTime: '21:30',
     email: {
+      providerType: 'qq',
       smtpHost: 'smtp.qq.com',
       smtpPort: 465,
-      secure: true,
+      encryption: 'ssl',
       username: '',
       fromEmail: '',
       recipientEmail: '',

@@ -2,6 +2,8 @@ import type { AiSettings } from './ai'
 
 export type AppTheme = 'system' | 'light' | 'dark'
 export type WindowCloseBehavior = 'tray' | 'quit'
+export type EmailNotificationProviderType = 'qq' | '163' | 'gmail' | 'outlook' | 'custom'
+export type EmailNotificationEncryption = 'ssl' | 'starttls' | 'none'
 
 export interface FrontmatterVisibilityConfig {
   weather: boolean
@@ -19,9 +21,10 @@ export interface NotificationConfig {
 }
 
 export interface EmailNotificationConfig {
+  providerType: EmailNotificationProviderType
   smtpHost: string
   smtpPort: number
-  secure: boolean
+  encryption: EmailNotificationEncryption
   username: string
   fromEmail: string
   recipientEmail: string

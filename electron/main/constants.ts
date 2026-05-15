@@ -75,9 +75,10 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
 }
 
 export const DEFAULT_EMAIL_NOTIFICATION_CONFIG: EmailNotificationConfig = {
+  providerType: 'qq',
   smtpHost: 'smtp.qq.com',
   smtpPort: 465,
-  secure: true,
+  encryption: 'ssl',
   username: '',
   fromEmail: '',
   recipientEmail: '',

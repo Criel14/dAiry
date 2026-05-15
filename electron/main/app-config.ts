@@ -5,6 +5,8 @@ import type { AiSettings, SaveAiSettingsInput } from '../../src/types/ai'
 import type {
   AppTheme,
   AppConfig,
+  EmailNotificationEncryption,
+  EmailNotificationProviderType,
   DayStartHourPreferenceInput,
   FrontmatterVisibilityConfig,
   FrontmatterVisibilityInput,
@@ -102,19 +104,47 @@ function normalizeSmtpPort(rawValue: unknown) {
   return rawValue
 }
 
+function normalizeEmailProviderType(rawValue: unknown): EmailNotificationProviderType {
+  return rawValue === 'qq' ||
+    rawValue === '163' ||
+    rawValue === 'gmail' ||
+    rawValue === 'outlook' ||
+    rawValue === 'custom'
+    ? rawValue
+    : DEFAULT_EMAIL_NOTIFICATION_CONFIG.providerType
+}
+
+function normalizeEmailEncryption(
+  rawValue: unknown,
+  fallbackSecureValue?: unknown,
+): EmailNotificationEncryption {
+  if (rawValue === 'ssl' || rawValue === 'starttls' || rawValue === 'none') {
+    return rawValue
+  }
+
+  if (typeof fallbackSecureValue === 'boolean') {
+    return fallbackSecureValue ? 'ssl' : 'starttls'
+  }
+
+  return DEFAULT_EMAIL_NOTIFICATION_CONFIG.encryption
+}
+
 function normalizeEmailNotificationConfig(
-  rawValue: NotificationConfig['email'] | null | undefined,
+  rawValue:
+    | (Partial<NotificationConfig['email']> & {
+        secure?: unknown
+      })
+    | null
+    | undefined,
 ): NotificationConfig['email'] {
   const username = normalizeEmailAddress(rawValue?.username)
   const fromEmail = normalizeEmailAddress(rawValue?.fromEmail)
 
   return {
+    providerType: normalizeEmailProviderType(rawValue?.providerType),
     smtpHost: normalizeSmtpHost(rawValue?.smtpHost),
     smtpPort: normalizeSmtpPort(rawValue?.smtpPort),
-    secure:
-      typeof rawValue?.secure === 'boolean'
-        ? rawValue.secure
-        : DEFAULT_EMAIL_NOTIFICATION_CONFIG.secure,
+    encryption: normalizeEmailEncryption(rawValue?.encryption, rawValue?.secure),
     username,
     fromEmail: fromEmail || username,
     recipientEmail: normalizeEmailAddress(rawValue?.recipientEmail),

@@ -5,6 +5,8 @@ import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 import type {
   EmailNotificationConfig,
+  EmailNotificationEncryption,
+  EmailNotificationProviderType,
   EmailNotificationSecretStatus,
   WindowCloseBehavior,
 } from '../../../types/app'
@@ -34,6 +36,67 @@ const emit = defineEmits<{
 
 const draftEmailConfig = ref<EmailNotificationConfig>({ ...props.emailNotificationConfig })
 const draftAuthCode = ref('')
+
+const EMAIL_PROVIDER_PRESETS: Record<
+  Exclude<EmailNotificationProviderType, 'custom'>,
+  {
+    label: string
+    smtpHost: string
+    smtpPort: number
+    encryption: EmailNotificationEncryption
+  }
+> = {
+  qq: {
+    label: 'QQ 邮箱',
+    smtpHost: 'smtp.qq.com',
+    smtpPort: 465,
+    encryption: 'ssl',
+  },
+  '163': {
+    label: '163 邮箱',
+    smtpHost: 'smtp.163.com',
+    smtpPort: 465,
+    encryption: 'ssl',
+  },
+  gmail: {
+    label: 'Gmail',
+    smtpHost: 'smtp.gmail.com',
+    smtpPort: 465,
+    encryption: 'ssl',
+  },
+  outlook: {
+    label: 'Outlook',
+    smtpHost: 'smtp.office365.com',
+    smtpPort: 587,
+    encryption: 'starttls',
+  },
+}
+
+const EMAIL_PROVIDER_OPTIONS = [
+  ...Object.entries(EMAIL_PROVIDER_PRESETS).map(([value, preset]) => ({
+    value,
+    label: preset.label,
+  })),
+  {
+    value: 'custom',
+    label: '自定义',
+  },
+]
+
+const EMAIL_ENCRYPTION_OPTIONS = [
+  {
+    value: 'ssl',
+    label: 'SSL/TLS',
+  },
+  {
+    value: 'starttls',
+    label: 'STARTTLS',
+  },
+  {
+    value: 'none',
+    label: '无加密',
+  },
+]
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => {
   const value = `${index}`.padStart(2, '0')
@@ -121,6 +184,38 @@ function handleEmailNotificationToggle() {
   emit('update:emailNotificationEnabled', !props.emailNotificationEnabled)
 }
 
+function handleEmailProviderTypeChange(value: string) {
+  const providerType = value as EmailNotificationProviderType
+  const preset =
+    providerType === 'custom' ? null : EMAIL_PROVIDER_PRESETS[providerType]
+
+  draftEmailConfig.value = {
+    ...draftEmailConfig.value,
+    providerType,
+    ...(preset
+      ? {
+        smtpHost: preset.smtpHost,
+        smtpPort: preset.smtpPort,
+        encryption: preset.encryption,
+      }
+      : {}),
+  }
+}
+
+function handleEmailEncryptionChange(value: string) {
+  draftEmailConfig.value = {
+    ...draftEmailConfig.value,
+    providerType: 'custom',
+    encryption: value as EmailNotificationEncryption,
+  }
+}
+
+function markCustomEmailProvider() {
+  if (draftEmailConfig.value.providerType !== 'custom') {
+    draftEmailConfig.value.providerType = 'custom'
+  }
+}
+
 function emitSaveEmailNotificationConfiguration() {
   const smtpHost = draftEmailConfig.value.smtpHost.trim()
   const username = draftEmailConfig.value.username.trim()
@@ -157,9 +252,10 @@ function emitSaveEmailNotificationConfiguration() {
 
   emit('saveEmailNotificationConfiguration', {
     email: {
+      providerType: draftEmailConfig.value.providerType,
       smtpHost,
       smtpPort: draftEmailConfig.value.smtpPort,
-      secure: draftEmailConfig.value.secure,
+      encryption: draftEmailConfig.value.encryption,
       username,
       fromEmail: username,
       recipientEmail,
@@ -179,25 +275,15 @@ function emitSaveEmailNotificationConfiguration() {
         到达设定时间时，应用会按开启的方式发出写日记提醒。
       </p>
 
-      <SettingsToggleRow
-        title="开启系统提醒通知"
-        description="开启后，dAiry 会按每天固定时间弹出系统通知。"
-        tip-text="只有 dAiry 仍在运行或最小化到托盘时，通知才能生效。托盘驻留时后台占用很小。"
-        :active="systemNotificationEnabled"
-        :disabled="isSavingNotification"
+      <SettingsToggleRow title="开启系统提醒通知" description="开启后，dAiry 会按每天固定时间弹出系统通知。"
+        tip-text="只有 dAiry 仍在运行或最小化到托盘时，通知才能生效。" :active="systemNotificationEnabled" :disabled="isSavingNotification"
         :button-label="systemNotificationEnabled ? '关闭系统提醒通知' : '开启系统提醒通知'"
-        @toggle="emit('update:systemNotificationEnabled', !systemNotificationEnabled)"
-      />
+        @toggle="emit('update:systemNotificationEnabled', !systemNotificationEnabled)" />
 
-      <SettingsToggleRow
-        title="开启邮箱通知"
-        description="开启后，dAiry 会在同一提醒时间向收件邮箱发送提醒邮件。"
-        tip-text="邮箱通知需要先保存 SMTP 配置和邮箱授权码。授权码会写入系统安全存储，不会在这里回显明文。"
-        :active="emailNotificationEnabled"
-        :disabled="isSavingNotification"
-        :button-label="emailNotificationEnabled ? '关闭邮箱通知' : '开启邮箱通知'"
-        @toggle="handleEmailNotificationToggle"
-      />
+      <SettingsToggleRow title="开启邮箱通知" description="开启后，dAiry 会在同一提醒时间向收件邮箱发送提醒邮件。"
+        tip-text="邮箱通知需要先保存 SMTP 配置和邮箱授权码。需要 dAiry 在运行或最小化到托盘时才能生效。" :active="emailNotificationEnabled"
+        :disabled="isSavingNotification" :button-label="emailNotificationEnabled ? '关闭邮箱通知' : '开启邮箱通知'"
+        @toggle="handleEmailNotificationToggle" />
 
       <div class="setting-row setting-row--compact">
         <div class="setting-copy">
@@ -211,25 +297,15 @@ function emitSaveEmailNotificationConfiguration() {
         </div>
 
         <div class="setting-time-picker-row" aria-label="选择写日记提醒时间">
-          <SettingsDropdownSelect
-            class="setting-time-dropdown"
-            :model-value="reminderTimeParts.hour"
-            :options="HOUR_OPTIONS"
-            :disabled="isSavingNotification"
-            label="选择写日记提醒小时"
-            @update:model-value="updateReminderTime({ hour: $event })"
-          />
+          <SettingsDropdownSelect class="setting-time-dropdown" :model-value="reminderTimeParts.hour"
+            :options="HOUR_OPTIONS" :disabled="isSavingNotification" label="选择写日记提醒小时"
+            @update:model-value="updateReminderTime({ hour: $event })" />
 
           <span class="setting-time-picker-separator" aria-hidden="true">:</span>
 
-          <SettingsDropdownSelect
-            class="setting-time-dropdown"
-            :model-value="reminderTimeParts.minute"
-            :options="MINUTE_OPTIONS"
-            :disabled="isSavingNotification"
-            label="选择写日记提醒分钟"
-            @update:model-value="updateReminderTime({ minute: $event })"
-          />
+          <SettingsDropdownSelect class="setting-time-dropdown" :model-value="reminderTimeParts.minute"
+            :options="MINUTE_OPTIONS" :disabled="isSavingNotification" label="选择写日记提醒分钟"
+            @update:model-value="updateReminderTime({ minute: $event })" />
         </div>
       </div>
 
@@ -244,98 +320,79 @@ function emitSaveEmailNotificationConfiguration() {
 
     <section class="settings-card">
       <div class="panel-heading">
-        <span class="panel-label">邮箱通知</span>
+        <span class="panel-label">邮箱设置</span>
       </div>
-      <p class="panel-description">
-        默认按 QQ 邮箱 SMTP 填好服务器和 SSL 设置，其他邮箱可以手动调整服务器、端口和账号信息。
-      </p>
 
       <div class="settings-grid settings-grid--two-columns">
         <label class="field">
           <span class="field-label field-label--with-tip">
-            SMTP 服务器
-            <SettingsInfoTip text="QQ 邮箱默认使用 smtp.qq.com。其他服务商请填写对应的 SMTP 发送服务器。" />
+            邮箱服务商
+            <SettingsInfoTip text="默认支持 QQ 邮箱，163 邮箱，Gmail 和 Outlook。" />
           </span>
-          <input
-            v-model="draftEmailConfig.smtpHost"
-            class="field-input"
-            type="text"
-            :disabled="isSavingNotification"
-            placeholder="smtp.qq.com"
-          />
+          <SettingsDropdownSelect :model-value="draftEmailConfig.providerType" :options="EMAIL_PROVIDER_OPTIONS"
+            :disabled="isSavingNotification" label="选择邮箱服务商" @update:model-value="handleEmailProviderTypeChange" />
+        </label>
+
+        <label class="field">
+          <span class="field-label field-label--with-tip">
+            加密方式
+            <SettingsInfoTip text="465 端口通常使用 SSL/TLS，587 端口通常使用 STARTTLS；内网 SMTP 才可能使用无加密。" />
+          </span>
+          <SettingsDropdownSelect :model-value="draftEmailConfig.encryption" :options="EMAIL_ENCRYPTION_OPTIONS"
+            :disabled="isSavingNotification" label="选择 SMTP 加密方式" @update:model-value="handleEmailEncryptionChange" />
+        </label>
+
+        <label class="field">
+          <span class="field-label field-label--with-tip">
+            SMTP 服务器
+            <SettingsInfoTip
+              text="QQ 邮箱默认使用 smtp.qq.com，163 使用 smtp.163.com，Gmail 使用 smtp.gmail.com，Outlook 使用 smtp.office365.com。" />
+          </span>
+          <input v-model="draftEmailConfig.smtpHost" class="field-input" type="text" :disabled="isSavingNotification"
+            placeholder="smtp.qq.com" @input="markCustomEmailProvider" />
         </label>
 
         <label class="field">
           <span class="field-label field-label--with-tip">
             SMTP 端口
-            <SettingsInfoTip text="QQ 邮箱 SSL 端口通常为 465，也可按服务商说明使用 587。" />
+            <SettingsInfoTip text="SSL/TLS 常用 465，STARTTLS 常用 587。" />
           </span>
-          <input
-            v-model.number="draftEmailConfig.smtpPort"
-            class="field-input"
-            type="number"
-            min="1"
-            max="65535"
-            step="1"
-            :disabled="isSavingNotification"
-            placeholder="465"
-          />
+          <input v-model.number="draftEmailConfig.smtpPort" class="field-input" type="number" min="1" max="65535"
+            step="1" :disabled="isSavingNotification" placeholder="465" @input="markCustomEmailProvider" />
         </label>
 
         <label class="field">
           <span class="field-label field-label--with-tip">
             发件邮箱
-            <SettingsInfoTip text="用于登录 SMTP 并作为邮件发件地址。QQ 邮箱这里填写完整 QQ 邮箱地址即可。" />
+            <SettingsInfoTip text="登录在本应用的邮箱，用于发送通知。" />
           </span>
-          <input
-            v-model="draftEmailConfig.username"
-            class="field-input"
-            type="email"
-            :disabled="isSavingNotification"
-            placeholder="你的QQ邮箱完整地址"
-          />
+          <input v-model="draftEmailConfig.username" class="field-input" type="email" :disabled="isSavingNotification"
+            placeholder="你的QQ邮箱完整地址" />
         </label>
 
         <label class="field">
-          <span class="field-label">邮箱授权码</span>
-          <input
-            v-model="draftAuthCode"
-            class="field-input"
-            type="password"
-            :disabled="isSavingNotification"
-            :placeholder="authCodePlaceholder"
-          />
+          <span class="field-label">
+            邮箱授权码
+            <SettingsInfoTip text="SMTP 需要使用授权码登录，不支持账号密码，请到邮箱网站中获取，并粘贴于此。" />
+          </span>
+          <input v-model="draftAuthCode" class="field-input" type="password" :disabled="isSavingNotification"
+            :placeholder="authCodePlaceholder" />
         </label>
 
         <label class="field">
-          <span class="field-label">收件邮箱</span>
-          <input
-            v-model="draftEmailConfig.recipientEmail"
-            class="field-input"
-            type="email"
-            :disabled="isSavingNotification"
-            placeholder="接收提醒的邮箱地址"
-          />
+          <span class="field-label">
+            收件邮箱
+            <SettingsInfoTip text="用于接收通知的邮箱，可以和发件邮箱相同，可以正常工作。" />
+          </span>
+          <input v-model="draftEmailConfig.recipientEmail" class="field-input" type="email"
+            :disabled="isSavingNotification" placeholder="接收提醒的邮箱地址" />
         </label>
       </div>
 
-      <SettingsToggleRow
-        title="使用 SSL"
-        description="QQ 邮箱的 465 端口需要开启 SSL。其他邮箱请按服务商说明配置。"
-        :active="draftEmailConfig.secure"
-        :disabled="isSavingNotification"
-        :button-label="draftEmailConfig.secure ? '关闭 SSL' : '开启 SSL'"
-        @toggle="draftEmailConfig.secure = !draftEmailConfig.secure"
-      />
-
       <div class="library-actions">
-        <button
-          class="save-button"
-          type="button"
-          :disabled="!canSaveEmailConfig"
-          @click="emitSaveEmailNotificationConfiguration"
-        >
-          {{ isSavingNotification ? '正在保存' : '保存邮箱配置' }}
+        <button class="save-button" type="button" :disabled="!canSaveEmailConfig"
+          @click="emitSaveEmailNotificationConfiguration">
+          {{ isSavingNotification ? '正在保存' : '保存' }}
         </button>
       </div>
     </section>
