@@ -12,11 +12,13 @@ import type {
   AppBootstrap,
   AppConfig,
   DayStartHourPreferenceInput,
+  EmailNotificationSecretStatus,
   FrontmatterVisibilityInput,
   JournalHeatmapPreferenceInput,
   LaunchOnStartupPreferenceInput,
   NotificationPreferenceInput,
   OpenExternalLinkInput,
+  SaveEmailNotificationAuthCodeInput,
   ThemePreferenceInput,
   WindowCloseBehaviorPreferenceInput,
   WindowDirtyStateInput,
@@ -84,6 +86,10 @@ export interface DairyApi {
   setWindowCloseBehavior: (input: WindowCloseBehaviorPreferenceInput) => Promise<AppConfig>
   setLaunchOnStartupPreference: (input: LaunchOnStartupPreferenceInput) => Promise<AppConfig>
   setNotificationPreference: (input: NotificationPreferenceInput) => Promise<AppConfig>
+  getEmailNotificationStatus: () => Promise<EmailNotificationSecretStatus>
+  saveEmailNotificationAuthCode: (
+    input: SaveEmailNotificationAuthCodeInput,
+  ) => Promise<EmailNotificationSecretStatus>
   setFrontmatterVisibility: (input: FrontmatterVisibilityInput) => Promise<AppConfig>
   getAiSettingsStatus: () => Promise<AiSettingsStatus>
   saveAiSettings: (input: SaveAiSettingsInput) => Promise<AiSettingsStatus>

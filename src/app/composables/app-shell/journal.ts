@@ -174,6 +174,7 @@ export function useAppShellJournal(state: AppShellState) {
       ])
 
       syncConfigState(bootstrap.config)
+      state.emailNotificationStatus.value = bootstrap.emailNotificationStatus
       state.aiSettingsStatus.value = nextAiSettingsStatus
       state.aiContextDocument.value = nextAiContextDocument
       state.selectedDate.value = state.todayText.value

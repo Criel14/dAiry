@@ -12,8 +12,24 @@ export interface FrontmatterVisibilityConfig {
 }
 
 export interface NotificationConfig {
-  enabled: boolean
+  systemEnabled: boolean
+  emailEnabled: boolean
   reminderTime: string
+  email: EmailNotificationConfig
+}
+
+export interface EmailNotificationConfig {
+  smtpHost: string
+  smtpPort: number
+  secure: boolean
+  username: string
+  fromEmail: string
+  recipientEmail: string
+}
+
+export interface EmailNotificationSecretStatus {
+  hasAuthCode: boolean
+  isConfigured: boolean
 }
 
 export interface WindowBoundsConfig {
@@ -51,6 +67,7 @@ export interface AppConfig {
 
 export interface AppBootstrap {
   config: AppConfig
+  emailNotificationStatus: EmailNotificationSecretStatus
 }
 
 export interface JournalHeatmapPreferenceInput {
@@ -82,8 +99,14 @@ export interface LaunchOnStartupPreferenceInput {
 }
 
 export interface NotificationPreferenceInput {
-  enabled: boolean
+  systemEnabled: boolean
+  emailEnabled: boolean
   reminderTime: string
+  email: EmailNotificationConfig
+}
+
+export interface SaveEmailNotificationAuthCodeInput {
+  authCode: string
 }
 
 export interface WindowDirtyStateInput {

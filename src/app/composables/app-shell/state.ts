@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import type { AiContextDocument, AiSettingsStatus } from '../../../types/ai'
 import type {
   AppTheme,
+  EmailNotificationSecretStatus,
   FrontmatterVisibilityConfig,
   NotificationConfig,
   WindowCloseBehavior,
@@ -42,8 +43,24 @@ export function createDefaultAiContextDocument(): AiContextDocument {
 
 export function createDefaultNotificationConfig(): NotificationConfig {
   return {
-    enabled: false,
+    systemEnabled: false,
+    emailEnabled: false,
     reminderTime: '21:30',
+    email: {
+      smtpHost: 'smtp.qq.com',
+      smtpPort: 465,
+      secure: true,
+      username: '',
+      fromEmail: '',
+      recipientEmail: '',
+    },
+  }
+}
+
+export function createDefaultEmailNotificationStatus(): EmailNotificationSecretStatus {
+  return {
+    hasAuthCode: false,
+    isConfigured: false,
   }
 }
 
@@ -181,6 +198,9 @@ export function useAppShellState() {
   const windowCloseBehavior = ref<WindowCloseBehavior>('tray')
   const launchOnStartupEnabled = ref(createDefaultLaunchOnStartupPreference())
   const notification = ref<NotificationConfig>(createDefaultNotificationConfig())
+  const emailNotificationStatus = ref<EmailNotificationSecretStatus>(
+    createDefaultEmailNotificationStatus(),
+  )
   const frontmatterVisibility = ref<FrontmatterVisibilityConfig>(
     createDefaultFrontmatterVisibility(),
   )
@@ -282,6 +302,7 @@ export function useAppShellState() {
     dayStartHourSaveMessage,
     editorContent,
     editorMode,
+    emailNotificationStatus,
     frontmatter,
     frontmatterVisibility,
     frontmatterVisibilitySaveMessage,

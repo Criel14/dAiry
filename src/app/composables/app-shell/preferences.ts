@@ -14,6 +14,22 @@ interface AppShellPreferenceDeps {
   syncConfigState: (config: AppConfig) => void
 }
 
+function cloneNotificationConfig(config: NotificationConfig): NotificationConfig {
+  return {
+    systemEnabled: config.systemEnabled,
+    emailEnabled: config.emailEnabled,
+    reminderTime: config.reminderTime,
+    email: {
+      smtpHost: config.email.smtpHost,
+      smtpPort: config.email.smtpPort,
+      secure: config.email.secure,
+      username: config.email.username,
+      fromEmail: config.email.fromEmail,
+      recipientEmail: config.email.recipientEmail,
+    },
+  }
+}
+
 export function useAppShellPreferences(
   state: AppShellState,
   deps: AppShellPreferenceDeps,
@@ -141,7 +157,9 @@ export function useAppShellPreferences(
     state.notificationSaveMessage.value = ''
 
     try {
-      const nextConfig = await window.dairy.setNotificationPreference(nextNotification)
+      const nextConfig = await window.dairy.setNotificationPreference(
+        cloneNotificationConfig(nextNotification),
+      )
       deps.syncConfigState(nextConfig)
       state.notificationSaveMessage.value = successMessage
     } catch (error) {
@@ -152,13 +170,23 @@ export function useAppShellPreferences(
     }
   }
 
-  async function handleUpdateNotificationEnabled(nextValue: boolean) {
+  async function handleUpdateSystemNotificationEnabled(nextValue: boolean) {
     await saveNotificationPreference(
       {
         ...state.notification.value,
-        enabled: nextValue,
+        systemEnabled: nextValue,
       },
-      nextValue ? '写日记提醒已开启。' : '写日记提醒已关闭。',
+      nextValue ? '系统提醒通知已开启。' : '系统提醒通知已关闭。',
+    )
+  }
+
+  async function handleUpdateEmailNotificationEnabled(nextValue: boolean) {
+    await saveNotificationPreference(
+      {
+        ...state.notification.value,
+        emailEnabled: nextValue,
+      },
+      nextValue ? '邮箱通知已开启。' : '邮箱通知已关闭。',
     )
   }
 
@@ -170,6 +198,45 @@ export function useAppShellPreferences(
       },
       '写日记提醒时间已保存。',
     )
+  }
+
+  async function handleSaveEmailNotificationConfiguration(input: {
+    email: NotificationConfig['email']
+    authCode: string
+  }) {
+    state.isSavingNotification.value = true
+    state.notificationSaveMessage.value = ''
+
+    try {
+      const nextConfig = await window.dairy.setNotificationPreference({
+        ...cloneNotificationConfig(state.notification.value),
+        email: {
+          smtpHost: input.email.smtpHost,
+          smtpPort: input.email.smtpPort,
+          secure: input.email.secure,
+          username: input.email.username,
+          fromEmail: input.email.fromEmail,
+          recipientEmail: input.email.recipientEmail,
+        },
+      })
+
+      deps.syncConfigState(nextConfig)
+
+      if (input.authCode.trim()) {
+        state.emailNotificationStatus.value = await window.dairy.saveEmailNotificationAuthCode({
+          authCode: input.authCode,
+        })
+      } else {
+        state.emailNotificationStatus.value = await window.dairy.getEmailNotificationStatus()
+      }
+
+      state.notificationSaveMessage.value = '邮箱通知配置已保存。'
+    } catch (error) {
+      state.notificationSaveMessage.value =
+        error instanceof Error ? error.message : '保存邮箱通知配置失败，请稍后重试。'
+    } finally {
+      state.isSavingNotification.value = false
+    }
   }
 
   async function handleUpdateWindowCloseBehavior(nextValue: WindowCloseBehavior) {
@@ -260,11 +327,13 @@ export function useAppShellPreferences(
 
   return {
     handleSaveWorkspaceLibraries,
+    handleSaveEmailNotificationConfiguration,
     handleUpdateDayStartHour,
+    handleUpdateEmailNotificationEnabled,
     handleUpdateFrontmatterVisibility,
     handleUpdateJournalHeatmapEnabled,
     handleUpdateLaunchOnStartupEnabled,
-    handleUpdateNotificationEnabled,
+    handleUpdateSystemNotificationEnabled,
     handleUpdateNotificationReminderTime,
     handleUpdateTheme,
     handleUpdateWindowCloseBehavior,

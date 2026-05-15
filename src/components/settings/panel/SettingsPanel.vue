@@ -4,6 +4,8 @@ import packageJson from '../../../../package.json'
 import type { AiContextDocument, AiSettings, AiSettingsStatus } from '../../../types/ai'
 import type {
   AppTheme,
+  EmailNotificationConfig,
+  EmailNotificationSecretStatus,
   FrontmatterVisibilityConfig,
   NotificationConfig,
   WindowCloseBehavior,
@@ -42,8 +44,11 @@ const props = defineProps<{
   launchOnStartupEnabled: boolean
   isSavingLaunchOnStartup: boolean
   launchOnStartupSaveMessage: string
-  notificationEnabled: NotificationConfig['enabled']
+  systemNotificationEnabled: NotificationConfig['systemEnabled']
+  emailNotificationEnabled: NotificationConfig['emailEnabled']
   notificationReminderTime: NotificationConfig['reminderTime']
+  emailNotificationConfig: EmailNotificationConfig
+  emailNotificationStatus: EmailNotificationSecretStatus
   isSavingNotification: boolean
   notificationSaveMessage: string
   frontmatterVisibility: FrontmatterVisibilityConfig
@@ -70,8 +75,15 @@ const emit = defineEmits<{
   'update:dayStartHour': [value: number]
   'update:windowCloseBehavior': [value: WindowCloseBehavior]
   'update:launchOnStartupEnabled': [value: boolean]
-  'update:notificationEnabled': [value: boolean]
+  'update:systemNotificationEnabled': [value: boolean]
+  'update:emailNotificationEnabled': [value: boolean]
   'update:notificationReminderTime': [value: string]
+  saveEmailNotificationConfiguration: [
+    value: {
+      email: EmailNotificationConfig
+      authCode: string
+    },
+  ]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
   saveWorkspaceLibraries: [
     value: {
@@ -155,13 +167,18 @@ function openDebugPanel() {
 
       <SettingsNotificationSection
         v-else-if="activeSectionId === 'notifications'"
-        :notification-enabled="props.notificationEnabled"
+        :system-notification-enabled="props.systemNotificationEnabled"
+        :email-notification-enabled="props.emailNotificationEnabled"
         :notification-reminder-time="props.notificationReminderTime"
+        :email-notification-config="props.emailNotificationConfig"
+        :email-notification-status="props.emailNotificationStatus"
         :is-saving-notification="props.isSavingNotification"
         :notification-save-message="props.notificationSaveMessage"
         :window-close-behavior="props.windowCloseBehavior"
-        @update:notification-enabled="emit('update:notificationEnabled', $event)"
+        @update:system-notification-enabled="emit('update:systemNotificationEnabled', $event)"
+        @update:email-notification-enabled="emit('update:emailNotificationEnabled', $event)"
         @update:notification-reminder-time="emit('update:notificationReminderTime', $event)"
+        @save-email-notification-configuration="emit('saveEmailNotificationConfiguration', $event)"
       />
 
       <SettingsShortcutsSection

@@ -6,12 +6,19 @@ import type {
   AiSettingsStatus,
   SaveAiApiKeyInput,
 } from '../../src/types/ai'
+import type {
+  EmailNotificationSecretStatus,
+  SaveEmailNotificationAuthCodeInput,
+} from '../../src/types/app'
 import { readAppConfig } from './app-config'
 
 interface SecretsFile {
   ai?: {
     providerType?: AiProviderType
     encryptedApiKey?: string
+  }
+  emailNotification?: {
+    encryptedAuthCode?: string
   }
 }
 
@@ -35,6 +42,10 @@ function normalizeSecretsFile(rawValue: unknown): SecretsFile {
 
   const encryptedApiKey =
     typeof value.ai?.encryptedApiKey === 'string' ? value.ai.encryptedApiKey : undefined
+  const encryptedEmailAuthCode =
+    typeof value.emailNotification?.encryptedAuthCode === 'string'
+      ? value.emailNotification.encryptedAuthCode
+      : undefined
 
   return {
     ai:
@@ -44,6 +55,11 @@ function normalizeSecretsFile(rawValue: unknown): SecretsFile {
             encryptedApiKey,
           }
         : undefined,
+    emailNotification: encryptedEmailAuthCode
+      ? {
+          encryptedAuthCode: encryptedEmailAuthCode,
+        }
+      : undefined,
   }
 }
 
@@ -67,7 +83,7 @@ async function writeSecretsFile(data: SecretsFile) {
 
 function ensureSafeStorageAvailable() {
   if (!safeStorage.isEncryptionAvailable()) {
-    throw new Error('当前系统环境暂不支持安全加密存储 API Key。')
+    throw new Error('当前系统环境暂不支持安全加密存储敏感信息。')
   }
 }
 
@@ -101,13 +117,60 @@ export async function readAiApiKey(providerType: AiProviderType) {
   }
 }
 
+export async function hasEmailNotificationAuthCode() {
+  const secrets = await readSecretsFile()
+
+  return Boolean(
+    typeof secrets.emailNotification?.encryptedAuthCode === 'string' &&
+      secrets.emailNotification.encryptedAuthCode.trim(),
+  )
+}
+
+export async function readEmailNotificationAuthCode() {
+  const secrets = await readSecretsFile()
+
+  if (!secrets.emailNotification?.encryptedAuthCode?.trim()) {
+    return null
+  }
+
+  ensureSafeStorageAvailable()
+
+  try {
+    return safeStorage.decryptString(
+      Buffer.from(secrets.emailNotification.encryptedAuthCode, 'base64'),
+    )
+  } catch {
+    throw new Error('读取邮箱授权码失败，密钥可能已损坏，请重新保存。')
+  }
+}
+
+export async function getEmailNotificationStatus(): Promise<EmailNotificationSecretStatus> {
+  const config = await readAppConfig()
+  const hasAuthCode = await hasEmailNotificationAuthCode()
+  const emailConfig = config.ui.notification.email
+
+  return {
+    hasAuthCode,
+    isConfigured: Boolean(
+      emailConfig.smtpHost &&
+        emailConfig.smtpPort &&
+        emailConfig.username &&
+        emailConfig.fromEmail &&
+        emailConfig.recipientEmail &&
+        hasAuthCode,
+    ),
+  }
+}
+
 export async function saveAiApiKey(input: SaveAiApiKeyInput): Promise<AiSettingsStatus> {
   const apiKey = input.apiKey.trim()
+  const currentSecrets = await readSecretsFile()
 
   if (apiKey) {
     ensureSafeStorageAvailable()
 
     await writeSecretsFile({
+      ...currentSecrets,
       ai: {
         providerType: input.providerType,
         encryptedApiKey: safeStorage.encryptString(apiKey).toString('base64'),
@@ -115,6 +178,7 @@ export async function saveAiApiKey(input: SaveAiApiKeyInput): Promise<AiSettings
     })
   } else {
     await writeSecretsFile({
+      ...currentSecrets,
       ai: {
         providerType: input.providerType,
       },
@@ -129,4 +193,29 @@ export async function saveAiApiKey(input: SaveAiApiKeyInput): Promise<AiSettings
     hasApiKey,
     isConfigured: Boolean(config.ai.baseURL && config.ai.model && hasApiKey),
   }
+}
+
+export async function saveEmailNotificationAuthCode(
+  input: SaveEmailNotificationAuthCodeInput,
+): Promise<EmailNotificationSecretStatus> {
+  const authCode = input.authCode.trim()
+  const currentSecrets = await readSecretsFile()
+
+  if (authCode) {
+    ensureSafeStorageAvailable()
+
+    await writeSecretsFile({
+      ...currentSecrets,
+      emailNotification: {
+        encryptedAuthCode: safeStorage.encryptString(authCode).toString('base64'),
+      },
+    })
+  } else {
+    await writeSecretsFile({
+      ...currentSecrets,
+      emailNotification: undefined,
+    })
+  }
+
+  return getEmailNotificationStatus()
 }

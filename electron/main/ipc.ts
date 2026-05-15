@@ -13,6 +13,7 @@ import type {
   LaunchOnStartupPreferenceInput,
   NotificationPreferenceInput,
   OpenExternalLinkInput,
+  SaveEmailNotificationAuthCodeInput,
   ThemePreferenceInput,
   WindowCloseBehaviorPreferenceInput,
   WindowDirtyStateInput,
@@ -50,7 +51,11 @@ import {
 } from './app-config'
 import { getAiSettingsStatus, saveAiSettings } from './ai-config'
 import { getAiContextDocument, saveAiContext } from './ai-context'
-import { saveAiApiKey } from './ai-secrets'
+import {
+  getEmailNotificationStatus,
+  saveAiApiKey,
+  saveEmailNotificationAuthCode,
+} from './ai-secrets'
 import { generateDailyInsights } from './ai'
 import { IPC_CHANNELS } from './constants'
 import {
@@ -88,7 +93,8 @@ import {
 export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.getBootstrap, async (): Promise<AppBootstrap> => {
     const config = await readAppConfig()
-    return { config }
+    const emailNotificationStatus = await getEmailNotificationStatus()
+    return { config, emailNotificationStatus }
   })
 
   ipcMain.handle(IPC_CHANNELS.getThemePreference, async () => {
@@ -160,6 +166,17 @@ export function registerIpcHandlers() {
       const nextConfig = await setNotificationPreference(input)
       configureDiaryReminder(nextConfig.ui.notification)
       return nextConfig
+    },
+  )
+
+  ipcMain.handle(IPC_CHANNELS.getEmailNotificationStatus, () => {
+    return getEmailNotificationStatus()
+  })
+
+  ipcMain.handle(
+    IPC_CHANNELS.saveEmailNotificationAuthCode,
+    (_event, input: SaveEmailNotificationAuthCodeInput) => {
+      return saveEmailNotificationAuthCode(input)
     },
   )
 

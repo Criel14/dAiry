@@ -76,6 +76,9 @@ const dairyApi: DairyApi = {
   setLaunchOnStartupPreference: (input) =>
     ipcRenderer.invoke('app:set-launch-on-startup-preference', input),
   setNotificationPreference: (input) => ipcRenderer.invoke('app:set-notification-preference', input),
+  getEmailNotificationStatus: () => ipcRenderer.invoke('app:get-email-notification-status'),
+  saveEmailNotificationAuthCode: (input) =>
+    ipcRenderer.invoke('app:save-email-notification-auth-code', input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
   setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),
   openExternalLink: (input) => ipcRenderer.invoke('app:open-external-link', input),

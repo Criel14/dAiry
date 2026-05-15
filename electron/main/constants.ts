@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AiSettings } from '../../src/types/ai'
-import type { AppConfig, NotificationConfig } from '../../src/types/app'
+import type { AppConfig, EmailNotificationConfig, NotificationConfig } from '../../src/types/app'
 import type { JournalEntryMetadata } from '../../src/types/journal'
 import { DEFAULT_WINDOW_ZOOM_FACTOR } from '../../src/shared/window-zoom'
 
@@ -39,6 +39,8 @@ export const IPC_CHANNELS = {
   setWindowCloseBehavior: 'app:set-window-close-behavior',
   setLaunchOnStartupPreference: 'app:set-launch-on-startup-preference',
   setNotificationPreference: 'app:set-notification-preference',
+  getEmailNotificationStatus: 'app:get-email-notification-status',
+  saveEmailNotificationAuthCode: 'app:save-email-notification-auth-code',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
   openExternalLink: 'app:open-external-link',
@@ -72,9 +74,20 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   timeoutMs: 30_000,
 }
 
+export const DEFAULT_EMAIL_NOTIFICATION_CONFIG: EmailNotificationConfig = {
+  smtpHost: 'smtp.qq.com',
+  smtpPort: 465,
+  secure: true,
+  username: '',
+  fromEmail: '',
+  recipientEmail: '',
+}
+
 export const DEFAULT_NOTIFICATION_CONFIG: NotificationConfig = {
-  enabled: false,
+  systemEnabled: false,
+  emailEnabled: false,
   reminderTime: '21:30',
+  email: DEFAULT_EMAIL_NOTIFICATION_CONFIG,
 }
 
 export const DEFAULT_APP_CONFIG: AppConfig = {

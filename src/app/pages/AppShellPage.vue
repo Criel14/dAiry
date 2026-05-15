@@ -25,9 +25,11 @@ const {
   dayStartHourSaveMessage,
   editorContent,
   editorMode,
+  emailNotificationStatus,
   frontmatter,
   frontmatterVisibility,
   frontmatterVisibilitySaveMessage,
+  handleSaveEmailNotificationConfiguration,
   handleUpdateWindowCloseBehavior,
   handleChooseWorkspace,
   handleCreateEntry,
@@ -40,9 +42,10 @@ const {
   handleSaveWorkspaceLibraries,
   handleSelectDate,
   handleShiftSelectedDate,
+  handleUpdateEmailNotificationEnabled,
   handleUpdateLaunchOnStartupEnabled,
-  handleUpdateNotificationEnabled,
   handleUpdateNotificationReminderTime,
+  handleUpdateSystemNotificationEnabled,
   handleUpdateTheme,
   handleUpdateDayStartHour,
   handleUpdateFrontmatterVisibility,
@@ -216,8 +219,11 @@ const {
         :launch-on-startup-enabled="launchOnStartupEnabled"
         :is-saving-launch-on-startup="isSavingLaunchOnStartup"
         :launch-on-startup-save-message="launchOnStartupSaveMessage"
-        :notification-enabled="notification.enabled"
+        :system-notification-enabled="notification.systemEnabled"
+        :email-notification-enabled="notification.emailEnabled"
         :notification-reminder-time="notification.reminderTime"
+        :email-notification-config="notification.email"
+        :email-notification-status="emailNotificationStatus"
         :is-saving-notification="isSavingNotification"
         :notification-save-message="notificationSaveMessage"
         :frontmatter-visibility="frontmatterVisibility"
@@ -241,8 +247,10 @@ const {
         @update:day-start-hour="handleUpdateDayStartHour"
         @update:window-close-behavior="handleUpdateWindowCloseBehavior"
         @update:launch-on-startup-enabled="handleUpdateLaunchOnStartupEnabled"
-        @update:notification-enabled="handleUpdateNotificationEnabled"
+        @update:system-notification-enabled="handleUpdateSystemNotificationEnabled"
+        @update:email-notification-enabled="handleUpdateEmailNotificationEnabled"
         @update:notification-reminder-time="handleUpdateNotificationReminderTime"
+        @save-email-notification-configuration="handleSaveEmailNotificationConfiguration"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
         @save-ai-configuration="handleSaveAiConfiguration"

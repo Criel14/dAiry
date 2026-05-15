@@ -22,6 +22,7 @@ import type {
 import {
   DEFAULT_AI_SETTINGS,
   DEFAULT_APP_CONFIG,
+  DEFAULT_EMAIL_NOTIFICATION_CONFIG,
   DEFAULT_NOTIFICATION_CONFIG,
 } from './constants'
 import { normalizeWindowZoomFactor } from '../../src/shared/window-zoom'
@@ -69,6 +70,55 @@ function normalizeNotificationReminderTime(rawValue: unknown) {
   return /^([01]\d|2[0-3]):([0-5]\d)$/.test(normalizedValue)
     ? normalizedValue
     : DEFAULT_NOTIFICATION_CONFIG.reminderTime
+}
+
+function normalizeEmailAddress(rawValue: unknown) {
+  if (typeof rawValue !== 'string') {
+    return ''
+  }
+
+  const normalizedValue = rawValue.trim()
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedValue) ? normalizedValue : ''
+}
+
+function normalizeSmtpHost(rawValue: unknown) {
+  if (typeof rawValue !== 'string') {
+    return DEFAULT_EMAIL_NOTIFICATION_CONFIG.smtpHost
+  }
+
+  const normalizedValue = rawValue.trim()
+  return normalizedValue || DEFAULT_EMAIL_NOTIFICATION_CONFIG.smtpHost
+}
+
+function normalizeSmtpPort(rawValue: unknown) {
+  if (typeof rawValue !== 'number' || !Number.isInteger(rawValue)) {
+    return DEFAULT_EMAIL_NOTIFICATION_CONFIG.smtpPort
+  }
+
+  if (rawValue < 1 || rawValue > 65535) {
+    return DEFAULT_EMAIL_NOTIFICATION_CONFIG.smtpPort
+  }
+
+  return rawValue
+}
+
+function normalizeEmailNotificationConfig(
+  rawValue: NotificationConfig['email'] | null | undefined,
+): NotificationConfig['email'] {
+  const username = normalizeEmailAddress(rawValue?.username)
+  const fromEmail = normalizeEmailAddress(rawValue?.fromEmail)
+
+  return {
+    smtpHost: normalizeSmtpHost(rawValue?.smtpHost),
+    smtpPort: normalizeSmtpPort(rawValue?.smtpPort),
+    secure:
+      typeof rawValue?.secure === 'boolean'
+        ? rawValue.secure
+        : DEFAULT_EMAIL_NOTIFICATION_CONFIG.secure,
+    username,
+    fromEmail: fromEmail || username,
+    recipientEmail: normalizeEmailAddress(rawValue?.recipientEmail),
+  }
 }
 
 function normalizeTimeoutMs(rawValue: unknown) {
@@ -128,11 +178,16 @@ function normalizeFrontmatterVisibility(
 }
 
 function normalizeNotificationConfig(
-  rawValue: Partial<NotificationConfig> | null | undefined,
+  rawValue: (Partial<NotificationConfig> & { enabled?: unknown }) | null | undefined,
 ): NotificationConfig {
+  const legacyEnabled = rawValue?.enabled === true
+
   return {
-    enabled: rawValue?.enabled === true,
+    systemEnabled:
+      typeof rawValue?.systemEnabled === 'boolean' ? rawValue.systemEnabled : legacyEnabled,
+    emailEnabled: rawValue?.emailEnabled === true,
     reminderTime: normalizeNotificationReminderTime(rawValue?.reminderTime),
+    email: normalizeEmailNotificationConfig(rawValue?.email),
   }
 }
 
