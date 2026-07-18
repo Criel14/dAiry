@@ -13,8 +13,18 @@ import {
 } from '../workspace/paths'
 import { readWorkspaceConfig, updateWorkspaceConfig } from '../workspace/config'
 
-const PROFILE_AI_TEMPERATURE = 0.3
+export const PROFILE_AI_TEMPERATURE = 0.3
 const MAX_ENTRY_BODY_LENGTH = 2200
+
+let isRebuildRunning = false
+
+export function setProfileRebuildRunning(value: boolean) {
+  isRebuildRunning = value
+}
+
+export function isProfileRebuildRunning() {
+  return isRebuildRunning
+}
 
 interface ProfileMaintenanceInput {
   workspacePath: string
@@ -47,7 +57,7 @@ export async function writeUserProfile(workspacePath: string, content: string): 
 }
 
 // AI 可能用代码围栏包裹整份画像，写盘前剥掉
-function normalizeProfileMarkdown(responseText: string) {
+export function normalizeProfileMarkdown(responseText: string) {
   const trimmedText = responseText.trim()
   const fencedMatch = trimmedText.match(/^```[A-Za-z]*\r?\n([\s\S]*?)\r?\n```$/)
   return (fencedMatch ? fencedMatch[1] : trimmedText).trim()
@@ -161,7 +171,7 @@ async function collectRangeEntries(
   return entries.filter((entry) => entry.body || entry.summary.trim())
 }
 
-async function createProfileAiClient(settings: AiSettings): Promise<AiChatClient | null> {
+export async function createProfileAiClient(settings: AiSettings): Promise<AiChatClient | null> {
   if (!settings.baseURL || !settings.model) {
     return null
   }
@@ -281,6 +291,10 @@ export async function shouldRunFullRefresh(
 // 自动整理成功后的画像维护总入口：任何失败只告警，不向上抛
 export async function runProfileMaintenance(input: ProfileMaintenanceInput): Promise<void> {
   try {
+    if (isProfileRebuildRunning()) {
+      return
+    }
+
     if (!input.workspacePath.trim() || !input.body.trim()) {
       return
     }
