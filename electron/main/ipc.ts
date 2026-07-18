@@ -49,13 +49,13 @@ import {
   setWindowCloseBehavior,
   writeAppConfig,
 } from './app-config'
-import { getAiSettingsStatus, saveAiSettings } from './ai-config'
-import { getAiContextDocument, saveAiContext } from './ai-context'
+import { getAiSettingsStatus, saveAiSettings } from './ai/config'
+import { getAiContextDocument, saveAiContext } from './ai/context'
 import {
   getEmailNotificationStatus,
   saveAiApiKey,
   saveEmailNotificationAuthCode,
-} from './ai-secrets'
+} from './secrets'
 import { generateDailyInsights } from './ai'
 import { IPC_CHANNELS } from './constants'
 import {

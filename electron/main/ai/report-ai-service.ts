@@ -6,8 +6,8 @@ import type {
   ReportSummaryTimeAnchor,
 } from '../../../src/types/report'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
-import { readAiContext } from '../ai-context'
-import { readAiApiKey } from '../ai-secrets'
+import { readAiContext } from './context'
+import { readAiApiKey } from '../secrets'
 import { createAiChatClient } from './provider-factory'
 import { loadPrompt } from './prompt-loader'
 

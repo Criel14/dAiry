@@ -1,6 +1,6 @@
-import type { AiSettingsStatus, SaveAiSettingsInput } from '../../src/types/ai'
-import { readAppConfig, setAiSettings } from './app-config'
-import { hasAiApiKey } from './ai-secrets'
+import type { AiSettingsStatus, SaveAiSettingsInput } from '../../../src/types/ai'
+import { readAppConfig, setAiSettings } from '../app-config'
+import { hasAiApiKey } from '../secrets'
 
 export async function getAiSettingsStatus(): Promise<AiSettingsStatus> {
   const config = await readAppConfig()

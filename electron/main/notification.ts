@@ -2,7 +2,7 @@ import { Notification } from 'electron'
 import nodemailer from 'nodemailer'
 import type { NotificationConfig } from '../../src/types/app'
 import { APP_ICON_PATH, DEFAULT_NOTIFICATION_CONFIG } from './constants'
-import { readEmailNotificationAuthCode } from './ai-secrets'
+import { readEmailNotificationAuthCode } from './secrets'
 import { canSendDiaryReminder, navigateMainPanel } from './window'
 
 let reminderTimer: NodeJS.Timeout | null = null
