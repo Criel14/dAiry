@@ -97,6 +97,7 @@ workspace/
     tags.json
     weather.json
     locations.json
+    user-profile.md
 ```
 
 当前 Frontmatter 约定：
@@ -145,6 +146,8 @@ AI 约束：
 - 结果先给用户确认，再决定是否写回
 - “自动整理”当前不会自动落盘
 - 生成区间报告时，允许补做缺失的日级 insight，但只写入本次报告 JSON，不回写原始 Markdown
+- 日总结会附带最近 N 天（`config.json` 的 `ai.dailyContextDays`）的日记摘要作为上下文
+- AI 自动维护 `<workspace>/.dairy/user-profile.md` 用户画像：仅在用户点击“自动整理”成功后异步触发（日更 + 每隔 `ai.profileRefreshIntervalDays` 天全量刷新，刷新时间戳存 `workspace.json` 的 `lastProfileRefresh`）；画像对前端透明，不暴露查看入口；画像失败只记日志，绝不影响日总结返回；报告链路补做 insight 不触发画像
 
 Git 约束：
 
