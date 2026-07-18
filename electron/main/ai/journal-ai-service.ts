@@ -1,13 +1,15 @@
+import dayjs from 'dayjs'
 import type {
   GenerateDailyInsightsInput,
   GenerateDailyInsightsResult,
+  RecentDaySummary,
 } from '../../../src/types/ai'
 import { normalizeAiSettings } from '../app-config'
-import { assertValidDate } from '../workspace/paths'
+import { assertValidDate, resolveJournalEntryFilePath } from '../workspace/paths'
 import { readAppConfig } from '../app-config'
 import { readAiContext } from './context'
 import { readAiApiKey } from '../secrets'
-import { normalizeStringList } from '../journal/document'
+import { normalizeStringList, readJournalDocument } from '../journal/document'
 import { createAiChatClient } from './provider-factory'
 import { loadPrompt } from './prompt-loader'
 
@@ -25,6 +27,7 @@ interface EnsureDailyInsightsInput extends GenerateDailyInsightsInput {
 
 interface DailyInsightsPromptInput extends GenerateDailyInsightsInput {
   aiContext: string
+  recentSummaries: RecentDaySummary[]
 }
 
 function extractJsonObject(text: string) {
@@ -112,6 +115,7 @@ function buildDailyInsightsPrompt(input: DailyInsightsPromptInput) {
   return [
     `业务日期：${input.date}`,
     `当前工作区已有标签：${workspaceTags}`,
+    buildRecentSummariesBlock(input.recentSummaries),
     buildAiContextPromptBlock(input.aiContext),
     '当日日记正文：',
     body,
@@ -130,6 +134,69 @@ function buildAiContextPromptBlock(aiContext: string) {
     '你在整理和总结时，可以参考以下补充知识。',
     '这些内容用于帮助你理解用户的长期背景、固定术语和偏好；如果与当天日记事实冲突，以当天日记为准。',
     normalizedContext,
+  ].join('\n')
+}
+
+export async function getRecentDailySummaries(
+  workspacePath: string,
+  date: string,
+  days: number,
+): Promise<RecentDaySummary[]> {
+  assertValidDate(date)
+  const summaries: RecentDaySummary[] = []
+
+  for (let offset = days; offset >= 1; offset -= 1) {
+    const targetDate = dayjs(date).subtract(offset, 'day').format('YYYY-MM-DD')
+
+    try {
+      const document = await readJournalDocument(
+        resolveJournalEntryFilePath(workspacePath, targetDate),
+      )
+      const { summary, tags, mood } = document.frontmatter
+
+      if (!summary.trim() && tags.length === 0) {
+        continue
+      }
+
+      summaries.push({
+        date: targetDate,
+        summary: summary.trim(),
+        tags,
+        mood,
+      })
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        continue
+      }
+
+      throw error
+    }
+  }
+
+  return summaries
+}
+
+function buildRecentSummariesBlock(recentSummaries: RecentDaySummary[]) {
+  if (recentSummaries.length === 0) {
+    return ''
+  }
+
+  const summaryLines = recentSummaries.map((item) => {
+    const parts = [
+      `摘要: ${item.summary || '（无）'}`,
+      `心情: ${item.mood}`,
+    ]
+
+    if (item.tags.length > 0) {
+      parts.push(`标签: ${item.tags.join('、')}`)
+    }
+
+    return `- ${item.date}: ${parts.join('  |  ')}`
+  })
+
+  return [
+    '以下是最近几天的日记摘要，仅用于帮助你理解近期上下文；总结、标签与心情仍必须以当日正文为准。',
+    ...summaryLines,
   ].join('\n')
 }
 
@@ -172,11 +239,17 @@ export async function generateDailyInsights(
     throw new Error('请先在设置页保存当前 provider 的 API Key。')
   }
 
+  const recentSummaries = await getRecentDailySummaries(
+    input.workspacePath,
+    input.date,
+    settings.dailyContextDays,
+  )
+
   const client = createAiChatClient(settings, apiKey)
   const responseText = await client.completeJson({
     messages: [
       { role: 'system', content: systemPrompt },
-      { role: 'user', content: buildDailyInsightsPrompt({ ...input, aiContext }) },
+      { role: 'user', content: buildDailyInsightsPrompt({ ...input, aiContext, recentSummaries }) },
     ],
   })
 
