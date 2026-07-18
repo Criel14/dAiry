@@ -155,8 +155,14 @@ function normalizeEmailNotificationConfig(
   }
 }
 
+const MIN_TIMEOUT_MS = 10_000
+const MAX_TIMEOUT_MS = 300_000
+
 function normalizeTimeoutMs(rawValue: unknown) {
-  void rawValue
+  if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+    return Math.min(MAX_TIMEOUT_MS, Math.max(MIN_TIMEOUT_MS, Math.round(rawValue)))
+  }
+
   return DEFAULT_AI_SETTINGS.timeoutMs
 }
 
