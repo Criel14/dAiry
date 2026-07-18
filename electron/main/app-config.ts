@@ -418,6 +418,7 @@ export function getDefaultAiSettings(
     default:
       return {
         ...DEFAULT_AI_SETTINGS,
+        providerType,
       }
   }
 }
