@@ -87,7 +87,7 @@ export function useAppShellAi(state: AppShellState) {
 
     try {
       const result = await window.dairy.rebuildUserProfile({
-        workspacePath: `${state.workspacePath.value}`,
+        workspacePath: state.workspacePath.value,
       })
 
       state.profileRebuildMessage.value =
@@ -97,7 +97,7 @@ export function useAppShellAi(state: AppShellState) {
     } catch (error) {
       state.profileRebuildMessage.value = `${
         error instanceof Error ? error.message : '画像整理失败，请稍后重试。'
-      }现有画像未受影响。`
+      } 现有画像未受影响。`
     } finally {
       state.isRebuildingProfile.value = false
       state.isCancellingProfileRebuild.value = false
