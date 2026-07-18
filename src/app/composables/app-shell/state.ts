@@ -170,6 +170,7 @@ export function useAppShellState() {
   const theme = ref<AppTheme>('system')
   const windowZoomFactor = ref(1)
   const dayStartHour = ref(0)
+  const timeTick = ref(0)
   const windowCloseBehavior = ref<WindowCloseBehavior>('tray')
   const launchOnStartupEnabled = ref(createDefaultLaunchOnStartupPreference())
   const notification = ref<NotificationConfig>(createDefaultNotificationConfig())
@@ -186,7 +187,10 @@ export function useAppShellState() {
   const isReportExportMode =
     new URLSearchParams(window.location.search).get('mode') === 'report-export'
 
-  const todayText = computed(() => getJournalDateText(dayStartHour.value))
+  const todayText = computed(() => {
+    void timeTick.value
+    return getJournalDateText(dayStartHour.value)
+  })
   const selectedDateText = computed(() =>
     dayjs(selectedDate.value).format('YYYY 年 M 月 D 日 dddd'),
   )
@@ -201,6 +205,11 @@ export function useAppShellState() {
       metadataToSnapshot(metadataDraft.value) !== savedMetadataSnapshot.value,
   )
   const isDirty = computed(() => isBodyDirty.value || isMetadataDirty.value)
+
+  function updateTimeTick() {
+    timeTick.value++
+  }
+
   const canCreateEntry = computed(
     () =>
       hasWorkspace.value &&
@@ -324,6 +333,7 @@ export function useAppShellState() {
     theme,
     themeSaveMessage,
     todayText,
+    updateTimeTick,
     viewState,
     windowCloseBehavior,
     windowCloseBehaviorSaveMessage,

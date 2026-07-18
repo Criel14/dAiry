@@ -1,4 +1,5 @@
 import { onBeforeUnmount, onMounted, watch } from 'vue'
+import dayjs from 'dayjs'
 import type { EditorMode } from '../../types/ui'
 import { useReportsPanel } from '../../components/report/composables/useReportsPanel'
 import { applyThemePreference, observeSystemThemeChange } from '../../shared/theme/apply'
@@ -22,6 +23,7 @@ export function useAppShell() {
   let removeMainPanelNavigationListener: (() => void) | null = null
   let removeProfileRebuildProgressListener: (() => void) | null = null
   let removeSystemThemeListener: (() => void) | null = null
+  let boundaryTimer: ReturnType<typeof setTimeout> | null = null
 
   watch(
     state.isDirty,
@@ -42,6 +44,50 @@ export function useAppShell() {
     },
     { immediate: true },
   )
+
+  function computeNextBoundary() {
+    const now = dayjs()
+    const todayBoundary = now.startOf('day').add(state.dayStartHour.value, 'hour')
+    if (now.isBefore(todayBoundary)) {
+      return todayBoundary.valueOf()
+    }
+    return todayBoundary.add(1, 'day').valueOf()
+  }
+
+  function clearBoundaryTimer() {
+    if (boundaryTimer !== null) {
+      clearTimeout(boundaryTimer)
+      boundaryTimer = null
+    }
+  }
+
+  function scheduleDayBoundary() {
+    clearBoundaryTimer()
+    const targetMs = computeNextBoundary()
+    const delay = Math.max(0, targetMs - Date.now())
+    boundaryTimer = setTimeout(() => {
+      const wasOnToday = state.isSelectedDateToday.value
+      state.updateTimeTick()
+      if (wasOnToday) {
+        state.selectedDate.value = state.todayText.value
+      }
+      scheduleDayBoundary()
+    }, delay)
+  }
+
+  function handleVisibilityChange() {
+    if (document.visibilityState !== 'visible') return
+    const wasOnToday = state.isSelectedDateToday.value
+    state.updateTimeTick()
+    if (wasOnToday) {
+      state.selectedDate.value = state.todayText.value
+    }
+    scheduleDayBoundary()
+  }
+
+  watch(state.dayStartHour, () => {
+    scheduleDayBoundary()
+  })
 
   onMounted(async () => {
     if (state.isReportExportMode) {
@@ -66,6 +112,8 @@ export function useAppShell() {
     })
     window.addEventListener('keydown', journal.handleWindowKeydown)
     await journal.bootstrapApp()
+    scheduleDayBoundary()
+    document.addEventListener('visibilitychange', handleVisibilityChange)
   })
 
   onBeforeUnmount(() => {
@@ -81,6 +129,8 @@ export function useAppShell() {
     removeProfileRebuildProgressListener = null
     removeSystemThemeListener?.()
     removeSystemThemeListener = null
+    clearBoundaryTimer()
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
     window.removeEventListener('keydown', journal.handleWindowKeydown)
   })
 
