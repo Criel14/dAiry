@@ -6,3 +6,4 @@ export {
   updateUserProfileDaily,
   writeUserProfile,
 } from './profile-service'
+export { cancelUserProfileRebuild, rebuildUserProfile } from './profile-rebuild'
