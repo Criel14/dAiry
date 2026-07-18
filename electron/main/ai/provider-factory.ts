@@ -76,12 +76,14 @@ export function createAiChatClient(settings: AiSettings, apiKey: string): AiChat
     let rawBody = ''
     try {
       rawBody = await response.text()
-    } catch {
+    } catch (error) {
       console.warn(
-        '[provider] 读取响应 body 失败，status=%d statusText=%s contentType=%s',
+        '[provider] 读取响应 body 失败，status=%d statusText=%s contentType=%s contentLength=%s error=%s',
         response.status,
         response.statusText,
         response.headers.get('content-type') ?? '(无)',
+        response.headers.get('content-length') ?? '(无)',
+        error instanceof Error ? error.message : String(error),
       )
       rawBody = ''
     }
