@@ -275,7 +275,7 @@ export async function shouldRunFullRefresh(
     return true
   }
 
-  return dayjs(date).diff(lastRefreshDay.startOf('day'), 'day') >= intervalDays
+  return dayjs(date).startOf('day').diff(lastRefreshDay.startOf('day'), 'day') >= intervalDays
 }
 
 // 自动整理成功后的画像维护总入口：任何失败只告警，不向上抛
