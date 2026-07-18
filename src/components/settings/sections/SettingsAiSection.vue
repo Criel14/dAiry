@@ -324,7 +324,7 @@ function handleAiContextKeydown(event: KeyboardEvent) {
       <div class="workspace-summary">
         <div class="workspace-summary-copy">
           <p class="panel-description">
-            扫描当前工作区的全部历史日记，按月重新构建用户画像，适合老用户首次启用画像或画像质量退化时使用。整理完成前现有画像保持不变。
+            扫描当前工作区的全部历史日记，按月重新构建用户画像，将会消耗较多 Token.
           </p>
         </div>
       </div>
