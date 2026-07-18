@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { applyThemePreference, observeSystemThemeChange } from '../../../../shared/theme'
+import { applyThemePreference, observeSystemThemeChange } from '../../../../shared/theme/apply'
 import type { AppTheme } from '../../../../types/app'
 
 const EXPORT_LAYOUT_MODE_CLASS = 'report-export-mode'

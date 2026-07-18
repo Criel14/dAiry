@@ -1,7 +1,7 @@
 import { onBeforeUnmount, onMounted, watch } from 'vue'
 import type { EditorMode } from '../../types/ui'
 import { useReportsPanel } from '../../components/report/composables/useReportsPanel'
-import { applyThemePreference, observeSystemThemeChange } from '../../shared/theme'
+import { applyThemePreference, observeSystemThemeChange } from '../../shared/theme/apply'
 import { useAppShellAi } from './app-shell/ai'
 import { useAppShellJournal } from './app-shell/journal'
 import { useAppShellPreferences } from './app-shell/preferences'
