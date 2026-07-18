@@ -5,6 +5,8 @@ export interface AiSettings {
   baseURL: string
   model: string
   timeoutMs: number
+  dailyContextDays: number
+  profileRefreshIntervalDays: number
 }
 
 export interface AiSettingsStatus {
@@ -22,6 +24,8 @@ export interface SaveAiSettingsInput {
   baseURL: string
   model: string
   timeoutMs: number
+  dailyContextDays: number
+  profileRefreshIntervalDays: number
 }
 
 export interface SaveAiApiKeyInput {
@@ -46,4 +50,11 @@ export interface GenerateDailyInsightsResult {
   mood: number
   existingTags: string[]
   newTags: string[]
+}
+
+export interface RecentDaySummary {
+  date: string
+  summary: string
+  tags: string[]
+  mood: number
 }

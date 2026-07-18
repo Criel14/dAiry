@@ -8,11 +8,18 @@ import type {
 import type { JournalEntryMetadata } from '../types/journal'
 import { DEFAULT_WINDOW_ZOOM_FACTOR } from './window-zoom'
 
+export const DEFAULT_DAILY_CONTEXT_DAYS = 7
+export const DEFAULT_PROFILE_REFRESH_INTERVAL = 7
+export const DAILY_CONTEXT_DAYS_OPTIONS: readonly number[] = [3, 5, 7, 10, 14]
+export const PROFILE_REFRESH_INTERVAL_OPTIONS: readonly number[] = [3, 5, 7, 10, 14, 21, 30]
+
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   providerType: 'openai-compatible',
   baseURL: 'https://api.openai.com/v1',
   model: 'gpt-4.1-mini',
   timeoutMs: 30_000,
+  dailyContextDays: DEFAULT_DAILY_CONTEXT_DAYS,
+  profileRefreshIntervalDays: DEFAULT_PROFILE_REFRESH_INTERVAL,
 }
 
 export const DEFAULT_EMAIL_NOTIFICATION_CONFIG: EmailNotificationConfig = {

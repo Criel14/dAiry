@@ -16,6 +16,8 @@ export function useAppShellAi(state: AppShellState) {
         baseURL: input.baseURL,
         model: input.model,
         timeoutMs: input.timeoutMs,
+        dailyContextDays: input.dailyContextDays,
+        profileRefreshIntervalDays: input.profileRefreshIntervalDays,
       })
       state.aiSettingsStatus.value = settingsStatus
 

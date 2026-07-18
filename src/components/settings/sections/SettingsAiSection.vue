@@ -133,6 +133,8 @@ function emitSaveAiConfiguration() {
     baseURL: draftAiSettings.value.baseURL,
     model: draftAiSettings.value.model,
     timeoutMs: draftAiSettings.value.timeoutMs,
+    dailyContextDays: draftAiSettings.value.dailyContextDays,
+    profileRefreshIntervalDays: draftAiSettings.value.profileRefreshIntervalDays,
     apiKey: draftApiKey.value,
   })
 }

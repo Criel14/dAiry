@@ -22,10 +22,14 @@ import type {
   WindowZoomPreferenceInput,
 } from '../../src/types/app'
 import {
+  DAILY_CONTEXT_DAYS_OPTIONS,
   DEFAULT_AI_SETTINGS,
   DEFAULT_APP_CONFIG,
+  DEFAULT_DAILY_CONTEXT_DAYS,
   DEFAULT_EMAIL_NOTIFICATION_CONFIG,
   DEFAULT_NOTIFICATION_CONFIG,
+  DEFAULT_PROFILE_REFRESH_INTERVAL,
+  PROFILE_REFRESH_INTERVAL_OPTIONS,
 } from './constants'
 import { normalizeWindowZoomFactor } from '../../src/shared/window-zoom'
 
@@ -183,6 +187,14 @@ function normalizeProviderType(rawValue: unknown): AiSettings['providerType'] {
     : DEFAULT_AI_SETTINGS.providerType
 }
 
+function normalizeDaysOption(
+  rawValue: unknown,
+  options: readonly number[],
+  fallbackValue: number,
+) {
+  return typeof rawValue === 'number' && options.includes(rawValue) ? rawValue : fallbackValue
+}
+
 export function normalizeAiSettings(rawValue: Partial<AiSettings> | null | undefined): AiSettings {
   const providerType = normalizeProviderType(rawValue?.providerType)
   const providerDefaults = getDefaultAiSettings(providerType)
@@ -192,6 +204,16 @@ export function normalizeAiSettings(rawValue: Partial<AiSettings> | null | undef
     baseURL: normalizeBaseURL(rawValue?.baseURL, providerDefaults.baseURL),
     model: normalizeModel(rawValue?.model, providerDefaults.model),
     timeoutMs: normalizeTimeoutMs(rawValue?.timeoutMs),
+    dailyContextDays: normalizeDaysOption(
+      rawValue?.dailyContextDays,
+      DAILY_CONTEXT_DAYS_OPTIONS,
+      DEFAULT_DAILY_CONTEXT_DAYS,
+    ),
+    profileRefreshIntervalDays: normalizeDaysOption(
+      rawValue?.profileRefreshIntervalDays,
+      PROFILE_REFRESH_INTERVAL_OPTIONS,
+      DEFAULT_PROFILE_REFRESH_INTERVAL,
+    ),
   }
 }
 
@@ -374,24 +396,24 @@ export function getDefaultAiSettings(
   switch (providerType) {
     case 'openai':
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
         baseURL: 'https://api.openai.com/v1',
         model: 'gpt-4.1-mini',
-        timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
       }
     case 'deepseek':
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
         baseURL: 'https://api.deepseek.com',
         model: 'deepseek-v4-flash',
-        timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
       }
     case 'alibaba':
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
         baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         model: 'qwen-plus',
-        timeoutMs: DEFAULT_AI_SETTINGS.timeoutMs,
       }
     default:
       return {

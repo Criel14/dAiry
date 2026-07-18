@@ -1,5 +1,6 @@
 import type { AiProviderType, AiSettings } from '../../../types/ai'
 import type { AppTheme, WindowCloseBehavior } from '../../../types/app'
+import { DEFAULT_AI_SETTINGS } from '../../../shared/defaults'
 import {
   WINDOW_ZOOM_PRESET_FACTORS,
   formatWindowZoomPercent,
@@ -185,31 +186,29 @@ export function getAiDefaults(providerType: AiProviderType): AiSettings {
   switch (providerType) {
     case 'openai':
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
         baseURL: 'https://api.openai.com/v1',
         model: 'gpt-4.1-mini',
-        timeoutMs: 30000,
       }
     case 'deepseek':
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
         baseURL: 'https://api.deepseek.com',
         model: 'deepseek-v4-flash',
-        timeoutMs: 30000,
       }
     case 'alibaba':
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
         baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         model: 'qwen-plus',
-        timeoutMs: 30000,
       }
     default:
       return {
+        ...DEFAULT_AI_SETTINGS,
         providerType,
-        baseURL: 'https://api.openai.com/v1',
-        model: 'gpt-4.1-mini',
-        timeoutMs: 30000,
       }
   }
 }
