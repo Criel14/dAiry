@@ -73,18 +73,10 @@ export function createAiChatClient(settings: AiSettings, apiKey: string): AiChat
       signal: AbortSignal.timeout(settings.timeoutMs),
     })
 
-    let rawBody = ''
+    let rawBody: string
     try {
       rawBody = await response.text()
-    } catch (error) {
-      console.warn(
-        '[provider] 读取响应 body 失败，status=%d statusText=%s contentType=%s contentLength=%s error=%s',
-        response.status,
-        response.statusText,
-        response.headers.get('content-type') ?? '(无)',
-        response.headers.get('content-length') ?? '(无)',
-        error instanceof Error ? error.message : String(error),
-      )
+    } catch {
       rawBody = ''
     }
 
@@ -92,7 +84,7 @@ export function createAiChatClient(settings: AiSettings, apiKey: string): AiChat
     try {
       payload = JSON.parse(rawBody) as ChatCompletionResponse
     } catch {
-      console.warn('[provider] JSON 解析失败，status=%d body 前 300 字：%s', response.status, rawBody.slice(0, 300))
+      payload = null
     }
 
     if (!response.ok) {
@@ -101,7 +93,6 @@ export function createAiChatClient(settings: AiSettings, apiKey: string): AiChat
 
     const content = payload ? extractResponseText(payload) : ''
     if (!content.trim()) {
-      console.warn('[provider] AI 返回为空，payload：', JSON.stringify(payload).slice(0, 500))
       throw new Error('AI 没有返回可用内容，请稍后重试。')
     }
 
