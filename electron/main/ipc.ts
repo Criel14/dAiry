@@ -65,12 +65,12 @@ import {
   saveJournalEntryBody,
   saveJournalEntryMetadata,
 } from './journal/service'
-import { generateRangeReport, getRangeReport, listRangeReports } from './report-service'
+import { generateRangeReport, getRangeReport, listRangeReports } from './report'
 import {
   exportRangeReportPng,
   getReportExportPayload,
   notifyReportExportReady,
-} from './report-export-service'
+} from './report-export'
 import { applyLaunchOnStartup } from './launch-on-startup'
 import { configureDiaryReminder } from './notification'
 import {

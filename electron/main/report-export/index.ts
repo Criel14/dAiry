@@ -9,7 +9,7 @@ import type {
 } from '../../../src/types/report'
 import { MAIN_DIST, RENDERER_DIST, VITE_DEV_SERVER_URL } from '../constants'
 import { setLastReportExportDirectory } from '../app-config'
-import { getRangeReport } from '../report-service'
+import { getRangeReport } from '../report'
 import { getMainWindow } from '../window'
 import {
   EXPORT_INITIAL_HEIGHT,
