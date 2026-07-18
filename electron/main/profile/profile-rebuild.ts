@@ -170,7 +170,7 @@ export async function rebuildUserProfile(
 
   const config = await readAppConfig()
   const settings = normalizeAiSettings(config.ai)
-  settings.timeoutMs = Math.max(settings.timeoutMs, 90_000)
+  settings.timeoutMs = Math.max(settings.timeoutMs, 120_000)
   const client = await createProfileAiClient(settings)
 
   if (!client) {
