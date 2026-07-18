@@ -34,6 +34,14 @@ export function getWorkspaceMetadataDir(workspacePath: string) {
   return path.join(workspacePath, '.dairy')
 }
 
+export function getWorkspaceConfigPath(workspacePath: string) {
+  return path.join(getWorkspaceMetadataDir(workspacePath), 'workspace.json')
+}
+
+export function getWorkspaceUserProfilePath(workspacePath: string) {
+  return path.join(getWorkspaceMetadataDir(workspacePath), 'user-profile.md')
+}
+
 export function getWorkspaceReportsDir(workspacePath: string) {
   return path.join(workspacePath, 'reports')
 }
