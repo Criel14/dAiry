@@ -176,15 +176,15 @@ export async function rebuildUserProfile(
     throw new Error('请先在设置页完成大模型配置和 API Key 保存。')
   }
 
+  isCancelRequested = false
+  setProfileRebuildRunning(true)
+
   const monthDates = await scanJournalMonths(input.workspacePath)
   const months = [...monthDates.keys()].sort()
 
   if (months.length === 0) {
     throw new Error('当前工作区没有可用于整理的日记。')
   }
-
-  isCancelRequested = false
-  setProfileRebuildRunning(true)
 
   try {
     const systemPrompt = await loadPrompt('profileRebuildSystem')
