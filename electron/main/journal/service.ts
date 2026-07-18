@@ -23,12 +23,12 @@ import {
   mergeWorkspaceLocationOptions,
   mergeWorkspaceTags,
   mergeWorkspaceWeatherOptions,
-} from '../workspace-libraries'
+} from '../workspace/libraries'
 import {
   assertValidMonth,
   resolveJournalEntryFilePath,
   resolveJournalEntryPath,
-} from '../workspace-paths'
+} from '../workspace/paths'
 
 function getDaysInMonth(monthText: string) {
   assertValidMonth(monthText)

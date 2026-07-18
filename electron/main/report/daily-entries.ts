@@ -2,8 +2,8 @@ import { type Dayjs } from 'dayjs'
 import type { ReportDailyEntry } from '../../../src/types/report'
 import { ensureDailyInsights } from '../ai'
 import { countJournalWords, readJournalDocument } from '../journal/document'
-import { getWorkspaceTags } from '../workspace-libraries'
-import { resolveJournalEntryFilePath } from '../workspace-paths'
+import { getWorkspaceTags } from '../workspace/libraries'
+import { resolveJournalEntryFilePath } from '../workspace/paths'
 import { listDatesInRange } from './range'
 
 export interface DailyEntryBuildResult {

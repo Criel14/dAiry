@@ -15,7 +15,7 @@ import {
   resolveLegacyYearlyReportPath,
   resolveMonthlyReportPath,
   resolveYearlyReportPath,
-} from '../workspace-paths'
+} from '../workspace/paths'
 
 export function getReportFilePath(
   workspacePath: string,

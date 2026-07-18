@@ -88,7 +88,7 @@ import {
   setWorkspaceLocationOptions,
   setWorkspaceTags,
   setWorkspaceWeatherOptions,
-} from './workspace-libraries'
+} from './workspace/libraries'
 
 export function registerIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.getBootstrap, async (): Promise<AppBootstrap> => {

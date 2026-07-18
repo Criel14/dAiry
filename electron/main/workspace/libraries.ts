@@ -1,19 +1,19 @@
 import path from 'node:path'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
-import type { WorkspaceStringListInput } from '../../src/types/workspace'
+import type { WorkspaceStringListInput } from '../../../src/types/workspace'
 import {
   DEFAULT_LOCATION_OPTIONS,
   DEFAULT_TAG_OPTIONS,
   DEFAULT_WEATHER_OPTIONS,
-} from './constants'
-import { normalizeStringList, readJournalDocument } from './journal/document'
+} from '../constants'
+import { normalizeStringList, readJournalDocument } from '../journal/document'
 import {
   getWorkspaceJournalDir,
   getWorkspaceLocationLibraryPath,
   getWorkspaceMetadataDir,
   getWorkspaceTagLibraryPath,
   getWorkspaceWeatherLibraryPath,
-} from './workspace-paths'
+} from './paths'
 
 interface WorkspaceTagLibrary {
   version: 1

@@ -4,7 +4,7 @@ import {
   type GenerateRangeReportInput,
   type ReportSectionKey,
 } from '../../../src/types/report'
-import { assertValidDate, assertValidMonth, assertValidYear } from '../workspace-paths'
+import { assertValidDate, assertValidMonth, assertValidYear } from '../workspace/paths'
 
 const ALLOWED_REPORT_SECTIONS: ReportSectionKey[] = [
   'stats',

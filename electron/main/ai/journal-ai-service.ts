@@ -3,7 +3,7 @@ import type {
   GenerateDailyInsightsResult,
 } from '../../../src/types/ai'
 import { normalizeAiSettings } from '../app-config'
-import { assertValidDate } from '../workspace-paths'
+import { assertValidDate } from '../workspace/paths'
 import { readAppConfig } from '../app-config'
 import { readAiContext } from './context'
 import { readAiApiKey } from '../secrets'
