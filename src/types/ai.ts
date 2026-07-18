@@ -58,3 +58,19 @@ export interface RecentDaySummary {
   tags: string[]
   mood: number
 }
+
+export interface RebuildUserProfileInput {
+  workspacePath: string
+}
+
+export interface RebuildUserProfileResult {
+  status: 'completed' | 'cancelled'
+  processedMonths: number
+  totalMonths: number
+}
+
+export interface UserProfileRebuildProgress {
+  month: string
+  index: number
+  total: number
+}

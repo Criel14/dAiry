@@ -38,6 +38,10 @@ export const IPC_CHANNELS = {
   saveJournalEntryMetadata: 'journal:save-entry-metadata',
   getJournalMonthActivity: 'journal:get-month-activity',
   generateDailyInsights: 'journal:generate-daily-insights',
+  // profile
+  rebuildUserProfile: 'profile:rebuild-user-profile',
+  cancelUserProfileRebuild: 'profile:cancel-user-profile-rebuild',
+  userProfileRebuildProgress: 'profile:user-profile-rebuild-progress',
   // report
   generateRangeReport: 'report:generate-range-report',
   getRangeReport: 'report:get-range-report',
