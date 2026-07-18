@@ -64,7 +64,7 @@ import {
   readJournalEntry,
   saveJournalEntryBody,
   saveJournalEntryMetadata,
-} from './journal-service'
+} from './journal/service'
 import { generateRangeReport, getRangeReport, listRangeReports } from './report-service'
 import {
   exportRangeReportPng,

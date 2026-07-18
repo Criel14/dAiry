@@ -6,7 +6,7 @@ import {
   DEFAULT_TAG_OPTIONS,
   DEFAULT_WEATHER_OPTIONS,
 } from './constants'
-import { normalizeStringList, readJournalDocument } from './journal-document'
+import { normalizeStringList, readJournalDocument } from './journal/document'
 import {
   getWorkspaceJournalDir,
   getWorkspaceLocationLibraryPath,

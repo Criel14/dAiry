@@ -7,7 +7,7 @@ import { assertValidDate } from '../workspace-paths'
 import { readAppConfig } from '../app-config'
 import { readAiContext } from './context'
 import { readAiApiKey } from '../secrets'
-import { normalizeStringList } from '../journal-document'
+import { normalizeStringList } from '../journal/document'
 import { createAiChatClient } from './provider-factory'
 import { loadPrompt } from './prompt-loader'
 

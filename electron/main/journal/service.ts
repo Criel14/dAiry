@@ -9,7 +9,7 @@ import type {
   JournalEntryWriteResult,
   JournalMonthActivityQuery,
   JournalMonthActivityResult,
-} from '../../src/types/journal'
+} from '../../../src/types/journal'
 import {
   countJournalWords,
   createDefaultFrontmatter,
@@ -18,17 +18,17 @@ import {
   readJournalDocumentOrDefault,
   serializeJournalDocument,
   writeJournalDocument,
-} from './journal-document'
+} from './document'
 import {
   mergeWorkspaceLocationOptions,
   mergeWorkspaceTags,
   mergeWorkspaceWeatherOptions,
-} from './workspace-libraries'
+} from '../workspace-libraries'
 import {
   assertValidMonth,
   resolveJournalEntryFilePath,
   resolveJournalEntryPath,
-} from './workspace-paths'
+} from '../workspace-paths'
 
 function getDaysInMonth(monthText: string) {
   assertValidMonth(monthText)
