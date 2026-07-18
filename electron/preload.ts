@@ -55,6 +55,28 @@ const dairyApi: DairyApi = {
   saveJournalEntryMetadata: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveJournalEntryMetadata, input),
   getJournalMonthActivity: (input) => ipcRenderer.invoke(IPC_CHANNELS.getJournalMonthActivity, input),
   generateDailyInsights: (input) => ipcRenderer.invoke(IPC_CHANNELS.generateDailyInsights, input),
+  rebuildUserProfile: (input) => ipcRenderer.invoke(IPC_CHANNELS.rebuildUserProfile, input),
+  cancelUserProfileRebuild: () => ipcRenderer.invoke(IPC_CHANNELS.cancelUserProfileRebuild),
+  onUserProfileRebuildProgress: (listener) => {
+    const wrappedListener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { month?: unknown; index?: unknown; total?: unknown } | undefined,
+    ) => {
+      if (
+        typeof payload?.month === 'string' &&
+        typeof payload?.index === 'number' &&
+        typeof payload?.total === 'number'
+      ) {
+        listener({ month: payload.month, index: payload.index, total: payload.total })
+      }
+    }
+
+    ipcRenderer.on(IPC_CHANNELS.userProfileRebuildProgress, wrappedListener)
+
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.userProfileRebuildProgress, wrappedListener)
+    }
+  },
   generateRangeReport: (input) => ipcRenderer.invoke(IPC_CHANNELS.generateRangeReport, input),
   getRangeReport: (input) => ipcRenderer.invoke(IPC_CHANNELS.getRangeReport, input),
   listRangeReports: (workspacePath) => ipcRenderer.invoke(IPC_CHANNELS.listRangeReports, workspacePath),

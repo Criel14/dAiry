@@ -3,9 +3,12 @@ import type {
   AiSettingsStatus,
   GenerateDailyInsightsInput,
   GenerateDailyInsightsResult,
+  RebuildUserProfileInput,
+  RebuildUserProfileResult,
   SaveAiApiKeyInput,
   SaveAiContextInput,
   SaveAiSettingsInput,
+  UserProfileRebuildProgress,
 } from './ai'
 import type {
   AppTheme,
@@ -99,6 +102,11 @@ export interface DairyApi {
   generateDailyInsights: (
     input: GenerateDailyInsightsInput,
   ) => Promise<GenerateDailyInsightsResult>
+  rebuildUserProfile: (input: RebuildUserProfileInput) => Promise<RebuildUserProfileResult>
+  cancelUserProfileRebuild: () => Promise<void>
+  onUserProfileRebuildProgress: (
+    listener: (progress: UserProfileRebuildProgress) => void,
+  ) => () => void
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
   openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
   openDevTools: () => Promise<void>
