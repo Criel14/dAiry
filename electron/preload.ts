@@ -1,15 +1,14 @@
 ﻿import { contextBridge, ipcRenderer } from 'electron'
 import type { DairyApi } from '../src/types/api'
 import type { RightPanel } from '../src/types/ui'
+import { IPC_CHANNELS } from '../src/shared/ipc-channels'
 
-// preload 只暴露明确的业务接口，不把整个 ipcRenderer 敞开给渲染进程。
-// 这样后面排查权限边界或审计能力时会轻松很多。
 const dairyApi: DairyApi = {
-  getAppBootstrap: () => ipcRenderer.invoke('app:get-bootstrap'),
-  getThemePreference: () => ipcRenderer.invoke('app:get-theme-preference'),
-  getAiSettingsStatus: () => ipcRenderer.invoke('app:get-ai-settings-status'),
-  setThemePreference: (input) => ipcRenderer.invoke('app:set-theme-preference', input),
-  setWindowZoomFactor: (input) => ipcRenderer.invoke('app:set-window-zoom-factor', input),
+  getAppBootstrap: () => ipcRenderer.invoke(IPC_CHANNELS.getBootstrap),
+  getThemePreference: () => ipcRenderer.invoke(IPC_CHANNELS.getThemePreference),
+  getAiSettingsStatus: () => ipcRenderer.invoke(IPC_CHANNELS.getAiSettingsStatus),
+  setThemePreference: (input) => ipcRenderer.invoke(IPC_CHANNELS.setThemePreference, input),
+  setWindowZoomFactor: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWindowZoomFactor, input),
   onWindowZoomFactorChanged: (listener) => {
     const wrappedListener = (
       _event: Electron.IpcRendererEvent,
@@ -20,10 +19,10 @@ const dairyApi: DairyApi = {
       }
     }
 
-    ipcRenderer.on('app:window-zoom-changed', wrappedListener)
+    ipcRenderer.on(IPC_CHANNELS.windowZoomChanged, wrappedListener)
 
     return () => {
-      ipcRenderer.removeListener('app:window-zoom-changed', wrappedListener)
+      ipcRenderer.removeListener(IPC_CHANNELS.windowZoomChanged, wrappedListener)
     }
   },
   onNavigateMainPanel: (listener) => {
@@ -38,51 +37,51 @@ const dairyApi: DairyApi = {
       }
     }
 
-    ipcRenderer.on('app:navigate-main-panel', wrappedListener)
+    ipcRenderer.on(IPC_CHANNELS.navigateMainPanel, wrappedListener)
 
     return () => {
-      ipcRenderer.removeListener('app:navigate-main-panel', wrappedListener)
+      ipcRenderer.removeListener(IPC_CHANNELS.navigateMainPanel, wrappedListener)
     }
   },
-  saveAiSettings: (input) => ipcRenderer.invoke('app:save-ai-settings', input),
-  saveAiApiKey: (input) => ipcRenderer.invoke('app:save-ai-api-key', input),
-  getAiContext: () => ipcRenderer.invoke('app:get-ai-context'),
-  saveAiContext: (input) => ipcRenderer.invoke('app:save-ai-context', input),
-  chooseWorkspace: () => ipcRenderer.invoke('workspace:choose'),
-  openWorkspaceFolder: (input) => ipcRenderer.invoke('workspace:open-folder', input),
-  readJournalEntry: (input) => ipcRenderer.invoke('journal:read-entry', input),
-  createJournalEntry: (input) => ipcRenderer.invoke('journal:create-entry', input),
-  saveJournalEntryBody: (input) => ipcRenderer.invoke('journal:save-entry-body', input),
-  saveJournalEntryMetadata: (input) => ipcRenderer.invoke('journal:save-entry-metadata', input),
-  getJournalMonthActivity: (input) => ipcRenderer.invoke('journal:get-month-activity', input),
-  generateDailyInsights: (input) => ipcRenderer.invoke('journal:generate-daily-insights', input),
-  generateRangeReport: (input) => ipcRenderer.invoke('report:generate-range-report', input),
-  getRangeReport: (input) => ipcRenderer.invoke('report:get-range-report', input),
-  listRangeReports: (workspacePath) => ipcRenderer.invoke('report:list-range-reports', workspacePath),
-  exportRangeReportPng: (input) => ipcRenderer.invoke('report:export-png', input),
-  getReportExportPayload: (input) => ipcRenderer.invoke('report:get-export-payload', input),
-  notifyReportExportReady: (input) => ipcRenderer.invoke('report:export-ready', input),
-  getWorkspaceTags: (workspacePath) => ipcRenderer.invoke('workspace:get-tags', workspacePath),
+  saveAiSettings: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveAiSettings, input),
+  saveAiApiKey: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveAiApiKey, input),
+  getAiContext: () => ipcRenderer.invoke(IPC_CHANNELS.getAiContext),
+  saveAiContext: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveAiContext, input),
+  chooseWorkspace: () => ipcRenderer.invoke(IPC_CHANNELS.chooseWorkspace),
+  openWorkspaceFolder: (input) => ipcRenderer.invoke(IPC_CHANNELS.openWorkspaceFolder, input),
+  readJournalEntry: (input) => ipcRenderer.invoke(IPC_CHANNELS.readJournalEntry, input),
+  createJournalEntry: (input) => ipcRenderer.invoke(IPC_CHANNELS.createJournalEntry, input),
+  saveJournalEntryBody: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveJournalEntryBody, input),
+  saveJournalEntryMetadata: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveJournalEntryMetadata, input),
+  getJournalMonthActivity: (input) => ipcRenderer.invoke(IPC_CHANNELS.getJournalMonthActivity, input),
+  generateDailyInsights: (input) => ipcRenderer.invoke(IPC_CHANNELS.generateDailyInsights, input),
+  generateRangeReport: (input) => ipcRenderer.invoke(IPC_CHANNELS.generateRangeReport, input),
+  getRangeReport: (input) => ipcRenderer.invoke(IPC_CHANNELS.getRangeReport, input),
+  listRangeReports: (workspacePath) => ipcRenderer.invoke(IPC_CHANNELS.listRangeReports, workspacePath),
+  exportRangeReportPng: (input) => ipcRenderer.invoke(IPC_CHANNELS.exportRangeReportPng, input),
+  getReportExportPayload: (input) => ipcRenderer.invoke(IPC_CHANNELS.getReportExportPayload, input),
+  notifyReportExportReady: (input) => ipcRenderer.invoke(IPC_CHANNELS.notifyReportExportReady, input),
+  getWorkspaceTags: (workspacePath) => ipcRenderer.invoke(IPC_CHANNELS.getWorkspaceTags, workspacePath),
   getWorkspaceWeatherOptions: (workspacePath) =>
-    ipcRenderer.invoke('workspace:get-weather-options', workspacePath),
+    ipcRenderer.invoke(IPC_CHANNELS.getWorkspaceWeatherOptions, workspacePath),
   getWorkspaceLocationOptions: (workspacePath) =>
-    ipcRenderer.invoke('workspace:get-location-options', workspacePath),
-  setWorkspaceTags: (input) => ipcRenderer.invoke('workspace:set-tags', input),
-  setWorkspaceWeatherOptions: (input) => ipcRenderer.invoke('workspace:set-weather-options', input),
-  setWorkspaceLocationOptions: (input) => ipcRenderer.invoke('workspace:set-location-options', input),
-  setJournalHeatmapEnabled: (input) => ipcRenderer.invoke('app:set-journal-heatmap-enabled', input),
-  setDayStartHour: (input) => ipcRenderer.invoke('app:set-day-start-hour', input),
-  setWindowCloseBehavior: (input) => ipcRenderer.invoke('app:set-window-close-behavior', input),
+    ipcRenderer.invoke(IPC_CHANNELS.getWorkspaceLocationOptions, workspacePath),
+  setWorkspaceTags: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWorkspaceTags, input),
+  setWorkspaceWeatherOptions: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWorkspaceWeatherOptions, input),
+  setWorkspaceLocationOptions: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWorkspaceLocationOptions, input),
+  setJournalHeatmapEnabled: (input) => ipcRenderer.invoke(IPC_CHANNELS.setJournalHeatmapEnabled, input),
+  setDayStartHour: (input) => ipcRenderer.invoke(IPC_CHANNELS.setDayStartHour, input),
+  setWindowCloseBehavior: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWindowCloseBehavior, input),
   setLaunchOnStartupPreference: (input) =>
-    ipcRenderer.invoke('app:set-launch-on-startup-preference', input),
-  setNotificationPreference: (input) => ipcRenderer.invoke('app:set-notification-preference', input),
-  getEmailNotificationStatus: () => ipcRenderer.invoke('app:get-email-notification-status'),
+    ipcRenderer.invoke(IPC_CHANNELS.setLaunchOnStartupPreference, input),
+  setNotificationPreference: (input) => ipcRenderer.invoke(IPC_CHANNELS.setNotificationPreference, input),
+  getEmailNotificationStatus: () => ipcRenderer.invoke(IPC_CHANNELS.getEmailNotificationStatus),
   saveEmailNotificationAuthCode: (input) =>
-    ipcRenderer.invoke('app:save-email-notification-auth-code', input),
-  setFrontmatterVisibility: (input) => ipcRenderer.invoke('app:set-frontmatter-visibility', input),
-  setWindowDirtyState: (input) => ipcRenderer.invoke('app:set-window-dirty-state', input),
-  openExternalLink: (input) => ipcRenderer.invoke('app:open-external-link', input),
-  openDevTools: () => ipcRenderer.invoke('app:open-dev-tools'),
+    ipcRenderer.invoke(IPC_CHANNELS.saveEmailNotificationAuthCode, input),
+  setFrontmatterVisibility: (input) => ipcRenderer.invoke(IPC_CHANNELS.setFrontmatterVisibility, input),
+  setWindowDirtyState: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWindowDirtyState, input),
+  openExternalLink: (input) => ipcRenderer.invoke(IPC_CHANNELS.openExternalLink, input),
+  openDevTools: () => ipcRenderer.invoke(IPC_CHANNELS.openDevTools),
 }
 
 contextBridge.exposeInMainWorld('dairy', dairyApi)

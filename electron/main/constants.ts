@@ -1,4 +1,4 @@
-import path from 'node:path'
+﻿import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AiSettings } from '../../src/types/ai'
 import type { AppConfig, EmailNotificationConfig, NotificationConfig } from '../../src/types/app'
@@ -22,50 +22,7 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(process.env.APP_ROOT, 'public')
   : RENDERER_DIST
 
-export const IPC_CHANNELS = {
-  getBootstrap: 'app:get-bootstrap',
-  getThemePreference: 'app:get-theme-preference',
-  getAiSettingsStatus: 'app:get-ai-settings-status',
-  saveAiSettings: 'app:save-ai-settings',
-  saveAiApiKey: 'app:save-ai-api-key',
-  getAiContext: 'app:get-ai-context',
-  saveAiContext: 'app:save-ai-context',
-  setThemePreference: 'app:set-theme-preference',
-  setWindowZoomFactor: 'app:set-window-zoom-factor',
-  windowZoomChanged: 'app:window-zoom-changed',
-  navigateMainPanel: 'app:navigate-main-panel',
-  setJournalHeatmapEnabled: 'app:set-journal-heatmap-enabled',
-  setDayStartHour: 'app:set-day-start-hour',
-  setWindowCloseBehavior: 'app:set-window-close-behavior',
-  setLaunchOnStartupPreference: 'app:set-launch-on-startup-preference',
-  setNotificationPreference: 'app:set-notification-preference',
-  getEmailNotificationStatus: 'app:get-email-notification-status',
-  saveEmailNotificationAuthCode: 'app:save-email-notification-auth-code',
-  setFrontmatterVisibility: 'app:set-frontmatter-visibility',
-  setWindowDirtyState: 'app:set-window-dirty-state',
-  openExternalLink: 'app:open-external-link',
-  openDevTools: 'app:open-dev-tools',
-  chooseWorkspace: 'workspace:choose',
-  openWorkspaceFolder: 'workspace:open-folder',
-  getWorkspaceTags: 'workspace:get-tags',
-  getWorkspaceWeatherOptions: 'workspace:get-weather-options',
-  getWorkspaceLocationOptions: 'workspace:get-location-options',
-  setWorkspaceTags: 'workspace:set-tags',
-  setWorkspaceWeatherOptions: 'workspace:set-weather-options',
-  setWorkspaceLocationOptions: 'workspace:set-location-options',
-  readJournalEntry: 'journal:read-entry',
-  createJournalEntry: 'journal:create-entry',
-  saveJournalEntryBody: 'journal:save-entry-body',
-  saveJournalEntryMetadata: 'journal:save-entry-metadata',
-  getJournalMonthActivity: 'journal:get-month-activity',
-  generateDailyInsights: 'journal:generate-daily-insights',
-  generateRangeReport: 'report:generate-range-report',
-  getRangeReport: 'report:get-range-report',
-  listRangeReports: 'report:list-range-reports',
-  exportRangeReportPng: 'report:export-png',
-  getReportExportPayload: 'report:get-export-payload',
-  notifyReportExportReady: 'report:export-ready',
-} as const
+export { IPC_CHANNELS } from '../../src/shared/ipc-channels'
 
 export const DEFAULT_AI_SETTINGS: AiSettings = {
   providerType: 'openai-compatible',
