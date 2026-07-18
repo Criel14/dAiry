@@ -11,25 +11,18 @@ import type {
 import type { JournalEntryMetadata, JournalFrontmatter } from '../../../types/journal'
 import type { EditorMode, RightPanel, ViewState } from '../../../types/ui'
 import type { SettingsSectionId } from '../../../components/settings/config/config'
+import {
+  createDefaultFrontmatterVisibility,
+  createDefaultNotificationConfig,
+  DEFAULT_AI_SETTINGS,
+  EMPTY_METADATA,
+} from '../../../shared/defaults'
 
-export function createDefaultFrontmatterVisibility(): FrontmatterVisibilityConfig {
-  return {
-    weather: true,
-    location: true,
-    mood: true,
-    summary: true,
-    tags: true,
-  }
-}
+export { createDefaultFrontmatterVisibility }
 
 export function createDefaultAiSettingsStatus(): AiSettingsStatus {
   return {
-    settings: {
-      providerType: 'openai-compatible',
-      baseURL: 'https://api.openai.com/v1',
-      model: 'gpt-4.1-mini',
-      timeoutMs: 30000,
-    },
+    settings: { ...DEFAULT_AI_SETTINGS },
     hasApiKey: false,
     isConfigured: false,
   }
@@ -38,23 +31,6 @@ export function createDefaultAiSettingsStatus(): AiSettingsStatus {
 export function createDefaultAiContextDocument(): AiContextDocument {
   return {
     content: '',
-  }
-}
-
-export function createDefaultNotificationConfig(): NotificationConfig {
-  return {
-    systemEnabled: false,
-    emailEnabled: false,
-    reminderTime: '21:30',
-    email: {
-      providerType: 'qq',
-      smtpHost: 'smtp.qq.com',
-      smtpPort: 465,
-      encryption: 'ssl',
-      username: '',
-      fromEmail: '',
-      recipientEmail: '',
-    },
   }
 }
 
@@ -85,13 +61,7 @@ export function normalizeStringList(values: string[]) {
 }
 
 export function createEmptyMetadata(): JournalEntryMetadata {
-  return {
-    weather: '',
-    location: '',
-    mood: 0,
-    summary: '',
-    tags: [],
-  }
+  return { ...EMPTY_METADATA, tags: [] }
 }
 
 export function cloneMetadata(metadata: JournalEntryMetadata): JournalEntryMetadata {
