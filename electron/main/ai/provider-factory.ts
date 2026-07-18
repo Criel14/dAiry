@@ -73,13 +73,33 @@ export function createAiChatClient(settings: AiSettings, apiKey: string): AiChat
       signal: AbortSignal.timeout(settings.timeoutMs),
     })
 
-    const payload = (await response.json().catch(() => null)) as ChatCompletionResponse | null
+    let rawBody = ''
+    try {
+      rawBody = await response.text()
+    } catch {
+      console.warn(
+        '[provider] 读取响应 body 失败，status=%d statusText=%s contentType=%s',
+        response.status,
+        response.statusText,
+        response.headers.get('content-type') ?? '(无)',
+      )
+      rawBody = ''
+    }
+
+    let payload: ChatCompletionResponse | null = null
+    try {
+      payload = JSON.parse(rawBody) as ChatCompletionResponse
+    } catch {
+      console.warn('[provider] JSON 解析失败，status=%d body 前 300 字：%s', response.status, rawBody.slice(0, 300))
+    }
+
     if (!response.ok) {
       throw new Error(payload?.error?.message || `AI 请求失败（${response.status}）。`)
     }
 
     const content = payload ? extractResponseText(payload) : ''
     if (!content.trim()) {
+      console.warn('[provider] AI 返回为空，payload：', JSON.stringify(payload).slice(0, 500))
       throw new Error('AI 没有返回可用内容，请稍后重试。')
     }
 

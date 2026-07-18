@@ -204,24 +204,45 @@ export async function rebuildUserProfile(
         continue
       }
 
-      let responseText: string
+      let responseText = ''
+      let aiSucceeded = false
       try {
-        responseText = await client.completeText({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            {
-              role: 'user',
-              content: buildRebuildPrompt({
-                month,
-                index: monthIndex + 1,
-                total: months.length,
-                profile,
-                entries,
-              }),
-            },
-          ],
-          temperature: PROFILE_AI_TEMPERATURE,
+        const userContent = buildRebuildPrompt({
+          month,
+          index: monthIndex + 1,
+          total: months.length,
+          profile,
+          entries,
         })
+
+        let lastError: unknown
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          lastError = null
+
+          try {
+            responseText = await client.completeText({
+              messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userContent },
+              ],
+              temperature: PROFILE_AI_TEMPERATURE,
+            })
+            aiSucceeded = true
+            break
+          } catch (error) {
+            lastError = error
+          }
+
+          if (attempt < 1) {
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+          }
+        }
+
+        if (!aiSucceeded) {
+          throw lastError instanceof Error
+            ? lastError
+            : new Error('未知错误')
+        }
       } catch (error) {
         throw new Error(
           `整理 ${month} 失败：${error instanceof Error ? error.message : '未知错误'}`,
