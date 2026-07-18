@@ -20,6 +20,7 @@ export function useAppShell() {
 
   let removeWindowZoomListener: (() => void) | null = null
   let removeMainPanelNavigationListener: (() => void) | null = null
+  let removeProfileRebuildProgressListener: (() => void) | null = null
   let removeSystemThemeListener: (() => void) | null = null
 
   watch(
@@ -53,6 +54,11 @@ export function useAppShell() {
     removeMainPanelNavigationListener = window.dairy.onNavigateMainPanel((panel) => {
       state.rightPanel.value = panel
     })
+    removeProfileRebuildProgressListener = window.dairy.onUserProfileRebuildProgress(
+      (progress) => {
+        state.profileRebuildProgress.value = progress
+      },
+    )
     removeSystemThemeListener = observeSystemThemeChange(() => {
       if (state.theme.value === 'system') {
         applyThemePreference(state.theme.value)
@@ -71,6 +77,8 @@ export function useAppShell() {
     removeWindowZoomListener = null
     removeMainPanelNavigationListener?.()
     removeMainPanelNavigationListener = null
+    removeProfileRebuildProgressListener?.()
+    removeProfileRebuildProgressListener = null
     removeSystemThemeListener?.()
     removeSystemThemeListener = null
     window.removeEventListener('keydown', journal.handleWindowKeydown)

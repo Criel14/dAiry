@@ -36,6 +36,8 @@ const {
   handleGenerateDailyInsights,
   handleSaveAiConfiguration,
   handleSaveAiContext,
+  handleCancelUserProfileRebuild,
+  handleRebuildUserProfile,
   handleSaveAll,
   handleSaveEntry,
   handleSaveMetadata,
@@ -55,10 +57,12 @@ const {
   hasVisibleMetadataFields,
   heatmapSaveMessage,
   isCreatingEntry,
+  isCancellingProfileRebuild,
   isDirty,
   isGeneratingDailyInsights,
   isJournalHeatmapEnabled,
   isJournalReady,
+  isRebuildingProfile,
   isSavingAiConfig,
   isSavingAiContext,
   isSavingDayStartHour,
@@ -80,6 +84,8 @@ const {
   metadataStatusMessage,
   notification,
   notificationSaveMessage,
+  profileRebuildMessage,
+  profileRebuildProgress,
   openJournalPage,
   openReportsPage,
   openSettingsPage,
@@ -255,6 +261,12 @@ const {
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
         @save-ai-configuration="handleSaveAiConfiguration"
         @save-ai-context="handleSaveAiContext"
+        :is-rebuilding-profile="isRebuildingProfile"
+        :is-cancelling-profile-rebuild="isCancellingProfileRebuild"
+        :profile-rebuild-progress="profileRebuildProgress"
+        :profile-rebuild-message="profileRebuildMessage"
+        @rebuild-user-profile="handleRebuildUserProfile"
+        @cancel-user-profile-rebuild="handleCancelUserProfileRebuild"
       />
 
       <ReportsPanel

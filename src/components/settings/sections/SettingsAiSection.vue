@@ -6,6 +6,7 @@ import type {
   AiProviderType,
   AiSettings,
   AiSettingsStatus,
+  UserProfileRebuildProgress,
 } from '../../../types/ai'
 import { AI_PROVIDER_OPTIONS, getAiDefaults } from '../config/config'
 import {
@@ -20,6 +21,11 @@ const props = defineProps<{
   aiContextDocument: AiContextDocument
   isSavingAiContext: boolean
   aiContextSaveMessage: string
+  workspacePath: string | null
+  isRebuildingProfile: boolean
+  isCancellingProfileRebuild: boolean
+  profileRebuildProgress: UserProfileRebuildProgress | null
+  profileRebuildMessage: string
 }>()
 
 const emit = defineEmits<{
@@ -29,6 +35,8 @@ const emit = defineEmits<{
     },
   ]
   saveAiContext: [value: string]
+  rebuildUserProfile: []
+  cancelUserProfileRebuild: []
 }>()
 
 const draftAiSettings = ref<AiSettings>({ ...props.aiSettingsStatus.settings })
@@ -88,6 +96,23 @@ const canSaveAiContext = computed(() => {
 const isViewingSavedProvider = computed(
   () => draftAiSettings.value.providerType === props.aiSettingsStatus.settings.providerType,
 )
+
+const canRebuildProfile = computed(() => {
+  return (
+    Boolean(props.workspacePath) &&
+    props.aiSettingsStatus.isConfigured &&
+    !props.isRebuildingProfile
+  )
+})
+
+const rebuildProgressText = computed(() => {
+  if (!props.profileRebuildProgress) {
+    return '正在准备整理'
+  }
+
+  const { month, index, total } = props.profileRebuildProgress
+  return `正在整理 ${month}（${index}/${total}）`
+})
 
 const apiKeyInputPlaceholder = computed(() => {
   if (isViewingSavedProvider.value && props.aiSettingsStatus.hasApiKey) {
@@ -257,7 +282,7 @@ function handleAiContextKeydown(event: KeyboardEvent) {
         <label class="field">
           <span class="field-label field-label--with-tip">
             画像整理间隔
-            <SettingsInfoTip text="每次自动整理后 AI 会静默维护一份用户画像（保存在工作区 .dairy/user-profile.md），并每隔 N 天做一次全面刷新。" />
+            <SettingsInfoTip text="每次自动整理后 AI 会静默维护一份用户画像（保存在工作区 .dairy/user-profile.md），并每隔 N 天做一次全面整理。" />
           </span>
           <select
             v-model="draftAiSettings.profileRefreshIntervalDays"
@@ -288,6 +313,47 @@ function handleAiContextKeydown(event: KeyboardEvent) {
 
       <p v-if="aiSaveMessage" class="setting-feedback">
         {{ aiSaveMessage }}
+      </p>
+    </section>
+
+    <section class="settings-card">
+      <div class="panel-heading">
+        <span class="panel-label">用户画像</span>
+      </div>
+
+      <div class="workspace-summary">
+        <div class="workspace-summary-copy">
+          <p class="panel-description">
+            扫描当前工作区的全部历史日记，按月重新构建用户画像，适合老用户首次启用画像或画像质量退化时使用。整理完成前现有画像保持不变。
+          </p>
+        </div>
+      </div>
+
+      <div class="library-actions">
+        <button
+          v-if="!isRebuildingProfile"
+          class="save-button"
+          type="button"
+          :disabled="!canRebuildProfile"
+          @click="emit('rebuildUserProfile')"
+        >
+          重新整理用户画像
+        </button>
+        <template v-else>
+          <span class="setting-feedback">{{ rebuildProgressText }}</span>
+          <button
+            class="save-button"
+            type="button"
+            :disabled="isCancellingProfileRebuild"
+            @click="emit('cancelUserProfileRebuild')"
+          >
+            {{ isCancellingProfileRebuild ? '正在取消' : '取消' }}
+          </button>
+        </template>
+      </div>
+
+      <p v-if="profileRebuildMessage" class="setting-feedback">
+        {{ profileRebuildMessage }}
       </p>
     </section>
 

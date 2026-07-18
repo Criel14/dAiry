@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import packageJson from '../../../../package.json'
-import type { AiContextDocument, AiSettings, AiSettingsStatus } from '../../../types/ai'
+import type { AiContextDocument, AiSettings, AiSettingsStatus, UserProfileRebuildProgress } from '../../../types/ai'
 import type {
   AppTheme,
   EmailNotificationConfig,
@@ -65,6 +65,10 @@ const props = defineProps<{
   aiContextDocument: AiContextDocument
   isSavingAiContext: boolean
   aiContextSaveMessage: string
+  isRebuildingProfile: boolean
+  isCancellingProfileRebuild: boolean
+  profileRebuildProgress: UserProfileRebuildProgress | null
+  profileRebuildMessage: string
   activeSectionId: SettingsSectionId
 }>()
 
@@ -98,6 +102,8 @@ const emit = defineEmits<{
     },
   ]
   saveAiContext: [value: string]
+  rebuildUserProfile: []
+  cancelUserProfileRebuild: []
 }>()
 
 const appVersion = packageJson.version ?? '0.0.0'
@@ -195,6 +201,13 @@ function openDebugPanel() {
         :ai-context-save-message="props.aiContextSaveMessage"
         @save-ai-configuration="emit('saveAiConfiguration', $event)"
         @save-ai-context="emit('saveAiContext', $event)"
+        :workspace-path="props.workspacePath"
+        :is-rebuilding-profile="props.isRebuildingProfile"
+        :is-cancelling-profile-rebuild="props.isCancellingProfileRebuild"
+        :profile-rebuild-progress="props.profileRebuildProgress"
+        :profile-rebuild-message="props.profileRebuildMessage"
+        @rebuild-user-profile="emit('rebuildUserProfile')"
+        @cancel-user-profile-rebuild="emit('cancelUserProfileRebuild')"
       />
 
       <SettingsLibrariesSection

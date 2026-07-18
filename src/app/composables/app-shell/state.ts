@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
-import type { AiContextDocument, AiSettingsStatus } from '../../../types/ai'
+import type { AiContextDocument, AiSettingsStatus, UserProfileRebuildProgress } from '../../../types/ai'
 import type {
   AppTheme,
   EmailNotificationSecretStatus,
@@ -162,6 +162,10 @@ export function useAppShellState() {
   const isSavingWorkspaceLibraries = ref(false)
   const isSavingAiConfig = ref(false)
   const isSavingAiContext = ref(false)
+  const isRebuildingProfile = ref(false)
+  const isCancellingProfileRebuild = ref(false)
+  const profileRebuildProgress = ref<UserProfileRebuildProgress | null>(null)
+  const profileRebuildMessage = ref('')
   const isJournalHeatmapEnabled = ref(false)
   const theme = ref<AppTheme>('system')
   const windowZoomFactor = ref(1)
@@ -280,10 +284,12 @@ export function useAppShellState() {
     hasVisibleMetadataFields,
     heatmapSaveMessage,
     isCreatingEntry,
+    isCancellingProfileRebuild,
     isDirty,
     isGeneratingDailyInsights,
     isJournalHeatmapEnabled,
     isJournalReady,
+    isRebuildingProfile,
     isReportExportMode,
     isSavingAiConfig,
     isSavingAiContext,
@@ -306,6 +312,8 @@ export function useAppShellState() {
     metadataStatusMessage,
     notification,
     notificationSaveMessage,
+    profileRebuildMessage,
+    profileRebuildProgress,
     rightPanel,
     saveMetaText,
     savedContent,

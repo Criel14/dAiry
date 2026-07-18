@@ -63,8 +63,66 @@ export function useAppShellAi(state: AppShellState) {
     }
   }
 
+  async function handleRebuildUserProfile() {
+    if (state.isRebuildingProfile.value) {
+      return
+    }
+
+    if (!state.workspacePath.value) {
+      state.profileRebuildMessage.value = '请先选择工作区。'
+      return
+    }
+
+    const confirmed = window.confirm(
+      '将扫描当前工作区的全部日记，按月重新构建用户画像（每个有日记的月份消耗一轮 AI 调用，token 消耗较大）。整理完成前现有画像保持不变，是否继续？',
+    )
+    if (!confirmed) {
+      return
+    }
+
+    state.isRebuildingProfile.value = true
+    state.isCancellingProfileRebuild.value = false
+    state.profileRebuildProgress.value = null
+    state.profileRebuildMessage.value = ''
+
+    try {
+      const result = await window.dairy.rebuildUserProfile({
+        workspacePath: `${state.workspacePath.value}`,
+      })
+
+      state.profileRebuildMessage.value =
+        result.status === 'completed'
+          ? `画像整理完成（共 ${result.totalMonths} 个月）。`
+          : '已取消，现有画像未受影响。'
+    } catch (error) {
+      state.profileRebuildMessage.value = `${
+        error instanceof Error ? error.message : '画像整理失败，请稍后重试。'
+      }现有画像未受影响。`
+    } finally {
+      state.isRebuildingProfile.value = false
+      state.isCancellingProfileRebuild.value = false
+      state.profileRebuildProgress.value = null
+    }
+  }
+
+  async function handleCancelUserProfileRebuild() {
+    if (!state.isRebuildingProfile.value || state.isCancellingProfileRebuild.value) {
+      return
+    }
+
+    state.isCancellingProfileRebuild.value = true
+
+    try {
+      await window.dairy.cancelUserProfileRebuild()
+    } catch {
+      state.isCancellingProfileRebuild.value = false
+    }
+  }
+
   return {
     handleSaveAiConfiguration,
     handleSaveAiContext,
+    handleRebuildUserProfile,
+    handleCancelUserProfileRebuild,
   }
 }
