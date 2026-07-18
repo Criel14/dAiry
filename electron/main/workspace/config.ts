@@ -9,15 +9,19 @@ async function readRawWorkspaceConfig(workspacePath: string): Promise<Record<str
   try {
     const fileContent = await readFile(getWorkspaceConfigPath(workspacePath), 'utf-8')
     const parsedValue = JSON.parse(fileContent) as unknown
-    return parsedValue && typeof parsedValue === 'object'
-      ? (parsedValue as Record<string, unknown>)
-      : {}
+
+    if (!parsedValue || typeof parsedValue !== 'object' || Array.isArray(parsedValue)) {
+      return {}
+    }
+
+    return parsedValue as Record<string, unknown>
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return {}
     }
 
     if (error instanceof SyntaxError) {
+      console.warn('[workspace] workspace.json 内容损坏，将按空配置处理：', error.message)
       return {}
     }
 
