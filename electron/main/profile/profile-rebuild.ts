@@ -183,8 +183,8 @@ export async function rebuildUserProfile(
     throw new Error('当前工作区没有可用于整理的日记。')
   }
 
-  setProfileRebuildRunning(true)
   isCancelRequested = false
+  setProfileRebuildRunning(true)
 
   try {
     const systemPrompt = await loadPrompt('profileRebuildSystem')
