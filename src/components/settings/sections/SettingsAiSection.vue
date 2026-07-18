@@ -8,6 +8,10 @@ import type {
   AiSettingsStatus,
 } from '../../../types/ai'
 import { AI_PROVIDER_OPTIONS, getAiDefaults } from '../config/config'
+import {
+  DAILY_CONTEXT_DAYS_OPTIONS,
+  PROFILE_REFRESH_INTERVAL_OPTIONS,
+} from '../../../shared/defaults'
 
 const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
@@ -232,6 +236,42 @@ function handleAiContextKeydown(event: KeyboardEvent) {
             :disabled="isSavingAiConfig"
             :placeholder="apiKeyInputPlaceholder"
           />
+        </label>
+
+        <label class="field">
+          <span class="field-label field-label--with-tip">
+            日总结上下文天数
+            <SettingsInfoTip text="自动整理时会附带最近 N 天的日记摘要，帮助 AI 理解近期状态；天数越大消耗的 token 越多。" />
+          </span>
+          <select
+            v-model="draftAiSettings.dailyContextDays"
+            class="field-input"
+            :disabled="isSavingAiConfig"
+          >
+            <option v-for="option in DAILY_CONTEXT_DAYS_OPTIONS" :key="option" :value="option">
+              {{ option }} 天
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label field-label--with-tip">
+            画像整理间隔
+            <SettingsInfoTip text="每次自动整理后 AI 会静默维护一份用户画像（保存在工作区 .dairy/user-profile.md），并每隔 N 天做一次全面刷新。" />
+          </span>
+          <select
+            v-model="draftAiSettings.profileRefreshIntervalDays"
+            class="field-input"
+            :disabled="isSavingAiConfig"
+          >
+            <option
+              v-for="option in PROFILE_REFRESH_INTERVAL_OPTIONS"
+              :key="option"
+              :value="option"
+            >
+              {{ option }} 天
+            </option>
+          </select>
         </label>
       </div>
 
