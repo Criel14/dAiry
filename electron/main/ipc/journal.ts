@@ -9,6 +9,7 @@ import type {
   JournalMonthActivityQuery,
 } from '../../../src/types/journal'
 import { generateDailyInsights } from '../ai'
+import { runProfileMaintenance } from '../profile'
 import { IPC_CHANNELS } from '../constants'
 import {
   createJournalEntry,
@@ -42,7 +43,19 @@ export function registerJournalIpcHandlers() {
     return getJournalMonthActivity(input)
   })
 
-  ipcMain.handle(IPC_CHANNELS.generateDailyInsights, (_event, input: GenerateDailyInsightsInput) => {
-    return generateDailyInsights(input)
-  })
+  ipcMain.handle(
+    IPC_CHANNELS.generateDailyInsights,
+    async (_event, input: GenerateDailyInsightsInput) => {
+      const result = await generateDailyInsights(input)
+
+      // 画像维护异步执行，不阻塞日总结返回，失败也不影响主流程
+      void runProfileMaintenance({
+        workspacePath: input.workspacePath,
+        date: input.date,
+        body: input.body,
+      })
+
+      return result
+    },
+  )
 }
