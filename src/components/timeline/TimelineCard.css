@@ -16,31 +16,33 @@
 
 .timeline-card-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.timeline-card-date {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-main);
+  font-weight: 500;
 }
 
 .timeline-card-title {
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-main);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.timeline-card-date {
+.timeline-card-chevron {
   flex-shrink: 0;
-  font-size: 0.78rem;
+  width: 1rem;
+  height: 1rem;
+  margin-left: auto;
   color: var(--color-text-subtle);
-}
-
-.timeline-card-summary {
-  margin-top: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--color-text-subtle);
-  line-height: 1.5;
 }
 
 .timeline-card-detail {

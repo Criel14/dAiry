@@ -59,7 +59,7 @@ function extractJsonObject(rawText: string): ExtractResult {
 
 function fixUnescapedStrings(json: string): string {
   // 处理可能包含未转义换行的字符串值
-  const fields = ['detail', 'summary', 'title', 'note']
+  const fields = ['detail', 'title', 'note']
   for (const field of fields) {
     const regex = new RegExp(`"${field}":\\s*"((?:[^"\\\\]|\\\\.)*)"`, 'g')
     json = json.replace(regex, (_match: string, p1: string) => {

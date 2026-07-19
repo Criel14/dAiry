@@ -3,7 +3,6 @@ export interface TimelineEvent {
   date: string
   dateEnd: string | null
   title: string
-  summary: string
   detail: string
   diaryDates: string[]
 }

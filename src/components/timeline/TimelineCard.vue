@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { FileText } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, FileText } from 'lucide-vue-next'
 import type { TimelineEvent } from '../../types/timeline'
 
 defineProps<{
@@ -25,14 +25,17 @@ function toggleExpand() {
     :class="{ 'timeline-card--expanded': isExpanded }"
   >
     <div class="timeline-card-header" @click="toggleExpand">
-      <div class="timeline-card-title">{{ event.title }}</div>
-      <div class="timeline-card-date">
+      <span class="timeline-card-date">
         {{ event.date }}
         <template v-if="event.dateEnd"> ~ {{ event.dateEnd }}</template>
-      </div>
+      </span>
+      <span class="timeline-card-title">{{ event.title }}</span>
+      <component
+        :is="isExpanded ? ChevronUp : ChevronDown"
+        class="timeline-card-chevron"
+        aria-hidden="true"
+      />
     </div>
-
-    <div class="timeline-card-summary">{{ event.summary }}</div>
 
     <div v-if="isExpanded" class="timeline-card-detail">
       <p>{{ event.detail }}</p>
