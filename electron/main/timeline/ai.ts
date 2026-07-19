@@ -1,7 +1,4 @@
 import dayjs from 'dayjs'
-import { writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 import type { TimelineEvent } from '../../../src/types/timeline'
 import { assertValidDate, resolveJournalEntryFilePath } from '../workspace/paths'
 import { readAppConfig, normalizeAiSettings } from '../app-config'
@@ -53,13 +50,10 @@ function extractJsonObject(rawText: string): ExtractResult {
     }
   }
 
-  // 4. 所有尝试失败，保存原始返回并报错
-  const dumpPath = join(tmpdir(), `dairy-timeline-parse-error-${Date.now()}.txt`)
-  writeFileSync(dumpPath, rawText, 'utf-8')
-
-  const preview = rawText.length > 500 ? rawText.slice(0, 500) + '...' : rawText
+  // 4. 所有尝试失败
+  const preview = rawText.length > 300 ? rawText.slice(0, 300) + '...' : rawText
   throw new Error(
-    `大模型返回内容无法解析为 JSON。已保存到 ${dumpPath}\n\n返回内容预览：\n${preview}`,
+    `大模型返回内容无法解析为 JSON。返回内容预览：\n${preview}`,
   )
 }
 
