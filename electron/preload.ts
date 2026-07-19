@@ -32,7 +32,7 @@ const dairyApi: DairyApi = {
     ) => {
       const panel = payload?.panel
 
-      if (panel === 'journal' || panel === 'reports' || panel === 'settings') {
+      if (panel === 'journal' || panel === 'reports' || panel === 'settings' || panel === 'timeline') {
         listener(panel as RightPanel)
       }
     }
