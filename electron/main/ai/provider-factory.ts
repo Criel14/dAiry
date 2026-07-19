@@ -58,7 +58,8 @@ export interface AiChatClient {
   completeText: (input: ChatCompletionTextRequest) => Promise<string>
 }
 
-export function createAiChatClient(settings: AiSettings, apiKey: string): AiChatClient {
+export function createAiChatClient(settings: AiSettings, apiKey: string, timeoutMs?: number): AiChatClient {
+  const effectiveTimeout = timeoutMs ?? settings.timeoutMs
   const supportsJsonMode =
     settings.providerType === 'openai' || settings.providerType === 'openai-compatible'
 
@@ -70,7 +71,7 @@ export function createAiChatClient(settings: AiSettings, apiKey: string): AiChat
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(settings.timeoutMs),
+      signal: AbortSignal.timeout(effectiveTimeout),
     })
 
     let rawBody: string

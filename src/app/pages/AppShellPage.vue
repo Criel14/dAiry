@@ -9,6 +9,7 @@ import JournalEditorPanel from '../../components/journal/components/JournalEdito
 import ReportsPanel from '../../components/report/components/ReportsPanel/ReportsPanel.vue'
 import SettingsPanel from '../../components/settings/panel/SettingsPanel.vue'
 import TimelinePage from '../../components/timeline/TimelinePage.vue'
+import TimelineSidebar from '../../components/timeline/TimelineSidebar.vue'
 import { SETTINGS_SECTIONS } from '../../components/settings/config/config'
 import { useAppShell } from '../composables/useAppShell'
 
@@ -175,6 +176,17 @@ const {
           :sections="SETTINGS_SECTIONS"
           :active-section-id="activeSettingsSectionId"
           @select="activeSettingsSectionId = $event"
+        />
+
+        <TimelineSidebar
+          v-else-if="rightPanel === 'timeline'"
+          :selected-year="selectedTimelineYear"
+          :has-data-years="timelineData ? new Set([String(selectedTimelineYear)]) : new Set()"
+          :is-rebuilding="isRebuildingTimeline"
+          :rebuild-progress="timelineRebuildProgress"
+          @select-year="handleSelectTimelineYear"
+          @rebuild="handleRebuildTimeline"
+          @cancel-rebuild="handleCancelTimelineRebuild"
         />
       </template>
     </WorkspaceSidebar>

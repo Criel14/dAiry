@@ -192,7 +192,7 @@ export async function rebuildTimelineYear(
       .filter(Boolean)
       .join('\n\n')
 
-    const client = createAiChatClient(settings, apiKey)
+    const client = createAiChatClient(settings, apiKey, 120000)
     const responseText = await client.completeJson({
       messages: [
         { role: 'system', content: systemPrompt },
