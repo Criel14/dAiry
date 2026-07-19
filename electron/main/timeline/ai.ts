@@ -20,11 +20,36 @@ function extractJsonObject(text: string): ExtractResult {
   try {
     return JSON.parse(trimmedText) as ExtractResult
   } catch {
+    // 尝试找到 JSON 块
     const jsonMatch = trimmedText.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       throw new Error('大模型返回内容不是有效的结构化结果。')
     }
-    return JSON.parse(jsonMatch[0]) as ExtractResult
+
+    let candidate = jsonMatch[0]
+    try {
+      return JSON.parse(candidate) as ExtractResult
+    } catch {
+      // JSON 中的字符串字段可能包含未转义的换行，尝试修复
+      candidate = candidate.replace(/"detail":\s*"([^"]*)"/g, (_match: string, p1: string) => {
+        const escaped = p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+        return `"detail": "${escaped}"`
+      })
+      candidate = candidate.replace(/"summary":\s*"([^"]*)"/g, (_match: string, p1: string) => {
+        const escaped = p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+        return `"summary": "${escaped}"`
+      })
+      candidate = candidate.replace(/"title":\s*"([^"]*)"/g, (_match: string, p1: string) => {
+        const escaped = p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
+        return `"title": "${escaped}"`
+      })
+
+      try {
+        return JSON.parse(candidate) as ExtractResult
+      } catch {
+        throw new Error('大模型返回的 JSON 格式无法解析，请稍后重试。')
+      }
+    }
   }
 }
 
@@ -107,6 +132,23 @@ export async function extractEventsFromDay(
 
 const __timelineCancelTokens = new Map<number, { cancelled: boolean }>()
 
+function buildBatches(start: dayjs.Dayjs, end: dayjs.Dayjs): Array<{ start: string; end: string }> {
+  const batches: Array<{ start: string; end: string }> = []
+  let cursor = start
+
+  while (cursor.isBefore(end) || cursor.isSame(end, 'day')) {
+    const batchStart = cursor.format('YYYY-MM-DD')
+    const batchEnd = cursor.add(2, 'day')
+    batches.push({
+      start: batchStart,
+      end: batchEnd.isAfter(end) ? end.format('YYYY-MM-DD') : batchEnd.format('YYYY-MM-DD'),
+    })
+    cursor = batchEnd.add(1, 'day')
+  }
+
+  return batches
+}
+
 export async function rebuildTimelineYear(
   workspacePath: string,
   year: number,
@@ -115,29 +157,21 @@ export async function rebuildTimelineYear(
   const allEvents: TimelineEvent[] = []
   const start = dayjs(`${year}-01-01`)
   const end = dayjs(`${year}-12-31`)
-  const weeks: Array<{ start: string; end: string }> = []
-  let cursor = start
 
-  while (cursor.isBefore(end) || cursor.isSame(end, 'day')) {
-    const weekStart = cursor.format('YYYY-MM-DD')
-    const weekEnd = cursor.add(6, 'day')
-    weeks.push({
-      start: weekStart,
-      end: weekEnd.isAfter(end) ? end.format('YYYY-MM-DD') : weekEnd.format('YYYY-MM-DD'),
-    })
-    cursor = weekEnd.add(1, 'day')
-  }
+  const batches = buildBatches(start, end)
+  const totalBatches = batches.length
 
   const cancelToken = { cancelled: false }
   __timelineCancelTokens.set(year, cancelToken)
 
-  for (let i = 0; i < weeks.length; i++) {
-    const { start: weekStart, end: weekEnd } = weeks[i]
-    onProgress({ weekLabel: `${weekStart} ~ ${weekEnd}`, current: i + 1, total: weeks.length })
+  let completedCount = 0
 
+  for (let i = 0; i < batches.length; i++) {
     if (cancelToken.cancelled) {
       return null
     }
+
+    const { start: batchStart, end: batchEnd } = batches[i]
 
     const [config, systemPrompt, aiContext] = await Promise.all([
       readAppConfig(),
@@ -153,8 +187,8 @@ export async function rebuildTimelineYear(
     }
 
     const bodies: string[] = []
-    let dayCursor = dayjs(weekStart)
-    while (dayCursor.isBefore(dayjs(weekEnd)) || dayCursor.isSame(dayjs(weekEnd), 'day')) {
+    let dayCursor = dayjs(batchStart)
+    while (dayCursor.isBefore(dayjs(batchEnd)) || dayCursor.isSame(dayjs(batchEnd), 'day')) {
       const dayStr = dayCursor.format('YYYY-MM-DD')
 
       try {
@@ -175,6 +209,9 @@ export async function rebuildTimelineYear(
       continue
     }
 
+    completedCount++
+    onProgress({ weekLabel: `${batchStart} ~ ${batchEnd}`, current: completedCount, total: totalBatches })
+
     const existingEventsBlock =
       allEvents.length > 0
         ? '当前已有事件：\n' +
@@ -184,7 +221,7 @@ export async function rebuildTimelineYear(
         : ''
 
     const userPrompt = [
-      `正在重建 ${year} 年时间轴，当前批次：${weekStart} ~ ${weekEnd}`,
+      `正在重建 ${year} 年时间轴，当前批次：${batchStart} ~ ${batchEnd}`,
       existingEventsBlock,
       aiContext.trim() ? `补充知识：\n${aiContext.trim()}` : '',
       ...bodies,

@@ -14,25 +14,27 @@
 
 ## 输出格式
 
-必须返回严格的 JSON，不要包含 markdown 代码块标记：
+你必须返回严格的 JSON 格式，不要包含 markdown 代码块标记。
+所有字符串字段（title、summary、detail）中的换行必须用 \\n 转义，双引号必须用 \\" 转义。
 
+正确示例：
 {
   "newEvents": [
     {
-      "id": "evt_YYYYMMDD_序号",
-      "date": "YYYY-MM-DD",
+      "id": "evt_20260315_001",
+      "date": "2026-03-15",
       "dateEnd": null,
-      "title": "事件标题",
-      "summary": "一句话摘要",
-      "detail": "详细描述",
-      "diaryDates": ["YYYY-MM-DD"]
+      "title": "完成项目文档",
+      "summary": "加班三天终于写完技术方案",
+      "detail": "从周二开始连续加班到周四晚上，\\n终于把整套微服务架构的技术方案\\n写完并通过了评审。",
+      "diaryDates": ["2026-03-13", "2026-03-14", "2026-03-15"]
     }
   ],
-  "updatedEvents": [
-    {
-      "id": "已有事件ID",
-      "dateEnd": "更新后的结束日期",
-      "detail": "更新后的完整描述"
-    }
-  ]
+  "updatedEvents": []
+}
+
+错误示例（不要这样写）：
+{
+  "detail": "第一行
+第二行"    ← 换行未转义，会导致 JSON 解析失败
 }
