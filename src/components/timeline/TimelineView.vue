@@ -72,7 +72,6 @@ const MONTH_LABELS = [
             v-for="event in group.events"
             :key="event.id"
             class="timeline-event-row"
-            :class="{ 'timeline-event-row--range': event.dateEnd }"
           >
             <div class="timeline-event-marker">
               <div
