@@ -8,6 +8,7 @@ import { createAiChatClient } from '../ai/provider-factory'
 import { loadPrompt } from '../ai/prompt-loader'
 import { readJournalDocument } from '../journal/document'
 import { getRecentDailySummaries } from '../ai/journal-ai-service'
+import { readTimelineYear, writeTimelineYear, mergeEvents } from './service'
 
 interface ExtractResult {
   newEvents: TimelineEvent[]
@@ -284,5 +285,45 @@ export function cancelTimelineRebuild(year: number): void {
   const token = __timelineCancelTokens.get(year)
   if (token) {
     token.cancelled = true
+  }
+}
+
+export async function updateTimelineForDay(
+  workspacePath: string,
+  date: string,
+): Promise<void> {
+  const year = Number.parseInt(date.split('-')[0], 10)
+  const existingData = readTimelineYear(workspacePath, year)
+
+  if (!existingData) {
+    return
+  }
+
+  try {
+    const result = await extractEventsFromDay(workspacePath, date, existingData.events)
+
+    if (result.newEvents.length === 0 && result.updatedEvents.length === 0) {
+      return
+    }
+
+    const mergedEvents = mergeEvents(existingData.events, result.newEvents)
+
+    for (const update of result.updatedEvents) {
+      const idx = mergedEvents.findIndex((e) => e.id === update.id)
+      if (idx !== -1) {
+        if (update.dateEnd !== undefined) mergedEvents[idx].dateEnd = update.dateEnd
+        if (update.detail !== undefined) mergedEvents[idx].detail = update.detail
+      }
+    }
+
+    const updatedData = {
+      ...existingData,
+      events: mergedEvents,
+      generatedAt: new Date().toISOString(),
+    }
+
+    writeTimelineYear(workspacePath, updatedData)
+  } catch (err) {
+    console.error('时间轴日更失败：', err)
   }
 }
