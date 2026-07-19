@@ -226,4 +226,13 @@ html[data-theme='dark'] {
   --shadow-report-modal: 0 24px 56px rgba(0, 0, 0, 0.42);
   --shadow-chart-point: 0 2px 8px rgba(0, 0, 0, 0.26);
   --shadow-chart-tooltip: 0 16px 34px rgba(0, 0, 0, 0.32);
+
+  --color-timeline-event-1: #5A788A;
+  --color-timeline-event-2: #6B8A5A;
+  --color-timeline-event-3: #8A7A5A;
+  --color-timeline-event-4: #8A5A74;
+  --color-timeline-event-5: #5A888A;
+  --color-timeline-event-6: #785A8A;
+  --color-timeline-event-7: #8A875A;
+  --color-timeline-event-8: #6A6A8A;
 }

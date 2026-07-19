@@ -52,4 +52,13 @@ html[data-theme='dark'] {
   --color-tag-cloud-4: #8a7250;
   --color-tag-cloud-5: #9b7e56;
   --color-tag-cloud-6: #6b5a41;
+
+  --color-timeline-event-1: #A8C5D6;
+  --color-timeline-event-2: #B8D0A8;
+  --color-timeline-event-3: #D6C5A8;
+  --color-timeline-event-4: #D6A8C1;
+  --color-timeline-event-5: #A8D4D6;
+  --color-timeline-event-6: #C5A8D6;
+  --color-timeline-event-7: #D6D0A8;
+  --color-timeline-event-8: #A8B5D6;
 }
