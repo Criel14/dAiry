@@ -74,6 +74,10 @@ export function getLegacyWorkspaceCustomReportsDir(workspacePath: string) {
   return path.join(getLegacyWorkspaceReportsDir(workspacePath), 'custom')
 }
 
+export function resolveTimelineDirPath(workspacePath: string): string {
+  return path.join(workspacePath, 'timeline')
+}
+
 export function getWorkspaceTagLibraryPath(workspacePath: string) {
   return path.join(getWorkspaceMetadataDir(workspacePath), 'tags.json')
 }
