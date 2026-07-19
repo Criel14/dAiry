@@ -150,6 +150,10 @@ export function useAppShell() {
     state.rightPanel.value = 'journal'
   }
 
+  function openTimelinePage() {
+    state.rightPanel.value = 'timeline'
+  }
+
   return {
     ...state,
     ...journal,
@@ -162,6 +166,7 @@ export function useAppShell() {
     handleUpdateTheme: preferences.handleUpdateTheme,
     handleUpdateWindowCloseBehavior: preferences.handleUpdateWindowCloseBehavior,
     openJournalPage,
+    openTimelinePage,
     openReportsPage,
     openSettingsPage,
     reportsPanel,

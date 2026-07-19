@@ -89,6 +89,7 @@ const {
   openJournalPage,
   openReportsPage,
   openSettingsPage,
+  openTimelinePage,
   reportsPanel,
   rightPanel,
   saveMetaText,
@@ -120,6 +121,7 @@ const {
       @choose-workspace="handleChooseWorkspace"
       @open-journal="openJournalPage"
       @open-reports="openReportsPage"
+      @open-timeline="openTimelinePage"
       @open-settings="openSettingsPage"
     >
       <template #context>

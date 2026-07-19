@@ -4,11 +4,12 @@ import {
   FolderOpen,
   PencilLine,
   SlidersHorizontal,
+  Table2,
 } from 'lucide-vue-next'
 
 defineProps<{
   workspacePath: string | null
-  activePanel: 'journal' | 'reports' | 'settings'
+  activePanel: 'journal' | 'reports' | 'settings' | 'timeline'
 }>()
 
 defineEmits<{
@@ -16,6 +17,7 @@ defineEmits<{
   openJournal: []
   openReports: []
   openSettings: []
+  openTimeline: []
 }>()
 </script>
 
@@ -71,6 +73,15 @@ defineEmits<{
         >
           <ChartColumn class="nav-button-icon" aria-hidden="true" />
           <span>报告</span>
+        </button>
+        <button
+          class="nav-button"
+          :class="{ 'nav-button--active': activePanel === 'timeline' }"
+          type="button"
+          @click="$emit('openTimeline')"
+        >
+          <Table2 class="nav-button-icon" aria-hidden="true" />
+          <span>时间轴</span>
         </button>
         <button
           class="nav-button"
