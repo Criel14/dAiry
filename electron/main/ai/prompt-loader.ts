@@ -8,6 +8,7 @@ const PROMPT_FILE_MAP = {
   profileRebuildSystem: new URL('./prompts/profile-rebuild.system.md', import.meta.url),
   rangeReportSummaryFocusSystem: new URL('./prompts/range-report-summary-focus.system.md', import.meta.url),
   rangeReportSummarySystem: new URL('./prompts/range-report-summary.system.md', import.meta.url),
+  timelineExtractSystem: new URL('./prompts/timeline-extract.system.md', import.meta.url),
 } as const
 
 const promptCache = new Map<keyof typeof PROMPT_FILE_MAP, string>()
