@@ -21,13 +21,6 @@
   min-width: 0;
 }
 
-.timeline-card-date {
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  color: var(--color-text-main);
-  font-weight: 500;
-}
-
 .timeline-card-title {
   font-size: 0.95rem;
   font-weight: 600;

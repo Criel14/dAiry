@@ -72,6 +72,7 @@ const MONTH_LABELS = [
             v-for="event in group.events"
             :key="event.id"
             class="timeline-event-row"
+            :class="{ 'timeline-event-row--range': event.dateEnd }"
           >
             <div class="timeline-event-marker">
               <div
@@ -85,6 +86,11 @@ const MONTH_LABELS = [
                 :style="{ backgroundColor: event.color }"
               ></div>
             </div>
+
+            <span class="timeline-event-date" :style="{ color: event.color }">
+              {{ event.date }}
+              <template v-if="event.dateEnd"> ~ {{ event.dateEnd }}</template>
+            </span>
 
             <TimelineCard
               :event="event"

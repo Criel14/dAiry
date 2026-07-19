@@ -29,10 +29,6 @@ const detailText = computed(() => {
     :class="{ 'timeline-card--expanded': isExpanded }"
   >
     <div class="timeline-card-header" @click="toggleExpand">
-      <span class="timeline-card-date">
-        {{ event.date }}
-        <template v-if="event.dateEnd"> ~ {{ event.dateEnd }}</template>
-      </span>
       <span class="timeline-card-title">{{ event.title }}</span>
       <component
         :is="isExpanded ? ChevronUp : ChevronDown"

@@ -40,8 +40,12 @@
 
 .timeline-event-row {
   display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timeline-event-row--range {
   align-items: flex-start;
-  gap: 1rem;
 }
 
 .timeline-event-marker {
@@ -50,7 +54,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 0.4rem;
+}
+
+.timeline-event-row--range .timeline-event-marker {
+  padding-top: 0.25rem;
+}
+
+.timeline-event-date {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  filter: brightness(0.72);
+}
+
+.timeline-event-row--range .timeline-event-date {
+  padding-top: 0.25rem;
 }
 
 .timeline-event-dot {
