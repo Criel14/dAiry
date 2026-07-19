@@ -52,6 +52,7 @@ import type {
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
 } from './workspace'
+import type { TimelineYearData, RebuildTimelineProgress } from './timeline'
 import type { RightPanel } from './ui'
 
 export interface DairyApi {
@@ -110,4 +111,10 @@ export interface DairyApi {
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
   openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
   openDevTools: () => Promise<void>
+  getTimeline: (input: { workspacePath: string; year: number }) => Promise<TimelineYearData | null>
+  rebuildTimeline: (workspacePath: string) => Promise<void>
+  cancelTimelineRebuild: () => Promise<void>
+  onTimelineRebuildProgress: (
+    listener: (progress: RebuildTimelineProgress) => void,
+  ) => () => void
 }

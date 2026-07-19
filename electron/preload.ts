@@ -104,6 +104,29 @@ const dairyApi: DairyApi = {
   setWindowDirtyState: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWindowDirtyState, input),
   openExternalLink: (input) => ipcRenderer.invoke(IPC_CHANNELS.openExternalLink, input),
   openDevTools: () => ipcRenderer.invoke(IPC_CHANNELS.openDevTools),
+  getTimeline: (input) => ipcRenderer.invoke(IPC_CHANNELS.getTimeline, input),
+  rebuildTimeline: (workspacePath) => ipcRenderer.invoke(IPC_CHANNELS.rebuildTimeline, workspacePath),
+  cancelTimelineRebuild: () => ipcRenderer.invoke(IPC_CHANNELS.cancelTimelineRebuild),
+  onTimelineRebuildProgress: (listener) => {
+    const wrappedListener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { weekLabel?: unknown; current?: unknown; total?: unknown } | undefined,
+    ) => {
+      if (
+        typeof payload?.weekLabel === 'string' &&
+        typeof payload?.current === 'number' &&
+        typeof payload?.total === 'number'
+      ) {
+        listener({ weekLabel: payload.weekLabel, current: payload.current, total: payload.total })
+      }
+    }
+
+    ipcRenderer.on(IPC_CHANNELS.timelineRebuildProgress, wrappedListener)
+
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.timelineRebuildProgress, wrappedListener)
+    }
+  },
 }
 
 contextBridge.exposeInMainWorld('dairy', dairyApi)
