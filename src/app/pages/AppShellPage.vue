@@ -8,6 +8,7 @@ import JournalMetadataPanel from '../../components/journal/components/JournalMet
 import JournalEditorPanel from '../../components/journal/components/JournalEditorPanel/JournalEditorPanel.vue'
 import ReportsPanel from '../../components/report/components/ReportsPanel/ReportsPanel.vue'
 import SettingsPanel from '../../components/settings/panel/SettingsPanel.vue'
+import TimelinePage from '../../components/timeline/TimelinePage.vue'
 import { SETTINGS_SECTIONS } from '../../components/settings/config/config'
 import { useAppShell } from '../composables/useAppShell'
 
@@ -90,6 +91,14 @@ const {
   openReportsPage,
   openSettingsPage,
   openTimelinePage,
+  selectedTimelineYear,
+  timelineData,
+  isRebuildingTimeline,
+  timelineRebuildProgress,
+  handleSelectTimelineYear,
+  handleRebuildTimeline,
+  handleCancelTimelineRebuild,
+  jumpToDiary,
   reportsPanel,
   rightPanel,
   saveMetaText,
@@ -286,6 +295,20 @@ const {
         :active-location-patterns="reportsPanel.activeLocationPatterns.value"
         :active-time-patterns="reportsPanel.activeTimePatterns.value"
       />
+
+      <section v-else-if="rightPanel === 'timeline'" class="timeline-area">
+        <TimelinePage
+          :workspace-path="workspacePath"
+          :selected-year="selectedTimelineYear"
+          :timeline-data="timelineData"
+          :is-rebuilding="isRebuildingTimeline"
+          :rebuild-progress="timelineRebuildProgress"
+          @select-year="handleSelectTimelineYear"
+          @rebuild="handleRebuildTimeline"
+          @cancel-rebuild="handleCancelTimelineRebuild"
+          @jump-to-diary="jumpToDiary"
+        />
+      </section>
 
       <JournalEditorPanel
         v-else

@@ -1,0 +1,86 @@
+.timeline-card {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-glass-ivory-72);
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.timeline-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.timeline-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.timeline-card-title {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeline-card-date {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: var(--color-text-subtle);
+}
+
+.timeline-card-summary {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+  line-height: 1.5;
+}
+
+.timeline-card-detail {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.timeline-card-detail p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-soft);
+  line-height: 1.6;
+}
+
+.timeline-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.timeline-card-diary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-interactive);
+  color: var(--color-text-link);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.timeline-card-diary-link:hover {
+  border-color: var(--color-border-strong);
+}
+
+.link-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}

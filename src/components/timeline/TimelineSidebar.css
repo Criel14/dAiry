@@ -1,0 +1,51 @@
+.timeline-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.timeline-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.rebuild-button {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-interactive);
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 160ms ease;
+}
+
+.rebuild-button:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-main);
+}
+
+.rebuild-status {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rebuild-progress-text {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-subtle);
+}
+
+.cancel-button {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-interactive);
+  color: var(--color-text-danger-soft);
+  font-size: 0.82rem;
+  cursor: pointer;
+}

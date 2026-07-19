@@ -7,10 +7,12 @@ import { useAppShellAi } from './app-shell/ai'
 import { useAppShellJournal } from './app-shell/journal'
 import { useAppShellPreferences } from './app-shell/preferences'
 import { useAppShellState } from './app-shell/state'
+import { useTimeline } from '../../components/timeline/composables/useTimeline'
 
 export function useAppShell() {
   const state = useAppShellState()
   const reportsPanel = useReportsPanel(state.workspacePath)
+  const timeline = useTimeline(state.workspacePath)
   const journal = useAppShellJournal(state)
   const preferences = useAppShellPreferences(state, {
     applyNoWorkspaceState: journal.applyNoWorkspaceState,
@@ -152,6 +154,12 @@ export function useAppShell() {
 
   function openTimelinePage() {
     state.rightPanel.value = 'timeline'
+    timeline.openTimelinePage()
+  }
+
+  function jumpToDiary(date: string) {
+    state.rightPanel.value = 'journal'
+    journal.handleSelectDate(date)
   }
 
   return {
@@ -159,6 +167,7 @@ export function useAppShell() {
     ...journal,
     ...preferences,
     ...ai,
+    ...timeline,
     handleUpdateLaunchOnStartupEnabled: preferences.handleUpdateLaunchOnStartupEnabled,
     handleUpdateEmailNotificationEnabled: preferences.handleUpdateEmailNotificationEnabled,
     handleUpdateNotificationReminderTime: preferences.handleUpdateNotificationReminderTime,
@@ -167,6 +176,7 @@ export function useAppShell() {
     handleUpdateWindowCloseBehavior: preferences.handleUpdateWindowCloseBehavior,
     openJournalPage,
     openTimelinePage,
+    jumpToDiary,
     openReportsPage,
     openSettingsPage,
     reportsPanel,

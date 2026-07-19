@@ -1,0 +1,66 @@
+.timeline-view {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.timeline-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--color-text-subtle);
+}
+
+.timeline-empty-state h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+  color: var(--color-text-main);
+}
+
+.timeline-month {
+  margin-bottom: 2rem;
+}
+
+.timeline-month-label {
+  padding: 0.5rem 0 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-accent);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.timeline-events {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--color-border);
+}
+
+.timeline-event-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.timeline-event-marker {
+  flex-shrink: 0;
+  width: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0.4rem;
+}
+
+.timeline-event-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+}
+
+.timeline-event-range {
+  width: 0.35rem;
+  min-height: 1.2rem;
+  border-radius: 4px;
+}
