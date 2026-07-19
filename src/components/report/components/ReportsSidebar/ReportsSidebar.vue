@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import dayjs from 'dayjs'
 import {
   ChevronDown,
   ChevronUp,
@@ -11,6 +13,7 @@ import {
   type ReportsSidebarEmits,
   type ReportsSidebarProps,
 } from '../../composables/useReportsSidebar'
+import YearPickerGrid from '../../../shared/YearPickerGrid.vue'
 
 const props = defineProps<ReportsSidebarProps>()
 
@@ -23,20 +26,19 @@ const {
   formatDateTime,
   generateButtonText,
   goToCurrentMonth,
-  goToCurrentYear,
   isRequiredSection,
   isSectionOptionsExpanded,
   isSectionSelected,
   monthCells,
   monthPickerTitle,
   selectMonth,
-  selectYear,
   selectedSectionSummary,
   shiftMonthPickerYear,
-  shiftYearPickerPage,
-  yearCells,
-  yearPickerTitle,
 } = useReportsSidebar(props, emit)
+
+const yearReportKeysSet = computed(() =>
+  new Set(props.yearReports.map((r) => dayjs(r.startDate).format('YYYY'))),
+)
 </script>
 
 <template>
@@ -109,37 +111,12 @@ const {
         </button>
       </section>
 
-      <section v-else-if="preset === 'year'" class="selector-card">
-        <header class="selector-toolbar">
-          <button class="toolbar-button" type="button" title="上一组年份" aria-label="上一组年份" @click="shiftYearPickerPage(-1)">
-            <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
-          </button>
-          <strong class="selector-title">{{ yearPickerTitle }}</strong>
-          <button class="toolbar-button" type="button" title="下一组年份" aria-label="下一组年份" @click="shiftYearPickerPage(1)">
-            <ChevronsRight class="toolbar-icon" aria-hidden="true" />
-          </button>
-        </header>
-
-        <div class="picker-grid picker-grid--year">
-          <button
-            v-for="item in yearCells"
-            :key="item.key"
-            class="picker-cell"
-            :class="{
-              'picker-cell--selected': item.isSelected,
-              'picker-cell--current': item.isCurrent,
-              'picker-cell--has-report': item.hasReport,
-            }"
-            type="button"
-            @click="selectYear(item.key)"
-          >
-            {{ item.label }}
-          </button>
-        </div>
-
-        <button class="today-button" type="button" @click="goToCurrentYear">
-          回到本年
-        </button>
+      <section v-else-if="preset === 'year'">
+        <YearPickerGrid
+          :selected-year="Number.parseInt(yearValue, 10)"
+          :has-data-years="yearReportKeysSet"
+          @update:selected-year="year => $emit('update:yearValue', String(year))"
+        />
       </section>
 
       <div v-else class="field-group">
