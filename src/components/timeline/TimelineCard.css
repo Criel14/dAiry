@@ -51,11 +51,12 @@
   border-top: 1px solid var(--color-border-soft);
 }
 
-.timeline-card-detail p {
+.timeline-card-detail-text {
   margin: 0;
   font-size: 0.85rem;
   color: var(--color-text-soft);
   line-height: 1.6;
+  white-space: pre-line;
 }
 
 .timeline-card-links {
