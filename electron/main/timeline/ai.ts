@@ -1,4 +1,7 @@
 import dayjs from 'dayjs'
+import { writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import type { TimelineEvent } from '../../../src/types/timeline'
 import { assertValidDate, resolveJournalEntryFilePath } from '../workspace/paths'
 import { readAppConfig, normalizeAiSettings } from '../app-config'
@@ -14,43 +17,67 @@ interface ExtractResult {
   updatedEvents: Array<{ id: string; dateEnd?: string | null; detail?: string }>
 }
 
-function extractJsonObject(text: string): ExtractResult {
-  const trimmedText = text.trim()
+function extractJsonObject(rawText: string): ExtractResult {
+  let text = rawText.trim()
 
+  // 1. 去掉 markdown 代码块
+  const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)```/)
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1].trim()
+  }
+
+  // 2. 直接解析
   try {
-    return JSON.parse(trimmedText) as ExtractResult
+    return JSON.parse(text) as ExtractResult
   } catch {
-    // 尝试找到 JSON 块
-    const jsonMatch = trimmedText.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error('大模型返回内容不是有效的结构化结果。')
-    }
+    // 继续
+  }
 
+  // 3. 找到第一个完整的 JSON 对象
+  const jsonMatch = text.match(/\{[\s\S]*\}(?=\s*$)/) || text.match(/\{[\s\S]*?\}(?=\s*\n)/) || text.match(/\{[\s\S]*\}/)
+  if (jsonMatch) {
     let candidate = jsonMatch[0]
+    // 修复常见 JSON 错误：尾部逗号
+    candidate = candidate.replace(/,(\s*[}\]])/g, '$1')
+
     try {
       return JSON.parse(candidate) as ExtractResult
     } catch {
-      // JSON 中的字符串字段可能包含未转义的换行，尝试修复
-      candidate = candidate.replace(/"detail":\s*"([^"]*)"/g, (_match: string, p1: string) => {
-        const escaped = p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
-        return `"detail": "${escaped}"`
-      })
-      candidate = candidate.replace(/"summary":\s*"([^"]*)"/g, (_match: string, p1: string) => {
-        const escaped = p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
-        return `"summary": "${escaped}"`
-      })
-      candidate = candidate.replace(/"title":\s*"([^"]*)"/g, (_match: string, p1: string) => {
-        const escaped = p1.replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')
-        return `"title": "${escaped}"`
-      })
-
+      // 修复未转义的字符串内容
+      candidate = fixUnescapedStrings(candidate)
       try {
         return JSON.parse(candidate) as ExtractResult
       } catch {
-        throw new Error('大模型返回的 JSON 格式无法解析，请稍后重试。')
+        // 失败，继续
       }
     }
   }
+
+  // 4. 所有尝试失败，保存原始返回并报错
+  const dumpPath = join(tmpdir(), `dairy-timeline-parse-error-${Date.now()}.txt`)
+  writeFileSync(dumpPath, rawText, 'utf-8')
+
+  const preview = rawText.length > 500 ? rawText.slice(0, 500) + '...' : rawText
+  throw new Error(
+    `大模型返回内容无法解析为 JSON。已保存到 ${dumpPath}\n\n返回内容预览：\n${preview}`,
+  )
+}
+
+function fixUnescapedStrings(json: string): string {
+  // 处理可能包含未转义换行的字符串值
+  const fields = ['detail', 'summary', 'title', 'note']
+  for (const field of fields) {
+    const regex = new RegExp(`"${field}":\\s*"((?:[^"\\\\]|\\\\.)*)"`, 'g')
+    json = json.replace(regex, (_match: string, p1: string) => {
+      const escaped = p1
+        .replace(/\\/g, '\\\\')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t')
+      return `"${field}": "${escaped}"`
+    })
+  }
+  return json
 }
 
 export async function extractEventsFromDay(
@@ -116,7 +143,7 @@ export async function extractEventsFromDay(
     .join('\n\n')
 
   const client = createAiChatClient(settings, apiKey)
-  const responseText = await client.completeJson({
+  const responseText = await client.completeText({
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt },
@@ -230,7 +257,7 @@ export async function rebuildTimelineYear(
       .join('\n\n')
 
     const client = createAiChatClient(settings, apiKey, 120000)
-    const responseText = await client.completeJson({
+    const responseText = await client.completeText({
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
