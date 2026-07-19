@@ -2,6 +2,7 @@ import { registerAppIpcHandlers } from './app'
 import { registerJournalIpcHandlers } from './journal'
 import { registerProfileIpcHandlers } from './profile'
 import { registerReportIpcHandlers } from './report'
+import { registerTimelineIpcHandlers } from './timeline'
 import { registerWorkspaceIpcHandlers } from './workspace'
 
 export function registerIpcHandlers() {
@@ -10,4 +11,5 @@ export function registerIpcHandlers() {
   registerJournalIpcHandlers()
   registerProfileIpcHandlers()
   registerReportIpcHandlers()
+  registerTimelineIpcHandlers()
 }
