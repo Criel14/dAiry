@@ -1,6 +1,9 @@
 import { Notification } from 'electron'
 import nodemailer from 'nodemailer'
 import type { NotificationConfig } from '../../src/types/app'
+import { readAppConfig } from './app-config'
+import { readJournalDocument } from './journal/document'
+import { resolveJournalEntryFilePath } from './workspace/paths'
 import { APP_ICON_PATH, DEFAULT_NOTIFICATION_CONFIG } from './constants'
 import { readEmailNotificationAuthCode } from './secrets'
 import { canSendDiaryReminder, navigateMainPanel } from './window'
@@ -172,6 +175,23 @@ async function sendDiaryReminder(config: NotificationConfig) {
   }
 }
 
+async function isTodayDiaryWritten(): Promise<boolean> {
+  try {
+    const config = await readAppConfig()
+    if (!config.lastOpenedWorkspace) {
+      return false
+    }
+
+    const todayKey = formatDateKey(new Date())
+    const filePath = resolveJournalEntryFilePath(config.lastOpenedWorkspace, todayKey)
+    const document = await readJournalDocument(filePath)
+
+    return document.body.trim().length > 0
+  } catch {
+    return false
+  }
+}
+
 function scheduleNextReminder() {
   clearReminderTimer()
 
@@ -182,14 +202,16 @@ function scheduleNextReminder() {
   const nextReminderDate = getNextReminderDate(currentNotificationConfig)
   const delay = Math.max(nextReminderDate.getTime() - Date.now(), 1_000)
 
-  reminderTimer = setTimeout(() => {
+  reminderTimer = setTimeout(async () => {
     reminderTimer = null
 
     const now = new Date()
     const todayKey = formatDateKey(now)
 
     if (lastReminderDateKey !== todayKey && canSendDiaryReminder()) {
-      void sendDiaryReminder(currentNotificationConfig)
+      if (!(await isTodayDiaryWritten())) {
+        void sendDiaryReminder(currentNotificationConfig)
+      }
       lastReminderDateKey = todayKey
     }
 
