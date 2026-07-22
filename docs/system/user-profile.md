@@ -126,13 +126,50 @@ cancelUserProfileRebuild()
 
 ## 三、Prompt 模板
 
-三个 prompt 文件均在 `electron/main/ai/prompts/`：
+三种场景共用相同的调用参数：`temperature = 0.3`、`completeText`（非 JSON mode），系统 prompt 分别使用以下三个文件：
 
-| 模板 | 用途 | 更新策略 |
-|------|------|---------|
-| `profile-daily-update.system.md` | 增量日更 | 只修改与当天相关的小节 |
-| `profile-full-refresh.system.md` | 周期性全量刷新 | 综合区间日记全面重写 |
-| `profile-rebuild.system.md` | 手动按月重建 | 累积式迭代：保留长期信息，新信息补充/覆盖 |
+| 模板文件 | 场景 | 更新策略 |
+|----------|------|---------|
+| `electron/main/ai/prompts/profile-daily-update.system.md` | 增量日更 | 只修改与当天相关的小节 |
+| `electron/main/ai/prompts/profile-full-refresh.system.md` | 周期性全量刷新 | 综合区间日记全面重写 |
+| `electron/main/ai/prompts/profile-rebuild.system.md` | 手动按月重建 | 累积式迭代：保留长期信息，新信息补充/覆盖 |
+
+### 3.1 增量日更 — user prompt 拼装
+
+函数：`buildDailyUpdatePrompt`（`profile-service.ts:93`）。
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 业务日期 | `YYYY-MM-DD` | 当天日期 |
+| 前 N 天摘要 | `- {date}: 摘要: {summary} \| 心情: {mood} \| 标签: {tags}` | `getRecentDailySummaries()`，默认最近 7 天 frontmatter |
+| 当前画像 | 完整 Markdown 画像（或 `（当前画像为空，请创建初始画像）`） | `<workspace>/.dairy/user-profile.md` |
+| 当日正文 | 截断至 2200 字的日记 body | 编辑器内存中的当天内容 |
+
+### 3.2 全量刷新 — user prompt 拼装
+
+函数：`buildFullRefreshPrompt`（`profile-service.ts:107`）。
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 整理周期 | `{start} ~ {end}` | 最近 `profileRefreshIntervalDays` 天（默认 7） |
+| 当前画像（参考） | 完整 Markdown（可能被大幅修改） | `<workspace>/.dairy/user-profile.md` |
+| 区间日记 | 每篇一段：`日期 / 心情 / 摘要 / 正文（截断 2200 字）` | 区间内所有日记文件，当天优先用内存 `body` |
+
+### 3.3 手动重建 — user prompt 拼装
+
+函数：`buildRebuildPrompt`（`profile-rebuild.ts:135`），逐月迭代调用。
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 整理月份 | `YYYY-MM`（第 `i/n` 个月） | 目录树扫描结果 |
+| 截至上月的画像 | 上一轮 AI 输出全文（首月为空） | 累积传递 |
+| 本月日记 | 每篇：`日期 / 心情 / 摘要 / 正文（按预算截断）` | 当月所有日记文件 |
+
+单篇截断上限：`min(2200, floor(60000 / 当月篇数))`，确保单月总预算 60K 字符。
+
+### 3.4 AI 输出归一化
+
+AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）剥除可能的 ` ```markdown ` 代码围栏，再全量覆写 `user-profile.md`。画像内部不使用 JSON，不做结构校验。
 
 ---
 
