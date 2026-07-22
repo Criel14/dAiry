@@ -81,41 +81,69 @@ journal.ts: generateDailyInsights 返回后
 
 ## 三、AI 调用细节
 
-### 3.1 extractEventsFromDay
+两种模式共用一套**系统 Prompt**（文件：`electron/main/ai/prompts/timeline-extract.system.md`），差异只在 **user prompt 的拼接内容**。
 
-日更和全量重建的底层共用函数。
+### 3.1 日更模式
 
-**输入：**
+函数：`extractEventsFromDay`（`electron/main/timeline/ai.ts:78`），每次"自动整理"成功后异步触发。
 
-| 参数 | 说明 |
-|------|------|
-| 当日日记正文 | 从 `.md` 文件读取 |
-| 近期日记摘要 | 最近 N 天（`dailyContextDays`）的 summary |
-| 已有事件列表 | 当年已提取的所有事件（id/title/date/dateEnd） |
-| AI 补充知识 | `<userData>/ai-context.md`（可选） |
+**user prompt 由 5 块拼接：**
 
-**输出：**
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 业务日期 | `{YYYY-MM-DD}` | 当天日期 |
+| 最近日记上下文 | `- {date}: {summary}` 列表 | 最近 `dailyContextDays`（默认 7）天日记的 `summary` frontmatter |
+| 已有事件列表 | `- id/ title/ date/ dateEnd` 列表 | `<workspace>/timeline/{year}.json` 中的全部事件 |
+| 补充知识 | `<userData>/ai-context.md` 正文（可选） | 用户在设置页编辑 |
+| 当日日记 | Markdown body（不含 frontmatter） | `<workspace>/journal/YYYY/MM/YYYY-MM-DD.md` |
 
-```ts
+**约束：**
+
+- 只在时间轴 JSON 文件已存在时生效，不存在则静默跳过
+- `void` 上下文异步执行，不阻塞日总结返回
+- 失败只记 `console.error`
+
+### 3.2 全量重建模式
+
+函数：`rebuildTimelineYear`（`electron/main/timeline/ai.ts:174`），用户点击"重新整理本年度时间轴"触发。
+
+按 **3 天一批次**循环调用 LLM，每批次 **user prompt** 包含：
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 重建说明 | `正在重建 {year} 年时间轴，当前批次：{start} ~ {end}` | — |
+| 当前已有事件 | `- id/ title/ date` 列表 | 前面批次已累积提取的事件 |
+| 补充知识 | `<userData>/ai-context.md` 正文（可选） | 用户在设置页编辑 |
+| 该批次日记 | `## {date}\n{body}` × 1~3 篇 | `<workspace>/journal/` 对应日期的 Markdown body |
+
+**特点：**
+
+- 系统 prompt 每批次重新加载，修改 prompt 文件可即时生效
+- LLM 超时 120 秒（日更使用默认超时）
+- `newEvents` 以 `id` 去重后追加，`updatedEvents` 逐条匹配更新 `dateEnd` 和 `detail`
+- 支持取消：当前批次完成后返回 `null`，已处理事件不落盘
+
+### 3.3 LLM 返回值解析
+
+函数：`extractJsonObject`（`electron/main/timeline/ai.ts:18`），4 层容错：
+
+| 层 | 策略 |
+|----|------|
+| 1 | 去掉 markdown 代码块后直接 `JSON.parse` |
+| 2 | 正则提取第一个完整 JSON 对象 |
+| 3 | 修复尾部逗号后重试 |
+| 4 | `fixUnescapedStrings` 修复未转义换行/引号后重试 |
+
+全部失败则抛出错误，携带前 300 字预览。
+
+**LLM 要求返回格式：**
+
+```json
 {
-  newEvents: TimelineEvent[]       // 从当天日记中提取的新事件
-  updatedEvents: Array<{           // 需要更新的已有事件
-    id: string
-    dateEnd?: string | null        // 事件已结束则设置 dateEnd
-    detail?: string                // 详情更新
-  }>
+  "newEvents": [{ "id": "...", "date": "...", "dateEnd": null, "title": "...", "detail": "...", "diaryDates": [...] }],
+  "updatedEvents": [{ "id": "...", "dateEnd": "...", "detail": "..." }]
 }
 ```
-
-**系统 Prompt：** `electron/main/ai/prompts/timeline-extract.system.md`
-
-### 3.2 rebuildTimelineYear
-
-全量重建专用。
-
-- 按 3 天一批次遍历全年，每批合并多天日记一起发给 AI
-- 每批携带当前已提取的全部事件作为上下文
-- 新事件去重后追加，跨批次事件支持更新 dateEnd
 
 ---
 
@@ -143,15 +171,36 @@ journal.ts: generateDailyInsights 返回后
 
 ## 六、关键函数位置
 
-| 函数 | 文件 |
-|------|------|
-| `extractEventsFromDay` | `electron/main/timeline/ai.ts:78` |
-| `rebuildTimelineYear` | `electron/main/timeline/ai.ts:174` |
-| `updateTimelineForDay` | `electron/main/timeline/ai.ts:290` |
-| `cancelTimelineRebuild` | `electron/main/timeline/ai.ts:284` |
-| `readTimelineYear` | `electron/main/timeline/service.ts:10` |
-| `writeTimelineYear` | `electron/main/timeline/service.ts:21` |
-| `mergeEvents` | `electron/main/timeline/service.ts:32` |
+| 函数 | 文件 | 说明 |
+|------|------|------|
+| `extractEventsFromDay` | `electron/main/timeline/ai.ts:78` | 日更/重建底层：拼装 prompt 调用 LLM |
+| `extractJsonObject` | `electron/main/timeline/ai.ts:18` | 4 层容错解析 LLM 返回的 JSON |
+| `fixUnescapedStrings` | `electron/main/timeline/ai.ts:61` | 修复 JSON 中未转义的换行和引号 |
+| `rebuildTimelineYear` | `electron/main/timeline/ai.ts:174` | 全量重建：3 天一批次循环调用 LLM |
+| `buildBatches` | `electron/main/timeline/ai.ts:157` | 按 3 天一批次分割全年日期 |
+| `cancelTimelineRebuild` | `electron/main/timeline/ai.ts:284` | 取消重建 |
+| `updateTimelineForDay` | `electron/main/timeline/ai.ts:290` | 日更入口：读取现有数据 → AI 提取 → 合并写回 |
+| `readTimelineYear` | `electron/main/timeline/service.ts:10` | 从 `<workspace>/timeline/{year}.json` 读取 |
+| `writeTimelineYear` | `electron/main/timeline/service.ts:21` | 写入 `<workspace>/timeline/{year}.json` |
+| `mergeEvents` | `electron/main/timeline/service.ts:32` | 以 `id` 为键合并事件，incoming 覆盖 existing |
+| `loadPrompt` | `electron/main/ai/prompt-loader.ts` | 加载 `timelineExtractSystem` 系统 prompt |
+| `getRecentDailySummaries` | `electron/main/ai/journal-ai-service.ts` | 获取最近 N 天日记的 summary |
+| `readAiContext` | `electron/main/ai/context.ts` | 读取 `<userData>/ai-context.md` |
+
+### IPC 通道
+
+| 通道常量 | 通道值 | 方向 |
+|----------|--------|------|
+| `getTimeline` | `timeline:get` | renderer→main |
+| `rebuildTimeline` | `timeline:rebuild` | renderer→main |
+| `cancelTimelineRebuild` | `timeline:cancel-rebuild` | renderer→main |
+| `timelineRebuildProgress` | `timeline:rebuild-progress` | main→renderer |
+
+Preload 暴露 API（`electron/preload.ts:109-131`）：
+- `window.dairy.getTimeline({ workspacePath, year })`
+- `window.dairy.rebuildTimeline(workspacePath)`
+- `window.dairy.cancelTimelineRebuild()`
+- `window.dairy.onTimelineRebuildProgress(listener)`
 
 ---
 
