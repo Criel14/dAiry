@@ -32,20 +32,28 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 3. 检查配置就绪 (baseURL + model + apiKey 都存在)
 
-4. 构建 user prompt:
-   - 业务日期
-   - 工作区已有标签列表
-   - [可选] AI 上下文补充知识
-   - 当日日记正文
-
-5. 调用 AI (OpenAI 兼容 API, temperature=0.2)
+4. 调用 AI (OpenAI 兼容 API, temperature=0.2, JSON mode)
    要求返回: {"summary":"一句话总结","tags":["..."],"mood":0}
 
-6. 解析 JSON → 标准化:
+5. 解析 JSON → 标准化:
    - summary: 必须非空
    - tags:    去重、对齐工作区标签大小写、至少 3 个
    - mood:    -5~5 整数
 ```
+
+### AI Prompt 细节
+
+系统 Prompt：`electron/main/ai/prompts/daily-organize.system.md`，核心指令：根据日记正文生成 summary（中文 20-40 字/英文 12-24 词，平实克制）、tags（3-8 个，优先复用工作区标签，禁止宽泛词如"生活""日记"）、mood（-5~5，有详细分值语义定义）。
+
+**User prompt 由 4 块拼接（`buildDailyInsightsPrompt`，`journal-ai-service.ts:106`）：**
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 业务日期 | `YYYY-MM-DD` | 当天日期 |
+| 工作区已有标签 | `当前工作区已有标签：tag1、tag2...` | `input.workspaceTags`，帮助 AI 优先复用 |
+| 近期日记摘要（可选） | `- {date}: 摘要: {summary} \| 心情: {mood} \| 标签: {tags}` | `getRecentDailySummaries()`，最近 `dailyContextDays` 天 frontmatter，仅作上下文参考 |
+| 补充知识（可选） | 用户撰写的长期背景/术语偏好 | `<userData>/ai-context.md` |
+| 当日日记正文 | Markdown body 全文（不截断） | `input.body`
 
 ### 结果去向
 
@@ -111,18 +119,37 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 #### 第 6 步：AI 生成区间总结（两阶段）
 
-**阶段一：聚焦日期选择**
+两个阶段共用 `temperature = 0.2` + JSON mode。
 
-当区间内日记 > 7 天时，先用启发式评分（加权字数、心情绝对值、标签数、有无 summary）排序，再用 AI 从 compact digest 中挑 3~5 天最值得细看的日期。AI 失败时用启发式结果兜底。
+**阶段一：聚焦日期选择**（区间内日记 > 7 天时启用）
+
+系统 Prompt：`electron/main/ai/prompts/range-report-summary-focus.system.md`，指令：从区间摘要列表中选出 3~5 个最值得深入查看的日期并说明理由。
+
+**User prompt 数据块：**
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 区间信息 | `period.start/end`, `source.preset/presetKey` | 请求参数 |
+| 统计事实 | `topTags`、`locations`（排名）、`timeBuckets`、`moodAverage` | 第 4 步本地计算结果 |
+| 每日候选 | `date/summary(截断84字)/tags(前4个)/mood/wordCount/location/insightSource` | 所有有正文的日记条目 |
+
+AI 输出：`{"focusDates":[{"date":"...","reason":"..."}]}`。失败时使用启发式评分兜底（加权字数 + mood绝对值 + 标签数 + 有无summary）。
 
 **阶段二：生成总结**
 
-构建 user prompt，包含：
-- 区间统计事实（top 标签、热门地点、时段分布、平均心情）
-- 前 20 天 compact digest（summary 截断到 84 字、前 4 个 tag）
-- 聚焦日期的**完整正文**（截断到 2200 字）及其他详细信息
+系统 Prompt：`electron/main/ai/prompts/range-report-summary.system.md`，指令：综合区间事实和聚焦日记，输出结构化总结。
 
-调用 AI 输出结构化总结：
+**User prompt 数据块：**
+
+| 块 | 内容 | 来源 |
+|----|------|------|
+| 区间信息 | `period`、`source` | 请求参数 |
+| 请求的 section | `generation.requestedSections`, `generation.warnings` | 第 1 步标准化结果 |
+| 统计事实 | `topTags`、`locations`、`timeBuckets`、`moodAverage` | 第 4 步本地计算结果 |
+| compact digest | 前 20 天的 `date/summary(截断84字)/tags(前4个)/mood/wordCount/location/insightSource` | 所有日条目的摘要版本 |
+| 聚焦日期 | 阶段一选出的 `date/reason` + 对应的**完整正文**（截断 2200 字） | 阶段一输出 + 对应日记文件 body |
+
+调用的 AI 输出结构化总结：
 
 ```ts
 {
