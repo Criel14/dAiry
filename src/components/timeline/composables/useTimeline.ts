@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 export function useTimeline(workspacePath: Ref<string | null>) {
   const selectedTimelineYear = ref(dayjs().year())
   const timelineData = ref<TimelineYearData | null>(null)
+  const hasDataYears = ref<Set<string>>(new Set())
   const isRebuildingTimeline = ref(false)
   const timelineRebuildProgress = ref<{ weekLabel: string; current: number; total: number } | null>(null)
   let unlistenProgress: (() => void) | null = null
@@ -47,14 +48,17 @@ export function useTimeline(workspacePath: Ref<string | null>) {
     window.dairy.cancelTimelineRebuild()
   }
 
-  function openTimelinePage() {
+  async function openTimelinePage() {
     if (!workspacePath.value) return
     loadTimeline(selectedTimelineYear.value)
+    const years = await window.dairy.getJournalYearsWithEntries(workspacePath.value)
+    hasDataYears.value = new Set(years)
   }
 
   return {
     selectedTimelineYear,
     timelineData,
+    hasDataYears,
     isRebuildingTimeline,
     timelineRebuildProgress,
     handleSelectTimelineYear,

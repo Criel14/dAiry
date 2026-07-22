@@ -69,6 +69,7 @@ export interface DairyApi {
   getJournalMonthActivity: (
     input: JournalMonthActivityQuery,
   ) => Promise<JournalMonthActivityResult>
+  getJournalYearsWithEntries: (workspacePath: string) => Promise<string[]>
   generateRangeReport: (input: GenerateRangeReportInput) => Promise<RangeReport>
   getRangeReport: (input: ReportQuery) => Promise<RangeReport>
   listRangeReports: (workspacePath: string) => Promise<ReportListItem[]>

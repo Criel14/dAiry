@@ -28,7 +28,7 @@ const yearCells = computed(() =>
       label: `${year} 年`,
       isSelected: year === props.selectedYear,
       isCurrent: year === dayjs().year(),
-      hasData: props.hasDataYears.has(key) && year !== props.selectedYear,
+      hasData: props.hasDataYears.has(key),
     }
   }),
 )

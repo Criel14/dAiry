@@ -94,6 +94,7 @@ const {
   openTimelinePage,
   selectedTimelineYear,
   timelineData,
+  hasDataYears,
   isRebuildingTimeline,
   timelineRebuildProgress,
   handleSelectTimelineYear,
@@ -181,7 +182,7 @@ const {
         <TimelineSidebar
           v-else-if="rightPanel === 'timeline'"
           :selected-year="selectedTimelineYear"
-          :has-data-years="timelineData ? new Set([String(selectedTimelineYear)]) : new Set()"
+          :has-data-years="hasDataYears"
           :is-rebuilding="isRebuildingTimeline"
           :rebuild-progress="timelineRebuildProgress"
           @select-year="handleSelectTimelineYear"

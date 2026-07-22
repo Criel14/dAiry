@@ -15,6 +15,7 @@ import { IPC_CHANNELS } from '../constants'
 import {
   createJournalEntry,
   getJournalMonthActivity,
+  getJournalYearsWithEntries,
   readJournalEntry,
   saveJournalEntryBody,
   saveJournalEntryMetadata,
@@ -42,6 +43,10 @@ export function registerJournalIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.getJournalMonthActivity, (_event, input: JournalMonthActivityQuery) => {
     return getJournalMonthActivity(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.getJournalYearsWithEntries, (_event, workspacePath: string) => {
+    return getJournalYearsWithEntries(workspacePath)
   })
 
   ipcMain.handle(

@@ -37,6 +37,7 @@ export const IPC_CHANNELS = {
   saveJournalEntryBody: 'journal:save-entry-body',
   saveJournalEntryMetadata: 'journal:save-entry-metadata',
   getJournalMonthActivity: 'journal:get-month-activity',
+  getJournalYearsWithEntries: 'journal:get-years-with-entries',
   generateDailyInsights: 'journal:generate-daily-insights',
   // profile
   rebuildUserProfile: 'profile:rebuild-user-profile',

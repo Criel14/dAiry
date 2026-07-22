@@ -54,6 +54,8 @@ const dairyApi: DairyApi = {
   saveJournalEntryBody: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveJournalEntryBody, input),
   saveJournalEntryMetadata: (input) => ipcRenderer.invoke(IPC_CHANNELS.saveJournalEntryMetadata, input),
   getJournalMonthActivity: (input) => ipcRenderer.invoke(IPC_CHANNELS.getJournalMonthActivity, input),
+  getJournalYearsWithEntries: (workspacePath) =>
+    ipcRenderer.invoke(IPC_CHANNELS.getJournalYearsWithEntries, workspacePath),
   generateDailyInsights: (input) => ipcRenderer.invoke(IPC_CHANNELS.generateDailyInsights, input),
   rebuildUserProfile: (input) => ipcRenderer.invoke(IPC_CHANNELS.rebuildUserProfile, input),
   cancelUserProfileRebuild: () => ipcRenderer.invoke(IPC_CHANNELS.cancelUserProfileRebuild),

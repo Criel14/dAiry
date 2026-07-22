@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, writeFile } from 'node:fs/promises'
 import type {
   JournalDayActivity,
   JournalEntryBodySaveInput,
@@ -26,6 +26,7 @@ import {
 } from '../workspace/libraries'
 import {
   assertValidMonth,
+  getWorkspaceJournalDir,
   resolveJournalEntryFilePath,
   resolveJournalEntryPath,
 } from '../workspace/paths'
@@ -180,4 +181,49 @@ export async function getJournalMonthActivity(
     month,
     days,
   }
+}
+
+export async function getJournalYearsWithEntries(workspacePath: string): Promise<string[]> {
+  const yearPattern = /^\d{4}$/
+  const journalDir = getWorkspaceJournalDir(workspacePath)
+
+  let yearDirs: string[]
+  try {
+    const entries = await readdir(journalDir, { withFileTypes: true })
+    yearDirs = entries
+      .filter((entry) => entry.isDirectory() && yearPattern.test(entry.name))
+      .map((entry) => entry.name)
+  } catch {
+    return []
+  }
+
+  const results = await Promise.all(
+    yearDirs.map(async (year) => {
+      const monthDir = path.join(journalDir, year)
+      let months: string[]
+      try {
+        months = (await readdir(monthDir, { withFileTypes: true }))
+          .filter((entry) => entry.isDirectory())
+          .map((entry) => entry.name)
+      } catch {
+        return null
+      }
+
+      for (const month of months) {
+        const dayDir = path.join(monthDir, month)
+        try {
+          const files = await readdir(dayDir)
+          if (files.some((f) => f.endsWith('.md'))) {
+            return year
+          }
+        } catch {
+          // skip inaccessible month dirs
+        }
+      }
+
+      return null
+    }),
+  )
+
+  return results.filter((y): y is string => y !== null)
 }
