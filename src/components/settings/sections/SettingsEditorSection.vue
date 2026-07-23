@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
 import type { FrontmatterVisibilityConfig, WindowCloseBehavior } from '../../../types/app'
 import { DAY_START_HOUR_OPTIONS, WINDOW_CLOSE_BEHAVIOR_OPTIONS } from '../config/config'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 
 const props = defineProps<{
+  workspacePath: string | null
   dayStartHour: number
   isSavingDayStartHour: boolean
   dayStartHourSaveMessage: string
@@ -25,6 +27,32 @@ const emit = defineEmits<{
   'update:launchOnStartupEnabled': [value: boolean]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
 }>()
+
+const isRebuildingMeta = ref(false)
+const metaRebuildMessage = ref('')
+const showMetaConfirm = ref(false)
+
+function cancelMetaRebuild() {
+  showMetaConfirm.value = false
+  metaRebuildMessage.value = ''
+}
+
+async function confirmMetaRebuild() {
+  if (!props.workspacePath) return
+  isRebuildingMeta.value = true
+  showMetaConfirm.value = false
+  metaRebuildMessage.value = ''
+
+  try {
+    const result = await window.dairy.rebuildJournalMetaIndex(props.workspacePath)
+    metaRebuildMessage.value = `已整理 ${result.yearCount} 个年份，共 ${result.entryCount} 篇日记`
+  } catch (error) {
+    metaRebuildMessage.value =
+      error instanceof Error ? error.message : '整理失败，请稍后重试。'
+  } finally {
+    isRebuildingMeta.value = false
+  }
+}
 
 function handleDayStartHourChange(event: Event) {
   const target = event.target
@@ -195,6 +223,52 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
 
       <p v-if="frontmatterVisibilitySaveMessage" class="setting-feedback">
         {{ frontmatterVisibilitySaveMessage }}
+      </p>
+    </section>
+
+    <section v-if="props.workspacePath" class="settings-card">
+      <div class="panel-heading">
+        <span class="panel-label">日记索引</span>
+      </div>
+      <p class="panel-description">
+        将所有日记的元信息整合到年份索引文件，方便快速检索。
+      </p>
+
+      <div class="setting-row setting-row--compact">
+        <div class="setting-copy">
+          <span class="panel-value">重新整理</span>
+          <p class="panel-description">
+            扫描所有日记文件生成索引，已存在的索引将被覆盖。
+          </p>
+        </div>
+
+        <button
+          class="btn-action"
+          :disabled="isRebuildingMeta"
+          @click="showMetaConfirm = true"
+        >
+          {{ isRebuildingMeta ? '整理中...' : '重新整理' }}
+        </button>
+      </div>
+
+      <div v-if="showMetaConfirm" class="meta-confirm">
+        <p class="meta-confirm-text">
+          此操作将覆盖已有的年份索引文件，确认重新整理？
+        </p>
+        <div class="meta-confirm-actions">
+          <button
+            class="btn-action btn-action--primary"
+            :disabled="isRebuildingMeta"
+            @click="confirmMetaRebuild"
+          >
+            确认整理
+          </button>
+          <button class="btn-action" @click="cancelMetaRebuild">取消</button>
+        </div>
+      </div>
+
+      <p v-if="metaRebuildMessage" class="setting-feedback">
+        {{ metaRebuildMessage }}
       </p>
     </section>
   </div>

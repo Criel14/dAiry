@@ -88,7 +88,7 @@ export function createDefaultFrontmatter() {
   )
 }
 
-function extractFrontmatter(content: string) {
+export function extractFrontmatter(content: string) {
   const normalizedContent = content.replace(/^\uFEFF/, '')
   const match = normalizedContent.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/)
   if (!match) {
@@ -158,7 +158,7 @@ function parseYamlInteger(rawValue: string) {
   return normalizeMoodValue(Number(trimmedValue))
 }
 
-function parseFrontmatterBlock(frontmatterText: string): Partial<JournalFrontmatter> {
+export function parseFrontmatterBlock(frontmatterText: string): Partial<JournalFrontmatter> {
   const parsedResult: Partial<JournalFrontmatter> = {}
   let activeListKey: 'tags' | null = null
 

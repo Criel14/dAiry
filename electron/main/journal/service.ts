@@ -19,6 +19,7 @@ import {
   serializeJournalDocument,
   writeJournalDocument,
 } from './document'
+import { updateJournalMetaEntry } from './meta-index'
 import {
   mergeWorkspaceLocationOptions,
   mergeWorkspaceTags,
@@ -103,6 +104,11 @@ export async function saveJournalEntryBody(
     input.body,
   )
 
+  await updateJournalMetaEntry(input.workspacePath, input.date, {
+    ...currentDocument.frontmatter,
+    updatedAt: savedAt,
+  }, input.body)
+
   return {
     filePath,
     savedAt,
@@ -136,6 +142,12 @@ export async function saveJournalEntryMetadata(
     input.workspacePath,
     normalizedMetadata.location ? [normalizedMetadata.location] : [],
   )
+
+  await updateJournalMetaEntry(input.workspacePath, input.date, {
+    ...currentDocument.frontmatter,
+    ...normalizedMetadata,
+    updatedAt: savedAt,
+  }, currentDocument.body)
 
   return {
     filePath,

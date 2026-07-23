@@ -153,6 +153,7 @@ function openDebugPanel() {
 
       <SettingsEditorSection
         v-else-if="activeSectionId === 'display'"
+        :workspace-path="props.workspacePath"
         :day-start-hour="props.dayStartHour"
         :is-saving-day-start-hour="props.isSavingDayStartHour"
         :day-start-hour-save-message="props.dayStartHourSaveMessage"

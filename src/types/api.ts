@@ -33,6 +33,7 @@ import type {
   JournalEntryQuery,
   JournalEntryReadResult,
   JournalEntryWriteResult,
+  JournalMetaRebuildResult,
   JournalMonthActivityQuery,
   JournalMonthActivityResult,
 } from './journal'
@@ -70,6 +71,7 @@ export interface DairyApi {
     input: JournalMonthActivityQuery,
   ) => Promise<JournalMonthActivityResult>
   getJournalYearsWithEntries: (workspacePath: string) => Promise<string[]>
+  rebuildJournalMetaIndex: (workspacePath: string) => Promise<JournalMetaRebuildResult>
   generateRangeReport: (input: GenerateRangeReportInput) => Promise<RangeReport>
   getRangeReport: (input: ReportQuery) => Promise<RangeReport>
   listRangeReports: (workspacePath: string) => Promise<ReportListItem[]>

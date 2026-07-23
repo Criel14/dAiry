@@ -51,3 +51,26 @@ export interface JournalMonthActivityResult {
   month: string
   days: JournalDayActivity[]
 }
+
+export interface JournalMetaEntry {
+  createdAt: string
+  updatedAt: string
+  weather: string
+  location: string
+  mood: number
+  summary: string
+  tags: string[]
+  wordCount: number
+}
+
+export interface JournalMetaIndex {
+  version: 1
+  year: string
+  updatedAt: string
+  entries: Record<string, JournalMetaEntry>
+}
+
+export interface JournalMetaRebuildResult {
+  yearCount: number
+  entryCount: number
+}

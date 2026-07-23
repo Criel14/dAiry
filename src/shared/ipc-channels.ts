@@ -39,6 +39,7 @@ export const IPC_CHANNELS = {
   getJournalMonthActivity: 'journal:get-month-activity',
   getJournalYearsWithEntries: 'journal:get-years-with-entries',
   generateDailyInsights: 'journal:generate-daily-insights',
+  rebuildJournalMetaIndex: 'journal:rebuild-meta-index',
   // profile
   rebuildUserProfile: 'profile:rebuild-user-profile',
   cancelUserProfileRebuild: 'profile:cancel-user-profile-rebuild',

@@ -57,6 +57,8 @@ const dairyApi: DairyApi = {
   getJournalYearsWithEntries: (workspacePath) =>
     ipcRenderer.invoke(IPC_CHANNELS.getJournalYearsWithEntries, workspacePath),
   generateDailyInsights: (input) => ipcRenderer.invoke(IPC_CHANNELS.generateDailyInsights, input),
+  rebuildJournalMetaIndex: (workspacePath) =>
+    ipcRenderer.invoke(IPC_CHANNELS.rebuildJournalMetaIndex, workspacePath),
   rebuildUserProfile: (input) => ipcRenderer.invoke(IPC_CHANNELS.rebuildUserProfile, input),
   cancelUserProfileRebuild: () => ipcRenderer.invoke(IPC_CHANNELS.cancelUserProfileRebuild),
   onUserProfileRebuildProgress: (listener) => {

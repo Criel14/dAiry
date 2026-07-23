@@ -20,6 +20,7 @@ import {
   saveJournalEntryBody,
   saveJournalEntryMetadata,
 } from '../journal/service'
+import { rebuildJournalMetaIndex } from '../journal/meta-index'
 
 export function registerJournalIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.readJournalEntry, (_event, input: JournalEntryQuery) => {
@@ -67,4 +68,8 @@ export function registerJournalIpcHandlers() {
       return result
     },
   )
+
+  ipcMain.handle(IPC_CHANNELS.rebuildJournalMetaIndex, (_event, workspacePath: string) => {
+    return rebuildJournalMetaIndex(workspacePath)
+  })
 }
