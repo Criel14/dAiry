@@ -30,17 +30,15 @@ const emit = defineEmits<{
 
 const isRebuildingMeta = ref(false)
 const metaRebuildMessage = ref('')
-const showMetaConfirm = ref(false)
 
-function cancelMetaRebuild() {
-  showMetaConfirm.value = false
-  metaRebuildMessage.value = ''
-}
-
-async function confirmMetaRebuild() {
+async function handleRebuildMeta() {
   if (!props.workspacePath) return
+  const confirmed = window.confirm(
+    '此操作将覆盖已有的年份索引文件，确认重新整理？',
+  )
+  if (!confirmed) return
+
   isRebuildingMeta.value = true
-  showMetaConfirm.value = false
   metaRebuildMessage.value = ''
 
   try {
@@ -245,26 +243,10 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
         <button
           class="btn-action"
           :disabled="isRebuildingMeta"
-          @click="showMetaConfirm = true"
+          @click="handleRebuildMeta"
         >
           {{ isRebuildingMeta ? '整理中...' : '重新整理' }}
         </button>
-      </div>
-
-      <div v-if="showMetaConfirm" class="meta-confirm">
-        <p class="meta-confirm-text">
-          此操作将覆盖已有的年份索引文件，确认重新整理？
-        </p>
-        <div class="meta-confirm-actions">
-          <button
-            class="btn-action btn-action--primary"
-            :disabled="isRebuildingMeta"
-            @click="confirmMetaRebuild"
-          >
-            确认整理
-          </button>
-          <button class="btn-action" @click="cancelMetaRebuild">取消</button>
-        </div>
       </div>
 
       <p v-if="metaRebuildMessage" class="setting-feedback">

@@ -654,24 +654,4 @@
   color: var(--color-text-main);
 }
 
-.meta-confirm {
-  display: grid;
-  gap: 0.65rem;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 8px;
-  background: var(--color-surface-status);
-}
-
-.meta-confirm-text {
-  margin: 0;
-  color: var(--color-text-soft);
-  font-size: 0.9rem;
-}
-
-.meta-confirm-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 
