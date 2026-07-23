@@ -118,7 +118,7 @@ export async function rebuildJournalMetaIndex(
             updatedAt: stats.mtime.toISOString(),
           })
 
-          const [, , dd] = dateMatch
+          const [, , , dd] = dateMatch
           const key = `${month}-${dd}`
 
           entries[key] = {
