@@ -75,10 +75,12 @@ export function createAiChatClient(settings: AiSettings, apiKey: string, timeout
     })
 
     let rawBody: string
+    let bodyReadFailed = false
     try {
       rawBody = await response.text()
     } catch {
       rawBody = ''
+      bodyReadFailed = true
     }
 
     let payload: ChatCompletionResponse | null = null
@@ -92,8 +94,13 @@ export function createAiChatClient(settings: AiSettings, apiKey: string, timeout
       throw new Error(payload?.error?.message || `AI 请求失败（${response.status}）。`)
     }
 
+    if (bodyReadFailed) {
+      throw new Error('读取大模型响应超时，请检查网络或适当增大超时时间。')
+    }
+
     const content = payload ? extractResponseText(payload) : ''
     if (!content.trim()) {
+      console.warn('[ai] 大模型返回空内容，原始响应：', rawBody.slice(0, 500))
       throw new Error('AI 没有返回可用内容，请稍后重试。')
     }
 

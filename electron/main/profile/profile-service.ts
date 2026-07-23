@@ -301,6 +301,7 @@ export async function runProfileMaintenance(input: ProfileMaintenanceInput): Pro
 
     const config = await readAppConfig()
     const settings = normalizeAiSettings(config.ai)
+    settings.timeoutMs = Math.max(settings.timeoutMs, 120_000)
     const client = await createProfileAiClient(settings)
 
     if (!client) {
