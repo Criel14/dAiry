@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -17,6 +17,7 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const inputValue = ref(props.modelValue)
 const inputRef = ref<HTMLInputElement | null>(null)
+const rootRef = ref<HTMLElement | null>(null)
 
 function normalizeValue(value: string) {
   return value.trim()
@@ -50,6 +51,29 @@ const filteredSuggestions = computed(() => {
   })
 })
 
+watch(isOpen, (value) => {
+  if (value) {
+    document.addEventListener('pointerdown', onPointerDownOutside, true)
+  } else {
+    document.removeEventListener('pointerdown', onPointerDownOutside, true)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onPointerDownOutside, true)
+})
+
+function onPointerDownOutside(e: PointerEvent) {
+  const target = e.target as HTMLElement
+  if (rootRef.value?.contains(target)) {
+    return
+  }
+  if (target.closest('.suggestion-toggle') || target.closest('.suggestion-item')) {
+    return
+  }
+  closeMenu()
+}
+
 function openMenu() {
   if (props.disabled || isOpen.value) {
     return
@@ -82,7 +106,6 @@ function commitValue(rawValue: string) {
   const nextValue = normalizeValue(rawValue)
   inputValue.value = nextValue
   emit('update:modelValue', nextValue)
-  closeMenu()
 }
 
 function handleInput() {
@@ -94,18 +117,17 @@ function handleInput() {
 }
 
 function handleBlur() {
-  window.setTimeout(() => {
-    commitValue(inputValue.value)
-  }, 120)
+  commitValue(inputValue.value)
 }
 
 function handleSuggestionPointerDown(item: string) {
   commitValue(item)
+  closeMenu()
 }
 </script>
 
 <template>
-  <div class="suggestion-input">
+  <div ref="rootRef" class="suggestion-input">
     <div class="suggestion-control">
       <input
         ref="inputRef"
@@ -117,7 +139,7 @@ function handleSuggestionPointerDown(item: string) {
         spellcheck="false"
         @focus="openMenu"
         @input="handleInput"
-        @keydown.enter.prevent="commitValue(inputValue)"
+        @keydown.enter.prevent="commitValue(inputValue); closeMenu()"
         @keydown.esc.prevent="closeMenu"
         @blur="handleBlur"
       />
