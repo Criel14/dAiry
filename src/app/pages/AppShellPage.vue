@@ -142,6 +142,7 @@ const {
           :today-date="todayText"
           :workspace-path="workspacePath"
           :is-heatmap-enabled="isJournalHeatmapEnabled"
+          :disabled="isGeneratingDailyInsights"
           @update:model-value="handleSelectDate"
         />
 
@@ -203,6 +204,7 @@ const {
           :is-journal-ready="isJournalReady"
           :can-save-entry="canSaveEntry"
           :is-saving-entry="isSavingEntry"
+          :is-generating-insights="isGeneratingDailyInsights"
           @update:editor-mode="setEditorMode"
           @previous-date="handleShiftSelectedDate(-1)"
           @next-date="handleShiftSelectedDate(1)"

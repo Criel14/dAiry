@@ -203,6 +203,12 @@ export function useAppShellJournal(state: AppShellState) {
       return
     }
 
+    if (state.isGeneratingDailyInsights.value) {
+      state.dailyInsightsStatusMessage.value =
+        '大模型整理中，暂时无法切换日记。'
+      return
+    }
+
     if (!(await confirmDiscardChanges())) {
       return
     }
@@ -443,6 +449,8 @@ export function useAppShellJournal(state: AppShellState) {
     state.isGeneratingDailyInsights.value = true
     state.dailyInsightsStatusMessage.value = ''
 
+    const targetDate = state.selectedDate.value
+
     try {
       const result = await window.dairy.generateDailyInsights({
         workspacePath: `${state.workspacePath.value}`,
@@ -450,6 +458,12 @@ export function useAppShellJournal(state: AppShellState) {
         body: `${state.editorContent.value}`,
         workspaceTags: [...state.workspaceTags.value],
       })
+
+      if (state.selectedDate.value !== targetDate) {
+        state.dailyInsightsStatusMessage.value =
+          '整理期间已切换到其他日期，结果已丢弃。'
+        return
+      }
 
       state.metadataDraft.value = cloneMetadata({
         ...state.metadataDraft.value,

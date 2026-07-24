@@ -14,6 +14,7 @@ const props = defineProps<{
   todayDate: string
   workspacePath: string | null
   isHeatmapEnabled: boolean
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -108,18 +109,22 @@ watch(
 )
 
 function shiftMonth(amount: number) {
+  if (props.disabled) return
   visibleMonth.value = visibleMonth.value.add(amount, 'month')
 }
 
 function shiftYear(amount: number) {
+  if (props.disabled) return
   visibleMonth.value = visibleMonth.value.add(amount, 'year')
 }
 
 function selectDate(dateText: string) {
+  if (props.disabled) return
   emit('update:modelValue', dateText)
 }
 
 function goToToday() {
+  if (props.disabled) return
   visibleMonth.value = todayDate.value.startOf('month')
   emit('update:modelValue', todayDate.value.format('YYYY-MM-DD'))
 }
@@ -213,10 +218,10 @@ function getDayTitle(day: {
   <section class="calendar-panel">
     <header class="calendar-toolbar">
       <div class="calendar-switches">
-        <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftYear(-1)">
+        <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" :disabled="disabled" @click="shiftYear(-1)">
           <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
         </button>
-        <button class="toolbar-button" type="button" title="上个月" aria-label="上个月" @click="shiftMonth(-1)">
+        <button class="toolbar-button" type="button" title="上个月" aria-label="上个月" :disabled="disabled" @click="shiftMonth(-1)">
           <ChevronLeft class="toolbar-icon" aria-hidden="true" />
         </button>
       </div>
@@ -224,10 +229,10 @@ function getDayTitle(day: {
       <strong class="calendar-title">{{ monthTitle }}</strong>
 
       <div class="calendar-switches calendar-switches--end">
-        <button class="toolbar-button" type="button" title="下个月" aria-label="下个月" @click="shiftMonth(1)">
+        <button class="toolbar-button" type="button" title="下个月" aria-label="下个月" :disabled="disabled" @click="shiftMonth(1)">
           <ChevronRight class="toolbar-icon" aria-hidden="true" />
         </button>
-        <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftYear(1)">
+        <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" :disabled="disabled" @click="shiftYear(1)">
           <ChevronsRight class="toolbar-icon" aria-hidden="true" />
         </button>
       </div>
@@ -247,13 +252,14 @@ function getDayTitle(day: {
         :aria-label="getDayAriaLabel(day.key, day.activity)"
         :title="getDayTitle(day)"
         type="button"
+        :disabled="disabled"
         @click="selectDate(day.key)"
       >
         {{ day.label }}
       </button>
     </div>
 
-    <button class="today-button" type="button" @click="goToToday">
+    <button class="today-button" type="button" :disabled="disabled" @click="goToToday">
       回到今天
     </button>
   </section>

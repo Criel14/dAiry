@@ -47,6 +47,12 @@
   transform: translateY(-1px);
 }
 
+.toolbar-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+  transform: none;
+}
+
 .toolbar-icon {
   width: 1rem;
   height: 1rem;
@@ -73,6 +79,12 @@
   border-color: var(--color-border-strong);
   box-shadow: var(--shadow-soft-sm);
   transform: translateY(-1px);
+}
+
+.today-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  transform: none;
 }
 
 .calendar-weekdays {
@@ -157,6 +169,12 @@
   border-color: var(--color-border-selected-strong);
   color: var(--color-text-main);
   font-weight: 600;
+}
+
+.calendar-day:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
 }
 
 @media (max-width: 640px) {

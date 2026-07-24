@@ -11,6 +11,7 @@ defineProps<{
   isJournalReady: boolean
   canSaveEntry: boolean
   isSavingEntry: boolean
+  isGeneratingInsights: boolean
 }>()
 
 defineEmits<{
@@ -32,6 +33,7 @@ defineEmits<{
             type="button"
             title="前一天"
             aria-label="前一天"
+            :disabled="isGeneratingInsights"
             @click="$emit('previousDate')"
           >
             <ChevronLeft class="date-switch-icon" aria-hidden="true" />
@@ -46,6 +48,7 @@ defineEmits<{
             type="button"
             title="后一天"
             aria-label="后一天"
+            :disabled="isGeneratingInsights"
             @click="$emit('nextDate')"
           >
             <ChevronRight class="date-switch-icon" aria-hidden="true" />
