@@ -188,7 +188,10 @@ function normalizeProviderType(rawValue: unknown): AiSettings['providerType'] {
   return rawValue === 'openai' ||
     rawValue === 'deepseek' ||
     rawValue === 'alibaba' ||
-    rawValue === 'openai-compatible'
+    rawValue === 'openai-compatible' ||
+    rawValue === 'claude' ||
+    rawValue === 'kimi' ||
+    rawValue === 'zhipu'
     ? rawValue
     : DEFAULT_AI_SETTINGS.providerType
 }
@@ -420,6 +423,27 @@ export function getDefaultAiSettings(
         providerType,
         baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         model: 'qwen-plus',
+      }
+    case 'claude':
+      return {
+        ...DEFAULT_AI_SETTINGS,
+        providerType,
+        baseURL: 'https://api.anthropic.com',
+        model: 'claude-sonnet-4-5',
+      }
+    case 'kimi':
+      return {
+        ...DEFAULT_AI_SETTINGS,
+        providerType,
+        baseURL: 'https://api.moonshot.cn/v1',
+        model: 'kimi-k3',
+      }
+    case 'zhipu':
+      return {
+        ...DEFAULT_AI_SETTINGS,
+        providerType,
+        baseURL: 'https://open.bigmodel.cn/api/paas/v4',
+        model: 'glm-4.6',
       }
     default:
       return {

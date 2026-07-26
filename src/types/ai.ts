@@ -1,4 +1,4 @@
-export type AiProviderType = 'openai' | 'deepseek' | 'alibaba' | 'openai-compatible'
+export type AiProviderType = 'openai' | 'deepseek' | 'alibaba' | 'openai-compatible' | 'claude' | 'kimi' | 'zhipu'
 
 export interface AiSettings {
   providerType: AiProviderType

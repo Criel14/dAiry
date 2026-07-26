@@ -194,7 +194,7 @@ function handleAiContextKeydown(event: KeyboardEvent) {
       <div class="workspace-summary">
         <div class="workspace-summary-copy">
           <p class="panel-description">
-            大模型配置完成后才能使用自动整理和总结功能，目前仅支持 OpenAI、DeepSeek、Qwen。
+            大模型配置完成后才能使用自动整理和总结功能，支持 OpenAI、DeepSeek、Qwen、Claude、Kimi、智谱 GLM 等 provider。
           </p>
         </div>
       </div>

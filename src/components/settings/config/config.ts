@@ -110,6 +110,9 @@ export const AI_PROVIDER_OPTIONS: AiProviderOption[] = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'deepseek', label: 'DeepSeek' },
   { value: 'alibaba', label: '阿里百炼 / Qwen' },
+  { value: 'claude', label: 'Claude' },
+  { value: 'kimi', label: 'Kimi' },
+  { value: 'zhipu', label: '智谱 GLM' },
 ]
 
 export const DAY_START_HOUR_OPTIONS = [0, 1, 2, 3, 4, 5, 6]
@@ -204,6 +207,27 @@ export function getAiDefaults(providerType: AiProviderType): AiSettings {
         providerType,
         baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
         model: 'qwen-plus',
+      }
+    case 'claude':
+      return {
+        ...DEFAULT_AI_SETTINGS,
+        providerType,
+        baseURL: 'https://api.anthropic.com',
+        model: 'claude-sonnet-4-5',
+      }
+    case 'kimi':
+      return {
+        ...DEFAULT_AI_SETTINGS,
+        providerType,
+        baseURL: 'https://api.moonshot.cn/v1',
+        model: 'kimi-k3',
+      }
+    case 'zhipu':
+      return {
+        ...DEFAULT_AI_SETTINGS,
+        providerType,
+        baseURL: 'https://open.bigmodel.cn/api/paas/v4',
+        model: 'glm-4.6',
       }
     default:
       return {

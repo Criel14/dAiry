@@ -567,6 +567,7 @@ async function selectFocusEntries(
           content: buildFocusSelectionPrompt(report, sourceEntries),
         },
       ],
+      thinking: true,
     })
 
     const normalizedSelection = normalizeFocusSelection(
@@ -619,6 +620,7 @@ export async function generateRangeReportSummaryWithAi(
         content: buildSummaryPrompt(reportWithAiContext, availableEntries, focusSelection),
       },
     ],
+    thinking: true,
   })
 
   return normalizeSummaryPayload(

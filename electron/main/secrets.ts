@@ -36,7 +36,10 @@ function normalizeSecretsFile(rawValue: unknown): SecretsFile {
     value.ai?.providerType === 'openai' ||
     value.ai?.providerType === 'deepseek' ||
     value.ai?.providerType === 'alibaba' ||
-    value.ai?.providerType === 'openai-compatible'
+    value.ai?.providerType === 'openai-compatible' ||
+    value.ai?.providerType === 'claude' ||
+    value.ai?.providerType === 'kimi' ||
+    value.ai?.providerType === 'zhipu'
       ? value.ai.providerType
       : undefined
 
