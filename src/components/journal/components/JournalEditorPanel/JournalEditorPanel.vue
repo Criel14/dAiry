@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import type { EditorMode, ViewState } from '../../../../types/ui'
 
@@ -36,6 +36,29 @@ const renderedMarkdown = computed(() => {
   }
 
   return markdown.render(props.editorContent)
+})
+
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const totalWordCount = computed(() => {
+  if (!props.editorContent.trim()) return 0
+  return props.editorContent.replace(/\s+/g, '').length
+})
+
+const selectedWordCount = ref(0)
+
+function updateSelection() {
+  const ta = textareaRef.value
+  if (!ta) {
+    selectedWordCount.value = 0
+    return
+  }
+  const selected = ta.value.substring(ta.selectionStart, ta.selectionEnd)
+  selectedWordCount.value = selected.replace(/\s+/g, '').length
+}
+
+watch(() => props.editorContent, () => {
+  selectedWordCount.value = 0
 })
 
 function handleEditorKeydown(event: KeyboardEvent) {
@@ -107,11 +130,14 @@ function handlePreviewClick(event: MouseEvent) {
   <section v-else class="editor-panel">
     <textarea
       v-if="editorMode === 'source'"
+      ref="textareaRef"
       v-model="editorContentModel"
       class="editor-textarea"
       :placeholder="isSelectedDateToday ? '在这里开始写今天的内容吧...' : '在这里开始写这一天的内容吧...'"
       spellcheck="false"
       @keydown="handleEditorKeydown"
+      @mouseup="updateSelection"
+      @keyup="updateSelection"
     />
 
     <div
@@ -123,6 +149,10 @@ function handlePreviewClick(event: MouseEvent) {
       <div v-else class="markdown-placeholder">
         这篇日记还没有内容，切回源码视图就可以开始写 Markdown 了。
       </div>
+    </div>
+
+    <div v-if="editorMode === 'source'" class="word-count-bar">
+      {{ selectedWordCount > 0 ? `${selectedWordCount} / ${totalWordCount} 词` : `${totalWordCount} 词` }}
     </div>
   </section>
 </template>
