@@ -17,7 +17,7 @@ export const DEFAULT_AI_SETTINGS: AiSettings = {
   providerType: 'openai-compatible',
   baseURL: 'https://api.openai.com/v1',
   model: 'gpt-4.1-mini',
-  timeoutMs: 30_000,
+  timeoutMs: 60_000,
   dailyContextDays: DEFAULT_DAILY_CONTEXT_DAYS,
   profileRefreshIntervalDays: DEFAULT_PROFILE_REFRESH_INTERVAL,
 }

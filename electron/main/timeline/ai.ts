@@ -137,6 +137,7 @@ export async function extractEventsFromDay(
     .filter(Boolean)
     .join('\n\n')
 
+  settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
   const client = createAiChatClient(settings, apiKey)
   const responseText = await client.completeText({
     messages: [
@@ -251,7 +252,8 @@ export async function rebuildTimelineYear(
       .filter(Boolean)
       .join('\n\n')
 
-    const client = createAiChatClient(settings, apiKey, 120000)
+    settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
+    const client = createAiChatClient(settings, apiKey)
     const responseText = await client.completeText({
       messages: [
         { role: 'system', content: systemPrompt },

@@ -606,6 +606,7 @@ export async function generateRangeReportSummaryWithAi(
     throw new Error('当前区间没有可用于总结的日记内容。')
   }
 
+  settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
   const client = createAiChatClient(settings, apiKey)
   const reportWithAiContext = {
     ...report,

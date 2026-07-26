@@ -245,6 +245,7 @@ export async function generateDailyInsights(
     settings.dailyContextDays,
   )
 
+  settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
   const client = createAiChatClient(settings, apiKey)
   const responseText = await client.completeJson({
     messages: [
