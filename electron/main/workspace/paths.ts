@@ -38,8 +38,16 @@ export function getWorkspaceConfigPath(workspacePath: string) {
   return path.join(getWorkspaceMetadataDir(workspacePath), 'workspace.json')
 }
 
-export function getWorkspaceUserProfilePath(workspacePath: string) {
+export function getLegacyUserProfilePath(workspacePath: string) {
   return path.join(getWorkspaceMetadataDir(workspacePath), 'user-profile.md')
+}
+
+export function getWorkspaceUserProfileDir(workspacePath: string) {
+  return path.join(getWorkspaceMetadataDir(workspacePath), 'user-profile')
+}
+
+export function getWorkspaceUserProfilePathForYear(workspacePath: string, year: string) {
+  return path.join(getWorkspaceUserProfileDir(workspacePath), `user-profile-${year}.md`)
 }
 
 export function getWorkspaceReportsDir(workspacePath: string) {

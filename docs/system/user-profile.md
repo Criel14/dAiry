@@ -5,8 +5,10 @@
 用户画像是从日记内容中持续提炼的个人特征档案，以 Markdown 文件存储在工作区元数据目录下。画像维护全程由主进程执行，对前端透明（不暴露查看入口），失败只记日志不影响日记写作主流程。
 
 ```
-自动整理成功 → 日更 + 全量刷新检查 → user-profile.md
-设置页按钮   → 按月迭代重建       → user-profile.md
+自动整理成功 → 画像解析 + 日更 + 全量刷新检查 → user-profile-YYYY.md
+设置页按钮   → 智能缺口重建               → user-profile-YYYY.md
+新年首次日更 → 复制上年画像为种子           → user-profile-YYYY.md
+存量迁移     → user-profile.md → user-profile-YYYY.md
 ```
 
 ---
@@ -15,8 +17,13 @@
 
 | 文件 | 路径 | 说明 |
 |------|------|------|
-| 画像内容 | `<workspace>/.dairy/user-profile.md` | Markdown 格式，AI 直接写入 |
+| 画像内容 | `<workspace>/.dairy/user-profile/user-profile-YYYY.md` | 按年份分版本，AI 直接写入 |
 | 刷新时间戳 | `<workspace>/.dairy/workspace.json` | `lastProfileRefresh` 字段 |
+
+- 当前年份画像为活跃文件，日更和全量刷新只操作当前年份文件
+- 过往年份画像自动归档，不再修改
+- 存量 `<workspace>/.dairy/user-profile.md` 会在首次日更时自动迁移到 `user-profile/` 目录并删除
+- 若 `user-profile/` 目录为空且无旧版文件，画像维护静默跳过
 
 画像 Markdown 约定结构：
 
@@ -31,9 +38,23 @@
 
 ---
 
-## 二、三种更新场景
+## 二、四种更新场景
 
-### 2.1 增量日更（自动）
+### 2.1 画像解析（自动）
+
+每次自动整理成功后 `runProfileMaintenance` 首先执行 `resolveProfileForYear`：
+
+```
+提取日期年份 → 查找 user-profile-YYYY.md
+  → 存在 → 直接返回路径
+  → 不存在 → 向前逐年查找（YYYY-1, YYYY-2, ...）
+    → 找到 → 复制为 user-profile-YYYY.md（种子画像），返回路径
+    → 找不到 → 检查旧版 user-profile.md
+      → 存在 → 复制到 user-profile/user-profile-YYYY.md，删除旧版
+      → 不存在 → 返回 null，静默跳过本次维护
+```
+
+### 2.2 增量日更（自动）
 
 每次用户点击"自动整理"成功后异步触发：
 
@@ -48,14 +69,15 @@ journal.ts: generateDailyInsights 返回后
 1. 读取当前画像 + 最近 N 天日记摘要（`dailyContextDays` 配置）
 2. 加载 `profile-daily-update.system.md` prompt
 3. AI 调用（temperature=0.3，无 json mode），只更新与当天日记相关的小节
-4. AI 返回 Markdown → 剥除代码围栏 → 写回 `user-profile.md`
+4. AI 返回 Markdown → 剥除代码围栏 → 写回 `user-profile-YYYY.md`
 
 **约束：**
 - 非阻塞，放 void 上下文执行
 - 画像读取失败（文件不存在）视为空画像，首次从零开始
 - AI 失败只打 `console.warn` 日志，绝不阻断
+- 年份从 `input.date` 提取，始终操作当年画像文件
 
-### 2.2 全量刷新（自动）
+### 2.3 全量刷新（自动）
 
 日更完成后，根据 `profileRefreshIntervalDays`（默认 7 天）判断是否触发：
 
@@ -77,7 +99,7 @@ shouldRunFullRefresh(workspacePath, date, intervalDays)
 - 同样非阻塞，失败只记日志
 - 全量刷新期间如果用户手动触发重建，自动维护直接跳过（`isProfileRebuildRunning` 互斥）
 
-### 2.3 手动重建（用户触发）
+### 2.4 手动重建（用户触发）
 
 设置页 → "重新整理用户画像"按钮：
 
@@ -89,8 +111,10 @@ preload: rebuildUserProfile({ workspacePath })
 
 **流程：**
 
-1. 扫描 `journal/YYYY/MM/` 目录树，收集所有月份
-2. 逐月正序迭代（从最早月份开始）：
+1. 查找最新归档画像年份（当前年份之前），如 `user-profile-2025.md`
+2. 以归档画像为种子，只扫描缺口年份（从归档年份次年 1 月起）
+3. 若没有归档画像，从头扫描所有月份（与旧行为一致）
+4. 逐月正序迭代：
 
 ```
 Month 1: AI([system], [month1 日记])               → profile1
@@ -152,7 +176,7 @@ cancelUserProfileRebuild()
 | 块 | 内容 | 来源 |
 |----|------|------|
 | 整理周期 | `{start} ~ {end}` | 最近 `profileRefreshIntervalDays` 天（默认 7） |
-| 当前画像（参考） | 完整 Markdown（可能被大幅修改） | `<workspace>/.dairy/user-profile.md` |
+| 当前画像（参考） | 完整 Markdown（可能被大幅修改） | `<workspace>/.dairy/user-profile/user-profile-YYYY.md` |
 | 区间日记 | 每篇一段：`日期 / 心情 / 摘要 / 正文（截断 2200 字）` | 区间内所有日记文件，当天优先用内存 `body` |
 
 ### 3.3 手动重建 — user prompt 拼装
@@ -169,7 +193,7 @@ cancelUserProfileRebuild()
 
 ### 3.4 AI 输出归一化
 
-AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）剥除可能的 ` ```markdown ` 代码围栏，再全量覆写 `user-profile.md`。画像内部不使用 JSON，不做结构校验。
+AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）剥除可能的 ` ```markdown ` 代码围栏，再全量覆写 `user-profile-YYYY.md`。画像内部不使用 JSON，不做结构校验。
 
 ---
 
@@ -177,8 +201,9 @@ AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）
 
 | 函数 | 文件 |
 |------|------|
-| `runProfileMaintenance` | `electron/main/profile/profile-service.ts:292` |
-| `updateUserProfileDaily` | `electron/main/profile/profile-service.ts:187` |
+| `runProfileMaintenance` | `electron/main/profile/profile-service.ts` |
+| `resolveProfileForYear` | `electron/main/profile/profile-service.ts` |
+| `updateUserProfileDaily` | `electron/main/profile/profile-service.ts` |
 | `refreshUserProfileFull` | `electron/main/profile/profile-service.ts:223` |
 | `rebuildUserProfile` | `electron/main/profile/profile-rebuild.ts:159` |
 | `cancelUserProfileRebuild` | `electron/main/profile/profile-rebuild.ts:34` |
@@ -190,8 +215,12 @@ AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）
 ## 五、架构约束
 
 - **画像内容不过 IPC**，渲染进程不持有画像数据
+- 按年分版：`user-profile-YYYY.md`，当前年份为活跃文件，过往年份自动归档不修改
+- 存量单文件 `user-profile.md` 首次日更时自动迁移
+- `user-profile/` 目录为空且无旧版文件时，画像维护静默跳过
+- 新年首次日更时自动复制上年画像作为种子
 - AI 失败不影响日记保存，日更/全量刷新失败只打 warn 日志
-- 手动重建全成功才写盘，失败不会覆盖现有画像
+- 手动重建全成功才写盘，失败不会覆盖现有画像；仅重建缺口年份，不影响已归档画像
 - 重建期间自动维护直接跳过（`isProfileRebuildRunning` 互斥锁）
 - `normalizeProfileMarkdown` 剥除 AI 可能包裹的代码围栏后写入
 - 画像写入使用 `writeFile` 全量覆盖，不做 diff/merge

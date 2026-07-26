@@ -1,4 +1,5 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile, access, copyFile, unlink } from 'node:fs/promises'
+import { constants } from 'node:fs'
 import dayjs from 'dayjs'
 import type { AiSettings, RecentDaySummary } from '../../../src/types/ai'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
@@ -7,8 +8,9 @@ import { createAiChatClient, getRecentDailySummaries, loadPrompt } from '../ai'
 import type { AiChatClient } from '../ai'
 import { readJournalDocument } from '../journal/document'
 import {
-  getWorkspaceMetadataDir,
-  getWorkspaceUserProfilePath,
+  getLegacyUserProfilePath,
+  getWorkspaceUserProfileDir,
+  getWorkspaceUserProfilePathForYear,
   resolveJournalEntryFilePath,
 } from '../workspace/paths'
 import { readWorkspaceConfig, updateWorkspaceConfig } from '../workspace/config'
@@ -39,9 +41,9 @@ interface ProfileRangeEntry {
   body: string
 }
 
-export async function readUserProfile(workspacePath: string): Promise<string> {
+export async function readUserProfile(workspacePath: string, year: string): Promise<string> {
   try {
-    return await readFile(getWorkspaceUserProfilePath(workspacePath), 'utf-8')
+    return await readFile(getWorkspaceUserProfilePathForYear(workspacePath, year), 'utf-8')
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return ''
@@ -51,9 +53,43 @@ export async function readUserProfile(workspacePath: string): Promise<string> {
   }
 }
 
-export async function writeUserProfile(workspacePath: string, content: string): Promise<void> {
-  await mkdir(getWorkspaceMetadataDir(workspacePath), { recursive: true })
-  await writeFile(getWorkspaceUserProfilePath(workspacePath), content, 'utf-8')
+export async function writeUserProfile(workspacePath: string, content: string, year: string): Promise<void> {
+  await mkdir(getWorkspaceUserProfileDir(workspacePath), { recursive: true })
+  await writeFile(getWorkspaceUserProfilePathForYear(workspacePath, year), content, 'utf-8')
+}
+
+async function resolveProfileForYear(
+  workspacePath: string,
+  year: string,
+): Promise<string | null> {
+  const targetPath = getWorkspaceUserProfilePathForYear(workspacePath, year)
+
+  try {
+    await access(targetPath, constants.F_OK)
+    return targetPath
+  } catch {}
+
+  let seedYear = parseInt(year) - 1
+  while (seedYear >= 2000) {
+    const candidatePath = getWorkspaceUserProfilePathForYear(workspacePath, String(seedYear))
+    try {
+      await access(candidatePath, constants.F_OK)
+      await mkdir(getWorkspaceUserProfileDir(workspacePath), { recursive: true })
+      await copyFile(candidatePath, targetPath)
+      return targetPath
+    } catch {}
+    seedYear--
+  }
+
+  try {
+    await access(getLegacyUserProfilePath(workspacePath), constants.F_OK)
+    await mkdir(getWorkspaceUserProfileDir(workspacePath), { recursive: true })
+    await copyFile(getLegacyUserProfilePath(workspacePath), targetPath)
+    await unlink(getLegacyUserProfilePath(workspacePath))
+    return targetPath
+  } catch {}
+
+  return null
 }
 
 // AI 可能用代码围栏包裹整份画像，写盘前剥掉
@@ -191,9 +227,10 @@ export async function updateUserProfileDaily(input: {
   body: string
   recentSummaries: RecentDaySummary[]
 }): Promise<void> {
+  const year = input.date.slice(0, 4)
   const [systemPrompt, currentProfile] = await Promise.all([
     loadPrompt('profileDailyUpdateSystem'),
-    readUserProfile(input.workspacePath),
+    readUserProfile(input.workspacePath, year),
   ])
 
   const responseText = await input.client.completeText({
@@ -217,7 +254,7 @@ export async function updateUserProfileDaily(input: {
     throw new Error('AI 返回的画像内容为空。')
   }
 
-  await writeUserProfile(input.workspacePath, nextProfile)
+  await writeUserProfile(input.workspacePath, nextProfile, year)
 }
 
 export async function refreshUserProfileFull(input: {
@@ -231,9 +268,10 @@ export async function refreshUserProfileFull(input: {
     .subtract(input.intervalDays - 1, 'day')
     .format('YYYY-MM-DD')
 
+  const year = input.endDate.slice(0, 4)
   const [systemPrompt, currentProfile, entries] = await Promise.all([
     loadPrompt('profileFullRefreshSystem'),
-    readUserProfile(input.workspacePath),
+    readUserProfile(input.workspacePath, year),
     collectRangeEntries(input.workspacePath, startDate, input.endDate, input.todayBody),
   ])
 
@@ -262,7 +300,7 @@ export async function refreshUserProfileFull(input: {
     throw new Error('AI 返回的画像内容为空。')
   }
 
-  await writeUserProfile(input.workspacePath, nextProfile)
+  await writeUserProfile(input.workspacePath, nextProfile, year)
   await updateWorkspaceConfig(input.workspacePath, {
     lastProfileRefresh: new Date().toISOString(),
   })
@@ -296,6 +334,12 @@ export async function runProfileMaintenance(input: ProfileMaintenanceInput): Pro
     }
 
     if (!input.workspacePath.trim() || !input.body.trim()) {
+      return
+    }
+
+    const year = input.date.slice(0, 4)
+    const profilePath = await resolveProfileForYear(input.workspacePath, year)
+    if (!profilePath) {
       return
     }
 

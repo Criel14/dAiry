@@ -282,7 +282,7 @@ function handleAiContextKeydown(event: KeyboardEvent) {
         <label class="field">
           <span class="field-label field-label--with-tip">
             画像整理间隔
-            <SettingsInfoTip text="每次自动整理后 AI 会静默维护一份用户画像（保存在工作区 .dairy/user-profile.md），并每隔 N 天做一次全面整理。" />
+            <SettingsInfoTip text="每次自动整理后 AI 会静默维护一份用户画像（保存在工作区 .dairy/user-profile/ 下，按年份归档），并每隔 N 天做一次全面整理。" />
           </span>
           <select
             v-model="draftAiSettings.profileRefreshIntervalDays"

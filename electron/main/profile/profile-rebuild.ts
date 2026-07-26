@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { readdir } from 'node:fs/promises'
+import { readdir, access } from 'node:fs/promises'
+import { constants } from 'node:fs'
 import type {
   RebuildUserProfileInput,
   RebuildUserProfileResult,
@@ -8,13 +9,19 @@ import type {
 import { normalizeAiSettings, readAppConfig } from '../app-config'
 import { loadPrompt } from '../ai'
 import { readJournalDocument } from '../journal/document'
-import { getWorkspaceJournalDir, resolveJournalEntryFilePath } from '../workspace/paths'
+import {
+  getWorkspaceJournalDir,
+  getWorkspaceUserProfileDir,
+  getWorkspaceUserProfilePathForYear,
+  resolveJournalEntryFilePath,
+} from '../workspace/paths'
 import { updateWorkspaceConfig } from '../workspace/config'
 import {
   PROFILE_AI_TEMPERATURE,
   createProfileAiClient,
   isProfileRebuildRunning,
   normalizeProfileMarkdown,
+  readUserProfile,
   setProfileRebuildRunning,
   writeUserProfile,
 } from './profile-service'
@@ -156,6 +163,27 @@ function buildRebuildPrompt(input: {
   ].join('\n\n')
 }
 
+async function findLatestArchivedYear(workspacePath: string, currentYear: number): Promise<number | null> {
+  const profileDir = getWorkspaceUserProfileDir(workspacePath)
+  let latestYear: number | null = null
+
+  try {
+    await access(profileDir, constants.F_OK)
+  } catch {
+    return null
+  }
+
+  for (let year = currentYear - 1; year >= 2000; year--) {
+    try {
+      await access(getWorkspaceUserProfilePathForYear(workspacePath, String(year)), constants.F_OK)
+      latestYear = year
+      break
+    } catch {}
+  }
+
+  return latestYear
+}
+
 export async function rebuildUserProfile(
   input: RebuildUserProfileInput,
   onProgress?: (progress: UserProfileRebuildProgress) => void,
@@ -181,15 +209,35 @@ export async function rebuildUserProfile(
   setProfileRebuildRunning(true)
 
   const monthDates = await scanJournalMonths(input.workspacePath)
-  const months = [...monthDates.keys()].sort()
+  const allMonths = [...monthDates.keys()].sort()
 
-  if (months.length === 0) {
+  if (allMonths.length === 0) {
     throw new Error('当前工作区没有可用于整理的日记。')
   }
 
   try {
     const systemPrompt = await loadPrompt('profileRebuildSystem')
+    const currentYear = new Date().getFullYear()
+    const archivedYear = await findLatestArchivedYear(input.workspacePath, currentYear)
+
     let profile = ''
+    let startMonthIndex = 0
+
+    if (archivedYear !== null) {
+      profile = await readUserProfile(input.workspacePath, String(archivedYear))
+      const cutoffMonth = `${archivedYear + 1}-01`
+      startMonthIndex = allMonths.findIndex((m) => m >= cutoffMonth)
+      if (startMonthIndex === -1) {
+        startMonthIndex = 0
+      }
+    }
+
+    const months = allMonths.slice(startMonthIndex)
+
+    if (months.length === 0) {
+      throw new Error('当前工作区没有需要更新的月份。')
+    }
+
     let processedMonths = 0
 
     for (const [monthIndex, month] of months.entries()) {
@@ -268,7 +316,7 @@ export async function rebuildUserProfile(
       throw new Error('整理结束，但没有生成任何画像内容。')
     }
 
-    await writeUserProfile(input.workspacePath, profile)
+    await writeUserProfile(input.workspacePath, profile, String(currentYear))
     await updateWorkspaceConfig(input.workspacePath, {
       lastProfileRefresh: new Date().toISOString(),
     })
