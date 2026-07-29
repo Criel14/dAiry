@@ -85,7 +85,7 @@ electron/main/memory/
 
 - `searchMemory(input)`：语义检索主入口；
 - `batchReadEntries(input)`：按日期批量读取正文（返回 `entries` + `skippedDates`，不静默跳过）；
-- `grepDiary(input)`：按关键词/正则做全局文本匹配；
+- `grepDiary(input)`：按关键词在正文内做全局文本匹配（frontmatter 不参与匹配），返回日期、摘要与正文片段；
 - `getUserProfile(input)`：读取画像 Markdown；
 - `getMetaIndex(input)`：获取指定年份 meta 索引。
 

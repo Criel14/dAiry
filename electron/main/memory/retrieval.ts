@@ -153,26 +153,29 @@ export async function grepDiaryText(
           continue
         }
 
-        let content
+        // 复用文档解析，只在 body 正文内匹配，避免命中 frontmatter 元信息
+        let document
         try {
-          content = await readFile(path.join(monthDir, file), 'utf-8')
+          document = await readJournalDocument(path.join(monthDir, file))
         } catch {
           continue
         }
 
-        const lowerContent = content.toLocaleLowerCase()
+        const body = document.body
+        const lowerBody = body.toLocaleLowerCase()
         let fromIndex = 0
         let fileMatchCount = 0
 
         while (matches.length < MAX_GREP_MATCHES && fileMatchCount < MAX_GREP_MATCHES_PER_FILE) {
-          const hitIndex = lowerContent.indexOf(normalizedKeyword, fromIndex)
+          const hitIndex = lowerBody.indexOf(normalizedKeyword, fromIndex)
           if (hitIndex === -1) {
             break
           }
 
           matches.push({
             date: dateMatch[1],
-            snippet: buildGrepSnippet(content, hitIndex, normalizedKeyword.length),
+            summary: document.frontmatter.summary,
+            snippet: buildGrepSnippet(body, hitIndex, normalizedKeyword.length),
           })
           fileMatchCount += 1
           fromIndex = hitIndex + normalizedKeyword.length

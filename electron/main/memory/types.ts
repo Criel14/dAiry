@@ -29,6 +29,7 @@ export interface MemoryBatchReadResult {
 
 export interface MemoryGrepMatch {
   date: string
+  summary: string
   snippet: string
 }
 

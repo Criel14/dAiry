@@ -104,7 +104,7 @@ export function createMemoryMcpServer(): McpServer {
     {
       title: '关键词检索日记',
       description:
-        '按关键词在全部日记正文中做大小写不敏感的字面匹配，返回命中日期与上下文片段。适合精确词检索，不需要 AI。',
+        '按关键词在全部日记正文（不含 frontmatter 元信息）中做大小写不敏感的字面匹配，返回命中日期、当日摘要与正文上下文片段。适合精确词检索，不需要 AI。',
       inputSchema: {
         keyword: z.string().describe('要匹配的关键词'),
         workspacePath: workspacePathSchema,
