@@ -31,7 +31,6 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 - `batchReadEntries(workspacePath, dates)`：按日期批量读取正文，缺失文件跳过；
 - `grepDiaryText(workspacePath, keyword)`：大小写不敏感的字面匹配，返回 `{ date, snippet }[]`，上限 50 条（单文件最多 3 条）；
 - `getUserProfile(workspacePath)`：取 `.dairy/user-profile/` 下最新年份画像，只读回退 legacy `user-profile.md`；
-- `getRecentSummaries(workspacePath, date, days)`：复用日总结链路的最近 N 天摘要；
 - `getMetaIndex(workspacePath, year)`：读取年度 `journal-meta.json`；
 - `readMetaCandidates(workspacePath, years)` / `listJournalYears(workspacePath)`：检索候选辅助。
 
@@ -97,7 +96,6 @@ interface McpRuntimeStatus {
 | `memory_batch_read_entries` | 按日期批量读取正文与元信息 | `dates` |
 | `memory_grep_diary` | 关键词字面匹配，返回命中日期与上下文片段 | `keyword` |
 | `memory_get_user_profile` | 读取最新年份用户画像 Markdown | — |
-| `memory_get_recent_summaries` | 最近 N 天摘要/标签/心情 | `date?`、`days?`（默认 7，最大 30） |
 | `memory_get_meta_index` | 年度元索引（摘要/标签/心情/地点/字数） | `year` |
 
 约定：

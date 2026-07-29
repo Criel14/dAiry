@@ -1,10 +1,8 @@
 import path from 'node:path'
 import { readdir, readFile } from 'node:fs/promises'
 import type { JournalMetaIndex } from '../../../src/types/journal'
-import type { RecentDaySummary } from '../../../src/types/ai'
 import { readJournalDocument } from '../journal/document'
 import { readJournalMetaIndex } from '../journal/meta-index'
-import { getRecentDailySummaries } from '../ai/journal-ai-service'
 import {
   getLegacyUserProfilePath,
   getWorkspaceJournalDir,
@@ -222,12 +220,4 @@ export async function getUserProfile(workspacePath: string): Promise<MemoryUserP
   } catch {
     return { year: null, content: '' }
   }
-}
-
-export async function getRecentSummaries(
-  workspacePath: string,
-  date: string,
-  days: number,
-): Promise<RecentDaySummary[]> {
-  return getRecentDailySummaries(workspacePath, date, days)
 }

@@ -87,7 +87,6 @@ electron/main/memory/
 - `batchReadEntries(input)`：按日期批量读取正文；
 - `grepDiary(input)`：按关键词/正则做全局文本匹配；
 - `getUserProfile(input)`：读取画像 Markdown；
-- `getRecentSummaries(input)`：读取最近 N 天摘要；
 - `getMetaIndex(input)`：获取指定年份 meta 索引。
 
 ### 3.3 语义检索流程
@@ -181,7 +180,6 @@ interface MemorySearchResult {
 - `memory_batch_read_entries`
 - `memory_grep_diary`
 - `memory_get_user_profile`
-- `memory_get_recent_summaries`
 - `memory_get_meta_index`
 
 约定：

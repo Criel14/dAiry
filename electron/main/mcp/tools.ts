@@ -1,19 +1,15 @@
-import dayjs from 'dayjs'
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { readAppConfig } from '../app-config'
 import {
   batchReadEntries,
   getMetaIndex,
-  getRecentSummaries,
   getUserProfile,
   grepDiaryText,
   searchMemory,
 } from '../memory'
 
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const YEAR_PATTERN = /^\d{4}$/
-const MAX_RECENT_DAYS = 30
 
 const workspacePathSchema = z
   .string()
@@ -136,44 +132,6 @@ export function createMemoryMcpServer(): McpServer {
     async ({ workspacePath }) => {
       try {
         const result = await getUserProfile(await resolveWorkspacePath(workspacePath))
-        return toJsonTextResult(result)
-      } catch (error) {
-        return toErrorResult(error)
-      }
-    },
-  )
-
-  server.registerTool(
-    'memory_get_recent_summaries',
-    {
-      title: '读取最近日记摘要',
-      description: '读取指定日期之前最近 N 天的日记摘要、标签与心情，用于快速了解近期动态。',
-      inputSchema: {
-        date: z
-          .string()
-          .optional()
-          .describe('截止日期（不含当天），格式 YYYY-MM-DD；缺省为今天'),
-        days: z.number().int().optional().describe(`向前追溯天数，默认 7，最大 ${MAX_RECENT_DAYS}`),
-        workspacePath: workspacePathSchema,
-      },
-    },
-    async ({ date, days, workspacePath }) => {
-      try {
-        const targetDate = date?.trim() || dayjs().format('YYYY-MM-DD')
-        if (!DATE_PATTERN.test(targetDate)) {
-          throw new Error('日期格式无效，必须为 YYYY-MM-DD。')
-        }
-
-        const normalizedDays =
-          typeof days === 'number' && Number.isInteger(days) && days > 0
-            ? Math.min(days, MAX_RECENT_DAYS)
-            : 7
-
-        const result = await getRecentSummaries(
-          await resolveWorkspacePath(workspacePath),
-          targetDate,
-          normalizedDays,
-        )
         return toJsonTextResult(result)
       } catch (error) {
         return toErrorResult(error)
