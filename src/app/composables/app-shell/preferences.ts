@@ -283,6 +283,39 @@ export function useAppShellPreferences(
     }
   }
 
+  async function refreshMcpRuntimeStatus() {
+    try {
+      state.mcpRuntimeStatus.value = await window.dairy.getMcpRuntimeStatus()
+    } catch {
+      // 状态查询失败不打断设置流程，保留当前展示
+    }
+  }
+
+  async function handleSaveMcpPreference(input: { enabled: boolean; port: number }) {
+    state.isSavingMcp.value = true
+    state.mcpSaveMessage.value = ''
+
+    try {
+      const nextConfig = await window.dairy.setMcpPreference(input)
+      deps.syncConfigState(nextConfig)
+      await refreshMcpRuntimeStatus()
+
+      const runtimeStatus = state.mcpRuntimeStatus.value
+      if (runtimeStatus.status === 'error') {
+        state.mcpSaveMessage.value = runtimeStatus.errorMessage ?? 'MCP 服务启动失败，请检查端口后重试。'
+      } else if (nextConfig.mcp.enabled) {
+        state.mcpSaveMessage.value = 'MCP 服务已开启。'
+      } else {
+        state.mcpSaveMessage.value = 'MCP 服务已关闭。'
+      }
+    } catch (error) {
+      state.mcpSaveMessage.value =
+        error instanceof Error ? error.message : '保存 MCP 设置失败，请稍后重试。'
+    } finally {
+      state.isSavingMcp.value = false
+    }
+  }
+
   async function handleSaveWorkspaceLibraries(input: {
     tags: string[]
     weatherOptions: string[]
@@ -328,6 +361,7 @@ export function useAppShellPreferences(
   }
 
   return {
+    handleSaveMcpPreference,
     handleSaveWorkspaceLibraries,
     handleSaveEmailNotificationConfiguration,
     handleUpdateDayStartHour,
@@ -340,5 +374,6 @@ export function useAppShellPreferences(
     handleUpdateTheme,
     handleUpdateWindowCloseBehavior,
     handleUpdateWindowZoomFactor,
+    refreshMcpRuntimeStatus,
   }
 }

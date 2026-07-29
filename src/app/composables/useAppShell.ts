@@ -114,6 +114,7 @@ export function useAppShell() {
     })
     window.addEventListener('keydown', journal.handleWindowKeydown)
     await journal.bootstrapApp()
+    void preferences.refreshMcpRuntimeStatus()
     scheduleDayBoundary()
     document.addEventListener('visibilitychange', handleVisibilityChange)
   })
@@ -169,6 +170,7 @@ export function useAppShell() {
     ...ai,
     ...timeline,
     handleUpdateLaunchOnStartupEnabled: preferences.handleUpdateLaunchOnStartupEnabled,
+    handleSaveMcpPreference: preferences.handleSaveMcpPreference,
     handleUpdateEmailNotificationEnabled: preferences.handleUpdateEmailNotificationEnabled,
     handleUpdateNotificationReminderTime: preferences.handleUpdateNotificationReminderTime,
     handleUpdateSystemNotificationEnabled: preferences.handleUpdateSystemNotificationEnabled,

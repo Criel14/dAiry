@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 import type { AiContextDocument, AiSettingsStatus, UserProfileRebuildProgress } from '../../../types/ai'
+import type { McpRuntimeStatus } from '../../../types/mcp'
 import type {
   AppTheme,
   EmailNotificationSecretStatus,
@@ -38,6 +39,14 @@ export function createDefaultEmailNotificationStatus(): EmailNotificationSecretS
   return {
     hasAuthCode: false,
     isConfigured: false,
+  }
+}
+
+export function createDefaultMcpRuntimeStatus(): McpRuntimeStatus {
+  return {
+    status: 'stopped',
+    port: null,
+    errorMessage: null,
   }
 }
 
@@ -147,6 +156,7 @@ export function useAppShellState() {
   const workspaceLibrariesSaveMessage = ref('')
   const aiSaveMessage = ref('')
   const aiContextSaveMessage = ref('')
+  const mcpSaveMessage = ref('')
   const isCreatingEntry = ref(false)
   const isSavingEntry = ref(false)
   const isSavingMetadata = ref(false)
@@ -162,6 +172,7 @@ export function useAppShellState() {
   const isSavingWorkspaceLibraries = ref(false)
   const isSavingAiConfig = ref(false)
   const isSavingAiContext = ref(false)
+  const isSavingMcp = ref(false)
   const isRebuildingProfile = ref(false)
   const isCancellingProfileRebuild = ref(false)
   const profileRebuildProgress = ref<UserProfileRebuildProgress | null>(null)
@@ -182,6 +193,9 @@ export function useAppShellState() {
   )
   const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
   const aiContextDocument = ref<AiContextDocument>(createDefaultAiContextDocument())
+  const mcpEnabled = ref(false)
+  const mcpPort = ref(9123)
+  const mcpRuntimeStatus = ref<McpRuntimeStatus>(createDefaultMcpRuntimeStatus())
   const lastSavedAt = ref<string | null>(null)
   const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
   const isReportExportMode =
@@ -307,6 +321,7 @@ export function useAppShellState() {
     isSavingFrontmatterVisibility,
     isSavingJournalHeatmap,
     isSavingLaunchOnStartup,
+    isSavingMcp,
     isSavingMetadata,
     isSavingNotification,
     isSavingTheme,
@@ -317,6 +332,10 @@ export function useAppShellState() {
     lastSavedAt,
     launchOnStartupEnabled,
     launchOnStartupSaveMessage,
+    mcpEnabled,
+    mcpPort,
+    mcpRuntimeStatus,
+    mcpSaveMessage,
     metadataDraft,
     metadataStatusMessage,
     notification,

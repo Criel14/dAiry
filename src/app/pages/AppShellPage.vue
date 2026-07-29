@@ -72,6 +72,7 @@ const {
   isSavingFrontmatterVisibility,
   isSavingJournalHeatmap,
   isSavingLaunchOnStartup,
+  isSavingMcp,
   isSavingMetadata,
   isSavingNotification,
   isSavingTheme,
@@ -82,6 +83,10 @@ const {
   loadEntryForDate,
   launchOnStartupEnabled,
   launchOnStartupSaveMessage,
+  mcpEnabled,
+  mcpPort,
+  mcpRuntimeStatus,
+  mcpSaveMessage,
   metadataDraft,
   metadataStatusMessage,
   notification,
@@ -100,6 +105,7 @@ const {
   handleSelectTimelineYear,
   handleRebuildTimeline,
   handleCancelTimelineRebuild,
+  handleSaveMcpPreference,
   jumpToDiary,
   reportsPanel,
   rightPanel,
@@ -272,6 +278,11 @@ const {
         :ai-context-document="aiContextDocument"
         :is-saving-ai-context="isSavingAiContext"
         :ai-context-save-message="aiContextSaveMessage"
+        :mcp-enabled="mcpEnabled"
+        :mcp-port="mcpPort"
+        :mcp-runtime-status="mcpRuntimeStatus"
+        :is-saving-mcp="isSavingMcp"
+        :mcp-save-message="mcpSaveMessage"
         :active-section-id="activeSettingsSectionId"
         @update:theme="handleUpdateTheme"
         @update:window-zoom-factor="handleUpdateWindowZoomFactor"
@@ -293,6 +304,7 @@ const {
         :profile-rebuild-message="profileRebuildMessage"
         @rebuild-user-profile="handleRebuildUserProfile"
         @cancel-user-profile-rebuild="handleCancelUserProfileRebuild"
+        @save-mcp-preference="handleSaveMcpPreference"
       />
 
       <ReportsPanel

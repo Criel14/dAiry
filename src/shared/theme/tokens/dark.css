@@ -97,6 +97,9 @@ html[data-theme='dark'] {
   --color-chart-positive-soft: #7ccd88;
   --color-chart-negative: #d98282;
   --color-chart-negative-soft: #e79292;
+  --color-status-dot-running: #6fbe79;
+  --color-status-dot-stopped: #8b8171;
+  --color-status-dot-error: #d98282;
   --color-tag-cloud-1: #f4e2b7;
   --color-tag-cloud-2: #ebd39d;
   --color-tag-cloud-3: #ddc07a;

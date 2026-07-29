@@ -45,6 +45,8 @@ export function useAppShellJournal(state: AppShellState) {
     state.frontmatterVisibility.value = {
       ...config.ui.frontmatterVisibility,
     }
+    state.mcpEnabled.value = config.mcp.enabled
+    state.mcpPort.value = config.mcp.port
   }
 
   function resetTransientState() {

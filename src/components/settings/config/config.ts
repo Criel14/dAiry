@@ -14,6 +14,7 @@ export type SettingsSectionId =
   | 'llm'
   | 'libraries'
   | 'workspace'
+  | 'mcp'
   | 'about'
 
 export interface SettingsSectionItem {
@@ -97,6 +98,11 @@ export const SETTINGS_SECTIONS: SettingsSectionItem[] = [
     id: 'workspace',
     label: '工作区',
     description: '查看当前日记目录的连接状态，确认本地数据落点是否正确。',
+  },
+  {
+    id: 'mcp',
+    label: 'MCP 服务',
+    description: '手动启停本地 MCP 服务，让外部 AI 工具可以检索你的日记记忆。',
   },
   {
     id: 'about',

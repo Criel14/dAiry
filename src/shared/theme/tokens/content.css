@@ -46,6 +46,9 @@ html[data-theme='dark'] {
   --color-chart-positive-soft: #66a86e;
   --color-chart-negative: #c76767;
   --color-chart-negative-soft: #cb6363;
+  --color-status-dot-running: #5a9f61;
+  --color-status-dot-stopped: #97876b;
+  --color-status-dot-error: #c76767;
   --color-tag-cloud-1: #4e4331;
   --color-tag-cloud-2: #62523a;
   --color-tag-cloud-3: #756246;

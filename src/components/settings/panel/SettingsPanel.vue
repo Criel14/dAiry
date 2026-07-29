@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import packageJson from '../../../../package.json'
 import type { AiContextDocument, AiSettings, AiSettingsStatus, UserProfileRebuildProgress } from '../../../types/ai'
+import type { McpRuntimeStatus } from '../../../types/mcp'
 import type {
   AppTheme,
   EmailNotificationConfig,
@@ -15,6 +16,7 @@ import SettingsAiSection from '../sections/SettingsAiSection.vue'
 import SettingsAppearanceSection from '../sections/SettingsAppearanceSection.vue'
 import SettingsEditorSection from '../sections/SettingsEditorSection.vue'
 import SettingsLibrariesSection from '../sections/SettingsLibrariesSection.vue'
+import SettingsMcpSection from '../sections/SettingsMcpSection.vue'
 import SettingsNotificationSection from '../sections/SettingsNotificationSection.vue'
 import SettingsShortcutsSection from '../sections/SettingsShortcutsSection.vue'
 import {
@@ -69,6 +71,11 @@ const props = defineProps<{
   isCancellingProfileRebuild: boolean
   profileRebuildProgress: UserProfileRebuildProgress | null
   profileRebuildMessage: string
+  mcpEnabled: boolean
+  mcpPort: number
+  mcpRuntimeStatus: McpRuntimeStatus
+  isSavingMcp: boolean
+  mcpSaveMessage: string
   activeSectionId: SettingsSectionId
 }>()
 
@@ -104,6 +111,7 @@ const emit = defineEmits<{
   saveAiContext: [value: string]
   rebuildUserProfile: []
   cancelUserProfileRebuild: []
+  saveMcpPreference: [value: { enabled: boolean; port: number }]
 }>()
 
 const appVersion = packageJson.version ?? '0.0.0'
@@ -225,6 +233,16 @@ function openDebugPanel() {
       <SettingsWorkspaceSection
         v-else-if="activeSectionId === 'workspace'"
         :workspace-path="props.workspacePath"
+      />
+
+      <SettingsMcpSection
+        v-else-if="activeSectionId === 'mcp'"
+        :mcp-enabled="props.mcpEnabled"
+        :mcp-port="props.mcpPort"
+        :mcp-runtime-status="props.mcpRuntimeStatus"
+        :is-saving-mcp="props.isSavingMcp"
+        :mcp-save-message="props.mcpSaveMessage"
+        @save-mcp-preference="emit('saveMcpPreference', $event)"
       />
 
       <SettingsAboutSection
