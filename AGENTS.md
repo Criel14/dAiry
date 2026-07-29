@@ -28,6 +28,8 @@
 - `electron/main/`：主进程模块
 - `electron/main/report/`：报告生成、读取、列表
 - `electron/main/report-export/`：报告 PNG 导出
+- `electron/main/memory/`：记忆检索能力（retrieval、语义检索编排，供 MCP 与主进程内部使用，不经 IPC 暴露渲染层）
+- `electron/main/mcp/`：MCP 服务生命周期与工具映射
 - `electron/preload.ts`：受控桥接 API
 
 目录约定：
@@ -129,6 +131,8 @@ tags: []
 
 当前应用配置（`config.json`）中的 UI 配置除主题、缩放等外，还包含关闭窗口行为、窗口状态（窗口化时的尺寸/位置、是否最大化/全屏）、通知提醒时间与“开机自启”开关；默认应优先保持“关闭窗口最小化到托盘”和“开机自启开启”的桌面工具体验。
 
+应用配置还包含 `mcp`（`enabled` + `port`，默认关闭、端口 9123）：MCP 服务的手动开关与监听端口，运行态（running/stopped/error）不持久化，通过 `app:get-mcp-runtime-status` 单独查询。
+
 敏感信息约束：
 
 - 非敏感 AI 配置放 `config.json`
@@ -193,6 +197,15 @@ Git 约束：
 - 写日记提醒属于辅助能力，不影响保存、写作、报告等主流程
 - 通知在应用仍运行时即可生效；窗口开着或托盘驻留都可以提醒，如果用户直接退出应用，则不再提醒
 - 提醒时间精确到分钟，通知由主进程调度，渲染进程只负责设置入口与状态反馈
+
+MCP 约束：
+
+- MCP 服务是可选能力，默认关闭；用户在设置页手动开启后才启动，关闭开关或退出应用即停止
+- 协议层使用官方 `@modelcontextprotocol/sdk`，Streamable HTTP transport（stateless，每个请求独立 server + transport），仅监听 `127.0.0.1`，端点 `/mcp`
+- 服务启动失败（端口占用等）只体现在运行态与设置页错误提示，不影响写作与其他功能，不做无限重试
+- MCP 工具全部只读（检索/批读/grep/画像/摘要/元索引），不暴露写操作与敏感配置；工具入参缺省 `workspacePath` 时回退 `lastOpenedWorkspace`
+- 记忆能力（`electron/main/memory/`）仅供主进程内部与 MCP 层直接调用，本期不经 IPC 暴露渲染层；后续界面需要时再补 `memory:*` 通道
+- 配置写入与服务启停串行执行（先持久化，再按最新配置启停）；start/stop 内部串行化防竞态
 
 ## 8. UI 与主题
 

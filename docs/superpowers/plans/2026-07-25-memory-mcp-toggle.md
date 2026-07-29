@@ -1,6 +1,6 @@
 # Memory + MCP Toggle Implementation Plan
 
-> **For agentic workers:** 按 Task 顺序执行，每个 Task 完成后运行 `npm run typecheck` 并提交。Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** 按 Task 顺序执行，每个 Task 完成后运行 `npm run typecheck` 并提交。Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 在主进程内构建统一的 memory 能力模块（检索/批读/grep/画像/摘要/元索引），为 MCP 奠定基础；并新增 MCP 服务（官方 SDK + Streamable HTTP）与设置页手动开关。
 
@@ -76,7 +76,7 @@
 - Modify: `src/shared/ipc-channels.ts`
 - Modify: `electron/preload.ts`
 
-- [ ] **Step 1: 建立 `src/types/mcp.ts`**
+- [x] **Step 1: 建立 `src/types/mcp.ts`**
 
 ```ts
 export interface McpConfig {
@@ -96,7 +96,7 @@ export interface McpRuntimeStatus {
 }
 ```
 
-- [ ] **Step 2: 建立 `electron/main/memory/types.ts` 最小类型集**
+- [x] **Step 2: 建立 `electron/main/memory/types.ts` 最小类型集**
 
 ```ts
 export interface MemorySearchInput {
@@ -144,7 +144,7 @@ export interface MemoryUserProfile {
 }
 ```
 
-- [ ] **Step 3: 扩展 `src/types/api.ts` 与 `src/shared/ipc-channels.ts`**
+- [x] **Step 3: 扩展 `src/types/api.ts` 与 `src/shared/ipc-channels.ts`**
 
 `DairyApi` 增加：
 
@@ -160,17 +160,17 @@ setMcpPreference: 'app:set-mcp-preference',
 getMcpRuntimeStatus: 'app:get-mcp-runtime-status',
 ```
 
-- [ ] **Step 4: 在 `electron/preload.ts` 补齐两个方法实现**
+- [x] **Step 4: 在 `electron/preload.ts` 补齐两个方法实现**
 
 注意：本步必须与 Step 3 同 Task 完成，否则 `dairyApi: DairyApi` 缺成员导致 typecheck 失败。
 
-- [ ] **Step 5: 运行类型检查**
+- [x] **Step 5: 运行类型检查**
 
 Run: `npm run typecheck`
 
 Expected: 类型检查通过。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/types/mcp.ts electron/main/memory/types.ts src/types/api.ts src/shared/ipc-channels.ts electron/preload.ts
@@ -185,7 +185,7 @@ git commit -m "feat(memory): add memory domain types and mcp preference protocol
 - Create: `electron/main/memory/retrieval.ts`
 - Create: `electron/main/memory/index.ts`
 
-- [ ] **Step 1: 实现 retrieval 模块**
+- [x] **Step 1: 实现 retrieval 模块**
 
 至少实现：
 
@@ -209,15 +209,15 @@ export async function getRecentSummaries(workspacePath: string, date: string, da
 - `grepDiaryText` 遍历 `journal/YYYY/MM/*.md`，大小写不敏感子串匹配，返回前后文 snippet，结果按日期升序，设上限（如 50 条）；
 - `readMetaCandidates` 将年度 meta 索引的 `MM-DD` 键展开为 `YYYY-MM-DD` 候选，meta 缺失的年份跳过。
 
-- [ ] **Step 2: `index.ts` 统一导出**
+- [x] **Step 2: `index.ts` 统一导出**
 
-- [ ] **Step 3: 运行类型检查**
+- [x] **Step 3: 运行类型检查**
 
 Run: `npm run typecheck`
 
 Expected: 类型检查通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add electron/main/memory/retrieval.ts electron/main/memory/index.ts
@@ -237,13 +237,13 @@ git commit -m "feat(memory): add retrieval primitives"
 - Modify: `electron/main/ai/journal-ai-service.ts`（导出 `ensureAiSettingsReady`）
 - Modify: `electron/main/ai/index.ts`
 
-- [ ] **Step 1: 导出 AI 就绪检查**
+- [x] **Step 1: 导出 AI 就绪检查**
 
 `journal-ai-service.ts` 的 `ensureAiSettingsReady` 加 `export`，并在 `ai/index.ts` re-export，供 search 复用。
 
-- [ ] **Step 2: 注册 3 个新 prompt 到 `prompt-loader.ts` 的 `PROMPT_FILE_MAP`**
+- [x] **Step 2: 注册 3 个新 prompt 到 `prompt-loader.ts` 的 `PROMPT_FILE_MAP`**
 
-- [ ] **Step 3: 实现 search 编排**
+- [x] **Step 3: 实现 search 编排**
 
 关键函数：
 
@@ -267,7 +267,7 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
 - 无命中时返回空结果与友好提示，不抛异常；
 - `settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)`，与现有链路一致。
 
-- [ ] **Step 4: 补充 prompt 文件内容**
+- [x] **Step 4: 补充 prompt 文件内容**
 
 每个 prompt 明确约束：
 
@@ -275,13 +275,13 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
 - 输出 JSON，字段严格；
 - 日期格式固定 `YYYY-MM-DD`。
 
-- [ ] **Step 5: 运行类型检查**
+- [x] **Step 5: 运行类型检查**
 
 Run: `npm run typecheck`
 
 Expected: 类型检查通过。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add electron/main/memory/search.ts electron/main/ai/prompts/memory-search-filter.system.md electron/main/ai/prompts/memory-search-rerank.system.md electron/main/ai/prompts/memory-search-summarize.system.md electron/main/ai/prompt-loader.ts electron/main/ai/journal-ai-service.ts electron/main/ai/index.ts
@@ -297,7 +297,7 @@ git commit -m "feat(memory): implement multi-stage semantic search pipeline"
 - Modify: `src/shared/defaults.ts`
 - Modify: `electron/main/app-config.ts`
 
-- [ ] **Step 1: 扩展 `AppConfig` 与默认值**
+- [x] **Step 1: 扩展 `AppConfig` 与默认值**
 
 `src/types/app.ts`：`AppConfig` 新增 `mcp: McpConfig`（从 `./mcp` import）。
 
@@ -310,7 +310,7 @@ mcp: {
 },
 ```
 
-- [ ] **Step 2: 在 `app-config.ts` 实现归一化 + setter**
+- [x] **Step 2: 在 `app-config.ts` 实现归一化 + setter**
 
 新增：
 
@@ -328,13 +328,13 @@ export async function setMcpPreference(input: McpPreferenceInput): Promise<AppCo
 
 注意：setter 只负责持久化；服务启停在 IPC 层串行执行（先写配置，再按最新配置启停）。
 
-- [ ] **Step 3: 运行类型检查**
+- [x] **Step 3: 运行类型检查**
 
 Run: `npm run typecheck`
 
 Expected: 通过。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/types/app.ts src/shared/defaults.ts electron/main/app-config.ts
@@ -354,13 +354,13 @@ git commit -m "feat(app-config): add mcp preference config and normalization"
 - Modify: `electron/main/ipc/index.ts`
 - Modify: `electron/main.ts`
 
-- [ ] **Step 1: 安装依赖**
+- [x] **Step 1: 安装依赖**
 
 Run: `npm install @modelcontextprotocol/sdk`
 
 安装后先浏览 SDK 的 `dist/esm/server/mcp.d.ts` 与 `streamableHttp.d.ts` 类型定义，确认 `McpServer.registerTool` 与 `StreamableHTTPServerTransport` 的实际签名再写代码。
 
-- [ ] **Step 2: 实现工具映射 `tools.ts`**
+- [x] **Step 2: 实现工具映射 `tools.ts`**
 
 ```ts
 export function createMemoryMcpServer(): McpServer
@@ -378,7 +378,7 @@ async function resolveWorkspacePath(raw?: string): Promise<string>
 
 工具返回 `{ content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] }`；工具内异常捕获后返回中文错误文本，不让单工具异常击穿服务。
 
-- [ ] **Step 3: 实现生命周期 `server.ts`**
+- [x] **Step 3: 实现生命周期 `server.ts`**
 
 ```ts
 export async function startMcpServer(port: number): Promise<McpRuntimeStatus>
@@ -394,12 +394,12 @@ export function getMcpRuntimeStatus(): McpRuntimeStatus
 - 幂等：重复 start（同端口）直接返回当前状态，重复 stop 不崩溃；不同端口 start 先 stop 再启动；
 - start/stop 串行化（内部 promise 链），避免快速切换产生竞态。
 
-- [ ] **Step 4: 主进程启动时接入 `electron/main.ts`**
+- [x] **Step 4: 主进程启动时接入 `electron/main.ts`**
 
 - app ready 后读取 `config.mcp.enabled`，为 true 则按 `config.mcp.port` 启动（失败只记状态，不阻塞窗口创建）；
 - `before-quit` 时 `void stopMcpServer()`。
 
-- [ ] **Step 5: IPC 注册 `ipc/mcp.ts` 并接入 `ipc/index.ts`**
+- [x] **Step 5: IPC 注册 `ipc/mcp.ts` 并接入 `ipc/index.ts`**
 
 ```ts
 ipcMain.handle(IPC_CHANNELS.setMcpPreference, async (_e, input: McpPreferenceInput) => {
@@ -414,13 +414,13 @@ ipcMain.handle(IPC_CHANNELS.setMcpPreference, async (_e, input: McpPreferenceInp
 ipcMain.handle(IPC_CHANNELS.getMcpRuntimeStatus, () => getMcpRuntimeStatus())
 ```
 
-- [ ] **Step 6: 运行类型检查**
+- [x] **Step 6: 运行类型检查**
 
 Run: `npm run typecheck`
 
 Expected: 通过。
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add package.json package-lock.json electron/main/mcp electron/main/ipc/mcp.ts electron/main/ipc/index.ts electron/main.ts
@@ -442,17 +442,17 @@ git commit -m "feat(mcp): add local mcp service lifecycle and memory tools"
 - Modify: `src/app/composables/useAppShell.ts`
 - Modify: `src/app/pages/AppShellPage.vue`
 
-- [ ] **Step 1: 新增 settings 分区**
+- [x] **Step 1: 新增 settings 分区**
 
 `config.ts`：`SettingsSectionId` 增加 `'mcp'`，`SETTINGS_SECTIONS` 增加「MCP 服务」项（描述：手动启停本地 MCP 服务，供外部 AI 工具检索你的日记记忆）。
 
-- [ ] **Step 2: state 与同步**
+- [x] **Step 2: state 与同步**
 
 `state.ts` 新增：`mcpEnabled`、`mcpPort`、`mcpRuntimeStatus`、`mcpSaveMessage`、`isSavingMcp`。
 
 `journal.ts` 的 `syncConfigState`：同步 `config.mcp.enabled` / `config.mcp.port`。
 
-- [ ] **Step 3: preferences 读写流程**
+- [x] **Step 3: preferences 读写流程**
 
 `preferences.ts` 新增 `handleSaveMcpPreference({ enabled, port })`：
 
@@ -463,7 +463,7 @@ git commit -m "feat(mcp): add local mcp service lifecycle and memory tools"
 
 bootstrap 完成后也查询一次运行态（`useAppShell.ts` onMounted 内）。
 
-- [ ] **Step 4: `SettingsMcpSection.vue` + Panel/Page 接线**
+- [x] **Step 4: `SettingsMcpSection.vue` + Panel/Page 接线**
 
 最小交互：
 
@@ -474,13 +474,13 @@ bootstrap 完成后也查询一次运行态（`useAppShell.ts` onMounted 内）�
 
 `SettingsPanel.vue` 新增分支与 props/emit；`AppShellPage.vue` 完成接线；`useAppShell.ts` 导出 handler。
 
-- [ ] **Step 5: 运行类型检查、构建检查**
+- [x] **Step 5: 运行类型检查、构建检查**
 
 Run: `npm run typecheck && npm run build`
 
 Expected: 全通过。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/components/settings src/app/composables src/app/pages/AppShellPage.vue
@@ -494,7 +494,7 @@ git commit -m "feat(settings): add manual mcp toggle section"
 **Files:**
 - Modify: `AGENTS.md`、`docs/system/*`（新增稳定约定）
 
-- [ ] **Step 1: MCP 开关联调**
+- [ ] **Step 1: MCP 开关联调（待人工验证）**
 
 Run: `npm run dev`
 
@@ -506,20 +506,20 @@ Run: `npm run dev`
 4. 修改端口为 9222，确认状态切换并恢复运行中；
 5. 关闭开关，状态变为已停止，端口释放。
 
-- [ ] **Step 2: 回归主流程**
+- [x] **Step 2: 回归主流程**
 
 Run: `npm run typecheck && npm run build`
 
 Expected: 通过；日记保存、自动整理、报告页可正常打开。
 
-- [ ] **Step 3: 文档同步**
+- [x] **Step 3: 文档同步**
 
 补充稳定约定到：
 
 - `AGENTS.md`（目录结构新增 `electron/main/memory/`、`electron/main/mcp/`，配置新增 `config.mcp`，MCP 约束小节）
 - `docs/system/memory-mcp.md`（memory 能力清单、检索流程、MCP 生命周期与工具语义）
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/system AGENTS.md
