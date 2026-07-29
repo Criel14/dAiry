@@ -2,6 +2,7 @@ export { loadPrompt } from './prompt-loader'
 export { createAiChatClient } from './provider-factory'
 export type { AiChatClient } from './provider-factory'
 export {
+  ensureAiSettingsReady,
   ensureDailyInsights,
   generateDailyInsights,
   getRecentDailySummaries,

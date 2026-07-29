@@ -200,7 +200,7 @@ function buildRecentSummariesBlock(recentSummaries: RecentDaySummary[]) {
   ].join('\n')
 }
 
-function ensureAiSettingsReady(config: Awaited<ReturnType<typeof readAppConfig>>) {
+export function ensureAiSettingsReady(config: Awaited<ReturnType<typeof readAppConfig>>) {
   const settings = normalizeAiSettings(config.ai)
 
   if (!settings.baseURL) {

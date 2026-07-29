@@ -3,6 +3,9 @@ import { fileURLToPath } from 'node:url'
 
 const PROMPT_FILE_MAP = {
   dailyOrganizeSystem: new URL('./prompts/daily-organize.system.md', import.meta.url),
+  memorySearchFilterSystem: new URL('./prompts/memory-search-filter.system.md', import.meta.url),
+  memorySearchRerankSystem: new URL('./prompts/memory-search-rerank.system.md', import.meta.url),
+  memorySearchSummarizeSystem: new URL('./prompts/memory-search-summarize.system.md', import.meta.url),
   profileDailyUpdateSystem: new URL('./prompts/profile-daily-update.system.md', import.meta.url),
   profileFullRefreshSystem: new URL('./prompts/profile-full-refresh.system.md', import.meta.url),
   profileRebuildSystem: new URL('./prompts/profile-rebuild.system.md', import.meta.url),
