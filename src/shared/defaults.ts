@@ -68,6 +68,10 @@ export function createDefaultAppConfig(): AppConfig {
       },
     },
     ai: DEFAULT_AI_SETTINGS,
+    mcp: {
+      enabled: false,
+      port: 9123,
+    },
   }
 }
 

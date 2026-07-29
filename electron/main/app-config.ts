@@ -2,6 +2,7 @@ import path from 'node:path'
 import { app } from 'electron'
 import { mkdir, stat, readFile, writeFile } from 'node:fs/promises'
 import type { AiSettings, SaveAiSettingsInput } from '../../src/types/ai'
+import type { McpConfig, McpPreferenceInput } from '../../src/types/mcp'
 import type {
   AppTheme,
   AppConfig,
@@ -286,6 +287,27 @@ function normalizeWindowStateConfig(
   }
 }
 
+const DEFAULT_MCP_PORT = 9123
+const MIN_MCP_PORT = 1024
+const MAX_MCP_PORT = 65535
+
+export function normalizeMcpConfig(
+  rawValue: Partial<McpConfig> | null | undefined,
+): McpConfig {
+  const port = rawValue?.port
+
+  return {
+    enabled: rawValue?.enabled === true,
+    port:
+      typeof port === 'number' &&
+      Number.isInteger(port) &&
+      port >= MIN_MCP_PORT &&
+      port <= MAX_MCP_PORT
+        ? port
+        : DEFAULT_MCP_PORT,
+  }
+}
+
 function normalizeReportExportConfig(rawValue: AppConfig['reportExport'] | null | undefined) {
   return {
     lastDirectory: typeof rawValue?.lastDirectory === 'string' ? rawValue.lastDirectory : null,
@@ -312,6 +334,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
   const frontmatterVisibility = normalizeFrontmatterVisibility(config.ui?.frontmatterVisibility)
   const ai = normalizeAiSettings(config.ai)
   const reportExport = normalizeReportExportConfig(config.reportExport)
+  const mcp = normalizeMcpConfig(config.mcp)
 
   return {
     lastOpenedWorkspace:
@@ -330,6 +353,7 @@ function normalizeAppConfig(rawValue: unknown): AppConfig {
       frontmatterVisibility,
     },
     ai,
+    mcp,
   }
 }
 
@@ -594,6 +618,17 @@ export async function setAiSettings(input: SaveAiSettingsInput): Promise<AppConf
   const nextConfig: AppConfig = {
     ...currentConfig,
     ai: normalizeAiSettings(input),
+  }
+
+  await writeAppConfig(nextConfig)
+  return nextConfig
+}
+
+export async function setMcpPreference(input: McpPreferenceInput): Promise<AppConfig> {
+  const currentConfig = await readAppConfig()
+  const nextConfig: AppConfig = {
+    ...currentConfig,
+    mcp: normalizeMcpConfig(input),
   }
 
   await writeAppConfig(nextConfig)

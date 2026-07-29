@@ -1,4 +1,5 @@
 import type { AiSettings } from './ai'
+import type { McpConfig } from './mcp'
 
 export type AppTheme = 'system' | 'light' | 'dark'
 export type WindowCloseBehavior = 'tray' | 'quit'
@@ -66,6 +67,7 @@ export interface AppConfig {
     frontmatterVisibility: FrontmatterVisibilityConfig
   }
   ai: AiSettings
+  mcp: McpConfig
 }
 
 export interface AppBootstrap {
