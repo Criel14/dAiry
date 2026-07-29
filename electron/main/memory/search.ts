@@ -291,6 +291,11 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
 
   settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
   const client = createAiChatClient(settings, apiKey)
+  // 总结调用可能承载大量正文（最多 20 篇），单独放宽超时；其余调用超时挂起时快速失败
+  const summarizeClient = createAiChatClient(
+    { ...settings, timeoutMs: Math.max(settings.timeoutMs, 180_000) },
+    apiKey,
+  )
 
   // 第一阶段：基于元信息粗筛候选日期
   const candidateDateSet = new Set(candidates.map((candidate) => candidate.date))
@@ -325,22 +330,41 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
     return createEmptyResult(query, '没有找到与查询相关的日记，可以换个说法或关键词再试。')
   }
 
-  // 第三阶段：基于全部入选日记生成详细回答与发现
+  // 第三阶段：基于全部入选日记生成详细回答与发现；失败时降级返回日期列表，不浪费前两个阶段的成果
   const limit = normalizeLimit(input.limit)
   const displayedDates = journalListB.slice(0, limit)
   const entryMap = new Map(entries.map((entry) => [entry.date, entry]))
   const summarizeTargets = displayedDates
     .map((date) => entryMap.get(date))
     .filter((entry): entry is MemoryEntryDocument => Boolean(entry))
-  const summary = await summarizeEntries(client, summarizeSystemPrompt, query, summarizeTargets)
 
-  return {
-    query,
-    answer: summary.answer,
-    findings: summary.findings,
-    relatedDates: displayedDates,
-    displayedCount: displayedDates.length,
-    totalCount: journalListB.length,
-    confidence: summary.confidence,
+  try {
+    const summary = await summarizeEntries(
+      summarizeClient,
+      summarizeSystemPrompt,
+      query,
+      summarizeTargets,
+    )
+
+    return {
+      query,
+      answer: summary.answer,
+      findings: summary.findings,
+      relatedDates: displayedDates,
+      displayedCount: displayedDates.length,
+      totalCount: journalListB.length,
+      confidence: summary.confidence,
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '未知错误'
+    return {
+      query,
+      answer: `已找到 ${journalListB.length} 篇相关日记，但生成详细回答时失败（${message}）。可以根据 relatedDates 调用 memory_batch_read_entries 直接阅读原文。`,
+      findings: [],
+      relatedDates: displayedDates,
+      displayedCount: displayedDates.length,
+      totalCount: journalListB.length,
+      confidence: 'low',
+    }
   }
 }

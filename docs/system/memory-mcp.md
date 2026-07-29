@@ -39,7 +39,9 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 1. **候选筛选**：读取年度元索引（摘要/标签/心情/地点），分片调用 `memory-search-filter` prompt，LLM 选出可能相关日期 `journalListA`；
 2. **正文精筛**：批量读取 `journalListA` 正文，每 5 篇一批并行调用 `memory-search-rerank` prompt，按 0-100 相关度打分，保留 ≥60 分并降序得到 `journalListB`；
 3. **结果整理**：按 `limit`（默认 10，上限 20）截断展示集，全部入选篇目（正文截断 10000 字符）调用 `memory-search-summarize` prompt 生成详尽 `answer`、`findings`（旁支发现）与置信度；
-4. **失败降级**：AI 配置不完整时抛中文错误；无候选/无命中时返回空结果与友好提示，不抛异常。
+4. **失败降级**：AI 配置不完整时抛中文错误；无候选/无命中时返回空结果与友好提示，不抛异常；总结阶段失败（超时/解析错误）时降级返回 `relatedDates` 与说明（引导调用方用 `memory_batch_read_entries` 自助阅读），不浪费前两个阶段的成果。
+
+超时策略：filter/rerank 调用超时 floor 为 60s（失败快速暴露）；summarize 可能承载最多 20 篇正文，单独放宽至 180s。MCP 客户端侧默认请求超时（常见为 60s）不受服务端控制，工具 description 已如实说明耗时较长。
 
 人称约定：日记以第一人称“我”书写，查询与输出统一使用第三人称“用户”（prompt 中已做身份映射说明，`memory_search` 的 description 也引导调用方如此措辞）。
 

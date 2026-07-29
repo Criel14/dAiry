@@ -52,7 +52,7 @@ export function createMemoryMcpServer(): McpServer {
     {
       title: '语义检索日记',
       description:
-        '根据自然语言查询语义检索用户的日记，多阶段筛选后返回详细回答、相关发现（findings）、相关日期列表与置信度。需要已配置 AI。',
+        '根据自然语言查询语义检索用户的日记，多阶段筛选后返回详细回答、相关发现（findings）、相关日期列表与置信度。需要已配置 AI；检索耗时较长（数十秒到数分钟），请耐心等待。',
       inputSchema: {
         query: z
           .string()
