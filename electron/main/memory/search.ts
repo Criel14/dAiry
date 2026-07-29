@@ -290,8 +290,8 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
     return createEmptyResult(query, '没有找到与查询相关的日记，可以换个说法或关键词再试。')
   }
 
-  // 第二阶段：读取正文精筛，按相关度打分排序
-  const entries = await batchReadEntries(workspacePath, journalListA)
+  // 第二阶段：读取正文精筛，按相关度打分排序（检索内部忽略 skippedDates）
+  const { entries } = await batchReadEntries(workspacePath, journalListA)
   const rerankChunks = splitIntoChunks(entries, RERANK_CHUNK_SIZE)
   const rerankResults = await Promise.all(
     rerankChunks.map((chunk) => rerankEntries(client, rerankSystemPrompt, query, chunk)),

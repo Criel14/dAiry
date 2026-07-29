@@ -82,7 +82,8 @@ export function createMemoryMcpServer(): McpServer {
     'memory_batch_read_entries',
     {
       title: '批量读取日记正文',
-      description: '按日期批量读取日记正文与元信息（摘要/标签/心情）。缺失的日期会被跳过。',
+      description:
+        '按日期批量读取日记正文与元信息（摘要/标签/心情）。返回 entries 与 skippedDates（格式无效或当天无日记的日期）。',
       inputSchema: {
         dates: z.array(z.string()).describe('日期列表，格式 YYYY-MM-DD'),
         workspacePath: workspacePathSchema,

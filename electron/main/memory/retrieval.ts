@@ -10,6 +10,7 @@ import {
   resolveJournalEntryFilePath,
 } from '../workspace/paths'
 import type {
+  MemoryBatchReadResult,
   MemoryEntryDocument,
   MemoryGrepMatch,
   MemoryMetaCandidate,
@@ -68,17 +69,19 @@ export async function readMetaCandidates(
 export async function batchReadEntries(
   workspacePath: string,
   dates: string[],
-): Promise<MemoryEntryDocument[]> {
-  const results: MemoryEntryDocument[] = []
+): Promise<MemoryBatchReadResult> {
+  const entries: MemoryEntryDocument[] = []
+  const skippedDates: string[] = []
 
   for (const date of uniqDates(dates)) {
     if (!DATE_PATTERN.test(date)) {
+      skippedDates.push(date)
       continue
     }
 
     try {
       const document = await readJournalDocument(resolveJournalEntryFilePath(workspacePath, date))
-      results.push({
+      entries.push({
         date,
         summary: document.frontmatter.summary,
         body: document.body,
@@ -87,6 +90,7 @@ export async function batchReadEntries(
       })
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        skippedDates.push(date)
         continue
       }
 
@@ -94,7 +98,10 @@ export async function batchReadEntries(
     }
   }
 
-  return results.sort((a, b) => a.date.localeCompare(b.date))
+  return {
+    entries: entries.sort((a, b) => a.date.localeCompare(b.date)),
+    skippedDates: skippedDates.sort(),
+  }
 }
 
 function buildGrepSnippet(content: string, hitIndex: number, keywordLength: number) {

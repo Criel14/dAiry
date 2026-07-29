@@ -22,6 +22,11 @@ export interface MemoryEntryDocument {
   tags: string[]
 }
 
+export interface MemoryBatchReadResult {
+  entries: MemoryEntryDocument[]
+  skippedDates: string[]
+}
+
 export interface MemoryGrepMatch {
   date: string
   snippet: string

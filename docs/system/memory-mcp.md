@@ -28,7 +28,7 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 ### 1.1 retrieval 基础能力
 
 - `searchMemory(input)`：语义检索主入口（在 `search.ts`）；
-- `batchReadEntries(workspacePath, dates)`：按日期批量读取正文，缺失文件跳过；
+- `batchReadEntries(workspacePath, dates)`：按日期批量读取正文，返回 `{ entries, skippedDates }`，格式无效或文件缺失的日期计入 `skippedDates`；
 - `grepDiaryText(workspacePath, keyword)`：大小写不敏感的字面匹配，返回 `{ date, snippet }[]`，上限 50 条（单文件最多 3 条）；
 - `getUserProfile(workspacePath)`：取 `.dairy/user-profile/` 下最新年份画像，只读回退 legacy `user-profile.md`；
 - `getMetaIndex(workspacePath, year)`：读取年度 `journal-meta.json`；
@@ -93,7 +93,7 @@ interface McpRuntimeStatus {
 | 工具 | 说明 | 关键入参 |
 |------|------|----------|
 | `memory_search` | 语义检索日记，返回回答 + 相关日期 + 置信度 | `query`、`years?`、`limit?` |
-| `memory_batch_read_entries` | 按日期批量读取正文与元信息 | `dates` |
+| `memory_batch_read_entries` | 按日期批量读取正文与元信息，返回 `entries` + `skippedDates` | `dates` |
 | `memory_grep_diary` | 关键词字面匹配，返回命中日期与上下文片段 | `keyword` |
 | `memory_get_user_profile` | 读取最新年份用户画像 Markdown | — |
 | `memory_get_meta_index` | 年度元索引（摘要/标签/心情/地点/字数） | `year` |

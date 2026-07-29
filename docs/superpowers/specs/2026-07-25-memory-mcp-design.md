@@ -84,7 +84,7 @@ electron/main/memory/
 ### 3.2 核心能力清单
 
 - `searchMemory(input)`：语义检索主入口；
-- `batchReadEntries(input)`：按日期批量读取正文；
+- `batchReadEntries(input)`：按日期批量读取正文（返回 `entries` + `skippedDates`，不静默跳过）；
 - `grepDiary(input)`：按关键词/正则做全局文本匹配；
 - `getUserProfile(input)`：读取画像 Markdown；
 - `getMetaIndex(input)`：获取指定年份 meta 索引。
