@@ -54,6 +54,7 @@ import type {
   WorkspaceStringListInput,
 } from './workspace'
 import type { TimelineYearData, RebuildTimelineProgress } from './timeline'
+import type { McpPreferenceInput, McpRuntimeStatus } from './mcp'
 import type { RightPanel } from './ui'
 
 export interface DairyApi {
@@ -112,6 +113,8 @@ export interface DairyApi {
     listener: (progress: UserProfileRebuildProgress) => void,
   ) => () => void
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
+  setMcpPreference: (input: McpPreferenceInput) => Promise<AppConfig>
+  getMcpRuntimeStatus: () => Promise<McpRuntimeStatus>
   openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
   openDevTools: () => Promise<void>
   getTimeline: (input: { workspacePath: string; year: number }) => Promise<TimelineYearData | null>

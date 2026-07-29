@@ -20,6 +20,8 @@ export const IPC_CHANNELS = {
   saveEmailNotificationAuthCode: 'app:save-email-notification-auth-code',
   setFrontmatterVisibility: 'app:set-frontmatter-visibility',
   setWindowDirtyState: 'app:set-window-dirty-state',
+  setMcpPreference: 'app:set-mcp-preference',
+  getMcpRuntimeStatus: 'app:get-mcp-runtime-status',
   openExternalLink: 'app:open-external-link',
   openDevTools: 'app:open-dev-tools',
   // workspace

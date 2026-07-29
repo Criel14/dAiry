@@ -106,6 +106,8 @@ const dairyApi: DairyApi = {
     ipcRenderer.invoke(IPC_CHANNELS.saveEmailNotificationAuthCode, input),
   setFrontmatterVisibility: (input) => ipcRenderer.invoke(IPC_CHANNELS.setFrontmatterVisibility, input),
   setWindowDirtyState: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWindowDirtyState, input),
+  setMcpPreference: (input) => ipcRenderer.invoke(IPC_CHANNELS.setMcpPreference, input),
+  getMcpRuntimeStatus: () => ipcRenderer.invoke(IPC_CHANNELS.getMcpRuntimeStatus),
   openExternalLink: (input) => ipcRenderer.invoke(IPC_CHANNELS.openExternalLink, input),
   openDevTools: () => ipcRenderer.invoke(IPC_CHANNELS.openDevTools),
   getTimeline: (input) => ipcRenderer.invoke(IPC_CHANNELS.getTimeline, input),
