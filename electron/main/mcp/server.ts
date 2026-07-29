@@ -1,5 +1,4 @@
 import http from 'node:http'
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js'
 import type { McpRuntimeStatus } from '../../../src/types/mcp'
 import { createMemoryMcpServer } from './tools'
@@ -9,8 +8,6 @@ const MCP_LISTEN_HOST = '127.0.0.1'
 
 interface McpServerHandle {
   httpServer: http.Server
-  mcpServer: McpServer
-  transport: StreamableHTTPServerTransport
   port: number
 }
 
@@ -41,6 +38,30 @@ function toStartupErrorMessage(error: unknown, port: number) {
   return error instanceof Error ? `MCP 服务启动失败：${error.message}` : 'MCP 服务启动失败，请稍后重试。'
 }
 
+// stateless 模式：每个请求创建独立的 server + transport，响应关闭后随即释放
+function handleMcpRequest(req: http.IncomingMessage, res: http.ServerResponse) {
+  void (async () => {
+    const mcpServer = createMemoryMcpServer()
+    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
+
+    res.on('close', () => {
+      void mcpServer.close().catch(() => undefined)
+    })
+
+    await mcpServer.connect(transport)
+    await transport.handleRequest(req, res)
+  })().catch((error: unknown) => {
+    console.error('[mcp] 处理 MCP 请求失败：', error)
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'Internal Server Error' }))
+      return
+    }
+
+    res.end()
+  })
+}
+
 async function stopServerLocked() {
   if (!currentHandle) {
     return
@@ -48,12 +69,6 @@ async function stopServerLocked() {
 
   const handle = currentHandle
   currentHandle = null
-
-  try {
-    await handle.mcpServer.close()
-  } catch (error) {
-    console.error('[mcp] 关闭 MCP 服务失败：', error)
-  }
 
   await new Promise<void>((resolve) => {
     handle.httpServer.close(() => resolve())
@@ -70,8 +85,6 @@ export function startMcpServer(port: number): Promise<McpRuntimeStatus> {
 
     await stopServerLocked()
 
-    const mcpServer = createMemoryMcpServer()
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
     const httpServer = http.createServer((req, res) => {
       const requestUrl = new URL(req.url ?? '/', `http://${MCP_LISTEN_HOST}`)
 
@@ -81,16 +94,7 @@ export function startMcpServer(port: number): Promise<McpRuntimeStatus> {
         return
       }
 
-      transport.handleRequest(req, res).catch((error: unknown) => {
-        console.error('[mcp] 处理 MCP 请求失败：', error)
-        if (!res.headersSent) {
-          res.writeHead(500, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ error: 'Internal Server Error' }))
-          return
-        }
-
-        res.end()
-      })
+      handleMcpRequest(req, res)
     })
 
     try {
@@ -102,7 +106,6 @@ export function startMcpServer(port: number): Promise<McpRuntimeStatus> {
           resolve()
         })
       })
-      await mcpServer.connect(transport)
     } catch (error) {
       await new Promise<void>((resolve) => {
         httpServer.close(() => resolve())
@@ -117,7 +120,7 @@ export function startMcpServer(port: number): Promise<McpRuntimeStatus> {
       runtimeStatus = { status: 'error', port, errorMessage: toStartupErrorMessage(error, port) }
     })
 
-    currentHandle = { httpServer, mcpServer, transport, port }
+    currentHandle = { httpServer, port }
     runtimeStatus = { status: 'running', port, errorMessage: null }
     return getMcpRuntimeStatus()
   })
