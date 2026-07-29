@@ -8,6 +8,7 @@ export interface MemorySearchInput {
 export interface MemorySearchResult {
   query: string
   answer: string
+  findings: string[]
   relatedDates: string[]
   displayedCount: number
   totalCount: number

@@ -38,15 +38,18 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 
 1. **候选筛选**：读取年度元索引（摘要/标签/心情/地点），分片调用 `memory-search-filter` prompt，LLM 选出可能相关日期 `journalListA`；
 2. **正文精筛**：批量读取 `journalListA` 正文，每 5 篇一批并行调用 `memory-search-rerank` prompt，按 0-100 相关度打分，保留 ≥60 分并降序得到 `journalListB`；
-3. **结果整理**：按 `limit`（默认 10，上限 20）截断展示集，取前 8 篇调用 `memory-search-summarize` prompt 生成 `answer` 与置信度；
+3. **结果整理**：按 `limit`（默认 10，上限 20）截断展示集，全部入选篇目（正文截断 10000 字符）调用 `memory-search-summarize` prompt 生成详尽 `answer`、`findings`（旁支发现）与置信度；
 4. **失败降级**：AI 配置不完整时抛中文错误；无候选/无命中时返回空结果与友好提示，不抛异常。
+
+人称约定：日记以第一人称“我”书写，查询与输出统一使用第三人称“用户”（prompt 中已做身份映射说明，`memory_search` 的 description 也引导调用方如此措辞）。
 
 输出结构：
 
 ```ts
 interface MemorySearchResult {
   query: string
-  answer: string
+  answer: string // 详尽回答，保留细节
+  findings: string[] // 与查询沾边但不直接回答查询的有趣发现
   relatedDates: string[]
   displayedCount: number
   totalCount: number
@@ -92,7 +95,7 @@ interface McpRuntimeStatus {
 
 | 工具 | 说明 | 关键入参 |
 |------|------|----------|
-| `memory_search` | 语义检索日记，返回回答 + 相关日期 + 置信度 | `query`、`years?`、`limit?` |
+| `memory_search` | 语义检索日记，返回详尽回答 + 发现（findings）+ 相关日期 + 置信度 | `query`、`years?`、`limit?` |
 | `memory_batch_read_entries` | 按日期批量读取正文与元信息，返回 `entries` + `skippedDates` | `dates` |
 | `memory_grep_diary` | 关键词字面匹配（仅正文），返回命中日期、摘要与上下文片段 | `keyword` |
 | `memory_get_user_profile` | 读取最新年份用户画像 Markdown | — |

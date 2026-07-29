@@ -52,9 +52,13 @@ export function createMemoryMcpServer(): McpServer {
     {
       title: '语义检索日记',
       description:
-        '根据自然语言查询语义检索用户的日记，多阶段筛选后返回总结性回答、相关日期列表与置信度。需要已配置 AI。',
+        '根据自然语言查询语义检索用户的日记，多阶段筛选后返回详细回答、相关发现（findings）、相关日期列表与置信度。需要已配置 AI。',
       inputSchema: {
-        query: z.string().describe('自然语言查询，例如“上次面试是什么时候”'),
+        query: z
+          .string()
+          .describe(
+            '自然语言查询；建议用第三人称“用户”或省略主语，例如“用户什么时候毕业”、“入职做了哪些培训”',
+          ),
         years: z
           .array(z.string())
           .optional()

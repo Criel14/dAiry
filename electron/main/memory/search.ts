@@ -15,10 +15,9 @@ const DEFAULT_DISPLAY_LIMIT = 10
 const MAX_DISPLAY_LIMIT = 20
 const FILTER_CHUNK_SIZE = 200
 const RERANK_CHUNK_SIZE = 5
-const SUMMARIZE_ENTRY_COUNT = 8
 const RERANK_MIN_SCORE = 60
 const MAX_BODY_CHARS_FOR_RERANK = 1800
-const MAX_BODY_CHARS_FOR_SUMMARY = 2200
+const MAX_BODY_CHARS_FOR_SUMMARY = 10000
 
 type MemoryConfidence = MemorySearchResult['confidence']
 
@@ -38,6 +37,7 @@ interface RerankItem {
 
 interface SummarizePayload {
   answer?: unknown
+  findings?: unknown
   confidence?: unknown
 }
 
@@ -70,6 +70,7 @@ function createEmptyResult(query: string, answer: string): MemorySearchResult {
   return {
     query,
     answer,
+    findings: [],
     relatedDates: [],
     displayedCount: 0,
     totalCount: 0,
@@ -205,12 +206,23 @@ function normalizeConfidence(value: unknown): MemoryConfidence {
   return value === 'high' || value === 'medium' || value === 'low' ? value : 'medium'
 }
 
+function normalizeFindings(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 async function summarizeEntries(
   client: AiChatClient,
   systemPrompt: string,
   query: string,
   entries: MemoryEntryDocument[],
-): Promise<{ answer: string; confidence: MemoryConfidence }> {
+): Promise<{ answer: string; findings: string[]; confidence: MemoryConfidence }> {
   const entryBlocks = entries.map((entry) => {
     const truncatedBody =
       entry.body.length > MAX_BODY_CHARS_FOR_SUMMARY
@@ -237,7 +249,11 @@ async function summarizeEntries(
     throw new Error('大模型返回的总结为空，请稍后重试。')
   }
 
-  return { answer, confidence: normalizeConfidence(payload.confidence) }
+  return {
+    answer,
+    findings: normalizeFindings(payload.findings),
+    confidence: normalizeConfidence(payload.confidence),
+  }
 }
 
 export async function searchMemory(input: MemorySearchInput): Promise<MemorySearchResult> {
@@ -309,12 +325,11 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
     return createEmptyResult(query, '没有找到与查询相关的日记，可以换个说法或关键词再试。')
   }
 
-  // 第三阶段：基于置信度最高的若干篇生成回答
+  // 第三阶段：基于全部入选日记生成详细回答与发现
   const limit = normalizeLimit(input.limit)
   const displayedDates = journalListB.slice(0, limit)
   const entryMap = new Map(entries.map((entry) => [entry.date, entry]))
   const summarizeTargets = displayedDates
-    .slice(0, SUMMARIZE_ENTRY_COUNT)
     .map((date) => entryMap.get(date))
     .filter((entry): entry is MemoryEntryDocument => Boolean(entry))
   const summary = await summarizeEntries(client, summarizeSystemPrompt, query, summarizeTargets)
@@ -322,6 +337,7 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
   return {
     query,
     answer: summary.answer,
+    findings: summary.findings,
     relatedDates: displayedDates,
     displayedCount: displayedDates.length,
     totalCount: journalListB.length,
