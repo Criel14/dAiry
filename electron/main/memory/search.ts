@@ -13,11 +13,14 @@ import type {
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 const DEFAULT_DISPLAY_LIMIT = 10
 const MAX_DISPLAY_LIMIT = 20
-const FILTER_CHUNK_SIZE = 200
-const RERANK_CHUNK_SIZE = 5
+const FILTER_CHUNK_SIZE = 100
+const RERANK_CHUNK_SIZE = 3
 const RERANK_MIN_SCORE = 60
 const MAX_BODY_CHARS_FOR_RERANK = 1800
-const MAX_BODY_CHARS_FOR_SUMMARY = 10000
+const MAX_BODY_CHARS_FOR_SUMMARY = 4000
+// AI 调用并发上限：无界并发对总时长没有帮助，只会放大 provider 限流风险
+const MAX_AI_CONCURRENCY = 5
+const MAX_FINDINGS_COUNT = 3
 
 type MemoryConfidence = MemorySearchResult['confidence']
 
@@ -49,6 +52,28 @@ export function splitIntoChunks<T>(items: T[], size: number): T[][] {
   }
 
   return chunks
+}
+
+// 有界并发映射：worker 池逐个领取任务，避免一次性打出全部请求
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length)
+  let nextIndex = 0
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex
+      nextIndex += 1
+      results[index] = await mapper(items[index])
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length)
+  await Promise.all(Array.from({ length: workerCount }, () => worker()))
+  return results
 }
 
 function extractJsonObject<T>(text: string): T {
@@ -206,15 +231,30 @@ function normalizeConfidence(value: unknown): MemoryConfidence {
   return value === 'high' || value === 'medium' || value === 'low' ? value : 'medium'
 }
 
-function normalizeFindings(value: unknown): string[] {
+function normalizeFindings(value: unknown, answer: string): string[] {
   if (!Array.isArray(value)) {
     return []
   }
 
-  return value
-    .filter((item): item is string => typeof item === 'string')
-    .map((item) => item.trim())
-    .filter(Boolean)
+  const findings: string[] = []
+  for (const item of value) {
+    if (typeof item !== 'string') {
+      continue
+    }
+
+    const trimmed = item.trim()
+    // 与 answer 重复的条目直接丢弃；语义级去重由 prompt 约束，这里只做字符串级兜底
+    if (!trimmed || findings.includes(trimmed) || answer.includes(trimmed)) {
+      continue
+    }
+
+    findings.push(trimmed)
+    if (findings.length >= MAX_FINDINGS_COUNT) {
+      break
+    }
+  }
+
+  return findings
 }
 
 async function summarizeEntries(
@@ -251,7 +291,7 @@ async function summarizeEntries(
 
   return {
     answer,
-    findings: normalizeFindings(payload.findings),
+    findings: normalizeFindings(payload.findings, answer),
     confidence: normalizeConfidence(payload.confidence),
   }
 }
@@ -297,25 +337,48 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
     apiKey,
   )
 
-  // 第一阶段：基于元信息粗筛候选日期
+  // 第一阶段：基于元信息粗筛候选日期；单个分块失败按空结果处理，避免一次超时拖垮整个检索
+  const filterStartedAt = Date.now()
   const candidateDateSet = new Set(candidates.map((candidate) => candidate.date))
   const filterChunks = splitIntoChunks(candidates, FILTER_CHUNK_SIZE)
-  const filterResults = await Promise.all(
-    filterChunks.map((chunk) => filterCandidateDates(client, filterSystemPrompt, query, chunk)),
+  const filterResults = await mapWithConcurrency(
+    filterChunks,
+    MAX_AI_CONCURRENCY,
+    async (chunk) => {
+      try {
+        return await filterCandidateDates(client, filterSystemPrompt, query, chunk)
+      } catch (error) {
+        console.warn('[memory] 粗筛分块失败，按空结果处理：', error)
+        return [] as string[]
+      }
+    },
   )
   const journalListA = uniqDates(filterResults.flat())
     .filter((date) => candidateDateSet.has(date))
     .sort()
+  console.info(
+    `[memory] 粗筛完成：${candidates.length} 候选 -> ${journalListA.length} 入选，耗时 ${Date.now() - filterStartedAt}ms`,
+  )
 
   if (journalListA.length === 0) {
     return createEmptyResult(query, '没有找到与查询相关的日记，可以换个说法或关键词再试。')
   }
 
-  // 第二阶段：读取正文精筛，按相关度打分排序（检索内部忽略 skippedDates）
+  // 第二阶段：读取正文精筛，按相关度打分排序（检索内部忽略 skippedDates）；分块失败同样按空结果处理
+  const rerankStartedAt = Date.now()
   const { entries } = await batchReadEntries(workspacePath, journalListA)
   const rerankChunks = splitIntoChunks(entries, RERANK_CHUNK_SIZE)
-  const rerankResults = await Promise.all(
-    rerankChunks.map((chunk) => rerankEntries(client, rerankSystemPrompt, query, chunk)),
+  const rerankResults = await mapWithConcurrency(
+    rerankChunks,
+    MAX_AI_CONCURRENCY,
+    async (chunk) => {
+      try {
+        return await rerankEntries(client, rerankSystemPrompt, query, chunk)
+      } catch (error) {
+        console.warn('[memory] 精筛分块失败，按空结果处理：', error)
+        return [] as RerankItem[]
+      }
+    },
   )
   const entryDateSet = new Set(entries.map((entry) => entry.date))
   const journalListB = uniqDates(
@@ -325,6 +388,9 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
       .sort((a, b) => b.score - a.score)
       .map((item) => item.date),
   ).filter((date) => entryDateSet.has(date))
+  console.info(
+    `[memory] 精筛完成：${entries.length} 评估 -> ${journalListB.length} 入选，耗时 ${Date.now() - rerankStartedAt}ms`,
+  )
 
   if (journalListB.length === 0) {
     return createEmptyResult(query, '没有找到与查询相关的日记，可以换个说法或关键词再试。')
@@ -338,12 +404,16 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
     .map((date) => entryMap.get(date))
     .filter((entry): entry is MemoryEntryDocument => Boolean(entry))
 
+  const summarizeStartedAt = Date.now()
   try {
     const summary = await summarizeEntries(
       summarizeClient,
       summarizeSystemPrompt,
       query,
       summarizeTargets,
+    )
+    console.info(
+      `[memory] 总结完成：${summarizeTargets.length} 篇，耗时 ${Date.now() - summarizeStartedAt}ms`,
     )
 
     return {

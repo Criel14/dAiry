@@ -63,7 +63,13 @@ export function createMemoryMcpServer(): McpServer {
           .array(z.string())
           .optional()
           .describe('限定检索年份，如 ["2025", "2026"]；缺省检索全部年份'),
-        limit: z.number().int().optional().describe('最多展示的日记篇数，默认 10，上限 20'),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(20)
+          .default(10)
+          .describe('最多展示的日记篇数，默认 10，上限 20'),
         workspacePath: workspacePathSchema,
       },
     },
