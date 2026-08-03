@@ -203,7 +203,7 @@ MCP 约束：
 - MCP 服务是可选能力，默认关闭；用户在设置页手动开启后才启动，关闭开关或退出应用即停止
 - 协议层使用官方 `@modelcontextprotocol/sdk`，Streamable HTTP transport（stateless，每个请求独立 server + transport），仅监听 `127.0.0.1`，端点 `/mcp`
 - 服务启动失败（端口占用等）只体现在运行态与设置页错误提示，不影响写作与其他功能，不做无限重试
-- MCP 读工具全部只读（检索/批读/grep/画像/元索引）；写工具仅三个：`journal_write_entry`（写入 `journal/` 与合并 `.dairy/` 候选库）、`report_generate`（异步生成，落盘 `reports/`）、`report_get`（读取报告）；不暴露敏感配置；写工具工作区固定取 `lastOpenedWorkspace`，不接收 `workspacePath` 参数
+- MCP 读工具全部只读（检索/批读/grep/画像/元索引），支持可选 `workspacePath` 参数，缺省回退 `lastOpenedWorkspace`；写工具仅三个：`journal_write_entry`（写入 `journal/` 与合并 `.dairy/` 候选库）、`report_generate`（异步生成，落盘 `reports/`）、`report_get`（读取报告）；不暴露敏感配置；写工具工作区固定取 `lastOpenedWorkspace`，不接收 `workspacePath` 参数
 - 记忆能力（`electron/main/memory/`）仅供主进程内部与 MCP 层直接调用，本期不经 IPC 暴露渲染层；后续界面需要时再补 `memory:*` 通道
 - 配置写入与服务启停串行执行（先持久化，再按最新配置启停）；start/stop 内部串行化防竞态
 
