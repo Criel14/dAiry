@@ -121,7 +121,7 @@ export function registerWriteTools(server: McpServer) {
 
         void (async () => {
           try {
-            await generateRangeReport({ ...input, requestedSections: sections })
+            await generateRangeReport({ ...input, requestedSections: sections, overwriteReportId: reportId })
             reportTaskErrors.delete(reportId)
           } catch (error) {
             reportTaskErrors.set(
