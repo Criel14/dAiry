@@ -232,34 +232,58 @@ async function writeWorkspaceLocationLibrary(
   )
 }
 
-export async function mergeWorkspaceTags(workspacePath: string, tags: string[]) {
+export async function mergeWorkspaceTags(
+  workspacePath: string,
+  tags: string[],
+): Promise<string[]> {
   const currentLibrary = await readWorkspaceTagLibrary(workspacePath)
+  const currentSet = new Set(currentLibrary.tags.map((tag) => tag.toLocaleLowerCase()))
+  const addedTags = normalizeStringList(tags).filter(
+    (tag) => !currentSet.has(tag.toLocaleLowerCase()),
+  )
   const nextLibrary = normalizeWorkspaceTagLibrary({
     version: 1,
-    tags: [...currentLibrary.tags, ...tags],
+    tags: [...currentLibrary.tags, ...addedTags],
   })
 
   await writeWorkspaceTagLibrary(workspacePath, nextLibrary)
+  return addedTags
 }
 
-export async function mergeWorkspaceWeatherOptions(workspacePath: string, items: string[]) {
+export async function mergeWorkspaceWeatherOptions(
+  workspacePath: string,
+  items: string[],
+): Promise<string[]> {
   const currentLibrary = await readWorkspaceWeatherLibrary(workspacePath)
+  const currentSet = new Set(currentLibrary.items.map((item) => item.toLocaleLowerCase()))
+  const addedItems = normalizeStringList(items).filter(
+    (item) => !currentSet.has(item.toLocaleLowerCase()),
+  )
   const nextLibrary = normalizeWorkspaceWeatherLibrary({
     version: 1,
-    items: [...currentLibrary.items, ...items],
+    items: [...currentLibrary.items, ...addedItems],
   })
 
   await writeWorkspaceWeatherLibrary(workspacePath, nextLibrary)
+  return addedItems
 }
 
-export async function mergeWorkspaceLocationOptions(workspacePath: string, items: string[]) {
+export async function mergeWorkspaceLocationOptions(
+  workspacePath: string,
+  items: string[],
+): Promise<string[]> {
   const currentLibrary = await readWorkspaceLocationLibrary(workspacePath)
+  const currentSet = new Set(currentLibrary.items.map((item) => item.toLocaleLowerCase()))
+  const addedItems = normalizeStringList(items).filter(
+    (item) => !currentSet.has(item.toLocaleLowerCase()),
+  )
   const nextLibrary = normalizeWorkspaceLocationLibrary({
     version: 1,
-    items: [...currentLibrary.items, ...items],
+    items: [...currentLibrary.items, ...addedItems],
   })
 
   await writeWorkspaceLocationLibrary(workspacePath, nextLibrary)
+  return addedItems
 }
 
 export async function getWorkspaceTags(workspacePath: string) {
