@@ -2,13 +2,13 @@
 
 ## 概览
 
-dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记资产（正文、元索引、画像、摘要）组织成可检索、可总结的记忆能力。MCP 服务把记忆检索能力以只读工具形式暴露给外部 AI 工具（OpenCode、Claude Code 等），并额外提供写工具（`journal_write_entry` / `report_generate` / `report_get`），供外部 AI 在应用外撰写日记与生成报告。
+dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记资产（正文、元索引、画像、摘要）组织成可检索、可总结的记忆能力。MCP 服务把记忆检索能力以只读工具形式暴露给外部 AI 工具（OpenCode、Claude Code 等），并额外提供写工具（`dairy_write_entry` / `dairy_generate_report` / `dairy_read_report`），供外部 AI 在应用外撰写日记与生成报告。
 
 ```
 外部 AI 工具 ──MCP(Streamable HTTP)──> electron/main/mcp ──直接调用──> electron/main/memory ──读取──> 工作区本地文件
 ```
 
-写工具（`journal_write_entry` / `report_generate` / `report_get`）不经 `electron/main/memory`：由 `electron/main/mcp/write-tools.ts` 直接调用 `journal/write-flow` 与报告模块写入/读取工作区。
+写工具（`dairy_write_entry` / `dairy_generate_report` / `dairy_read_report`）不经 `electron/main/memory`：由 `electron/main/mcp/write-tools.ts` 直接调用 `journal/write-flow` 与报告模块写入/读取工作区。
 
 核心原则：
 
@@ -39,11 +39,11 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 
 | 工具 | 说明 | 关键入参 |
 |------|------|----------|
-| `journal_write_entry` | 完整写入日记：正文落盘 → 主进程 AI 自动整理回填 summary/tags/mood → 异步触发画像日更与时间轴日更 | `date`、`body`、`weather`、`location`、`mode?`、`organize?` |
-| `report_generate` | 异步触发区间报告生成，立即返回 reportId；生成需几分钟，完成后落盘 `reports/` | `preset`、`startDate`、`endDate`、`requestedSections?` |
-| `report_get` | 按 reportId 读取已落盘的报告 JSON；尚未生成/仍在生成中返回中文提示 | `reportId` |
+| `dairy_write_entry` | 完整写入日记：正文落盘 → 主进程 AI 自动整理回填 summary/tags/mood → 异步触发画像日更与时间轴日更 | `date`、`body`、`weather`、`location`、`mode?`、`organize?` |
+| `dairy_generate_report` | 异步触发区间报告生成，立即返回 reportId；生成需几分钟，完成后落盘 `reports/` | `preset`、`startDate`、`endDate`、`requestedSections?` |
+| `dairy_read_report` | 按 reportId 读取已落盘的报告 JSON；尚未生成/仍在生成中返回中文提示 | `reportId` |
 
-### 2.1 `journal_write_entry`
+### 2.1 `dairy_write_entry`
 
 实现：[`journal/write-flow.ts`](../../electron/main/journal/write-flow.ts) 的 `writeJournalEntryFull()`，注册在 [`mcp/write-tools.ts`](../../electron/main/mcp/write-tools.ts)。
 
@@ -53,13 +53,13 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 - 整理失败不抛错：正文已保存，返回 `organize.status = 'failed'` 与 `warning`
 - 候选库新增项（`addedWeather` / `addedLocations` / `addedTags`）通过合并前后差值计算，由 `libraries.ts` 的 merge 函数返回
 
-### 2.2 `report_generate`（异步）
+### 2.2 `dairy_generate_report`（异步）
 
 - 提交时仅做参数校验（`validateReportRange`：日期格式、月报/年报完整自然月年、自定义跨度 ≤ 1 年），生成报告 ID（`resolveTargetReportId`：月报 `month_YYYY-MM`、年报 `year_YYYY`、自定义 `custom_<start>_<end>_<ts>`）
-- 后台执行 `generateRangeReport`（复用应用内实现，含缺失日级 insight 补做，不回写原始 .md），并通过 `overwriteReportId` 保证落盘 ID 与返回的 reportId 一致；失败信息记录在进程内 Map（`reportTaskErrors`），由 `report_get` 反馈
+- 后台执行 `generateRangeReport`（复用应用内实现，含缺失日级 insight 补做，不回写原始 .md），并通过 `overwriteReportId` 保证落盘 ID 与返回的 reportId 一致；失败信息记录在进程内 Map（`reportTaskErrors`），由 `dairy_read_report` 反馈
 - 立即返回 `{ reportId, preset, status: 'submitted', notice }`；同一 preset 同区间的月报/年报会覆盖旧文件；允许失败后重新提交
 
-### 2.3 `report_get`
+### 2.3 `dairy_read_report`
 
 - 复用 `getRangeReport`（`resolveReportPathCandidates` + `readReportWithFallback`），reportId 前缀自带类型定位
 - `reportTaskErrors` 有记录 → 返回"报告生成失败：<原因>"；文件不存在（ENOENT）→ 返回"报告尚未生成或仍在生成中"
@@ -70,13 +70,13 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 
 | 工具 | 说明 | 关键入参 |
 |------|------|----------|
-| `memory_search` | 语义检索日记，返回详尽回答 + 发现（findings）+ 相关日期 + 置信度 | `query`、`years?`、`limit?` |
-| `memory_batch_read_entries` | 按日期批量读取正文与元信息，返回 `entries` + `skippedDates` | `dates` |
-| `memory_grep_diary` | 关键词字面匹配（仅正文），返回命中日期、摘要与上下文片段 | `keyword` |
-| `memory_get_user_profile` | 读取最新年份用户画像 Markdown | — |
-| `memory_get_meta_index` | 年度元索引（摘要/标签/心情/地点/字数） | `year` |
+| `dairy_search_entries` | 语义检索日记，返回详尽回答 + 发现（findings）+ 相关日期 + 置信度 | `query`、`years?`、`limit?` |
+| `dairy_read_entries` | 按日期批量读取正文与元信息，返回 `entries` + `skippedDates` | `dates` |
+| `dairy_grep_entries` | 关键词字面匹配（仅正文），返回命中日期、摘要与上下文片段 | `keyword` |
+| `dairy_read_profile` | 读取最新年份用户画像 Markdown | — |
+| `dairy_read_index` | 年度元索引（摘要/标签/心情/地点/字数） | `year` |
 
-### 3.1 `memory_search`（语义检索链路）
+### 3.1 `dairy_search_entries`（语义检索链路）
 
 实现：[`memory/search.ts`](../../electron/main/memory/search.ts) 的 `searchMemory()`，工具注册在 [`mcp/tools.ts`](../../electron/main/mcp/tools.ts)。
 
@@ -126,7 +126,7 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 #### JSON 解析与降级策略
 
 - 三个阶段的 LLM 返回统一走 `extractJsonObject`：先 `JSON.parse`，失败则用正则 `\{[\s\S]*\}` 提取首个 JSON 对象兜底，再失败抛错；
-- **降级**：summarize 阶段抛错（超时/解析失败/空回答）时，不向上抛错，而是返回降级结果——`relatedDates` 全保留、`answer` 说明失败原因并引导调用方用 `memory_batch_read_entries` 自助阅读原文、`findings: []`、`confidence: 'low'`。前两个阶段的成果不被浪费；
+- **降级**：summarize 阶段抛错（超时/解析失败/空回答）时，不向上抛错，而是返回降级结果——`relatedDates` 全保留、`answer` 说明失败原因并引导调用方用 `dairy_read_entries` 自助阅读原文、`findings: []`、`confidence: 'low'`。前两个阶段的成果不被浪费；
 - filter/rerank 阶段抛错（AI 故障等）不设降级，直接作为工具错误返回（`isError: true`）。
 
 #### 人称约定
@@ -147,7 +147,7 @@ interface MemorySearchResult {
 }
 ```
 
-### 3.2 `memory_batch_read_entries`
+### 3.2 `dairy_read_entries`
 
 实现：[`memory/retrieval.ts`](../../electron/main/memory/retrieval.ts) 的 `batchReadEntries()`。
 
@@ -159,7 +159,7 @@ interface MemorySearchResult {
 - 返回 `{ entries, skippedDates }`，两者均按日期升序；`entries` 元素为 `{ date, summary, body, mood, tags }`；
 - 调用方可据此区分“当天没写日记”与“日期传错了”，无需猜测。
 
-### 3.3 `memory_grep_diary`
+### 3.3 `dairy_grep_entries`
 
 实现：[`memory/retrieval.ts`](../../electron/main/memory/retrieval.ts) 的 `grepDiaryText()`。
 
@@ -171,7 +171,7 @@ interface MemorySearchResult {
 - 返回 `{ date, summary, snippet }[]`——`summary` 取自该篇 frontmatter，调用方无需回查元索引即可判断相关性；
 - 纯本地字面匹配，不依赖 AI。
 
-### 3.4 `memory_get_user_profile`
+### 3.4 `dairy_read_profile`
 
 实现：[`memory/retrieval.ts`](../../electron/main/memory/retrieval.ts) 的 `getUserProfile()`。
 
@@ -180,7 +180,7 @@ interface MemorySearchResult {
 - 两者都没有 → 返回 `{ year: null, content: '' }`，不抛错；
 - 画像的生成与维护机制见 [user-profile.md](user-profile.md)。
 
-### 3.5 `memory_get_meta_index`
+### 3.5 `dairy_read_index`
 
 实现：[`memory/retrieval.ts`](../../electron/main/memory/retrieval.ts) 的 `getMetaIndex()` → [`journal/meta-index.ts`](../../electron/main/journal/meta-index.ts) 的 `readJournalMetaIndex()`。
 
@@ -214,7 +214,7 @@ interface JournalMetaEntry {
 
 - **工作区解析**（[`mcp/tools.ts`](../../electron/main/mcp/tools.ts) 的 `resolveWorkspacePath`）：显式 `workspacePath`（trim 后非空）优先，缺省回退 `config.lastOpenedWorkspace`，两者都没有返回中文错误；
 - **结果包装**：成功结果 `JSON.stringify(data, null, 2)` 作为 text content；工具内异常捕获后以 `isError: true` 返回中文错误文本，不击穿服务；
-- **只读边界**：读工具（`memory_*`）不暴露写操作与敏感配置（明文 key）；写操作仅限「二、写工具详解」列出的工具。
+- **只读边界**：读工具不暴露写操作与敏感配置（明文 key）；写操作仅限「二、写工具详解」列出的工具。
 
 ---
 
@@ -236,7 +236,7 @@ interface JournalMetaEntry {
 
 - **不启动新进程**：MCP 服务是 Electron 主进程内创建的 `http.Server`（[`server.ts`](../../electron/main/mcp/server.ts) 中 `http.createServer`），与主进程共享同一个 Node.js 进程与事件循环，只是多监听一个回环端口；
 - 每个 MCP 请求创建的 `McpServer` + transport 是进程内 JS 对象，响应关闭即释放，无常驻开销；
-- 处理 MCP 请求时的文件读取、AI 检索调用（`memory_search` 的 LLM 请求）全部在主进程内发起——与“AI 请求只能由主进程发起、密钥不出主进程”的架构约束天然一致；
+- 处理 MCP 请求时的文件读取、AI 检索调用（`dairy_search_entries` 的 LLM 请求）全部在主进程内发起——与“AI 请求只能由主进程发起、密钥不出主进程”的架构约束天然一致；
 - 请求处理均为异步 IO，不会阻塞主进程事件循环，也不影响渲染进程 UI；
 - 连接进来的是外部 AI 工具自己的进程（如 OpenCode），它们与 dAiry 之间只通过 HTTP 交互。
 
@@ -258,7 +258,7 @@ interface McpRuntimeStatus {
 }
 ```
 
-超时说明：服务端各阶段 AI 调用超时见 §3.1；MCP **客户端侧**默认请求超时（常见为 60s）不受服务端控制，`memory_search` 的 description 已如实说明耗时较长，调用方客户端可能需要调大超时配置。
+超时说明：服务端各阶段 AI 调用超时见 §3.1；MCP **客户端侧**默认请求超时（常见为 60s）不受服务端控制，`dairy_search_entries` 的 description 已如实说明耗时较长，调用方客户端可能需要调大超时配置。
 
 ---
 

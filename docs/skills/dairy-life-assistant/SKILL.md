@@ -54,9 +54,9 @@ tags:
 
 ## MCP 接入（重要）
 
-dAiry 通过 MCP 服务 `dairy-memory` 提供 5 个只读工具。服务默认关闭，需要用户在 dAiry 设置页「MCP 服务」手动开启，默认连接地址为 `http://127.0.0.1:9123/mcp`。
+dAiry 通过 MCP 服务 `dairy-mcp` 提供 5 个只读工具。服务默认关闭，需要用户在 dAiry 设置页「MCP 服务」手动开启，默认连接地址为 `http://127.0.0.1:9123/mcp`。
 
-**先检查是否已接入**：查看可用工具列表里有没有 `memory_*` 工具。
+**先检查是否已接入**：查看可用工具列表里有没有 `dairy_*` 工具。
 
 如果没有接入，必须提醒用户：
 
@@ -69,24 +69,24 @@ dAiry 通过 MCP 服务 `dairy-memory` 提供 5 个只读工具。服务默认�
 
 | 工具 | 用途 | 成本 |
 |------|------|------|
-| `memory_get_user_profile` | 读取用户画像（长期偏好、习惯、进行中的项目等） | 低 |
-| `memory_get_meta_index` | 某一年全部日记的摘要、标签、心情、地点、字数、创建时间（createdAt，UTC） | 低 |
-| `memory_grep_diary` | 关键词字面匹配正文，返回命中日期、摘要、上下文片段 | 低，不耗 AI |
-| `memory_search` | 语义检索，返回详尽回答、相关发现、相关日期、置信度 | 高，需 AI，耗时数十秒到数分钟 |
-| `memory_batch_read_entries` | 按日期批量读取日记正文与元信息 | 中，随篇数增长 |
+| `dairy_read_profile` | 读取用户画像（长期偏好、习惯、进行中的项目等） | 低 |
+| `dairy_read_index` | 某一年全部日记的摘要、标签、心情、地点、字数、创建时间（createdAt，UTC） | 低 |
+| `dairy_grep_entries` | 关键词字面匹配正文，返回命中日期、摘要、上下文片段 | 低，不耗 AI |
+| `dairy_search_entries` | 语义检索，返回详尽回答、相关发现、相关日期、置信度 | 高，需 AI，耗时数十秒到数分钟 |
+| `dairy_read_entries` | 按日期批量读取日记正文与元信息 | 中，随篇数增长 |
 
 所有工具的 `workspacePath` 参数都可省略，缺省使用 dAiry 当前打开的工作区，一般不需要手动传。
 
 ## 检索策略
 
-1. **先读画像**：会话开始、用户提出第一个整理类需求时，先调用 `memory_get_user_profile`。画像能帮你看懂日记里的项目名、人名和长期主线，让后续回答更贴合用户。返回为空属正常（画像由 dAiry 在用户点击"自动整理"后异步维护）。
-2. **先概览再精读**：用 `memory_get_meta_index` 扫一年的摘要与标签，或用 `memory_grep_diary` 定位关键词命中日期，再用 `memory_batch_read_entries` 只读需要的几篇正文。不要一上来就批量读大量正文。
+1. **先读画像**：会话开始、用户提出第一个整理类需求时，先调用 `dairy_read_profile`。画像能帮你看懂日记里的项目名、人名和长期主线，让后续回答更贴合用户。返回为空属正常（画像由 dAiry 在用户点击"自动整理"后异步维护）。
+2. **先概览再精读**：用 `dairy_read_index` 扫一年的摘要与标签，或用 `dairy_grep_entries` 定位关键词命中日期，再用 `dairy_read_entries` 只读需要的几篇正文。不要一上来就批量读大量正文。
 3. **grep 与 search 结合使用**：
-   - 记得精确词（人名、项目名、地名）时，先 `memory_grep_diary`，快且省。
-   - 模糊回忆、开放式问题（如"用户那段时间状态怎么样"）用 `memory_search`，结果更全面，但消耗更多 token 和时间。
-   - 常见打法：grep 粗定位，不够再 search；或 search 拿到 `relatedDates` 后，用 `memory_batch_read_entries` 自行核对细节。
-   - `memory_search` 的查询建议用第三人称"用户"或省略主语（日记里的"我"就是用户本人）。
-4. **耐心等待 search**：`memory_search` 耗时数十秒到数分钟，调用前先告知用户需要等待，等待期间不要重复调用。
+   - 记得精确词（人名、项目名、地名）时，先 `dairy_grep_entries`，快且省。
+   - 模糊回忆、开放式问题（如"用户那段时间状态怎么样"）用 `dairy_search_entries`，结果更全面，但消耗更多 token 和时间。
+   - 常见打法：grep 粗定位，不够再 search；或 search 拿到 `relatedDates` 后，用 `dairy_read_entries` 自行核对细节。
+   - `dairy_search_entries` 的查询建议用第三人称"用户"或省略主语（日记里的"我"就是用户本人）。
+4. **耐心等待 search**：`dairy_search_entries` 耗时数十秒到数分钟，调用前先告知用户需要等待，等待期间不要重复调用。
 
 ## 开放式发现问答（"最近有什么发现"）
 
@@ -96,7 +96,7 @@ dAiry 通过 MCP 服务 `dairy-memory` 提供 5 个只读工具。服务默认�
 
 ### 第一层：概览
 
-流程：画像 → 当年 meta_index（年初或需对比基线时补拉上一年）→ 按六维度清单筛查候选信号 → 每条信号用 `memory_batch_read_entries` 精读 1~3 篇验证（验证主题重现可辅以 grep）→ 输出概览。不要只凭摘要下结论。
+流程：画像 → 当年 meta_index（年初或需对比基线时补拉上一年）→ 按六维度清单筛查候选信号 → 每条信号用 `dairy_read_entries` 精读 1~3 篇验证（验证主题重现可辅以 grep）→ 输出概览。不要只凭摘要下结论。
 
 **时间窗**：默认观察窗"近 60 天"，基线取观察窗之前等长的 60 天；用户指定区间时以用户为准，对话语境需要时（如"最近几个月""下半年以来"）可延长观察窗，基线随之前移等长。
 
@@ -140,7 +140,7 @@ dAiry 通过 MCP 服务 `dairy-memory` 提供 5 个只读工具。服务默认�
 用户选定维度后：
 
 1. **重新定位**：用 meta_index 筛出该维度相关日期；记得精确词（人名、项目名）时用 grep 验证主题重现。
-2. **精读验证**：`memory_batch_read_entries` 读 1~3 篇关键日期正文，确认信号真实；需要语义补充时再用 `memory_search`。
+2. **精读验证**：`dairy_read_entries` 读 1~3 篇关键日期正文，确认信号真实；需要语义补充时再用 `dairy_search_entries`。
 3. **组织回答**：按时间线呈现（每条带日期依据）→ 点出变化点/转折 → 至多一句克制解读；推测明说"我猜测"。
 4. **可回溯**：每条结论 = 一句话结论 + 依据（日期 + 事实）+ 至多一句解读。
 
@@ -177,5 +177,5 @@ dAiry 通过 MCP 服务 `dairy-memory` 提供 5 个只读工具。服务默认�
 ## 边界
 
 - 只读：不创建、不修改任何日记与配置。用户想写日记时，引导其在 dAiry 应用内完成，或使用 `dairy-journal-writer` 技能。
-- `memory_batch_read_entries` 返回的 `skippedDates` 表示当天没写日记或日期格式无效，如实告知用户，不要猜测。
+- `dairy_read_entries` 返回的 `skippedDates` 表示当天没写日记或日期格式无效，如实告知用户，不要猜测。
 - 日记是私密数据：只在当前对话中为该用户服务，不向第三方透露内容，不把日记内容写入无关文件。

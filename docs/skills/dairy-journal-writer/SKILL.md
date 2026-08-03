@@ -11,7 +11,7 @@ description: 为本地日记工作区编写、整理或更新日记，或生成�
 
 ## 前置条件
 
-1. 先检查工具列表：确认存在 `journal_write_entry`、`memory_batch_read_entries` 等工具，说明 MCP 服务已接入；不存在时提醒用户检查。
+1. 先检查工具列表：确认存在 `dairy_write_entry`、`dairy_read_entries` 等工具，说明 MCP 服务已接入；不存在时提醒用户检查。
 2. dAiry 应用正在运行，且已在应用内打开目标工作区（写操作固定使用当前打开的工作区）。
 3. 应用「设置 - MCP 服务」已勾选"启用 MCP 服务"，默认连接地址为 `http://127.0.0.1:9123/mcp`。
 
@@ -21,30 +21,30 @@ description: 为本地日记工作区编写、整理或更新日记，或生成�
 
 | 工具 | 说明 |
 |------|------|
-| `journal_write_entry` | 写入日记正文并自动整理（总结/标签/心情），异步维护画像与时间轴 |
-| `report_generate` | 异步触发月报/年报/自定义区间报告生成，返回 reportId，生成需几分钟 |
-| `report_get` | 按 reportId 读取已生成的报告 JSON |
-| `memory_batch_read_entries` | 按日期读取日记正文与元信息，用于确认目标日记状态 |
-| `memory_search` | 语义检索日记，返回回答与相关日期 |
-| `memory_grep_diary` | 关键词字面匹配正文 |
-| `memory_get_user_profile` | 读取用户画像 |
-| `memory_get_meta_index` | 读取年度元索引 |
+| `dairy_write_entry` | 写入日记正文并自动整理（总结/标签/心情），异步维护画像与时间轴 |
+| `dairy_generate_report` | 异步触发月报/年报/自定义区间报告生成，返回 reportId，生成需几分钟 |
+| `dairy_read_report` | 按 reportId 读取已生成的报告 JSON |
+| `dairy_read_entries` | 按日期读取日记正文与元信息，用于确认目标日记状态 |
+| `dairy_search_entries` | 语义检索日记，返回回答与相关日期 |
+| `dairy_grep_entries` | 关键词字面匹配正文 |
+| `dairy_read_profile` | 读取用户画像 |
+| `dairy_read_index` | 读取年度元索引 |
 
 ## 日记编写流程
 
 1. 确认日期：用户说"今天"用当前日期；日期不明确时只问一个简短问题，最终需要用户确认。
 2. 询问天气、地点（**必填**）：明确询问用户当天天气与地点，用户给出新词时允许直接使用（会写入工作区候选库）。
 3. 收集正文：保留原文、语气、段落，只清理首尾空白；除非用户要求，不润色正文。
-4. 判断目标日记状态：调用 `memory_batch_read_entries`（dates 传入目标日期）——目标日期出现在 `entries` 中说明已有日记，出现在 `skippedDates` 中说明没有。
+4. 判断目标日记状态：调用 `dairy_read_entries`（dates 传入目标日期）——目标日期出现在 `entries` 中说明已有日记，出现在 `skippedDates` 中说明没有。
    - 已存在：必须向用户说明，明确授权 `append`（追加）或 `overwrite`（覆盖）后才继续；默认停止。
    - 不存在：使用默认 `create` 模式。
-5. 调用 `journal_write_entry`，传入 date、body、weather、location，mode 按上一步结论。
+5. 调用 `dairy_write_entry`，传入 date、body、weather、location，mode 按上一步结论。
 6. 写入成功后检查返回结果：
    - `organize.status` 为 `ok`：向用户汇报路径、天气、地点、心情、总结、标签、候选库新增项；正文很长时不要重复整篇正文。
    - `organize.status` 为 `failed`：只汇报正文已保存与失败原因，并告知用户可在应用内稍后点击"自动整理"重试（此时心情/总结/标签是空默认值，不要当作真实结果汇报）。
 7. `organize.status` 为 `ok` 时，说明用户画像与时间轴已在后台异步更新：不阻塞、失败不影响日记本身。
 
-> `journal_write_entry` 是真实落盘操作，调用前必须获得用户对日期、天气、地点、写入模式的确认。
+> `dairy_write_entry` 是真实落盘操作，调用前必须获得用户对日期、天气、地点、写入模式的确认。
 
 ## 自动整理说明
 
@@ -54,9 +54,9 @@ description: 为本地日记工作区编写、整理或更新日记，或生成�
 ## 生成区间报告
 
 1. 与用户确认报告类型（月报 / 年报 / 自定义区间）与起止日期；月报必须覆盖完整自然月，年报必须覆盖完整自然年，自定义跨度不超过 1 年。
-2. 调用 `report_generate` 提交，立即返回 reportId。
+2. 调用 `dairy_generate_report` 提交，立即返回 reportId。
 3. 告知用户：报告生成需要几分钟时间，不能立刻查看。
-4. 等待 1-2 分钟后调用 `report_get`（传入 reportId）查询：
+4. 等待 1-2 分钟后调用 `dairy_read_report`（传入 reportId）查询：
    - 返回完整报告：把总结（概览、推进、阻塞、值得记住）展示给用户。
    - 返回"仍在生成中"：继续等待后再查。
    - 返回"报告生成失败：<原因>"：停止轮询，如实告知用户失败原因。
