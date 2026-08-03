@@ -33,7 +33,38 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 
 ---
 
-## 二、工具详解
+## 二、写工具详解
+
+| 工具 | 说明 | 关键入参 |
+|------|------|----------|
+| `journal_write_entry` | 完整写入日记：正文落盘 → 主进程 AI 自动整理回填 summary/tags/mood → 异步触发画像日更与时间轴日更 | `date`、`body`、`weather`、`location`、`mode?`、`organize?` |
+| `report_generate` | 异步触发区间报告生成，立即返回 reportId；生成需几分钟，完成后落盘 `reports/` | `preset`、`startDate`、`endDate`、`requestedSections?` |
+| `report_get` | 按 reportId 读取已落盘的报告 JSON；尚未生成/仍在生成中返回中文提示 | `reportId` |
+
+### 2.1 `journal_write_entry`
+
+实现：[`journal/write-flow.ts`](../../electron/main/journal/write-flow.ts) 的 `writeJournalEntryFull()`，注册在 [`mcp/write-tools.ts`](../../electron/main/mcp/write-tools.ts)。
+
+- `weather` / `location` 必填（由用户在对话中给出）；`mode` 为 `create`（默认）/ `append` / `overwrite`，`create` 遇到已存在日记抛中文错误；`organize` 默认 `true`
+- 工作区固定取 `config.lastOpenedWorkspace`，不接收 `workspacePath` 参数
+- 正文先落盘（更新 `updatedAt` 与元索引），再调用 `generateDailyInsights` 自动整理；整理成功则回填 summary/tags/mood 并合并候选库，随后**异步**触发 `runProfileMaintenance` 与 `updateTimelineForDay`（不阻塞返回，失败只记日志）
+- 整理失败不抛错：正文已保存，返回 `organize.status = 'failed'` 与 `warning`
+- 候选库新增项（`addedWeather` / `addedLocations` / `addedTags`）通过合并前后差值计算，由 `libraries.ts` 的 merge 函数返回
+
+### 2.2 `report_generate`（异步）
+
+- 提交时仅做参数校验（`validateReportRange`：日期格式、月报/年报完整自然月年、自定义跨度 ≤ 1 年），生成报告 ID（`resolveTargetReportId`：月报 `month_YYYY-MM`、年报 `year_YYYY`、自定义 `custom_<start>_<end>_<ts>`）
+- 后台执行 `generateRangeReport`（复用应用内实现，含缺失日级 insight 补做，不回写原始 .md），并通过 `overwriteReportId` 保证落盘 ID 与返回的 reportId 一致；失败信息记录在进程内 Map（`reportTaskErrors`），由 `report_get` 反馈
+- 立即返回 `{ reportId, preset, status: 'submitted', notice }`；同一 preset 同区间的月报/年报会覆盖旧文件；允许失败后重新提交
+
+### 2.3 `report_get`
+
+- 复用 `getRangeReport`（`resolveReportPathCandidates` + `readReportWithFallback`），reportId 前缀自带类型定位
+- `reportTaskErrors` 有记录 → 返回"报告生成失败：<原因>"；文件不存在（ENOENT）→ 返回"报告尚未生成或仍在生成中"
+
+---
+
+## 三、工具详解
 
 | 工具 | 说明 | 关键入参 |
 |------|------|----------|
@@ -185,7 +216,7 @@ interface JournalMetaEntry {
 
 ---
 
-## 三、MCP 服务（`electron/main/mcp/`）
+## 四、MCP 服务（`electron/main/mcp/`）
 
 | 文件 | 职责 |
 |------|------|
@@ -225,11 +256,11 @@ interface McpRuntimeStatus {
 }
 ```
 
-超时说明：服务端各阶段 AI 调用超时见 §2.1；MCP **客户端侧**默认请求超时（常见为 60s）不受服务端控制，`memory_search` 的 description 已如实说明耗时较长，调用方客户端可能需要调大超时配置。
+超时说明：服务端各阶段 AI 调用超时见 §2.1（三、工具详解）；MCP **客户端侧**默认请求超时（常见为 60s）不受服务端控制，`memory_search` 的 description 已如实说明耗时较长，调用方客户端可能需要调大超时配置。
 
 ---
 
-## 四、配置与 IPC
+## 五、配置与 IPC
 
 配置（`config.json` 顶层）：
 
@@ -248,7 +279,7 @@ interface McpRuntimeStatus {
 
 ---
 
-## 五、设置页
+## 六、设置页
 
 - 设置页「MCP 服务」分区：开关、端口输入（失焦保存）、运行状态（运行中/已停止/启动失败 + 错误信息）、连接地址展示；
 - 保存流程：`setMcpPreference` → 同步配置状态 → `getMcpRuntimeStatus` 刷新运行态 → 按结果给出中文提示；
