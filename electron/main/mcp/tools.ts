@@ -45,10 +45,10 @@ function toErrorResult(error: unknown) {
 }
 
 export function createMemoryMcpServer(): McpServer {
-  const server = new McpServer({ name: 'dairy-memory', version: '1.0.0' })
+  const server = new McpServer({ name: 'dairy-mcp', version: '2.0.0' })
 
   server.registerTool(
-    'memory_search',
+    'dairy_search_entries',
     {
       title: '语义检索日记',
       description:
@@ -89,7 +89,7 @@ export function createMemoryMcpServer(): McpServer {
   )
 
   server.registerTool(
-    'memory_batch_read_entries',
+    'dairy_read_entries',
     {
       title: '批量读取日记正文',
       description:
@@ -110,7 +110,7 @@ export function createMemoryMcpServer(): McpServer {
   )
 
   server.registerTool(
-    'memory_grep_diary',
+    'dairy_grep_entries',
     {
       title: '关键词检索日记',
       description:
@@ -131,7 +131,7 @@ export function createMemoryMcpServer(): McpServer {
   )
 
   server.registerTool(
-    'memory_get_user_profile',
+    'dairy_read_profile',
     {
       title: '读取用户画像',
       description:
@@ -151,7 +151,7 @@ export function createMemoryMcpServer(): McpServer {
   )
 
   server.registerTool(
-    'memory_get_meta_index',
+    'dairy_read_index',
     {
       title: '读取年度元索引',
       description:

@@ -429,7 +429,7 @@ export async function searchMemory(input: MemorySearchInput): Promise<MemorySear
     const message = error instanceof Error ? error.message : '未知错误'
     return {
       query,
-      answer: `已找到 ${journalListB.length} 篇相关日记，但生成详细回答时失败（${message}）。可以根据 relatedDates 调用 memory_batch_read_entries 直接阅读原文。`,
+      answer: `已找到 ${journalListB.length} 篇相关日记，但生成详细回答时失败（${message}）。可以根据 relatedDates 调用 dairy_read_entries 直接阅读原文。`,
       findings: [],
       relatedDates: displayedDates,
       displayedCount: displayedDates.length,

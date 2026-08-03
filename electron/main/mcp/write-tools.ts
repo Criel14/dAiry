@@ -43,7 +43,7 @@ function toErrorResult(error: unknown) {
 
 export function registerWriteTools(server: McpServer) {
   server.registerTool(
-    'journal_write_entry',
+    'dairy_write_entry',
     {
       title: '撰写日记（完整写入）',
       description:
@@ -85,11 +85,11 @@ export function registerWriteTools(server: McpServer) {
   )
 
   server.registerTool(
-    'report_generate',
+    'dairy_generate_report',
     {
       title: '生成区间报告（异步）',
       description:
-        '异步触发月报/年报/自定义区间报告生成，立即返回 reportId，不等待生成完成。生成需要几分钟时间，完成后报告落盘到工作区 reports/ 目录，请稍后使用 report_get 工具查询结果。同一 preset 同区间的月报/年报会覆盖旧报告。',
+        '异步触发月报/年报/自定义区间报告生成，立即返回 reportId，不等待生成完成。生成需要几分钟时间，完成后报告落盘到工作区 reports/ 目录，请稍后使用 dairy_read_report 工具查询结果。同一 preset 同区间的月报/年报会覆盖旧报告。',
       inputSchema: {
         preset: z
           .enum(REPORT_PRESETS)
@@ -135,7 +135,7 @@ export function registerWriteTools(server: McpServer) {
           reportId,
           preset,
           status: 'submitted',
-          notice: '报告生成需要几分钟时间，请稍后使用 report_get 工具查询结果。',
+          notice: '报告生成需要几分钟时间，请稍后使用 dairy_read_report 工具查询结果。',
         })
       } catch (error) {
         return toErrorResult(error)
@@ -144,13 +144,13 @@ export function registerWriteTools(server: McpServer) {
   )
 
   server.registerTool(
-    'report_get',
+    'dairy_read_report',
     {
       title: '读取区间报告',
       description:
-        '按 reportId 读取已生成的区间报告 JSON（月报 reportId 形如 month_2026-07，年报形如 year_2026，自定义形如 custom_...，来自 report_generate 的返回值）。报告尚未生成或仍在生成中时返回错误提示。',
+        '按 reportId 读取已生成的区间报告 JSON（月报 reportId 形如 month_2026-07，年报形如 year_2026，自定义形如 custom_...，来自 dairy_generate_report 的返回值）。报告尚未生成或仍在生成中时返回错误提示。',
       inputSchema: {
-        reportId: z.string().describe('报告 ID，来自 report_generate 返回值'),
+        reportId: z.string().describe('报告 ID，来自 dairy_generate_report 返回值'),
       },
     },
     async ({ reportId }) => {
