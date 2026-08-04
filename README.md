@@ -11,7 +11,7 @@
 
 > [!tip]
 >
-> Vibe Coding 作品，先后使用了 gpt5.3-codex, gpt5.4, deepseek v4 pro, kimi k3 等模型；CLI 使用了 Codex 和 OpenCode
+> Vibe Coding 作品，先后使用了 gpt5.3-codex, gpt5.4, deepseek v4 pro, kimi k3 等模型；CLI 使用了 Codex 和 OpenCode;
 >
 > 应用无后端，所有操作均在本地实现，AI 功能的使用需要在应用内配置 API KEY；
 >
@@ -29,7 +29,7 @@
 
 ![时间轴-浅色(加背景)](docs/images/时间轴-浅色(加背景).png)
 
-![年度总结-深色](docs/images/年度总结-深色.png)
+![年度总结-深色](docs/images/年度总结-深色(加背景).png)
 
 接入 OpenCode 示例：
 
