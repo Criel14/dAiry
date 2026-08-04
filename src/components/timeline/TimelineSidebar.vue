@@ -5,6 +5,7 @@ defineProps<{
   selectedYear: number
   hasDataYears: Set<string>
   isRebuilding: boolean
+  isCancelling: boolean
   rebuildProgress: { weekLabel: string; current: number; total: number } | null
 }>()
 
@@ -45,8 +46,12 @@ function handleRebuild() {
           正在整理... {{ rebuildProgress?.weekLabel }}
           （{{ rebuildProgress?.current }}/{{ rebuildProgress?.total }}）
         </p>
-        <button class="cancel-button" @click="emit('cancelRebuild')">
-          取消
+        <button
+          class="cancel-button"
+          :disabled="isCancelling"
+          @click="emit('cancelRebuild')"
+        >
+          {{ isCancelling ? '正在取消...' : '取消' }}
         </button>
       </div>
     </div>

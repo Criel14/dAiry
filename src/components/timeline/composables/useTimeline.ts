@@ -7,6 +7,7 @@ export function useTimeline(workspacePath: Ref<string | null>) {
   const timelineData = ref<TimelineYearData | null>(null)
   const hasDataYears = ref<Set<string>>(new Set())
   const isRebuildingTimeline = ref(false)
+  const isCancellingTimelineRebuild = ref(false)
   const timelineRebuildProgress = ref<{ weekLabel: string; current: number; total: number } | null>(null)
   let unlistenProgress: (() => void) | null = null
 
@@ -46,6 +47,7 @@ export function useTimeline(workspacePath: Ref<string | null>) {
       window.alert(err instanceof Error ? err.message : '时间轴整理失败，请稍后重试。')
     } finally {
       isRebuildingTimeline.value = false
+      isCancellingTimelineRebuild.value = false
       timelineRebuildProgress.value = null
       if (unlistenProgress) {
         unlistenProgress()
@@ -55,6 +57,7 @@ export function useTimeline(workspacePath: Ref<string | null>) {
   }
 
   function handleCancelTimelineRebuild() {
+    isCancellingTimelineRebuild.value = true
     window.dairy.cancelTimelineRebuild()
   }
 
@@ -70,6 +73,7 @@ export function useTimeline(workspacePath: Ref<string | null>) {
     timelineData,
     hasDataYears,
     isRebuildingTimeline,
+    isCancellingTimelineRebuild,
     timelineRebuildProgress,
     handleSelectTimelineYear,
     handleRebuildTimeline,

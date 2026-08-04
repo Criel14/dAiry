@@ -101,6 +101,7 @@ const {
   timelineData,
   hasDataYears,
   isRebuildingTimeline,
+  isCancellingTimelineRebuild,
   timelineRebuildProgress,
   handleSelectTimelineYear,
   handleRebuildTimeline,
@@ -191,6 +192,7 @@ const {
           :selected-year="selectedTimelineYear"
           :has-data-years="hasDataYears"
           :is-rebuilding="isRebuildingTimeline"
+          :is-cancelling="isCancellingTimelineRebuild"
           :rebuild-progress="timelineRebuildProgress"
           @select-year="handleSelectTimelineYear"
           @rebuild="handleRebuildTimeline"

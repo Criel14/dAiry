@@ -159,6 +159,13 @@ export async function extractEventsFromDay(
 
 const __timelineCancelTokens = new Map<number, { cancelled: boolean }>()
 
+class TimelineCancelledError extends Error {
+  constructor() {
+    super('时间轴重建已取消。')
+    this.name = 'TimelineCancelledError'
+  }
+}
+
 function buildBatches(start: dayjs.Dayjs, end: dayjs.Dayjs): Array<{ start: string; end: string }> {
   const batches: Array<{ start: string; end: string }> = []
   let cursor = start
@@ -196,11 +203,15 @@ export async function rebuildTimelineYear(
 
   console.log(`[timeline] 开始重建 ${year} 年时间轴，共 ${totalBatches} 个批次。`)
 
+  const finishCancelled = () => {
+    __timelineCancelTokens.delete(year)
+    console.log(`[timeline] ${year} 年时间轴重建已取消。`)
+    return null
+  }
+
   for (let i = 0; i < batches.length; i++) {
     if (cancelToken.cancelled) {
-      __timelineCancelTokens.delete(year)
-      console.log(`[timeline] ${year} 年时间轴重建已取消。`)
-      return null
+      return finishCancelled()
     }
 
     const { start: batchStart, end: batchEnd } = batches[i]
@@ -263,17 +274,33 @@ export async function rebuildTimelineYear(
       .filter(Boolean)
       .join('\n\n')
 
-    const responseText = await withAiRetry(
-      (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
-      (client) =>
-        client.completeText({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-        }),
-      { minTimeoutMs: 120_000, label: '时间轴年度重建' },
-    )
+    let responseText: string
+    try {
+      responseText = await withAiRetry(
+        (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+        (client) => {
+          if (cancelToken.cancelled) {
+            throw new TimelineCancelledError()
+          }
+          return client.completeText({
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+          })
+        },
+        { minTimeoutMs: 120_000, label: '时间轴年度重建' },
+      )
+    } catch (err) {
+      if (err instanceof TimelineCancelledError) {
+        return finishCancelled()
+      }
+      throw err
+    }
+
+    if (cancelToken.cancelled) {
+      return finishCancelled()
+    }
 
     const result = extractJsonObject(responseText)
 
