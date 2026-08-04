@@ -176,7 +176,7 @@ export async function rebuildTimelineYear(
   workspacePath: string,
   year: number,
   onProgress: (progress: { weekLabel: string; current: number; total: number }) => void,
-): Promise<TimelineEvent[] | null> {
+): Promise<{ events: TimelineEvent[]; diaryBatchCount: number } | null> {
   const allEvents: TimelineEvent[] = []
   const start = dayjs(`${year}-01-01`)
   const end = dayjs(`${year}-12-31`)
@@ -188,9 +188,14 @@ export async function rebuildTimelineYear(
   __timelineCancelTokens.set(year, cancelToken)
 
   let completedCount = 0
+  let diaryBatchCount = 0
+
+  console.log(`[timeline] 开始重建 ${year} 年时间轴，共 ${totalBatches} 个批次。`)
 
   for (let i = 0; i < batches.length; i++) {
     if (cancelToken.cancelled) {
+      __timelineCancelTokens.delete(year)
+      console.log(`[timeline] ${year} 年时间轴重建已取消。`)
       return null
     }
 
@@ -233,7 +238,9 @@ export async function rebuildTimelineYear(
     }
 
     completedCount++
+    diaryBatchCount++
     onProgress({ weekLabel: `${batchStart} ~ ${batchEnd}`, current: completedCount, total: totalBatches })
+    console.log(`[timeline] ${year} 年批次 ${batchStart} ~ ${batchEnd}：${bodies.length} 篇日记，等待 AI 提取事件。`)
 
     const existingEventsBlock =
       allEvents.length > 0
@@ -280,7 +287,10 @@ export async function rebuildTimelineYear(
   }
 
   __timelineCancelTokens.delete(year)
-  return allEvents
+  console.log(
+    `[timeline] ${year} 年时间轴重建完成：${diaryBatchCount}/${totalBatches} 个批次有日记，共提取 ${allEvents.length} 个事件。`,
+  )
+  return { events: allEvents, diaryBatchCount }
 }
 
 export function cancelTimelineRebuild(year: number): void {

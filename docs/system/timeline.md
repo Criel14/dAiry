@@ -43,20 +43,22 @@ JSON 结构：
 
 ### 2.1 全量重建（手动）
 
-用户从时间轴左侧面板点击"重新整理本年度时间轴"：
+用户从时间轴左侧面板点击"重新整理 {year} 年时间轴"（year 为侧边栏选中年份，默认当前年份）：
 
 ```
-TimelineSidebar → rebuildTimelineYear(workspacePath, year)
-  → 按 3 天一批次遍历全年日记
+TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
+  → 按 3 天一批次遍历选中年份全年日记
   → 每批调用 AI 提取事件
   → 汇总全部事件后落盘
 ```
 
 **特点：**
 
+- 目标年份由侧边栏年份选择器决定，不固定为当前年份
 - 全量覆盖式重建，每次重写整个年度文件
 - 支持取消（当前批次完成后停止，已处理的事件不保留）
 - 支持进度推送（`当前批次 ~ 结束日期`，`current/total`）
+- 未找到该年份任何日记时不落盘，返回 `skipped` 由前端提示，避免覆盖已有数据
 
 ### 2.2 日更（自动）
 
@@ -198,7 +200,7 @@ journal.ts: generateDailyInsights 返回后
 
 Preload 暴露 API（`electron/preload.ts:109-131`）：
 - `window.dairy.getTimeline({ workspacePath, year })`
-- `window.dairy.rebuildTimeline(workspacePath)`
+- `window.dairy.rebuildTimeline({ workspacePath, year })` → `Promise<{ skipped: boolean }>`，`skipped` 表示该年份无日记未落盘
 - `window.dairy.cancelTimelineRebuild()`
 - `window.dairy.onTimelineRebuildProgress(listener)`
 
@@ -210,5 +212,7 @@ Preload 暴露 API（`electron/preload.ts:109-131`）：
 - **时间轴文件是纯粹派生数据**：AI 生成的日级内容不回写原始 `.md`
 - **日更只追加不覆盖**：只对已有时间轴做增量更新，不创建新文件
 - **全量重建全成功才落盘**：取消则已处理事件不保留
+- **目标年份由用户选择决定**：重建年份来自侧边栏选中年份，不固定为当前年份
+- **无日记年份不落盘**：全年无日记时跳过写入并提示，避免清空已有数据
 - **时间轴更新失败不影响日记写作**：日更放在 `void` 上下文，失败只打日志
 - **渲染进程不直接读写文件**：所有数据读写通过 IPC 由主进程完成

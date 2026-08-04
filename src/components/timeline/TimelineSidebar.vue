@@ -38,7 +38,7 @@ function handleRebuild() {
         class="rebuild-button"
         @click="handleRebuild"
       >
-        重新整理本年度时间轴
+        重新整理 {{ selectedYear }} 年时间轴
       </button>
       <div v-else class="rebuild-status">
         <p class="rebuild-progress-text">

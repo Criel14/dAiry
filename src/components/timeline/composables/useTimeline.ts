@@ -32,8 +32,18 @@ export function useTimeline(workspacePath: Ref<string | null>) {
     })
 
     try {
-      await window.dairy.rebuildTimeline(workspacePath.value)
+      const result = await window.dairy.rebuildTimeline({
+        workspacePath: workspacePath.value,
+        year: selectedTimelineYear.value,
+      })
+      if (result.skipped) {
+        window.alert(
+          `未找到 ${selectedTimelineYear.value} 年的日记，未生成时间轴，请确认该年份已写入日记。`,
+        )
+      }
       await loadTimeline(selectedTimelineYear.value)
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : '时间轴整理失败，请稍后重试。')
     } finally {
       isRebuildingTimeline.value = false
       timelineRebuildProgress.value = null

@@ -118,7 +118,10 @@ export interface DairyApi {
   openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
   openDevTools: () => Promise<void>
   getTimeline: (input: { workspacePath: string; year: number }) => Promise<TimelineYearData | null>
-  rebuildTimeline: (workspacePath: string) => Promise<void>
+  rebuildTimeline: (input: {
+    workspacePath: string
+    year: number
+  }) => Promise<{ skipped: boolean }>
   cancelTimelineRebuild: () => Promise<void>
   onTimelineRebuildProgress: (
     listener: (progress: RebuildTimelineProgress) => void,
