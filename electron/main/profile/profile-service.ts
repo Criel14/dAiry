@@ -338,10 +338,8 @@ export async function runProfileMaintenance(input: ProfileMaintenanceInput): Pro
     }
 
     const year = input.date.slice(0, 4)
-    const profilePath = await resolveProfileForYear(input.workspacePath, year)
-    if (!profilePath) {
-      return
-    }
+    // 画像文件不存在时不再跳过：日更 prompt 会从零创建初始画像，首次自动播种
+    await resolveProfileForYear(input.workspacePath, year)
 
     const config = await readAppConfig()
     const settings = normalizeAiSettings(config.ai)

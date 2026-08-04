@@ -23,7 +23,7 @@
 - 当前年份画像为活跃文件，日更和全量刷新只操作当前年份文件
 - 过往年份画像自动归档，不再修改
 - 存量 `<workspace>/.dairy/user-profile.md` 会在首次日更时自动迁移到 `user-profile/` 目录并删除
-- 若 `user-profile/` 目录为空且无旧版文件，画像维护静默跳过
+- 若 `user-profile/` 目录为空且无旧版文件，日更将从零创建初始画像（首次自动播种）
 
 画像 Markdown 约定结构：
 
@@ -51,7 +51,7 @@
     → 找到 → 复制为 user-profile-YYYY.md（种子画像），返回路径
     → 找不到 → 检查旧版 user-profile.md
       → 存在 → 复制到 user-profile/user-profile-YYYY.md，删除旧版
-      → 不存在 → 返回 null，静默跳过本次维护
+      → 不存在 → 不跳过，继续执行日更，prompt 从零创建初始画像（首次自动播种）
 ```
 
 ### 2.2 增量日更（自动）
@@ -217,7 +217,7 @@ AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）
 - **画像内容不过 IPC**，渲染进程不持有画像数据
 - 按年分版：`user-profile-YYYY.md`，当前年份为活跃文件，过往年份自动归档不修改
 - 存量单文件 `user-profile.md` 首次日更时自动迁移
-- `user-profile/` 目录为空且无旧版文件时，画像维护静默跳过
+- `user-profile/` 目录为空且无旧版文件时，日更从零创建初始画像，无需手动生成
 - 新年首次日更时自动复制上年画像作为种子
 - AI 失败不影响日记保存，日更/全量刷新失败只打 warn 日志
 - 手动重建全成功才写盘，失败不会覆盖现有画像；仅重建缺口年份，不影响已归档画像

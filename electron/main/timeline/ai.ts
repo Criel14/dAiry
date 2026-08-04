@@ -305,10 +305,12 @@ export async function updateTimelineForDay(
   date: string,
 ): Promise<void> {
   const year = Number.parseInt(date.split('-')[0], 10)
-  const existingData = readTimelineYear(workspacePath, year)
-
-  if (!existingData) {
-    return
+  // 时间轴文件不存在时自动初始化，从整理当天开始建立
+  const existingData = readTimelineYear(workspacePath, year) ?? {
+    year,
+    version: 1,
+    generatedAt: new Date().toISOString(),
+    events: [],
   }
 
   try {

@@ -67,14 +67,15 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 ```
 journal.ts: generateDailyInsights 返回后
   → void updateTimelineForDay(workspacePath, date)
-    → 读取当年时间轴 JSON，不存在则静默跳过
+    → 读取当年时间轴 JSON，不存在则以空事件列表初始化（首次自动播种）
     → 调用 extractEventsFromDay()
     → 合并新事件/更新，写回 JSON
 ```
 
 **特点：**
 
-- 只在时间轴文件已存在时生效（不会凭空创建）
+- 时间轴文件不存在时自动初始化，从整理当天开始建立（首次使用无需手动生成）
+- 若当天提取结果为空则不落盘，下次整理自动重试
 - 不阻塞日总结返回，失败只记 `console.error` 日志
 - 不发送用户画像给 AI
 - 复用 `extractEventsFromDay`，自带近期日记上下文
@@ -101,7 +102,7 @@ journal.ts: generateDailyInsights 返回后
 
 **约束：**
 
-- 只在时间轴 JSON 文件已存在时生效，不存在则静默跳过
+- 时间轴 JSON 文件不存在时自动初始化并创建，首次整理即可生成
 - `void` 上下文异步执行，不阻塞日总结返回
 - 失败只记 `console.error`
 
@@ -210,7 +211,8 @@ Preload 暴露 API（`electron/preload.ts:109-131`）：
 
 - **AI 不凭空生成事件**：事件必须基于日记原文
 - **时间轴文件是纯粹派生数据**：AI 生成的日级内容不回写原始 `.md`
-- **日更只追加不覆盖**：只对已有时间轴做增量更新，不创建新文件
+- **首次自动播种**：时间轴文件不存在时以空事件列表初始化，从整理当天开始建立，无需手动生成
+- **日更只追加不覆盖**：只对已有时间轴做增量更新
 - **全量重建全成功才落盘**：取消则已处理事件不保留
 - **目标年份由用户选择决定**：重建年份来自侧边栏选中年份，不固定为当前年份
 - **无日记年份不落盘**：全年无日记时跳过写入并提示，避免清空已有数据
