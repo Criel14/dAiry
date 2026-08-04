@@ -5,6 +5,7 @@ import { readAppConfig, normalizeAiSettings } from '../app-config'
 import { readAiContext } from '../ai/context'
 import { readAiApiKey } from '../secrets'
 import { createAiChatClient } from '../ai/provider-factory'
+import { withAiRetry } from '../ai/retry'
 import { loadPrompt } from '../ai/prompt-loader'
 import { readJournalDocument } from '../journal/document'
 import { getRecentDailySummaries } from '../ai/journal-ai-service'
@@ -137,14 +138,17 @@ export async function extractEventsFromDay(
     .filter(Boolean)
     .join('\n\n')
 
-  settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
-  const client = createAiChatClient(settings, apiKey)
-  const responseText = await client.completeText({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-  })
+  const responseText = await withAiRetry(
+    (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+    (client) =>
+      client.completeText({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }),
+    { minTimeoutMs: 120_000, label: '时间轴日更事件提取' },
+  )
 
   const result = extractJsonObject(responseText)
   return {
@@ -259,14 +263,17 @@ export async function rebuildTimelineYear(
       .filter(Boolean)
       .join('\n\n')
 
-    settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
-    const client = createAiChatClient(settings, apiKey)
-    const responseText = await client.completeText({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-    })
+    const responseText = await withAiRetry(
+      (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+      (client) =>
+        client.completeText({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+        }),
+      { minTimeoutMs: 120_000, label: '时间轴年度重建' },
+    )
 
     const result = extractJsonObject(responseText)
 

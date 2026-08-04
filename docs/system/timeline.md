@@ -122,7 +122,7 @@ journal.ts: generateDailyInsights 返回后
 **特点：**
 
 - 系统 prompt 每批次重新加载，修改 prompt 文件可即时生效
-- LLM 超时 120 秒（日更使用默认超时）
+- AI 调用带递增超时重试：首次 `max(用户配置, 120s)`，失败后每次 +60s（120s → 180s → 240s），最多 3 次尝试；仅对超时/网络/5xx 错误重试，其余错误立即失败
 - `newEvents` 以 `id` 去重后追加，`updatedEvents` 逐条匹配更新 `dateEnd` 和 `detail`
 - 支持取消：当前批次完成后返回 `null`，已处理事件不落盘
 

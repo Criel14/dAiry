@@ -114,6 +114,31 @@ function isClaudeProvider(providerType: string) {
   return providerType === 'claude'
 }
 
+export const AI_ERROR_CODES = {
+  TIMEOUT: 'ai:timeout',
+  NETWORK: 'ai:network',
+  HTTP4XX: 'ai:http4xx',
+  HTTP5XX: 'ai:http5xx',
+  EMPTY: 'ai:empty',
+} as const
+
+function markAiError(error: unknown, code: string): Error {
+  if (error instanceof Error) {
+    ;(error as Error & { code?: string }).code = code
+    return error
+  }
+
+  const wrapped = new Error(String(error))
+  ;(wrapped as Error & { code?: string }).code = code
+  return wrapped
+}
+
+function isTimeoutError(error: unknown) {
+  return (
+    error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')
+  )
+}
+
 export interface AiChatClient {
   completeJson: (input: ChatCompletionRequest) => Promise<string>
   completeText: (input: ChatCompletionTextRequest) => Promise<string>
@@ -129,15 +154,23 @@ export function createAiChatClient(
     settings.providerType === 'openai' || settings.providerType === 'openai-compatible'
 
   async function requestOpenAiChatCompletion(body: Record<string, unknown>) {
-    const response = await fetch(resolveOpenAiEndpoint(settings.baseURL), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(effectiveTimeout),
-    })
+    let response: Response
+    try {
+      response = await fetch(resolveOpenAiEndpoint(settings.baseURL), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(effectiveTimeout),
+      })
+    } catch (err) {
+      if (isTimeoutError(err)) {
+        throw markAiError(err, AI_ERROR_CODES.TIMEOUT)
+      }
+      throw markAiError(err, AI_ERROR_CODES.NETWORK)
+    }
 
     let rawBody: string
     let bodyReadFailed = false
@@ -156,33 +189,49 @@ export function createAiChatClient(
     }
 
     if (!response.ok) {
-      throw new Error(payload?.error?.message || `AI 请求失败（${response.status}）。`)
+      const code =
+        response.status >= 500 ? AI_ERROR_CODES.HTTP5XX : AI_ERROR_CODES.HTTP4XX
+      throw markAiError(
+        new Error(payload?.error?.message || `AI 请求失败（${response.status}）。`),
+        code,
+      )
     }
 
     if (bodyReadFailed) {
-      throw new Error('读取大模型响应超时，请检查网络或适当增大超时时间。')
+      throw markAiError(
+        new Error('读取大模型响应超时，请检查网络或适当增大超时时间。'),
+        AI_ERROR_CODES.TIMEOUT,
+      )
     }
 
     const content = payload ? extractResponseText(payload) : ''
     if (!content.trim()) {
       console.warn('[ai] 大模型返回空内容，原始响应：', rawBody.slice(0, 500))
-      throw new Error('AI 没有返回可用内容，请稍后重试。')
+      throw markAiError(new Error('AI 没有返回可用内容，请稍后重试。'), AI_ERROR_CODES.EMPTY)
     }
 
     return content
   }
 
   async function requestClaudeChatCompletion(body: Record<string, unknown>) {
-    const response = await fetch(resolveClaudeEndpoint(settings.baseURL), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(effectiveTimeout),
-    })
+    let response: Response
+    try {
+      response = await fetch(resolveClaudeEndpoint(settings.baseURL), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(effectiveTimeout),
+      })
+    } catch (err) {
+      if (isTimeoutError(err)) {
+        throw markAiError(err, AI_ERROR_CODES.TIMEOUT)
+      }
+      throw markAiError(err, AI_ERROR_CODES.NETWORK)
+    }
 
     let rawBody: string
     let bodyReadFailed = false
@@ -201,17 +250,25 @@ export function createAiChatClient(
     }
 
     if (!response.ok) {
-      throw new Error(payload?.error?.message || `AI 请求失败（${response.status}）。`)
+      const code =
+        response.status >= 500 ? AI_ERROR_CODES.HTTP5XX : AI_ERROR_CODES.HTTP4XX
+      throw markAiError(
+        new Error(payload?.error?.message || `AI 请求失败（${response.status}）。`),
+        code,
+      )
     }
 
     if (bodyReadFailed) {
-      throw new Error('读取大模型响应超时，请检查网络或适当增大超时时间。')
+      throw markAiError(
+        new Error('读取大模型响应超时，请检查网络或适当增大超时时间。'),
+        AI_ERROR_CODES.TIMEOUT,
+      )
     }
 
     const content = payload ? extractClaudeResponseText(payload) : ''
     if (!content.trim()) {
       console.warn('[ai] Claude 返回空内容，原始响应：', rawBody.slice(0, 500))
-      throw new Error('AI 没有返回可用内容，请稍后重试。')
+      throw markAiError(new Error('AI 没有返回可用内容，请稍后重试。'), AI_ERROR_CODES.EMPTY)
     }
 
     return content

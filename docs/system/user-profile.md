@@ -124,7 +124,7 @@ Month 3: AI([system], [profile2 + month3 日记])      → profile3
 ```
 
 3. 每篇正文截断 2200 字，单月总预算 60K 字符
-4. AI 调用 temperature=0.3，超时 120 秒，每轮最多重试 1 次
+4. AI 调用 temperature=0.3，首次超时 `max(用户配置, 120s)`，失败后递增 +60s 重试一次（共 2 次尝试），仅对超时/网络/5xx 错误重试
 5. 全部成功 → 写盘 + 更新 `lastProfileRefresh`
 6. 任一月份失败 → 整体抛错，之前处理月份的进展不保留
 

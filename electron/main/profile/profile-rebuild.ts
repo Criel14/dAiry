@@ -7,7 +7,9 @@ import type {
   UserProfileRebuildProgress,
 } from '../../../src/types/ai'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
-import { loadPrompt } from '../ai'
+import { readAiApiKey } from '../secrets'
+import { createAiChatClient, loadPrompt } from '../ai'
+import { withAiRetry } from '../ai/retry'
 import { readJournalDocument } from '../journal/document'
 import {
   getWorkspaceJournalDir,
@@ -18,7 +20,6 @@ import {
 import { updateWorkspaceConfig } from '../workspace/config'
 import {
   PROFILE_AI_TEMPERATURE,
-  createProfileAiClient,
   isProfileRebuildRunning,
   normalizeProfileMarkdown,
   readUserProfile,
@@ -198,10 +199,8 @@ export async function rebuildUserProfile(
 
   const config = await readAppConfig()
   const settings = normalizeAiSettings(config.ai)
-  settings.timeoutMs = Math.max(settings.timeoutMs, 120_000)
-  const client = await createProfileAiClient(settings)
-
-  if (!client) {
+  const apiKey = await readAiApiKey(settings.providerType)
+  if (!settings.baseURL || !settings.model || !apiKey) {
     throw new Error('请先在设置页完成大模型配置和 API Key 保存。')
   }
 
@@ -254,7 +253,6 @@ export async function rebuildUserProfile(
       }
 
       let responseText = ''
-      let aiSucceeded = false
       try {
         const userContent = buildRebuildPrompt({
           month,
@@ -264,34 +262,18 @@ export async function rebuildUserProfile(
           entries,
         })
 
-        let lastError: unknown
-        for (let attempt = 0; attempt < 2; attempt += 1) {
-          lastError = null
-
-          try {
-            responseText = await client.completeText({
+        responseText = await withAiRetry(
+          (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+          (retryClient) =>
+            retryClient.completeText({
               messages: [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: userContent },
               ],
               temperature: PROFILE_AI_TEMPERATURE,
-            })
-            aiSucceeded = true
-            break
-          } catch (error) {
-            lastError = error
-          }
-
-          if (attempt < 1) {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-          }
-        }
-
-        if (!aiSucceeded) {
-          throw lastError instanceof Error
-            ? lastError
-            : new Error('未知错误')
-        }
+            }),
+          { minTimeoutMs: 120_000, maxAttempts: 2, label: '画像重建' },
+        )
       } catch (error) {
         throw new Error(
           `整理 ${month} 失败：${error instanceof Error ? error.message : '未知错误'}`,

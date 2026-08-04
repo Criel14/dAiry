@@ -1,10 +1,11 @@
 import { mkdir, readFile, writeFile, access, copyFile, unlink } from 'node:fs/promises'
 import { constants } from 'node:fs'
 import dayjs from 'dayjs'
-import type { AiSettings, RecentDaySummary } from '../../../src/types/ai'
+import type { RecentDaySummary } from '../../../src/types/ai'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
 import { readAiApiKey } from '../secrets'
 import { createAiChatClient, getRecentDailySummaries, loadPrompt } from '../ai'
+import { withAiRetry } from '../ai/retry'
 import type { AiChatClient } from '../ai'
 import { readJournalDocument } from '../journal/document'
 import {
@@ -207,19 +208,6 @@ async function collectRangeEntries(
   return entries.filter((entry) => entry.body || entry.summary.trim())
 }
 
-export async function createProfileAiClient(settings: AiSettings): Promise<AiChatClient | null> {
-  if (!settings.baseURL || !settings.model) {
-    return null
-  }
-
-  const apiKey = await readAiApiKey(settings.providerType)
-  if (!apiKey) {
-    return null
-  }
-
-  return createAiChatClient(settings, apiKey)
-}
-
 export async function updateUserProfileDaily(input: {
   client: AiChatClient
   workspacePath: string
@@ -343,12 +331,11 @@ export async function runProfileMaintenance(input: ProfileMaintenanceInput): Pro
 
     const config = await readAppConfig()
     const settings = normalizeAiSettings(config.ai)
-    settings.timeoutMs = Math.max(settings.timeoutMs, 120_000)
-    const client = await createProfileAiClient(settings)
-
-    if (!client) {
+    const apiKey = await readAiApiKey(settings.providerType)
+    if (!settings.baseURL || !settings.model || !apiKey) {
       return
     }
+    const createClient = (timeoutMs: number) => createAiChatClient(settings, apiKey, timeoutMs)
 
     const recentSummaries = await getRecentDailySummaries(
       input.workspacePath,
@@ -357,13 +344,18 @@ export async function runProfileMaintenance(input: ProfileMaintenanceInput): Pro
     )
 
     try {
-      await updateUserProfileDaily({
-        client,
-        workspacePath: input.workspacePath,
-        date: input.date,
-        body: input.body,
-        recentSummaries,
-      })
+      await withAiRetry(
+        createClient,
+        (client) =>
+          updateUserProfileDaily({
+            client,
+            workspacePath: input.workspacePath,
+            date: input.date,
+            body: input.body,
+            recentSummaries,
+          }),
+        { minTimeoutMs: 120_000, label: '画像日更' },
+      )
     } catch (error) {
       console.warn('[profile] 画像日更失败：', error)
     }
@@ -376,13 +368,18 @@ export async function runProfileMaintenance(input: ProfileMaintenanceInput): Pro
       )
 
       if (needsFullRefresh) {
-        await refreshUserProfileFull({
-          client,
-          workspacePath: input.workspacePath,
-          endDate: input.date,
-          intervalDays: settings.profileRefreshIntervalDays,
-          todayBody: input.body,
-        })
+        await withAiRetry(
+          createClient,
+          (client) =>
+            refreshUserProfileFull({
+              client,
+              workspacePath: input.workspacePath,
+              endDate: input.date,
+              intervalDays: settings.profileRefreshIntervalDays,
+              todayBody: input.body,
+            }),
+          { minTimeoutMs: 120_000, label: '画像周期刷新' },
+        )
       }
     } catch (error) {
       console.warn('[profile] 画像周期刷新失败：', error)
