@@ -12,9 +12,11 @@ const {
   categoryPanelTab,
   goToCurrentMonth,
   handleCreateCategory,
+  handleCreateKeydown,
   handleDeleteCategory,
   handleRenamePrompt,
   isCategoryPanelExpanded,
+  isMutatingCategory,
   monthCells,
   monthPickerTitle,
   newCategoryName,
@@ -133,9 +135,14 @@ const {
             type="text"
             maxlength="12"
             placeholder="新分类名"
-            @keydown.enter="handleCreateCategory"
+            @keydown.enter="handleCreateKeydown"
           />
-          <button class="primary-button category-create-button" type="button" @click="handleCreateCategory">
+          <button
+            class="primary-button category-create-button"
+            type="button"
+            :disabled="isMutatingCategory"
+            @click="handleCreateCategory"
+          >
             <Plus class="button-icon" aria-hidden="true" />
             新增
           </button>

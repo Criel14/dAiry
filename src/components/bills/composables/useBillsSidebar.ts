@@ -36,6 +36,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   const categoryPanelTab = ref<BillType>('expense')
   const newCategoryName = ref('')
   const categoryError = ref('')
+  const isMutatingCategory = ref(false)
 
   watch(
     () => props.selectedMonth,
@@ -84,12 +85,14 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   }
 
   async function handleCreateCategory() {
+    if (isMutatingCategory.value) return
     if (!props.workspacePath) return
     const name = newCategoryName.value.trim()
     if (!name) {
       categoryError.value = '请输入分类名'
       return
     }
+    isMutatingCategory.value = true
     try {
       await window.dairy.createBillCategory({
         workspacePath: props.workspacePath,
@@ -101,11 +104,21 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
       emit('categoryChanged')
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '创建分类失败')
+    } finally {
+      isMutatingCategory.value = false
+    }
+  }
+
+  function handleCreateKeydown(event: KeyboardEvent) {
+    if (!event.isComposing) {
+      void handleCreateCategory()
     }
   }
 
   async function handleRenameCategory(type: BillType, name: string, newName: string) {
+    if (isMutatingCategory.value) return
     if (!props.workspacePath) return
+    isMutatingCategory.value = true
     try {
       await window.dairy.renameBillCategory({
         workspacePath: props.workspacePath,
@@ -116,6 +129,8 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
       emit('categoryChanged')
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '重命名分类失败')
+    } finally {
+      isMutatingCategory.value = false
     }
   }
 
@@ -128,9 +143,11 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   }
 
   async function handleDeleteCategory(type: BillType, name: string) {
+    if (isMutatingCategory.value) return
     if (!props.workspacePath) return
     const confirmed = window.confirm(`删除分类「${name}」？历史账单将回退为其他样式。`)
     if (!confirmed) return
+    isMutatingCategory.value = true
     try {
       await window.dairy.deleteBillCategory({
         workspacePath: props.workspacePath,
@@ -140,6 +157,8 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
       emit('categoryChanged')
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '删除分类失败')
+    } finally {
+      isMutatingCategory.value = false
     }
   }
 
@@ -149,9 +168,11 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
     categoryPanelTab,
     goToCurrentMonth,
     handleCreateCategory,
+    handleCreateKeydown,
     handleDeleteCategory,
     handleRenamePrompt,
     isCategoryPanelExpanded,
+    isMutatingCategory,
     monthCells,
     monthPickerTitle,
     newCategoryName,

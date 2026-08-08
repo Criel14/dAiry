@@ -308,6 +308,20 @@
   gap: 0.5rem;
 }
 
+.field-input {
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-main);
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: var(--color-border-strong);
+}
+
 .category-create-input {
   min-height: 2.3rem;
 }
