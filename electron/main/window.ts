@@ -69,7 +69,7 @@ function destroyTray() {
   tray = null
 }
 
-function showMainWindow() {
+export function showMainWindow() {
   if (!win || win.isDestroyed()) {
     return
   }
@@ -366,6 +366,11 @@ function registerWindowStatePersistence(targetWindow: BrowserWindow) {
 }
 
 export async function createMainWindow() {
+  if (win && !win.isDestroyed()) {
+    showMainWindow()
+    return
+  }
+
   Menu.setApplicationMenu(null)
 
   isWindowDirty = false
