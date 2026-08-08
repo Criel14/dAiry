@@ -6,7 +6,7 @@ import {
   type BillCategory,
   type BillType,
 } from '../../../src/types/bills'
-import { pickPaletteColor } from './logic'
+import { pickPaletteColor } from '../../../src/shared/bills-logic'
 
 const CATEGORIES_FILE_NAME = 'bill-categories.json'
 const CATEGORIES_VERSION = 1

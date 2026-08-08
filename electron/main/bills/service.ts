@@ -17,7 +17,7 @@ import {
   renameBillCategory,
 } from './categories'
 import { getBillsDatabase, mapRowToBill } from './db'
-import { assertValidAmountCents, assertValidDate, assertValidNote, resolveCategory } from './logic'
+import { assertValidAmountCents, assertValidDate, assertValidNote, resolveCategory } from '../../../src/shared/bills-logic'
 
 function nowIso() {
   return new Date().toISOString()

@@ -2,7 +2,7 @@ import { computed, ref, watch, type Ref } from 'vue'
 import dayjs from 'dayjs'
 import type { Bill, BillCategory } from '../../../types/bills'
 import { getReadableErrorMessage } from '../../../utils/error'
-import { aggregateRecords, formatCents, formatPlainCents, resolveCategory } from '../../../../electron/main/bills/logic'
+import { aggregateRecords, formatCents, formatPlainCents, resolveCategory } from '../../../shared/bills-logic'
 
 export interface BillsModalState {
   open: boolean

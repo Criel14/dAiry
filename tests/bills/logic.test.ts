@@ -10,7 +10,7 @@ import {
   resolveCategory,
   toCents,
   typeFromAmount,
-} from '../../electron/main/bills/logic'
+} from '../../src/shared/bills-logic'
 import {
   BUILTIN_CATEGORIES,
   DEFAULT_CATEGORY_PALETTE,

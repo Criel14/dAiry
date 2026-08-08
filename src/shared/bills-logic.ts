@@ -1,4 +1,4 @@
-import { DEFAULT_CATEGORY_PALETTE, FALLBACK_CATEGORY_NAME, type Bill, type BillCategory, type BillType } from '../../../src/types/bills'
+import { DEFAULT_CATEGORY_PALETTE, FALLBACK_CATEGORY_NAME, type Bill, type BillCategory, type BillType } from '../types/bills'
 
 export interface ResolvedCategory {
   type: BillType
