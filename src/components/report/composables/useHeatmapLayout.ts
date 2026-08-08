@@ -1,16 +1,34 @@
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  type ComputedRef,
+} from 'vue'
 import {
   REPORT_HEATMAP_CELL_GAP,
   REPORT_HEATMAP_DEFAULT_CELL_SIZE,
   REPORT_HEATMAP_MAX_CELL_SIZE,
   REPORT_HEATMAP_MIN_CELL_SIZE,
   REPORT_HEATMAP_WEEKDAY_LABELS,
-  buildReportHeatmapCells,
   buildReportHeatmapMonthLabels,
-} from '../../shared/report-view'
-import type { ReportsPanelProps } from './types'
+  type ReportHeatmapCell,
+} from '../shared/report-view'
 
-export function useReportHeatmap(props: ReportsPanelProps) {
+/**
+ * 报告热力图自适应布局（展示页与导出文档共用）：
+ * 根据 scroller 宽度计算格子尺寸，ResizeObserver 监听变化。
+ * maxCellSize 用于导出文档等宽容器场景：放宽上限让热力图随宽度填满，
+ * 避免格子触顶后右侧留白。
+ */
+export function useHeatmapLayout(
+  heatmapCells: ComputedRef<ReportHeatmapCell[]>,
+  watchKeys: () => unknown[],
+  options: { maxCellSize?: number } = {},
+) {
+  const maxCellSize = options.maxCellSize ?? REPORT_HEATMAP_MAX_CELL_SIZE
   const heatmapWeekdayLabels = REPORT_HEATMAP_WEEKDAY_LABELS
   const heatmapScrollerRef = ref<HTMLElement | null>(null)
   const heatmapCellSize = ref(REPORT_HEATMAP_DEFAULT_CELL_SIZE)
@@ -18,9 +36,6 @@ export function useReportHeatmap(props: ReportsPanelProps) {
   let heatmapResizeObserver: ResizeObserver | null = null
   let pendingHeatmapWidth: number | null = null
 
-  const heatmapCells = computed(() =>
-    buildReportHeatmapCells(props.activeReport, props.activeHeatmapPoints),
-  )
   const heatmapWeekCount = computed(() => Math.ceil(heatmapCells.value.length / 7))
   const heatmapSizingStyle = computed(() => ({
     '--heatmap-cell-size': `${heatmapCellSize.value}px`,
@@ -42,7 +57,7 @@ export function useReportHeatmap(props: ReportsPanelProps) {
 
     const nextSize = Math.max(
       REPORT_HEATMAP_MIN_CELL_SIZE,
-      Math.min(REPORT_HEATMAP_MAX_CELL_SIZE, rawSize),
+      Math.min(maxCellSize, rawSize),
     )
 
     if (nextSize !== heatmapCellSize.value) {
@@ -105,7 +120,7 @@ export function useReportHeatmap(props: ReportsPanelProps) {
   })
 
   watch(
-    [heatmapWeekCount, () => props.activeReport?.reportId],
+    [heatmapWeekCount, watchKeys],
     async () => {
       await nextTick()
       scheduleHeatmapCellSizeUpdate()

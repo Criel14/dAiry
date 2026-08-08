@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import MoodTrendChart from '../MoodTrendChart/MoodTrendChart.vue'
 import TagCloudView from '../TagCloudView/TagCloudView.vue'
+import ReportHeatmapView from '../ReportHeatmapView/ReportHeatmapView.vue'
+import ReportPatternListView from '../ReportPatternListView/ReportPatternListView.vue'
 import type {
   RangeReport,
   ReportHeatmapPoint,
@@ -32,7 +34,9 @@ const {
   MAX_EXPORT_IMAGE_SCALE,
   MIN_EXPORT_DOCUMENT_WIDTH,
   MIN_EXPORT_IMAGE_SCALE,
+  activeLocationPatternView,
   activeSummaryGroups,
+  activeTimePatternView,
   buildTimeAnchorTitle,
   canOpenExportDialog,
   canStartExport,
@@ -41,16 +45,8 @@ const {
   exportSectionOptions,
   formatPreset,
   getMaxWordsInOneDay,
-  getPatternCount,
-  getPatternListClass,
-  getRankingFillWidth,
   getSummaryItemKey,
   handleExportReport,
-  heatmapCells,
-  heatmapMonthLabels,
-  heatmapScrollerRef,
-  heatmapSizingStyle,
-  heatmapWeekdayLabels,
   isExportDialogVisible,
   isExportSectionAvailable,
   isExportSectionSelected,
@@ -61,8 +57,6 @@ const {
   stepExportDocumentWidth,
   stepExportImageScale,
   toggleExportSection,
-  visibleLocationRanking,
-  visibleTimeBuckets,
 } = useReportsPanelView(props)
 </script>
 
@@ -198,50 +192,11 @@ const {
             <span>{{ activeHeatmapPoints.length }} 天</span>
           </div>
 
-          <div class="heatmap-shell" :style="heatmapSizingStyle">
-            <div class="heatmap-body">
-              <div class="heatmap-weekdays" aria-hidden="true">
-                <span
-                  v-for="(label, index) in heatmapWeekdayLabels"
-                  :key="`${label}-${index}`"
-                  class="heatmap-weekday-label"
-                >
-                  {{ label }}
-                </span>
-              </div>
-
-              <div ref="heatmapScrollerRef" class="heatmap-scroller">
-                <div class="heatmap-scroll-content">
-                  <div v-if="heatmapMonthLabels.length > 0" class="heatmap-months">
-                    <span
-                      v-for="month in heatmapMonthLabels"
-                      :key="month.key"
-                      class="heatmap-month-label"
-                      :style="{ gridColumn: String(month.column) }"
-                    >
-                      {{ month.label }}
-                    </span>
-                  </div>
-
-                  <div class="heatmap-grid">
-                    <div
-                      v-for="cell in heatmapCells"
-                      :key="cell.date"
-                      class="heatmap-cell"
-                      :class="[
-                        `heatmap-cell--level-${cell.level}`,
-                        {
-                          'heatmap-cell--muted': cell.isInDisplayRange && !cell.isInFocusRange,
-                          'heatmap-cell--outside': !cell.isInDisplayRange,
-                        },
-                      ]"
-                      :title="`${cell.date} · ${cell.value} 字`"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ReportHeatmapView
+            :report="activeReport"
+            :points="activeHeatmapPoints"
+            show-tooltip
+          />
         </section>
 
         <section v-if="activeMoodPoints.length > 0" class="content-card">
@@ -269,55 +224,10 @@ const {
             <h4>地点分析</h4>
           </div>
 
-          <div
-            class="pattern-layout"
-            :class="{ 'pattern-layout--single': visibleLocationRanking.length === 0 }"
-          >
-            <article class="pattern-summary-card">
-              <span class="pattern-summary-label">最常地点</span>
-              <div class="pattern-summary-main">
-                <strong>{{ activeLocationPatterns.topLocation?.name ?? '暂无' }}</strong>
-                <em v-if="activeLocationPatterns.topLocation">{{ activeLocationPatterns.topLocation.count }} 次</em>
-              </div>
-            </article>
-
-            <article class="pattern-summary-card pattern-summary-card--accent">
-              <span class="pattern-summary-label">特别地点</span>
-              <div class="pattern-summary-main">
-                <strong>{{ activeLocationPatterns.uniqueLocation?.name ?? '暂无' }}</strong>
-                <em v-if="getPatternCount(activeLocationPatterns.uniqueLocation) !== null">
-                  {{ getPatternCount(activeLocationPatterns.uniqueLocation) }} 次
-                </em>
-              </div>
-            </article>
-
-            <div
-              v-if="visibleLocationRanking.length > 0"
-              class="pattern-compact-list"
-              :class="getPatternListClass(visibleLocationRanking.length)"
-            >
-              <div
-                v-for="(item, index) in visibleLocationRanking"
-                :key="item.name"
-                class="pattern-compact-row"
-              >
-                <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
-                <strong class="pattern-compact-label">{{ item.name }}</strong>
-                <div class="pattern-compact-track">
-                  <div
-                    class="pattern-compact-fill"
-                    :style="{
-                      width: getRankingFillWidth(
-                        item.count,
-                        activeLocationPatterns.topLocation?.count ?? item.count,
-                      ),
-                    }"
-                  ></div>
-                </div>
-                <span class="pattern-compact-count">{{ item.count }} 次</span>
-              </div>
-            </div>
-          </div>
+          <ReportPatternListView
+            :summary-cards="activeLocationPatternView.summaryCards"
+            :ranking="activeLocationPatternView.ranking"
+          />
         </section>
 
         <section v-if="activeTimePatterns" class="content-card">
@@ -325,55 +235,10 @@ const {
             <h4>时间段分析</h4>
           </div>
 
-          <div
-            class="pattern-layout"
-            :class="{ 'pattern-layout--single': visibleTimeBuckets.length === 0 }"
-          >
-            <article class="pattern-summary-card">
-              <span class="pattern-summary-label">最常时间段</span>
-              <div class="pattern-summary-main">
-                <strong>{{ activeTimePatterns.topTimeBucket?.label ?? '暂无' }}</strong>
-                <em v-if="activeTimePatterns.topTimeBucket">{{ activeTimePatterns.topTimeBucket.count }} 次</em>
-              </div>
-            </article>
-
-            <article class="pattern-summary-card pattern-summary-card--accent">
-              <span class="pattern-summary-label">特别时间段</span>
-              <div class="pattern-summary-main">
-                <strong>{{ activeTimePatterns.uniqueTimeBucket?.label ?? '暂无' }}</strong>
-                <em v-if="getPatternCount(activeTimePatterns.uniqueTimeBucket) !== null">
-                  {{ getPatternCount(activeTimePatterns.uniqueTimeBucket) }} 次
-                </em>
-              </div>
-            </article>
-
-            <div
-              v-if="visibleTimeBuckets.length > 0"
-              class="pattern-compact-list"
-              :class="getPatternListClass(visibleTimeBuckets.length)"
-            >
-              <div
-                v-for="(item, index) in visibleTimeBuckets"
-                :key="item.label"
-                class="pattern-compact-row"
-              >
-                <span class="pattern-compact-rank">{{ String(index + 1).padStart(2, '0') }}</span>
-                <strong class="pattern-compact-label">{{ item.label }}</strong>
-                <div class="pattern-compact-track">
-                  <div
-                    class="pattern-compact-fill"
-                    :style="{
-                      width: getRankingFillWidth(
-                        item.count,
-                        activeTimePatterns.topTimeBucket?.count ?? item.count,
-                      ),
-                    }"
-                  ></div>
-                </div>
-                <span class="pattern-compact-count">{{ item.count }} 次</span>
-              </div>
-            </div>
-          </div>
+          <ReportPatternListView
+            :summary-cards="activeTimePatternView.summaryCards"
+            :ranking="activeTimePatternView.ranking"
+          />
         </section>
       </article>
     </section>

@@ -1,18 +1,24 @@
 import { computed, ref, watch } from 'vue'
 import type { ReportExportSectionKey } from '../../../../types/report'
 import {
+  REPORT_EXPORT_DEFAULT_DOCUMENT_WIDTH,
+  REPORT_EXPORT_DEFAULT_IMAGE_SCALE,
+  REPORT_EXPORT_MAX_DOCUMENT_WIDTH,
+  REPORT_EXPORT_MAX_IMAGE_SCALE,
+  REPORT_EXPORT_MIN_DOCUMENT_WIDTH,
+  REPORT_EXPORT_MIN_IMAGE_SCALE,
   REPORT_EXPORT_SECTION_OPTIONS,
-  getAvailableExportSections,
   getDefaultExportSections,
-} from '../../config/export-config'
+  getReportAvailableExportSections,
+} from '../../../../shared/report-export'
 import type { ReportsPanelProps } from './types'
 
-const DEFAULT_EXPORT_IMAGE_SCALE = '1.5'
-const MIN_EXPORT_IMAGE_SCALE = 1
-const MAX_EXPORT_IMAGE_SCALE = 3
-const DEFAULT_EXPORT_DOCUMENT_WIDTH = '1200'
-const MIN_EXPORT_DOCUMENT_WIDTH = 1000
-const MAX_EXPORT_DOCUMENT_WIDTH = 2400
+const DEFAULT_EXPORT_IMAGE_SCALE = String(REPORT_EXPORT_DEFAULT_IMAGE_SCALE)
+const MIN_EXPORT_IMAGE_SCALE = REPORT_EXPORT_MIN_IMAGE_SCALE
+const MAX_EXPORT_IMAGE_SCALE = REPORT_EXPORT_MAX_IMAGE_SCALE
+const DEFAULT_EXPORT_DOCUMENT_WIDTH = String(REPORT_EXPORT_DEFAULT_DOCUMENT_WIDTH)
+const MIN_EXPORT_DOCUMENT_WIDTH = REPORT_EXPORT_MIN_DOCUMENT_WIDTH
+const MAX_EXPORT_DOCUMENT_WIDTH = REPORT_EXPORT_MAX_DOCUMENT_WIDTH
 
 export function useReportExportDialog(props: ReportsPanelProps) {
   const isExportDialogVisible = ref(false)
@@ -23,7 +29,9 @@ export function useReportExportDialog(props: ReportsPanelProps) {
   const selectedExportImageScale = ref(DEFAULT_EXPORT_IMAGE_SCALE)
   const exportSectionOptions = REPORT_EXPORT_SECTION_OPTIONS
 
-  const availableExportSections = computed(() => getAvailableExportSections(props.activeReport))
+  const availableExportSections = computed(() =>
+    getReportAvailableExportSections(props.activeReport),
+  )
   const parsedExportDocumentWidth = computed(() =>
     parseExportDocumentWidth(selectedExportDocumentWidth.value),
   )

@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { writeFile } from 'node:fs/promises'
-import { BrowserWindow, dialog, type SaveDialogOptions } from 'electron'
+import { BrowserWindow, dialog, nativeImage, screen, type SaveDialogOptions } from 'electron'
 import type {
   ExportRangeReportInput,
   ExportRangeReportResult,
@@ -26,7 +26,7 @@ import {
   buildDefaultExportFileName,
   buildSaveDialogDefaultPath,
   ensurePngExtension,
-  getScaledCaptureSize,
+  getExportCaptureZoom,
   normalizeExportDocumentWidth,
   normalizeExportHeight,
   normalizeExportImageScale,
@@ -34,7 +34,13 @@ import {
   waitForNextFrame,
 } from './utils'
 
-async function createExportWindow(sessionId: string) {
+/**
+ * 分条截图时窗口内容高度上限（DIP）：超过后滚动分条截图再拼图，
+ * 避免超大窗口触碰系统/合成器尺寸上限导致底部被钳制裁切。
+ */
+const EXPORT_STRIP_MAX_HEIGHT = 7000
+
+async function createExportWindow(sessionId: string, windowWidth: number) {
   const session = getExportSession(sessionId)
 
   if (!session) {
@@ -44,11 +50,16 @@ async function createExportWindow(sessionId: string) {
   const exportWindow = new BrowserWindow({
     show: false,
     useContentSize: true,
-    width: session.payload.documentWidth,
+    width: windowWidth,
     height: EXPORT_INITIAL_HEIGHT,
     backgroundColor: '#f6f2e8',
     webPreferences: {
       preload: path.join(MAIN_DIST, 'preload.mjs'),
+      backgroundThrottling: false,
+      // 独立内存 partition：setZoomFactor 的 zoom level 按 origin 持久化，
+      // 若与主窗口共用 session 会污染主窗口 UI 缩放（导出后不还原），
+      // 用非持久 partition 彻底隔离
+      partition: 'report-export',
     },
   })
 
@@ -82,6 +93,71 @@ async function waitForExportReady(sessionId: string) {
   })
 
   return Promise.race([session.readyPromise, timeoutPromise])
+}
+
+/**
+ * 分条截图：窗口保持安全高度，把内容高度按条数等分滚动截图后按行拼图，
+ * 最后统一 resize 到精确目标尺寸（宽/高 × imageScale）。
+ * 条高按内容高度均分而非固定值，避免最后一条滚动被钳制产生重叠区域。
+ */
+async function captureReportImage(
+  exportWindow: BrowserWindow,
+  targetWidth: number,
+  targetHeight: number,
+  windowDipWidth: number,
+  captureHeight: number,
+  zoomFactor: number,
+) {
+  const windowDipHeight = Math.max(1, Math.round(captureHeight * zoomFactor))
+  const useStrips = windowDipHeight > EXPORT_STRIP_MAX_HEIGHT
+  const stripCount = useStrips ? Math.ceil(windowDipHeight / EXPORT_STRIP_MAX_HEIGHT) : 1
+  const windowHeight = useStrips
+    ? Math.max(1, Math.round((captureHeight / stripCount) * zoomFactor))
+    : windowDipHeight
+  const cssStripHeight = captureHeight / stripCount
+
+  exportWindow.setContentSize(windowDipWidth, windowHeight)
+
+  const stripBuffers: Buffer[] = []
+  let stripPixelWidth = 0
+  let totalPixelHeight = 0
+
+  for (let index = 0; index < stripCount; index += 1) {
+    if (index > 0) {
+      await exportWindow.webContents.executeJavaScript(
+        `window.scrollTo(0, ${Math.round(index * cssStripHeight)})`,
+      )
+      await waitForNextFrame()
+    }
+
+    await waitForNextFrame()
+
+    const image = await exportWindow.webContents.capturePage()
+
+    if (image.isEmpty()) {
+      throw new Error('导出失败，截图结果为空。')
+    }
+
+    const imageSize = image.getSize()
+
+    if (index === 0) {
+      stripPixelWidth = imageSize.width
+    }
+
+    totalPixelHeight += imageSize.height
+    stripBuffers.push(image.toBitmap())
+  }
+
+  const stitchedImage = nativeImage.createFromBitmap(Buffer.concat(stripBuffers), {
+    width: stripPixelWidth,
+    height: totalPixelHeight,
+  })
+
+  return stitchedImage.resize({
+    width: Math.max(1, targetWidth),
+    height: Math.max(1, targetHeight),
+    quality: 'best',
+  })
 }
 
 export async function exportRangeReportPng(
@@ -149,27 +225,36 @@ export async function exportRangeReportPng(
   let exportWindow: BrowserWindow | null = null
 
   try {
-    exportWindow = await createExportWindow(sessionId)
+    const deviceScaleFactor = screen.getPrimaryDisplay().scaleFactor || 1
+    const zoomFactor = getExportCaptureZoom(imageScale, deviceScaleFactor)
+    const targetWidth = Math.max(1, Math.ceil(documentWidth * imageScale))
+    const windowDipWidth = Math.max(1, Math.round(documentWidth * zoomFactor))
+
+    exportWindow = await createExportWindow(sessionId, windowDipWidth)
+    exportWindow.webContents.setZoomFactor(zoomFactor)
+
     const contentHeight = await waitForExportReady(sessionId)
     const captureHeight = normalizeExportHeight(contentHeight)
-    const scaledCaptureSize = getScaledCaptureSize(documentWidth, captureHeight, imageScale)
+    const targetHeight = Math.max(1, Math.ceil(captureHeight * imageScale))
 
-    exportWindow.setContentSize(scaledCaptureSize.width, scaledCaptureSize.height)
-    await waitForNextFrame()
-    await waitForNextFrame()
+    const finalImage = await captureReportImage(
+      exportWindow,
+      targetWidth,
+      targetHeight,
+      windowDipWidth,
+      captureHeight,
+      zoomFactor,
+    )
+    const finalSize = finalImage.getSize()
 
-    const image = await exportWindow.webContents.capturePage({
-      x: 0,
-      y: 0,
-      width: scaledCaptureSize.width,
-      height: scaledCaptureSize.height,
-    })
-
-    if (image.isEmpty()) {
-      throw new Error('导出失败，截图结果为空。')
+    if (finalSize.width !== targetWidth || finalSize.height !== targetHeight) {
+      console.warn(
+        `导出截图尺寸与预期不符：期望 ${targetWidth}x${targetHeight}，` +
+          `实际 ${finalSize.width}x${finalSize.height}。`,
+      )
     }
 
-    await writeFile(filePath, image.toPNG())
+    await writeFile(filePath, finalImage.toPNG())
 
     return {
       canceled: false,

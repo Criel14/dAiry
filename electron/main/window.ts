@@ -416,6 +416,13 @@ export async function createMainWindow() {
     showMainWindow()
   })
 
+  // 页面加载完成后再次应用用户设置的缩放：Chromium 会按 origin 持久化
+  // zoom level，加载页面时会覆盖创建时的设置（历史版本导出窗口曾污染
+  // 过该值），这里兜底恢复
+  win.webContents.on('did-finish-load', () => {
+    applyWindowZoomFactor(initialZoomFactor)
+  })
+
   if (VITE_DEV_SERVER_URL) {
     void win.loadURL(VITE_DEV_SERVER_URL)
   } else {

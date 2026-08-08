@@ -1,43 +1,19 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import type { ReportExportPayload } from '../../../../../types/report'
 import { useReportExportTheme } from '../../composables/useReportExportTheme'
 import ReportExportDocument from '../ReportExportDocument/ReportExportDocument.vue'
 
 const containerRef = ref<HTMLElement | null>(null)
-const documentLayerRef = ref<HTMLElement | null>(null)
 const payload = ref<ReportExportPayload | null>(null)
 const isLoading = ref(true)
 const loadError = ref('')
-const measuredContentHeight = ref(0)
+
+const MAX_MEASURE_ROUNDS = 12
+const MEASURE_SETTLE_MS = 150
+const HEIGHT_BUFFER_PX = 8
 
 useReportExportTheme()
-
-const exportStageStyle = computed(() => {
-  if (!payload.value) {
-    return {}
-  }
-
-  return {
-    width: `${Math.ceil(payload.value.documentWidth * payload.value.imageScale)}px`,
-    height:
-      measuredContentHeight.value > 0
-        ? `${Math.ceil(measuredContentHeight.value * payload.value.imageScale)}px`
-        : 'auto',
-  }
-})
-
-const exportLayerStyle = computed(() => {
-  if (!payload.value) {
-    return {}
-  }
-
-  return {
-    width: `${payload.value.documentWidth}px`,
-    transform: `scale(${payload.value.imageScale})`,
-    transformOrigin: 'top left',
-  }
-})
 
 function getSessionId() {
   const searchParams = new URLSearchParams(window.location.search)
@@ -63,13 +39,49 @@ async function waitRenderStable() {
 }
 
 function getContentHeight() {
-  const documentHeight = documentLayerRef.value?.scrollHeight ?? 0
   const containerHeight = containerRef.value?.scrollHeight ?? 0
   const rootHeight = document.documentElement.scrollHeight
   const bodyHeight = document.body.scrollHeight
   const appHeight = document.getElementById('app')?.scrollHeight ?? 0
 
-  return Math.ceil(Math.max(documentHeight, containerHeight, rootHeight, bodyHeight, appHeight))
+  return Math.ceil(Math.max(containerHeight, rootHeight, bodyHeight, appHeight))
+}
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, milliseconds)
+  })
+}
+
+/**
+ * 复测稳定循环：等待渲染稳定后测量，若高度持续变化（字体切换、
+ * 热力图格子重算等后置渲染）则继续复测，直到连续两次一致或达到轮次上限；
+ * 上报各轮最大值并附加少量安全余量，避免底部内容被截图裁切。
+ */
+async function waitForStableHeight() {
+  let lastHeight = -1
+  let stableRounds = 0
+  let maxHeight = 0
+
+  for (let round = 0; round < MAX_MEASURE_ROUNDS; round += 1) {
+    await waitRenderStable()
+    const currentHeight = getContentHeight()
+    maxHeight = Math.max(maxHeight, currentHeight)
+
+    if (currentHeight === lastHeight) {
+      stableRounds += 1
+      if (stableRounds >= 2) {
+        break
+      }
+    } else {
+      stableRounds = 0
+      lastHeight = currentHeight
+    }
+
+    await delay(MEASURE_SETTLE_MS)
+  }
+
+  return maxHeight + HEIGHT_BUFFER_PX
 }
 
 async function initExportPage() {
@@ -84,10 +96,8 @@ async function initExportPage() {
   try {
     payload.value = await window.dairy.getReportExportPayload({ sessionId })
     isLoading.value = false
-    await waitRenderStable()
 
-    const contentHeight = getContentHeight()
-    measuredContentHeight.value = contentHeight
+    const contentHeight = await waitForStableHeight()
     await waitRenderStable()
     await window.dairy.notifyReportExportReady({
       sessionId,
@@ -123,23 +133,12 @@ onMounted(() => {
       <p>{{ loadError }}</p>
     </div>
 
-    <div
+    <ReportExportDocument
       v-else-if="payload"
-      class="report-export-stage"
-      :style="exportStageStyle"
-    >
-      <div
-        ref="documentLayerRef"
-        class="report-export-layer"
-        :style="exportLayerStyle"
-      >
-        <ReportExportDocument
-          :report="payload.report"
-          :sections="payload.sections"
-          :document-width="payload.documentWidth"
-        />
-      </div>
-    </div>
+      :report="payload.report"
+      :sections="payload.sections"
+      :document-width="payload.documentWidth"
+    />
   </section>
 </template>
 

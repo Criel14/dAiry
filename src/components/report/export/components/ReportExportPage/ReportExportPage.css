@@ -5,14 +5,6 @@
   background: var(--report-export-page-background);
 }
 
-.report-export-stage {
-  overflow: hidden;
-}
-
-.report-export-layer {
-  will-change: transform;
-}
-
 .export-state {
   display: grid;
   gap: 8px;

@@ -155,6 +155,90 @@ export function getReportPatternCount(value: unknown) {
   return null
 }
 
+export function getReportPatternListClass(count: number) {
+  if (count >= 5) {
+    return 'pattern-list--cols-3'
+  }
+
+  if (count >= 3) {
+    return 'pattern-list--cols-2'
+  }
+
+  return 'pattern-list--cols-1'
+}
+
+export interface ReportPatternSummaryCard {
+  title: string
+  value: string
+  count: string | null
+  accent?: boolean
+}
+
+export interface ReportPatternRankingItem {
+  label: string
+  count: number
+}
+
+export interface ReportPatternViewData {
+  summaryCards: ReportPatternSummaryCard[]
+  ranking: ReportPatternRankingItem[]
+}
+
+const MAX_PATTERN_RANKING_ITEMS = 6
+
+function buildPatternCountText(value: unknown) {
+  const count = getReportPatternCount(value)
+  return count === null ? null : String(count)
+}
+
+export function buildReportLocationPatternView(report: RangeReport | null): ReportPatternViewData {
+  const section = report?.sections.locationPatterns ?? null
+
+  return {
+    summaryCards: [
+      {
+        title: '最常地点',
+        value: section?.topLocation?.name ?? '暂无',
+        count: buildPatternCountText(section?.topLocation),
+      },
+      {
+        title: '特别地点',
+        value: section?.uniqueLocation?.name ?? '暂无',
+        count: buildPatternCountText(section?.uniqueLocation),
+        accent: true,
+      },
+    ],
+    ranking: (section?.ranking.slice(0, MAX_PATTERN_RANKING_ITEMS) ?? []).map((item) => ({
+      label: item.name,
+      count: item.count,
+    })),
+  }
+}
+
+export function buildReportTimePatternView(report: RangeReport | null): ReportPatternViewData {
+  const section = report?.sections.timePatterns ?? null
+
+  return {
+    summaryCards: [
+      {
+        title: '最常时间段',
+        value: section?.topTimeBucket?.label ?? '暂无',
+        count: buildPatternCountText(section?.topTimeBucket),
+      },
+      {
+        title: '特别时间段',
+        value: section?.uniqueTimeBucket?.label ?? '暂无',
+        count: buildPatternCountText(section?.uniqueTimeBucket),
+        accent: true,
+      },
+    ],
+    ranking: (section?.buckets.slice(0, MAX_PATTERN_RANKING_ITEMS) ?? []).map((item) => ({
+      label: item.label,
+      count: item.count,
+    })),
+  }
+}
+
 export function buildReportHeatmapDisplayRange(
   report: RangeReport | null,
   customContextMonthCount = REPORT_HEATMAP_CUSTOM_CONTEXT_MONTH_COUNT,

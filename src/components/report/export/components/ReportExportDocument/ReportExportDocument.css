@@ -18,6 +18,31 @@
   background: var(--report-export-card-background);
 }
 
+/* grid 子项默认 min-width: auto 会被长文本/max-content 内容撑破，
+   导致文档列宽超出导出宽度、右侧被裁；统一允许收缩 */
+.report-hero,
+.content-card,
+.card-header,
+.section-body,
+.stats-grid,
+.stat-item,
+.summary-groups,
+.summary-group,
+.summary-items,
+.summary-item,
+.pattern-layout,
+.pattern-list,
+.pattern-summary-card,
+.pattern-row {
+  min-width: 0;
+}
+
+/* 长文本（含英文/URL）正常换行，杜绝横向溢出 */
+.summary-text,
+.summary-item p {
+  overflow-wrap: anywhere;
+}
+
 .report-hero {
   display: grid;
   gap: 8px;
@@ -169,7 +194,7 @@
 
 .summary-items {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 10px;
 }
 
@@ -191,229 +216,14 @@
   line-height: 1.72;
 }
 
-.heatmap-shell {
-  --heatmap-cell-size: 12px;
-  --heatmap-cell-gap: 3px;
-  --heatmap-weekdays-width: 2.5rem;
-  --heatmap-body-gap: 0.55rem;
-  --heatmap-label-top-offset: 1.4rem;
-
-  display: grid;
-  gap: 0.45rem;
-  margin-top: 0.2rem;
-}
-
-.heatmap-body {
-  display: flex;
-  gap: var(--heatmap-body-gap);
-  align-items: flex-start;
-}
-
-.heatmap-weekdays {
-  display: grid;
-  grid-template-rows: repeat(7, var(--heatmap-cell-size));
-  gap: var(--heatmap-cell-gap);
-  flex: 0 0 var(--heatmap-weekdays-width);
-  padding-top: var(--heatmap-label-top-offset);
-  box-sizing: border-box;
-}
-
-.heatmap-weekday-label {
-  display: flex;
-  align-items: center;
-  height: var(--heatmap-cell-size);
-  font-size: 0.82rem;
-  color: var(--report-export-label-text);
-}
-
-.heatmap-scroller {
-  flex: 1 1 auto;
-  width: 100%;
-  min-width: 0;
+/* 导出文档内热力图不需要横向滚动，完整展示全部格子 */
+.report-export-document :deep(.heatmap-scroller) {
   overflow: visible;
   padding-bottom: 0;
 }
 
-.heatmap-months {
-  display: grid;
-  grid-template-columns: repeat(var(--heatmap-week-count), var(--heatmap-cell-size));
-  column-gap: var(--heatmap-cell-gap);
+/* 导出文档内排名列表与卡片间距由文档排版统一控制 */
+.report-export-document :deep(.pattern-layout) {
+  margin-top: 0.2rem;
 }
 
-.heatmap-month-label {
-  font-size: 0.84rem;
-  line-height: 1;
-  color: var(--report-export-label-text);
-  white-space: nowrap;
-}
-
-.heatmap-scroll-content {
-  display: grid;
-  gap: 0.45rem;
-  width: max-content;
-}
-
-.heatmap-grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(7, var(--heatmap-cell-size));
-  grid-auto-columns: var(--heatmap-cell-size);
-  gap: var(--heatmap-cell-gap);
-}
-
-.heatmap-cell {
-  position: relative;
-  width: var(--heatmap-cell-size);
-  height: var(--heatmap-cell-size);
-  border: 1px solid var(--report-export-heatmap-border);
-  border-radius: 3px;
-  background-color: var(--report-export-heatmap-empty-background);
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.heatmap-cell--outside {
-  border-color: transparent;
-  background: transparent;
-}
-
-.heatmap-cell--level-1:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--report-export-heatmap-level-1);
-}
-
-.heatmap-cell--level-2:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--report-export-heatmap-level-2);
-}
-
-.heatmap-cell--level-3:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--report-export-heatmap-level-3);
-}
-
-.heatmap-cell--level-4:not(.heatmap-cell--muted):not(.heatmap-cell--outside) {
-  background-color: var(--report-export-heatmap-level-4);
-}
-
-.heatmap-cell--muted {
-  border-color: var(--report-export-heatmap-muted-border);
-  background-color: var(--report-export-heatmap-muted-background);
-}
-
-.heatmap-cell--muted::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: -20%;
-  width: 140%;
-  height: 1.4px;
-  border-radius: 999px;
-  background: var(--report-export-heatmap-muted-strike);
-  transform: translateY(-50%) rotate(-45deg);
-  transform-origin: center;
-  pointer-events: none;
-}
-
-.pattern-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr minmax(0, 1.6fr);
-  gap: 12px;
-  margin-top: 0.1rem;
-}
-
-.pattern-layout--single {
-  grid-template-columns: 1fr 1fr;
-}
-
-.pattern-summary-card {
-  display: grid;
-  gap: 4px;
-  align-content: start;
-  min-height: 86px;
-  padding: 12px;
-  border: 1px solid var(--report-export-pattern-card-border);
-  border-radius: 14px;
-  background: var(--report-export-pattern-card-background);
-}
-
-.pattern-summary-card span {
-  color: var(--report-export-label-text);
-  font-size: 0.78rem;
-}
-
-.pattern-summary-card strong {
-  color: var(--report-export-title-text);
-  font-size: 1.02rem;
-}
-
-.pattern-summary-card em {
-  color: var(--report-export-note-text);
-  font-size: 0.76rem;
-  font-style: normal;
-}
-
-.pattern-list {
-  display: grid;
-  gap: 8px 10px;
-}
-
-.pattern-list--cols-1 {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.pattern-list--cols-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.pattern-list--cols-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.pattern-row {
-  display: grid;
-  grid-template-columns: 2rem minmax(0, 1.4fr) minmax(60px, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 10px;
-  border: 1px solid var(--report-export-pattern-row-border);
-  border-radius: 11px;
-  background: var(--report-export-pattern-row-background);
-}
-
-.rank {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 1.4rem;
-  border-radius: 999px;
-  background: var(--report-export-pattern-rank-background);
-  color: var(--report-export-note-text);
-  font-size: 0.74rem;
-}
-
-.label {
-  color: var(--report-export-title-text);
-  font-size: 0.86rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.track {
-  width: 100%;
-  height: 5px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: var(--report-export-pattern-track-background);
-}
-
-.fill {
-  height: 100%;
-  border-radius: inherit;
-  background: var(--report-export-pattern-fill-background);
-}
-
-.count {
-  color: var(--report-export-label-text);
-  font-size: 0.78rem;
-  white-space: nowrap;
-}

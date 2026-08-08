@@ -35,6 +35,15 @@ body.report-export-mode,
   min-height: 100%;
 }
 
+/* 导出页隐藏滚动条：分条截图时滚动条会占据视口右缘，导致内容右侧被裁 */
+html.report-export-mode {
+  scrollbar-width: none;
+}
+
+html.report-export-mode::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   overflow: hidden;
   background: var(--color-background);

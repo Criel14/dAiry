@@ -24,24 +24,6 @@ html[data-theme='dark'] {
   --report-export-summary-divider: var(--color-glass-accent-75);
   --report-export-summary-item-border: var(--color-glass-accent-45);
   --report-export-summary-group-border: var(--color-glass-border-85);
-
-  --report-export-heatmap-border: var(--color-glass-accent-18);
-  --report-export-heatmap-empty-background: var(--color-surface-status);
-  --report-export-heatmap-level-1: var(--color-surface-report-heat-1);
-  --report-export-heatmap-level-2: var(--color-surface-report-heat-2);
-  --report-export-heatmap-level-3: var(--color-surface-report-heat-3);
-  --report-export-heatmap-level-4: var(--color-surface-report-heat-4);
-  --report-export-heatmap-muted-border: var(--color-glass-shadow-10);
-  --report-export-heatmap-muted-background: var(--color-surface-report-heat-0);
-  --report-export-heatmap-muted-strike: var(--color-glass-shadow-20);
-
-  --report-export-pattern-card-border: var(--color-border);
-  --report-export-pattern-card-background: var(--color-surface-elevated);
-  --report-export-pattern-row-border: var(--color-border-soft);
-  --report-export-pattern-row-background: var(--color-surface-elevated);
-  --report-export-pattern-rank-background: var(--color-surface-report-note);
-  --report-export-pattern-track-background: var(--color-surface-report-chip);
-  --report-export-pattern-fill-background: var(--color-accent-strong);
 }
 
 html[data-theme='dark'] {

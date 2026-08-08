@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import { app } from 'electron'
 import type { RangeReport, ReportExportSectionKey } from '../../../src/types/report'
 import { readAppConfig } from '../app-config'
+import { getReportAvailableExportSections } from '../../../src/shared/report-export'
 import {
   EXPORT_DEFAULT_DOCUMENT_WIDTH,
   EXPORT_DEFAULT_IMAGE_SCALE,
@@ -48,32 +49,6 @@ export function ensurePngExtension(filePath: string) {
   return `${filePath}.png`
 }
 
-function getReportAvailableExportSections(report: RangeReport) {
-  const availableSections = new Set<ReportExportSectionKey>(['cover', 'stats', 'summary'])
-
-  if (report.sections.heatmap) {
-    availableSections.add('heatmap')
-  }
-
-  if (report.sections.moodTrend) {
-    availableSections.add('moodTrend')
-  }
-
-  if (report.sections.tagCloud) {
-    availableSections.add('tagCloud')
-  }
-
-  if (report.sections.locationPatterns) {
-    availableSections.add('locationPatterns')
-  }
-
-  if (report.sections.timePatterns) {
-    availableSections.add('timePatterns')
-  }
-
-  return availableSections
-}
-
 export function normalizeExportSections(
   requestedSections: ReportExportSectionKey[],
   report: RangeReport,
@@ -110,11 +85,14 @@ export function normalizeExportDocumentWidth(documentWidth: number | undefined) 
   return Math.min(EXPORT_MAX_DOCUMENT_WIDTH, Math.max(EXPORT_MIN_DOCUMENT_WIDTH, normalizedWidth))
 }
 
-export function getScaledCaptureSize(width: number, height: number, imageScale: number) {
-  return {
-    width: Math.max(1, Math.ceil(width * imageScale)),
-    height: Math.max(1, Math.ceil(height * imageScale)),
-  }
+/**
+ * 捕获倍率换算：窗口按 DIP 布局，屏幕缩放系数（display scale factor）会
+ * 叠加进捕获位图（位图像素 = 窗口 DIP × 屏幕缩放）。要让位图恰好等于
+ * documentWidth × imageScale，需 zoom = imageScale / 屏幕缩放，窗口 DIP
+ * 取 documentWidth × zoom。
+ */
+export function getExportCaptureZoom(imageScale: number, deviceScaleFactor: number) {
+  return imageScale / Math.max(deviceScaleFactor, 1)
 }
 
 export function normalizeExportHeight(contentHeight: number) {
