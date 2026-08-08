@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^4.2.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/markdown-it": "^14.1.2",
     "@types/nodemailer": "^8.0.0",
     "@vitejs/plugin-vue": "^5.0.4",
