@@ -11,6 +11,7 @@ import type {
   BillsUpdateInput,
 } from '../../../src/types/bills'
 import { IPC_CHANNELS } from '../constants'
+import { exportBillsExcel } from '../bills/export'
 import {
   createBill,
   createCategory,
@@ -44,5 +45,8 @@ export function registerBillsIpcHandlers() {
   )
   ipcMain.handle(IPC_CHANNELS.deleteBillCategory, (_event, input: BillsDeleteCategoryInput) =>
     removeCategory(input),
+  )
+  ipcMain.handle(IPC_CHANNELS.exportBillsExcel, (_event, input: BillsCategoryQuery) =>
+    exportBillsExcel(input.workspacePath),
   )
 }
