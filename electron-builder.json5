@@ -3,6 +3,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.criel.dairy",
   "asar": true,
+  "asarUnpack": ["**/node_modules/better-sqlite3/**"],
   "productName": "dAiry",
   "directories": {
     "output": "release/${version}",

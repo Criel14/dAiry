@@ -11,17 +11,22 @@
     "build": "vue-tsc && vite build && electron-builder",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
+    "postinstall": "electron-builder install-app-deps",
     "test": "vitest run"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "better-sqlite3": "^13.0.3",
     "dayjs": "^1.11.20",
+    "echarts": "^6.1.0",
+    "exceljs": "^4.4.0",
     "lucide-vue-next": "^1.0.0",
     "markdown-it": "^14.1.1",
     "nodemailer": "^8.0.7",
     "vue": "^3.4.21"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
     "@types/markdown-it": "^14.1.2",
     "@types/nodemailer": "^8.0.0",
     "@vitejs/plugin-vue": "^5.0.4",
