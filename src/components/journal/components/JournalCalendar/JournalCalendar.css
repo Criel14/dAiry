@@ -1,6 +1,10 @@
 ﻿.calendar-panel {
   display: grid;
   gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 14px;
+  background: var(--color-glass-ivory-72);
 }
 
 .calendar-toolbar {

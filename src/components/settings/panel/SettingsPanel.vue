@@ -24,7 +24,6 @@ import {
   type SettingsSectionId,
   type SettingsSectionItem,
 } from '../config/config'
-import SettingsWorkspaceSection from '../sections/SettingsWorkspaceSection.vue'
 
 const props = defineProps<{
   workspacePath: string | null
@@ -228,11 +227,6 @@ function openDebugPanel() {
         :is-saving-workspace-libraries="props.isSavingWorkspaceLibraries"
         :workspace-libraries-save-message="props.workspaceLibrariesSaveMessage"
         @save-workspace-libraries="emit('saveWorkspaceLibraries', $event)"
-      />
-
-      <SettingsWorkspaceSection
-        v-else-if="activeSectionId === 'workspace'"
-        :workspace-path="props.workspacePath"
       />
 
       <SettingsMcpSection

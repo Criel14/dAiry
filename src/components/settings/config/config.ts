@@ -13,7 +13,6 @@ export type SettingsSectionId =
   | 'shortcuts'
   | 'llm'
   | 'libraries'
-  | 'workspace'
   | 'mcp'
   | 'about'
 
@@ -93,11 +92,6 @@ export const SETTINGS_SECTIONS: SettingsSectionItem[] = [
     id: 'libraries',
     label: '词库',
     description: '维护天气、地点和标签候选词，让元数据输入更顺手。',
-  },
-  {
-    id: 'workspace',
-    label: '工作区',
-    description: '查看当前日记目录的连接状态，确认本地数据落点是否正确。',
   },
   {
     id: 'mcp',

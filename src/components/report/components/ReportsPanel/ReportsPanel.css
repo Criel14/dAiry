@@ -24,14 +24,6 @@
   gap: 0.35rem;
 }
 
-.reports-kicker {
-  margin: 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
-}
-
 .report-label {
   margin: 0;
   font-size: 0.92rem;
@@ -741,14 +733,6 @@
 .reports-heading {
   display: grid;
   gap: 0.35rem;
-}
-
-.reports-kicker {
-  margin: 0;
-  font-size: 0.78rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
 }
 
 .report-label {

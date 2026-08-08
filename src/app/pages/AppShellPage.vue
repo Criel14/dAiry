@@ -10,6 +10,9 @@ import ReportsPanel from '../../components/report/components/ReportsPanel/Report
 import SettingsPanel from '../../components/settings/panel/SettingsPanel.vue'
 import TimelinePage from '../../components/timeline/TimelinePage.vue'
 import TimelineSidebar from '../../components/timeline/TimelineSidebar.vue'
+import WorkspacePanel from '../../components/workspace/components/WorkspacePanel/WorkspacePanel.vue'
+import ActivityBar from '../components/ActivityBar/ActivityBar.vue'
+import type { RightPanel } from '../../types/ui'
 import { SETTINGS_SECTIONS } from '../../components/settings/config/config'
 import { useAppShell } from '../composables/useAppShell'
 
@@ -94,6 +97,7 @@ const {
   openReportsPage,
   openSettingsPage,
   openTimelinePage,
+  openWorkspacePage,
   selectedTimelineYear,
   timelineData,
   hasDataYears,
@@ -129,22 +133,36 @@ const {
   workspaceTags,
   workspaceWeatherOptions,
 } = useAppShell()
+
+function handleActivitySelect(panel: RightPanel) {
+  if (panel === 'journal') {
+    openJournalPage()
+  } else if (panel === 'reports') {
+    openReportsPage()
+  } else if (panel === 'timeline') {
+    openTimelinePage()
+  } else if (panel === 'settings') {
+    openSettingsPage()
+  } else if (panel === 'workspace') {
+    openWorkspacePage()
+  }
+}
 </script>
 
 <template>
   <div class="app-shell">
-    <WorkspaceSidebar
-      :workspace-path="workspacePath"
-      :active-panel="rightPanel"
-      @choose-workspace="handleChooseWorkspace"
-      @open-journal="openJournalPage"
-      @open-reports="openReportsPage"
-      @open-timeline="openTimelinePage"
-      @open-settings="openSettingsPage"
-    >
+    <ActivityBar :active-panel="rightPanel" @select="handleActivitySelect" />
+
+    <WorkspaceSidebar :panel="rightPanel">
       <template #context>
+        <WorkspacePanel
+          v-if="rightPanel === 'workspace'"
+          :workspace-path="workspacePath"
+          @choose-workspace="handleChooseWorkspace"
+        />
+
         <JournalCalendar
-          v-if="rightPanel === 'journal'"
+          v-else-if="rightPanel === 'journal'"
           :model-value="selectedDate"
           :today-date="todayText"
           :workspace-path="workspacePath"
@@ -338,6 +356,11 @@ const {
           @jump-to-diary="jumpToDiary"
         />
       </section>
+
+      <div v-else-if="rightPanel === 'workspace'" class="workspace-welcome">
+        <h2 class="workspace-welcome-title">Welcome to dAiry!</h2>
+        <p class="workspace-welcome-subtitle">选择工作区，开始记录生活</p>
+      </div>
 
       <JournalEditorPanel
         v-else

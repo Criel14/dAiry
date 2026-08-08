@@ -1,6 +1,6 @@
 ﻿.app-shell {
   display: grid;
-  grid-template-columns: 390px minmax(0, 1fr);
+  grid-template-columns: 52px 390px minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
 }
@@ -38,9 +38,33 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.workspace-welcome {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  min-height: 0;
+  padding-top: 30vh;
+  text-align: center;
+}
+
+.workspace-welcome-title {
+  margin: 0;
+  font-size: 2.4rem;
+  color: var(--color-text-main);
+}
+
+.workspace-welcome-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-subtle);
+}
+
 @media (max-width: 960px) {
   .app-shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: 52px minmax(0, 1fr);
   }
 }
 

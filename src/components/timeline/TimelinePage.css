@@ -6,6 +6,31 @@
   scrollbar-color: var(--scrollbar-thumb-color) transparent;
 }
 
+.timeline-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.timeline-heading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.timeline-title {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 1.9rem;
+}
+
+.timeline-description {
+  margin: 0;
+  color: var(--color-text-subtle);
+  line-height: 1.7;
+}
+
 .timeline-empty {
   display: flex;
   flex-direction: column;

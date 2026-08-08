@@ -85,6 +85,10 @@ function goToCurrentYear() {
 .selector-card {
   display: grid;
   gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 14px;
+  background: var(--color-glass-ivory-72);
 }
 
 .selector-toolbar {

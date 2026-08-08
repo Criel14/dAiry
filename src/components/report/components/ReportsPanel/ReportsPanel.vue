@@ -69,7 +69,6 @@ const {
   <section v-else class="reports-panel">
     <header class="reports-header">
       <div class="reports-heading">
-        <p class="reports-kicker">Reports</p>
         <h2 class="reports-title">总结报告</h2>
         <p class="reports-description">这段时间你过得怎么样呢</p>
       </div>

@@ -15,6 +15,12 @@ const emit = defineEmits<{
 
 <template>
   <div class="timeline-page">
+    <header class="timeline-header">
+      <div class="timeline-heading">
+        <h2 class="timeline-title">时间轴</h2>
+      </div>
+    </header>
+
     <div v-if="!workspacePath" class="timeline-empty">
       <h3>人生时间轴</h3>
       <p>先选择一个工作区，右侧这里会显示时间轴。</p>

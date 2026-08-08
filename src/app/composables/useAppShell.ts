@@ -158,6 +158,10 @@ export function useAppShell() {
     timeline.openTimelinePage()
   }
 
+  function openWorkspacePage() {
+    state.rightPanel.value = 'workspace'
+  }
+
   function jumpToDiary(date: string) {
     state.rightPanel.value = 'journal'
     journal.handleSelectDate(date)
@@ -178,6 +182,7 @@ export function useAppShell() {
     handleUpdateWindowCloseBehavior: preferences.handleUpdateWindowCloseBehavior,
     openJournalPage,
     openTimelinePage,
+    openWorkspacePage,
     jumpToDiary,
     openReportsPage,
     openSettingsPage,

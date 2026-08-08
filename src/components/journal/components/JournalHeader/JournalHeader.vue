@@ -25,7 +25,6 @@ defineEmits<{
 <template>
   <header class="editor-header">
     <div class="editor-heading">
-      <p class="editor-kicker">Journal</p>
       <div class="editor-title-row">
         <div class="date-switcher" aria-label="日记日期切换">
           <button
