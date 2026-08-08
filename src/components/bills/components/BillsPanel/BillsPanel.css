@@ -1,0 +1,264 @@
+.bills-panel {
+  min-height: 100%;
+  display: grid;
+  align-content: start;
+}
+
+.bills-panel-empty {
+  display: grid;
+  gap: 0.6rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+.bills-panel-empty h2 {
+  margin: 0;
+  color: var(--color-text-main);
+}
+
+.bills-panel-empty p {
+  margin: 0;
+}
+
+.bills-panel-content {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.bills-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.bills-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--color-surface-status);
+}
+
+.bills-tab {
+  min-height: 2.1rem;
+  padding: 0 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+}
+
+.bills-tab--active {
+  background: var(--color-surface-nav-active);
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.3rem;
+  padding: 0 1rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 10px;
+  background: var(--color-accent-soft);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.add-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft);
+}
+
+.add-button-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.bills-status {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+}
+
+.summary-bar {
+  color: var(--color-text-subtle);
+  font-size: 0.88rem;
+}
+
+.summary-bar strong {
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.placeholder-box {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-text-soft);
+  border: 1px dashed var(--color-border-soft);
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.day-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.day-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-surface-elevated);
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.day-date {
+  font-weight: 600;
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+}
+
+.day-sum {
+  font-size: 0.82rem;
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sum-expense {
+  color: var(--color-text-danger);
+  margin-right: 0.7rem;
+}
+
+.sum-income {
+  color: var(--color-chart-positive);
+}
+
+.day-divider {
+  border: none;
+  border-top: 1px solid var(--color-border-soft);
+  margin: 0.55rem 0 0.15rem;
+}
+
+.record-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.55rem 0;
+}
+
+.record-row + .record-row {
+  border-top: 1px solid var(--color-border-softest, rgba(0, 0, 0, 0.04));
+}
+
+.record-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: #fff;
+  flex: none;
+}
+
+.record-icon-svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.record-body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.1rem;
+}
+
+.record-category {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--color-text-main);
+}
+
+.record-note {
+  color: var(--color-text-soft);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.record-amount {
+  font-weight: 600;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.amount-expense {
+  color: var(--color-text-danger);
+}
+
+.amount-income {
+  color: var(--color-chart-positive);
+}
+
+.record-actions {
+  display: inline-flex;
+  gap: 0.2rem;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.record-row:hover .record-actions {
+  opacity: 1;
+}
+
+.record-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-subtle);
+}
+
+.record-action:hover {
+  background: var(--color-surface-hover-soft);
+  color: var(--color-text-main);
+}
+
+.record-action--danger:hover {
+  color: var(--color-text-danger);
+}
+
+.record-action-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.stats-placeholder {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-text-soft);
+}

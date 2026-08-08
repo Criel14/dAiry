@@ -227,6 +227,7 @@ html[data-theme='dark'] {
   --shadow-report-hover: 0 12px 26px rgba(0, 0, 0, 0.22);
   --shadow-report-cta: 0 12px 24px rgba(0, 0, 0, 0.24);
   --shadow-report-modal: 0 24px 56px rgba(0, 0, 0, 0.42);
+  --shadow-modal: 0 24px 56px rgba(0, 0, 0, 0.42);
   --shadow-chart-point: 0 2px 8px rgba(0, 0, 0, 0.26);
   --shadow-chart-tooltip: 0 16px 34px rgba(0, 0, 0, 0.32);
 
