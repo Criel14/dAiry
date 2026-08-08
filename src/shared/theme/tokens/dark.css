@@ -3,7 +3,7 @@ html[data-theme='dark'] {
   --color-surface: #0d1014;
   --color-surface-muted: #12161c;
   --color-surface-elevated: #161b22;
-  --color-text-main: #ece6d6;
+  --color-text-main: #cfc9b6;
   --color-text-subtle: #b5ac98;
   --color-text-soft: #887f6e;
   --color-border: #252c35;
@@ -47,10 +47,10 @@ html[data-theme='dark'] {
   --color-surface-slider-thumb: #d7c6a0;
   --color-surface-control: #11161d;
   --color-surface-calendar-outside: #0c1015;
-  --color-surface-calendar-heat-1: #221c12;
-  --color-surface-calendar-heat-2: #453717;
-  --color-surface-calendar-heat-3: #735920;
-  --color-surface-calendar-heat-4: #b98e34;
+  --color-surface-calendar-heat-1: #1f1a11;
+  --color-surface-calendar-heat-2: #3f3316;
+  --color-surface-calendar-heat-3: #69521c;
+  --color-surface-calendar-heat-4: #a9822f;
 
   --color-text-accent: #f0dbad;
   --color-text-warm: #e2c57b;
@@ -88,10 +88,10 @@ html[data-theme='dark'] {
   --color-border-slider-track: #3a3122;
   --color-border-slider-thumb: #b39151;
   --color-border-slider-thumb-hover: #d6b167;
-  --color-border-calendar-heat-1: #493a18;
-  --color-border-calendar-heat-2: #6b5322;
-  --color-border-calendar-heat-3: #977230;
-  --color-border-calendar-heat-4: #d4a84a;
+  --color-border-calendar-heat-1: #423515;
+  --color-border-calendar-heat-2: #604b1f;
+  --color-border-calendar-heat-3: #88682b;
+  --color-border-calendar-heat-4: #c29b43;
 
   --color-chart-positive: #6fbe79;
   --color-chart-positive-soft: #7ccd88;

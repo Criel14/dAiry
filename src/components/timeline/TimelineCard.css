@@ -30,6 +30,10 @@
   white-space: nowrap;
 }
 
+:global(html[data-theme='dark']) .timeline-card-title {
+  color: var(--color-text-subtle);
+}
+
 .timeline-card-chevron {
   flex-shrink: 0;
   width: 1rem;
