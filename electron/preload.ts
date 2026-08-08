@@ -134,6 +134,16 @@ const dairyApi: DairyApi = {
       ipcRenderer.removeListener(IPC_CHANNELS.timelineRebuildProgress, wrappedListener)
     }
   },
+  listBillsByMonth: (input) => ipcRenderer.invoke(IPC_CHANNELS.listBillsByMonth, input),
+  listBillsByYear: (input) => ipcRenderer.invoke(IPC_CHANNELS.listBillsByYear, input),
+  createBill: (input) => ipcRenderer.invoke(IPC_CHANNELS.createBill, input),
+  updateBill: (input) => ipcRenderer.invoke(IPC_CHANNELS.updateBill, input),
+  deleteBill: (input) => ipcRenderer.invoke(IPC_CHANNELS.deleteBill, input),
+  getBillCategories: (input) => ipcRenderer.invoke(IPC_CHANNELS.getBillCategories, input),
+  createBillCategory: (input) => ipcRenderer.invoke(IPC_CHANNELS.createBillCategory, input),
+  renameBillCategory: (input) => ipcRenderer.invoke(IPC_CHANNELS.renameBillCategory, input),
+  deleteBillCategory: (input) => ipcRenderer.invoke(IPC_CHANNELS.deleteBillCategory, input),
+  exportBillsExcel: (input) => ipcRenderer.invoke(IPC_CHANNELS.exportBillsExcel, input),
 }
 
 contextBridge.exposeInMainWorld('dairy', dairyApi)

@@ -57,6 +57,20 @@ import type {
 import type { TimelineYearData, RebuildTimelineProgress } from './timeline'
 import type { McpPreferenceInput, McpRuntimeStatus } from './mcp'
 import type { RightPanel } from './ui'
+import type {
+  Bill,
+  BillCategory,
+  BillsCategoryQuery,
+  BillsCreateCategoryInput,
+  BillsDeleteCategoryInput,
+  BillsDeleteInput,
+  BillsExportResult,
+  BillsListMonthInput,
+  BillsListYearInput,
+  BillsRecordInput,
+  BillsRenameCategoryInput,
+  BillsUpdateInput,
+} from './bills'
 
 export interface DairyApi {
   getAppBootstrap: () => Promise<AppBootstrap>
@@ -128,4 +142,14 @@ export interface DairyApi {
   onTimelineRebuildProgress: (
     listener: (progress: RebuildTimelineProgress) => void,
   ) => () => void
+  listBillsByMonth: (input: BillsListMonthInput) => Promise<Bill[]>
+  listBillsByYear: (input: BillsListYearInput) => Promise<Bill[]>
+  createBill: (input: BillsRecordInput) => Promise<Bill>
+  updateBill: (input: BillsUpdateInput) => Promise<Bill>
+  deleteBill: (input: BillsDeleteInput) => Promise<void>
+  getBillCategories: (input: BillsCategoryQuery) => Promise<BillCategory[]>
+  createBillCategory: (input: BillsCreateCategoryInput) => Promise<BillCategory[]>
+  renameBillCategory: (input: BillsRenameCategoryInput) => Promise<BillCategory[]>
+  deleteBillCategory: (input: BillsDeleteCategoryInput) => Promise<BillCategory[]>
+  exportBillsExcel: (input: BillsCategoryQuery) => Promise<BillsExportResult>
 }

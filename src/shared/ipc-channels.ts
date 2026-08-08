@@ -59,4 +59,15 @@ export const IPC_CHANNELS = {
   rebuildTimeline: 'timeline:rebuild',
   cancelTimelineRebuild: 'timeline:cancel-rebuild',
   timelineRebuildProgress: 'timeline:rebuild-progress',
+  // bills
+  listBillsByMonth: 'bills:list-month',
+  listBillsByYear: 'bills:list-year',
+  createBill: 'bills:create',
+  updateBill: 'bills:update',
+  deleteBill: 'bills:delete',
+  getBillCategories: 'bills:get-categories',
+  createBillCategory: 'bills:create-category',
+  renameBillCategory: 'bills:update-category',
+  deleteBillCategory: 'bills:delete-category',
+  exportBillsExcel: 'bills:export-excel',
 } as const
