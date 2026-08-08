@@ -1,12 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
   aggregateRecords,
+  assertValidAmountCents,
+  assertValidDate,
+  assertValidNote,
   formatCents,
+  formatPlainCents,
   pickPaletteColor,
   resolveCategory,
   toCents,
+  typeFromAmount,
 } from '../../electron/main/bills/logic'
-import { BUILTIN_CATEGORIES, type Bill, type BillCategory } from '../../src/types/bills'
+import {
+  BUILTIN_CATEGORIES,
+  DEFAULT_CATEGORY_PALETTE,
+  type Bill,
+  type BillCategory,
+} from '../../src/types/bills'
 
 const CATEGORIES: BillCategory[] = BUILTIN_CATEGORIES
 
@@ -102,14 +112,72 @@ describe('pickPaletteColor', () => {
   })
 
   it('falls back to last color when palette exhausted', () => {
-    const used = new Set(DEFAULT_PALETTE_ALL())
-    expect(pickPaletteColor(used)).toBe('#7F9B7F')
+    const used = new Set(DEFAULT_CATEGORY_PALETTE)
+    expect(pickPaletteColor(used)).toBe(DEFAULT_CATEGORY_PALETTE[DEFAULT_CATEGORY_PALETTE.length - 1])
   })
 })
 
-function DEFAULT_PALETTE_ALL() {
-  return [
-    '#6E9C9C', '#7A9BAE', '#8A7FA8', '#B5A06E', '#A8896F',
-    '#C47A6A', '#6B8FA3', '#5E8C61', '#B0795F', '#7F9B7F',
-  ]
-}
+describe('assertValidDate', () => {
+  it('accepts valid dates', () => {
+    expect(() => assertValidDate('2026-08-01')).not.toThrow()
+    expect(() => assertValidDate('2024-02-29')).not.toThrow()
+  })
+
+  it('rejects impossible calendar dates like 2026-02-31', () => {
+    expect(() => assertValidDate('2026-02-31')).toThrow()
+  })
+
+  it('rejects out-of-range months like 2026-13-01', () => {
+    expect(() => assertValidDate('2026-13-01')).toThrow()
+  })
+
+  it('rejects malformed formats like 2026/08/01', () => {
+    expect(() => assertValidDate('2026/08/01')).toThrow()
+    expect(() => assertValidDate('20260801')).toThrow()
+  })
+})
+
+describe('assertValidAmountCents', () => {
+  it('rejects zero', () => {
+    expect(() => assertValidAmountCents(0)).toThrow()
+  })
+
+  it('rejects non-integer amounts', () => {
+    expect(() => assertValidAmountCents(12.5)).toThrow()
+  })
+
+  it('rejects amounts beyond the upper bound', () => {
+    expect(() => assertValidAmountCents(1000000000)).toThrow()
+  })
+
+  it('accepts valid amounts', () => {
+    expect(() => assertValidAmountCents(-2346)).not.toThrow()
+  })
+})
+
+describe('assertValidNote', () => {
+  it('accepts notes up to 200 characters', () => {
+    expect(() => assertValidNote('长'.repeat(200))).not.toThrow()
+  })
+
+  it('rejects notes longer than 200 characters', () => {
+    expect(() => assertValidNote('长'.repeat(201))).toThrow()
+  })
+})
+
+describe('typeFromAmount', () => {
+  it('maps negative amounts to expense', () => {
+    expect(typeFromAmount(-1)).toBe('expense')
+  })
+
+  it('maps positive amounts to income', () => {
+    expect(typeFromAmount(1)).toBe('income')
+  })
+})
+
+describe('formatPlainCents', () => {
+  it('formats plain two decimals without sign', () => {
+    expect(formatPlainCents(-2346)).toBe('23.46')
+    expect(formatPlainCents(12000)).toBe('120.00')
+  })
+})

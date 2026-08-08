@@ -98,8 +98,14 @@ export function assertValidDate(dateText: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateText)) {
     throw new Error('日期格式无效，必须为 YYYY-MM-DD。')
   }
-  const parsed = new Date(`${dateText}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) {
+  const [year, month, day] = dateText.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
     throw new Error('日期无效。')
   }
 }
