@@ -23,6 +23,7 @@ interface ChatCompletionResponse {
             type?: string
             text?: string
           }>
+      reasoning_content?: string
     }
   }>
   error?: {
@@ -63,19 +64,22 @@ function resolveClaudeEndpoint(baseURL: string) {
 }
 
 function extractResponseText(response: ChatCompletionResponse) {
-  const content = response.choices?.[0]?.message?.content
+  const message = response.choices?.[0]?.message
 
-  if (typeof content === 'string') {
-    return content
+  if (typeof message?.content === 'string' && message.content.trim()) {
+    return message.content
   }
 
-  if (Array.isArray(content)) {
-    return content
+  if (Array.isArray(message?.content)) {
+    const joinedText = message.content
       .map((item) => (item.type === 'text' && typeof item.text === 'string' ? item.text : ''))
       .join('')
+    if (joinedText.trim()) {
+      return joinedText
+    }
   }
 
-  return ''
+  return message?.reasoning_content ?? ''
 }
 
 function extractClaudeResponseText(response: ClaudeResponse) {

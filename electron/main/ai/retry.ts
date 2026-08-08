@@ -5,7 +5,8 @@ export function isRetryableAiError(error: unknown): boolean {
   return (
     code === AI_ERROR_CODES.TIMEOUT ||
     code === AI_ERROR_CODES.NETWORK ||
-    code === AI_ERROR_CODES.HTTP5XX
+    code === AI_ERROR_CODES.HTTP5XX ||
+    code === AI_ERROR_CODES.EMPTY
   )
 }
 

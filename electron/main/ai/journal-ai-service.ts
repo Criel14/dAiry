@@ -11,6 +11,7 @@ import { readAiContext } from './context'
 import { readAiApiKey } from '../secrets'
 import { normalizeStringList, readJournalDocument } from '../journal/document'
 import { createAiChatClient } from './provider-factory'
+import { withAiRetry } from './retry'
 import { loadPrompt } from './prompt-loader'
 
 interface DailyInsightsPayload {
@@ -246,13 +247,17 @@ export async function generateDailyInsights(
   )
 
   settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
-  const client = createAiChatClient(settings, apiKey)
-  const responseText = await client.completeJson({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: buildDailyInsightsPrompt({ ...input, aiContext, recentSummaries }) },
-    ],
-  })
+  const responseText = await withAiRetry(
+    (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+    (client) =>
+      client.completeJson({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: buildDailyInsightsPrompt({ ...input, aiContext, recentSummaries }) },
+        ],
+      }),
+    { minTimeoutMs: settings.timeoutMs, label: '日级整理' },
+  )
 
   return normalizeDailyInsights(extractJsonObject(responseText), input.workspaceTags)
 }
