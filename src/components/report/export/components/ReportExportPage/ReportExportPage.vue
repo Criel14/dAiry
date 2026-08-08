@@ -94,8 +94,15 @@ async function initExportPage() {
       contentHeight,
     })
   } catch (error) {
-    loadError.value = error instanceof Error ? error.message : '导出页面准备失败。'
+    const message = error instanceof Error ? error.message : '导出页面准备失败。'
+    loadError.value = message
     isLoading.value = false
+
+    try {
+      await window.dairy.notifyReportExportError({ sessionId, message })
+    } catch {
+      // 主进程会话可能已失效，忽略二次上报
+    }
   }
 }
 

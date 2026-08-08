@@ -1,7 +1,7 @@
 import type { ReportExportSectionKey } from '../../../src/types/report'
 
 export const EXPORT_DEFAULT_DOCUMENT_WIDTH = 1200
-export const EXPORT_MIN_DOCUMENT_WIDTH = 600
+export const EXPORT_MIN_DOCUMENT_WIDTH = 1000
 export const EXPORT_MAX_DOCUMENT_WIDTH = 2400
 export const EXPORT_INITIAL_HEIGHT = 900
 export const EXPORT_MIN_HEIGHT = 420

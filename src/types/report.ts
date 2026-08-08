@@ -66,6 +66,11 @@ export interface ReportExportReadyInput {
   contentHeight: number
 }
 
+export interface ReportExportErrorInput {
+  sessionId: string
+  message: string
+}
+
 export interface ReportExportPayload {
   report: RangeReport
   sections: ReportExportSectionKey[]

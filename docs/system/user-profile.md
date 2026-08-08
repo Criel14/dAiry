@@ -11,6 +11,11 @@
 存量迁移     → user-profile.md → user-profile-YYYY.md
 ```
 
+画像消费方：
+
+- **MCP 只读工具**（`dairy_read_profile`，经 `memory/retrieval.ts` 返回最新年份画像 + supplement）
+- **区间报告总结**（`report-ai-service.ts` 两轮 user prompt 均注入当年画像，优先级低于区间事实）
+
 ---
 
 ## 一、数据存储

@@ -1,7 +1,7 @@
 import type { AiSettings } from '../../../src/types/ai'
 
 interface ChatCompletionMessage {
-  role: 'system' | 'user'
+  role: 'system' | 'user' | 'assistant'
   content: string
 }
 

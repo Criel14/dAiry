@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import type {
   ExportRangeReportInput,
   GenerateRangeReportInput,
+  ReportExportErrorInput,
   ReportExportPayloadQuery,
   ReportExportReadyInput,
   ReportQuery,
@@ -11,6 +12,7 @@ import { generateRangeReport, getRangeReport, listRangeReports } from '../report
 import {
   exportRangeReportPng,
   getReportExportPayload,
+  notifyReportExportError,
   notifyReportExportReady,
 } from '../report-export'
 
@@ -37,5 +39,9 @@ export function registerReportIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.notifyReportExportReady, (_event, input: ReportExportReadyInput) => {
     return notifyReportExportReady(input)
+  })
+
+  ipcMain.handle(IPC_CHANNELS.notifyReportExportError, (_event, input: ReportExportErrorInput) => {
+    return notifyReportExportError(input)
   })
 }

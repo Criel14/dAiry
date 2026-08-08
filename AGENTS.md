@@ -150,7 +150,8 @@ AI 约束：
 - AI 请求只能由主进程发起
 - 结果先给用户确认，再决定是否写回
 - “自动整理”当前不会自动落盘
-- 生成区间报告时，允许补做缺失的日级 insight，但只写入本次报告 JSON，不回写原始 Markdown
+- 生成区间报告时，允许补做缺失的日级 insight；补做成功后回填该日记的 frontmatter（`summary`/`tags`/`mood`，`updatedAt` 刷新）并同步元索引，失败只记 warning，绝不影响报告生成；补做与回填不触发画像/时间轴维护
+- 区间总结采用多轮对话（主进程内会话）：轮 1 全量 digest 选焦点日（无 thinking，失败回退均匀分桶启发式），轮 2 焦点日全文成文（thinking，超时下限 180s）；每轮递增超时重试，失败回退本地统计文案
 - 日总结会附带最近 N 天（`config.json` 的 `ai.dailyContextDays`）的日记摘要作为上下文
 - AI 自动维护 `<workspace>/.dairy/user-profile.md` 用户画像：仅在用户点击“自动整理”成功后异步触发（日更 + 每隔 `ai.profileRefreshIntervalDays` 天全量刷新，刷新时间戳存 `workspace.json` 的 `lastProfileRefresh`）；画像文件不存在时日更自动从零创建初始画像（首次自动播种，无需手动生成）；画像对前端透明，不暴露查看入口；画像失败只记日志，绝不影响日总结返回；报告链路补做 insight 不触发画像
 - 设置页提供"重新整理用户画像"：扫描全部日记按月迭代重建画像，全成功才写盘并更新 `lastProfileRefresh`；重建期间自动画像维护跳过；preload 暴露重建/取消/进度三个 API，但画像内容仍不经过 IPC

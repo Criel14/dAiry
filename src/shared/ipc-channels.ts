@@ -53,6 +53,7 @@ export const IPC_CHANNELS = {
   exportRangeReportPng: 'report:export-png',
   getReportExportPayload: 'report:get-export-payload',
   notifyReportExportReady: 'report:export-ready',
+  notifyReportExportError: 'report:export-error',
   // timeline
   getTimeline: 'timeline:get',
   rebuildTimeline: 'timeline:rebuild',

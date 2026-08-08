@@ -18,6 +18,7 @@ import {
 import {
   createExportSession,
   getExportSession,
+  markExportSessionError,
   markExportSessionReady,
   removeExportSession,
 } from './session-store'
@@ -198,4 +199,8 @@ export async function getReportExportPayload(input: ReportExportPayloadQuery) {
 
 export async function notifyReportExportReady(input: ReportExportReadyInput) {
   markExportSessionReady(input.sessionId.trim(), input.contentHeight)
+}
+
+export async function notifyReportExportError(input: { sessionId: string; message: string }) {
+  markExportSessionError(input.sessionId.trim(), input.message.trim() || '导出页面初始化失败。')
 }

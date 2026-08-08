@@ -62,7 +62,7 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 ### 在区间报告中的复用
 
-区间报告生成时调用 `ensureDailyInsights()`：如果某天已有 summary + ≥3 tags 则直接复用，否则调用上述 AI 生成。**AI 生成的 insight 只写入报告 JSON，不回写原始 .md**。
+区间报告生成时调用 `ensureDailyInsights()`：如果某天已有 summary + ≥3 tags 则直接复用，否则调用上述 AI 生成。**AI 生成的 insight 会回填该日记的 frontmatter（`summary`/`tags`/`mood`，`updatedAt` 刷新）并同步元索引**，回填失败只记 warning 不影响报告生成；下次报告直接复用 frontmatter，不再重复支付 AI 成本。补做**不触发**画像/时间轴维护。
 
 ### 注意
 
@@ -98,7 +98,7 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 #### 第 3 步：补充缺失的日级 insight
 
-对**有正文但无 summary** 的日期，调用 `ensureDailyInsights()` 用 AI 生成。成功则标注 `insightSource: 'generated'`，失败则保留原数据 + 追加 warning。已有 summary 的直接复用（`insightSource: 'frontmatter'`）。
+对**有正文但无 summary** 的日期，调用 `ensureDailyInsights()` 用 AI 生成。**并发池（5 路）**执行，近 N 天摘要先批量读一次共用，避免逐篇重复读盘。成功则回填 frontmatter + 元索引并在报告中标注 `insightSource: 'generated'`，失败则保留原数据 + 追加 warning。已有 summary 的直接复用（`insightSource: 'frontmatter'`）。
 
 #### 第 4 步：构建 6 个统计 section (`report/sections.ts`)
 
@@ -117,13 +117,13 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 纯统计模版，例如：*"2026 年 7 月总结共记录 18 天，缺失 13 天，总字数 4280，最长连续记录 7 天。主要标签包括 工作、学习、运动。"*
 
-#### 第 6 步：AI 生成区间总结（两阶段）
+#### 第 6 步：AI 生成区间总结（两轮对话）
 
-两个阶段共用 `temperature = 0.2` + JSON mode。
+主进程内维护单次报告的多轮会话（`ai/range-report-chat.ts`），每轮包 `withAiRetry` 递增超时重试（60s→120s→180s）；thinking 轮超时下限 180s。两轮 user prompt 均注入 supplement 与用户画像（`user-profile-YYYY.md`，优先级低于区间事实）。
 
-**阶段一：聚焦日期选择**（区间内日记 > 7 天时启用）
+**轮 1：素材消化与选日**（无 thinking；区间内日记 > 7 天时启用）
 
-系统 Prompt：`electron/main/ai/prompts/range-report-summary-focus.system.md`，指令：从区间摘要列表中选出 3~5 个最值得深入查看的日期并说明理由。
+系统 Prompt：`electron/main/ai/prompts/range-report-summary-focus.system.md`，指令：从全量 digest 中选出 3~6 个最值得深入查看的日期并说明理由。
 
 **User prompt 数据块：**
 
@@ -131,11 +131,11 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 |----|------|------|
 | 区间信息 | `period.start/end`, `source.preset/presetKey` | 请求参数 |
 | 统计事实 | `topTags`、`locations`（排名）、`timeBuckets`、`moodAverage` | 第 4 步本地计算结果 |
-| 每日候选 | `date/summary(截断84字)/tags(前4个)/mood/wordCount/location/insightSource` | 所有有正文的日记条目 |
+| 每日候选（全量 digest） | 所有有正文日记的 `date/summary(截断84字)/tags(前4个)/mood/wordCount/location/insightSource` | 全部日条目，无前 N 天截断 |
 
-AI 输出：`{"focusDates":[{"date":"...","reason":"..."}]}`。失败时使用启发式评分兜底（加权字数 + mood绝对值 + 标签数 + 有无summary）。
+AI 输出：`{"focusDates":[{"date":"...","reason":"..."}]}`。失败时回退**均匀分桶启发式**（按日期等分桶、桶内按加权评分选代表，保证覆盖区间各阶段）。选日往返会作为对话历史带入轮 2。
 
-**阶段二：生成总结**
+**轮 2：成文**（thinking，超时下限 180s）
 
 系统 Prompt：`electron/main/ai/prompts/range-report-summary.system.md`，指令：综合区间事实和聚焦日记，输出结构化总结。
 
@@ -143,11 +143,12 @@ AI 输出：`{"focusDates":[{"date":"...","reason":"..."}]}`。失败时使用�
 
 | 块 | 内容 | 来源 |
 |----|------|------|
+| 轮 1 往返（历史） | 轮 1 的全量 digest + AI 选日回复 | 会话 messages |
 | 区间信息 | `period`、`source` | 请求参数 |
 | 请求的 section | `generation.requestedSections`, `generation.warnings` | 第 1 步标准化结果 |
 | 统计事实 | `topTags`、`locations`、`timeBuckets`、`moodAverage` | 第 4 步本地计算结果 |
-| compact digest | 前 20 天的 `date/summary(截断84字)/tags(前4个)/mood/wordCount/location/insightSource` | 所有日条目的摘要版本 |
-| 聚焦日期 | 阶段一选出的 `date/reason` + 对应的**完整正文**（截断 2200 字） | 阶段一输出 + 对应日记文件 body |
+| 聚焦日期 | 轮 1 选出的 `date/reason` + 对应的**完整正文**（截断 2200 字，最多 6 天） | 轮 1 输出 + 对应日记文件 body |
+| contextDigest（兜底） | 全量 digest；仅当轮 1 未产生 AI 历史时附带 | 启发式路径 |
 
 调用的 AI 输出结构化总结：
 
@@ -182,8 +183,9 @@ AI 失败时降级使用第 5 步的 fallback 统计模版。
 |------|----------|
 | 读取日记文件 (ENOENT) | 返回空条目，不阻断 |
 | 日级 AI insight | 保留原始数据 + warning，继续 |
+| 日级 insight 回填 frontmatter/元索引 | 只记 warning，不影响报告生成 |
 | 区间 AI 总结 | 降级为统计模版 fallback |
-| 聚焦 AI 选择 | 使用启发式评分结果 |
+| 轮 1 选日 AI | 使用均匀分桶启发式结果 |
 | API Key 缺失 | 抛出中文错误，不发起请求 |
 
 核心原则：**任何 AI 失败都不阻塞报告生成和保存**，统计 section 始终是本地确定的。
@@ -193,6 +195,6 @@ AI 失败时降级使用第 5 步的 fallback 统计模版。
 ## 四、架构约束
 
 - **本地 Markdown 是唯一事实源**，报告 JSON 是派生物
-- **AI 生成的日级内容不回写原始 .md**
+- **补做的日级 insight 成功后回填原始 .md 的 frontmatter 并同步元索引**（失败不阻塞报告）
 - **生成报告和导出图片是两阶段操作**，不耦合
 - 密钥只在主进程内存中出现，渲染进程只拿脱敏状态

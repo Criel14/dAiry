@@ -89,7 +89,16 @@ export async function listRangeReports(workspacePath: string): Promise<ReportLis
   }
 
   const reportFiles = await listAllReportFiles(workspacePath)
-  const reports = await Promise.all(reportFiles.map(async (filePath) => mapReportListItem(await readReportFile(filePath))))
+  const reports: ReportListItem[] = []
+
+  for (const filePath of reportFiles) {
+    try {
+      reports.push(mapReportListItem(await readReportFile(filePath)))
+    } catch (error) {
+      console.warn('[report] 跳过无法读取的报告文件：', filePath, error)
+    }
+  }
+
   const uniqueReports = new Map<string, ReportListItem>()
 
   for (const report of reports) {

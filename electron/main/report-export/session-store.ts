@@ -4,7 +4,9 @@ export interface ExportSessionState {
   payload: ReportExportPayload
   readyPromise: Promise<number>
   resolveReady: (contentHeight: number) => void
+  rejectReady: (error: Error) => void
   isReady: boolean
+  error: string | null
 }
 
 const exportSessions = new Map<string, ExportSessionState>()
@@ -13,15 +15,19 @@ export function createExportSession(payload: ReportExportPayload) {
   const sessionId = `report_export_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
 
   let resolveReady: (contentHeight: number) => void = () => {}
-  const readyPromise = new Promise<number>((resolve) => {
+  let rejectReady: (error: Error) => void = () => {}
+  const readyPromise = new Promise<number>((resolve, reject) => {
     resolveReady = resolve
+    rejectReady = reject
   })
 
   exportSessions.set(sessionId, {
     payload,
     readyPromise,
     resolveReady,
+    rejectReady,
     isReady: false,
+    error: null,
   })
 
   return sessionId
@@ -48,4 +54,19 @@ export function markExportSessionReady(sessionId: string, contentHeight: number)
 
   session.isReady = true
   session.resolveReady(contentHeight)
+}
+
+export function markExportSessionError(sessionId: string, message: string) {
+  const session = getExportSession(sessionId)
+
+  if (!session) {
+    return
+  }
+
+  if (session.isReady) {
+    return
+  }
+
+  session.error = message
+  session.rejectReady(new Error(message))
 }

@@ -44,6 +44,21 @@ function normalizeReport(rawValue: unknown): RangeReport {
     throw new Error('报告文件内容无效。')
   }
 
+  const report = rawValue as Partial<RangeReport>
+  const period = report.period as Partial<RangeReport['period']> | undefined
+
+  if (typeof report.reportId !== 'string' || !report.reportId) {
+    throw new Error('报告文件缺少 reportId，可能已损坏。')
+  }
+
+  if (!period || typeof period.label !== 'string' || !period.label) {
+    throw new Error('报告文件缺少 period 信息，可能已损坏。')
+  }
+
+  if (typeof report.summary?.text !== 'string' || !report.summary.text) {
+    throw new Error('报告文件缺少总结内容，可能已损坏。')
+  }
+
   return rawValue as RangeReport
 }
 
@@ -91,22 +106,23 @@ export function resolveReportPathCandidates(workspacePath: string, reportId: str
 }
 
 export async function readReportWithFallback(filePaths: string[]) {
-  let lastError: unknown = null
-
   for (const filePath of filePaths) {
     try {
       return await readReportFile(filePath)
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        lastError = error
         continue
+      }
+
+      if (error instanceof SyntaxError) {
+        throw new Error('报告文件内容无法解析，可能已损坏。')
       }
 
       throw error
     }
   }
 
-  throw lastError ?? new Error('报告不存在。')
+  throw new Error('报告不存在。')
 }
 
 export async function listAllReportFiles(workspacePath: string) {

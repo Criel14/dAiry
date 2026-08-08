@@ -215,8 +215,13 @@ export function ensureAiSettingsReady(config: Awaited<ReturnType<typeof readAppC
   return settings
 }
 
+export interface GenerateDailyInsightsInputWithContext extends GenerateDailyInsightsInput {
+  /** 已批量读取的最近 N 天摘要；传入后不再内部重复读盘 */
+  recentSummaries?: RecentDaySummary[]
+}
+
 export async function generateDailyInsights(
-  input: GenerateDailyInsightsInput,
+  input: GenerateDailyInsightsInputWithContext,
 ): Promise<GenerateDailyInsightsResult> {
   assertValidDate(input.date)
 
@@ -240,11 +245,13 @@ export async function generateDailyInsights(
     throw new Error('请先在设置页保存当前 provider 的 API Key。')
   }
 
-  const recentSummaries = await getRecentDailySummaries(
-    input.workspacePath,
-    input.date,
-    settings.dailyContextDays,
-  )
+  const recentSummaries =
+    input.recentSummaries ??
+    (await getRecentDailySummaries(
+      input.workspacePath,
+      input.date,
+      settings.dailyContextDays,
+    ))
 
   settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
   const responseText = await withAiRetry(
@@ -262,8 +269,13 @@ export async function generateDailyInsights(
   return normalizeDailyInsights(extractJsonObject(responseText), input.workspaceTags)
 }
 
+export interface EnsureDailyInsightsInputWithContext extends EnsureDailyInsightsInput {
+  /** 已批量读取的最近 N 天摘要；传入后不再内部重复读盘 */
+  recentSummaries?: RecentDaySummary[]
+}
+
 export async function ensureDailyInsights(
-  input: EnsureDailyInsightsInput,
+  input: EnsureDailyInsightsInputWithContext,
 ): Promise<GenerateDailyInsightsResult> {
   const currentSummary = input.currentSummary?.trim() ?? ''
   const currentTags = normalizeStringList(input.currentTags ?? [])

@@ -45,6 +45,7 @@ import type {
   ReportExportPayload,
   ReportExportPayloadQuery,
   ReportExportReadyInput,
+  ReportExportErrorInput,
   ReportListItem,
   ReportQuery,
 } from './report'
@@ -79,6 +80,7 @@ export interface DairyApi {
   exportRangeReportPng: (input: ExportRangeReportInput) => Promise<ExportRangeReportResult>
   getReportExportPayload: (input: ReportExportPayloadQuery) => Promise<ReportExportPayload>
   notifyReportExportReady: (input: ReportExportReadyInput) => Promise<void>
+  notifyReportExportError: (input: ReportExportErrorInput) => Promise<void>
   getWorkspaceTags: (workspacePath: string) => Promise<string[]>
   getWorkspaceWeatherOptions: (workspacePath: string) => Promise<string[]>
   getWorkspaceLocationOptions: (workspacePath: string) => Promise<string[]>

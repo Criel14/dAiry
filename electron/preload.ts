@@ -87,6 +87,7 @@ const dairyApi: DairyApi = {
   exportRangeReportPng: (input) => ipcRenderer.invoke(IPC_CHANNELS.exportRangeReportPng, input),
   getReportExportPayload: (input) => ipcRenderer.invoke(IPC_CHANNELS.getReportExportPayload, input),
   notifyReportExportReady: (input) => ipcRenderer.invoke(IPC_CHANNELS.notifyReportExportReady, input),
+  notifyReportExportError: (input) => ipcRenderer.invoke(IPC_CHANNELS.notifyReportExportError, input),
   getWorkspaceTags: (workspacePath) => ipcRenderer.invoke(IPC_CHANNELS.getWorkspaceTags, workspacePath),
   getWorkspaceWeatherOptions: (workspacePath) =>
     ipcRenderer.invoke(IPC_CHANNELS.getWorkspaceWeatherOptions, workspacePath),

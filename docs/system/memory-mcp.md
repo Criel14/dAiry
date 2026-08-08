@@ -56,7 +56,7 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 ### 2.2 `dairy_generate_report`（异步）
 
 - 提交时仅做参数校验（`validateReportRange`：日期格式、月报/年报完整自然月年、自定义跨度 ≤ 1 年），生成报告 ID（`resolveTargetReportId`：月报 `month_YYYY-MM`、年报 `year_YYYY`、自定义 `custom_<start>_<end>_<ts>`）
-- 后台执行 `generateRangeReport`（复用应用内实现，含缺失日级 insight 补做，不回写原始 .md），并通过 `overwriteReportId` 保证落盘 ID 与返回的 reportId 一致；失败信息记录在进程内 Map（`reportTaskErrors`），由 `dairy_read_report` 反馈
+- 后台执行 `generateRangeReport`（复用应用内实现，含缺失日级 insight 补做；补做成功会回填该日记 frontmatter 并同步元索引），并通过 `overwriteReportId` 保证落盘 ID 与返回的 reportId 一致；失败信息记录在进程内 Map（`reportTaskErrors`），由 `dairy_read_report` 反馈
 - 立即返回 `{ reportId, preset, status: 'submitted', notice }`；同一 preset 同区间的月报/年报会覆盖旧文件；允许失败后重新提交
 
 ### 2.3 `dairy_read_report`

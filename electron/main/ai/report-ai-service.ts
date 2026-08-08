@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import type { AiSettings } from '../../../src/types/ai'
 import type {
   RangeReport,
   RangeReportSummary,
@@ -10,6 +11,9 @@ import { readSupplement } from './context'
 import { readAiApiKey } from '../secrets'
 import { createAiChatClient } from './provider-factory'
 import { loadPrompt } from './prompt-loader'
+import { withAiRetry } from './retry'
+import { createRangeReportChat } from './range-report-chat'
+import { getUserProfile } from '../memory'
 
 export interface RangeReportSummarySourceEntry {
   date: string
@@ -43,8 +47,9 @@ interface FocusSelectionItem {
   reason: string
 }
 
-interface RangeReportWithSupplement extends RangeReport {
+interface RangeReportWithContext extends RangeReport {
   supplement: string
+  userProfile: string
 }
 
 interface TimeAnchorPayload {
@@ -55,10 +60,11 @@ interface TimeAnchorPayload {
   dates?: unknown
 }
 
-const MAX_FOCUS_ENTRY_COUNT = 5
+const MAX_FOCUS_ENTRY_COUNT = 6
 const FULL_CONTEXT_ENTRY_THRESHOLD = 7
 const MAX_BODY_LENGTH = 2200
 const MAX_SUMMARY_LENGTH = 84
+const FOCUS_TIMEOUT_FLOOR_MS = 60_000
 
 function extractJsonObject<T>(text: string) {
   const trimmedText = text.trim()
@@ -357,11 +363,20 @@ function buildSummaryFacts(report: RangeReport) {
   }
 }
 
+async function readUserProfileContext(workspacePath: string): Promise<string> {
+  try {
+    const profile = await getUserProfile(workspacePath)
+    return profile.content
+  } catch {
+    return ''
+  }
+}
+
 function buildFocusSelectionPrompt(
-  report: RangeReportWithSupplement,
+  report: RangeReportWithContext,
   sourceEntries: RangeReportSummarySourceEntry[],
 ) {
-  return buildPromptWithSupplement(
+  return buildPromptWithContexts(
     {
       period: report.period,
       source: report.source,
@@ -369,13 +384,15 @@ function buildFocusSelectionPrompt(
       dailyCandidates: sourceEntries.map((entry) => buildEntryCompactDigest(entry)),
     },
     report.supplement,
+    report.userProfile,
   )
 }
 
 function buildSummaryPrompt(
-  report: RangeReportWithSupplement,
+  report: RangeReportWithContext,
   sourceEntries: RangeReportSummarySourceEntry[],
   focusSelection: FocusSelectionItem[],
+  includeContextDigest: boolean,
 ) {
   const sourceEntryMap = new Map(sourceEntries.map((entry) => [entry.date, entry]))
   const focusEntries = focusSelection
@@ -399,42 +416,60 @@ function buildSummaryPrompt(
     })
     .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
 
-  const compactTimeline = sourceEntries.slice(0, 20).map((entry) => buildEntryCompactDigest(entry))
-
-  return buildPromptWithSupplement(
-    {
-      period: report.period,
-      source: report.source,
-      generation: {
-        requestedSections: report.generation.requestedSections,
-        warnings: report.generation.warnings,
-      },
-      facts: {
-        ...buildSummaryFacts(report),
-        compactTimeline,
-        focusSelection,
-        focusEntries,
-      },
+  const payload: Record<string, unknown> = {
+    period: report.period,
+    source: report.source,
+    generation: {
+      requestedSections: report.generation.requestedSections,
+      warnings: report.generation.warnings,
     },
-    report.supplement,
-  )
+    facts: buildSummaryFacts(report),
+    focusSelection,
+    focusEntries,
+  }
+
+  if (includeContextDigest) {
+    payload.contextDigest = sourceEntries.map((entry) => buildEntryCompactDigest(entry))
+  }
+
+  return buildPromptWithContexts(payload, report.supplement, report.userProfile)
 }
 
-function buildPromptWithSupplement(payload: unknown, supplement: string) {
+function buildPromptWithContexts(payload: unknown, supplement: string, userProfile: string) {
   const promptParts = [JSON.stringify(payload, null, 2)]
-  const normalizedContext = supplement.trim()
+  const normalizedSupplement = supplement.trim()
 
-  if (normalizedContext) {
+  if (normalizedSupplement) {
     promptParts.push(
       [
         '你在整理和总结时，可以参考以下补充知识。',
         '这些内容用于帮助你理解用户的长期背景、固定术语和偏好；如果与本次区间的实际事实冲突，以区间事实和日记内容为准。',
-        normalizedContext,
+        normalizedSupplement,
+      ].join('\n'),
+    )
+  }
+
+  const normalizedProfile = userProfile.trim()
+  if (normalizedProfile) {
+    promptParts.push(
+      [
+        '以下是用户长期画像（自动维护，可能不完整或滞后）：',
+        '它用于帮助你理解用户的长期偏好、习惯与正在推进的事项；如果与区间事实冲突，以区间事实和日记内容为准。',
+        normalizedProfile,
       ].join('\n'),
     )
   }
 
   return promptParts.join('\n\n')
+}
+
+function scoreEntry(entry: RangeReportSummarySourceEntry) {
+  return (
+    entry.wordCount * 0.0015 +
+    Math.abs(entry.mood ?? 0) * 20 +
+    entry.tags.length * 8 +
+    (entry.summary.trim() ? 12 : 0)
+  )
 }
 
 function buildHeuristicFocusSelection(
@@ -449,55 +484,22 @@ function buildHeuristicFocusSelection(
   }
 
   const maxFocusCount = Math.min(MAX_FOCUS_ENTRY_COUNT, sourceEntries.length)
-  const selectedDates = new Set<string>()
+  const sortedEntries = [...sourceEntries].sort((left, right) => left.date.localeCompare(right.date))
+  const bucketSize = Math.ceil(sortedEntries.length / maxFocusCount)
   const focusSelection: FocusSelectionItem[] = []
 
-  const scoredEntries = [...sourceEntries].sort((left, right) => {
-    const leftScore =
-      left.wordCount * 0.0015 +
-      Math.abs(left.mood ?? 0) * 20 +
-      left.tags.length * 8 +
-      (left.summary.trim() ? 12 : 0)
-    const rightScore =
-      right.wordCount * 0.0015 +
-      Math.abs(right.mood ?? 0) * 20 +
-      right.tags.length * 8 +
-      (right.summary.trim() ? 12 : 0)
-
-    return rightScore - leftScore || left.date.localeCompare(right.date)
-  })
-
-  for (const entry of scoredEntries) {
-    if (focusSelection.length >= maxFocusCount) {
-      break
-    }
-
-    if (selectedDates.has(entry.date)) {
+  for (let start = 0; start < sortedEntries.length && focusSelection.length < maxFocusCount; start += bucketSize) {
+    const bucket = sortedEntries.slice(start, start + bucketSize)
+    if (bucket.length === 0) {
       continue
     }
 
-    selectedDates.add(entry.date)
+    const representative = bucket.reduce((best, entry) =>
+      scoreEntry(entry) > scoreEntry(best) ? entry : best,
+    )
     focusSelection.push({
-      date: entry.date,
-      reason: '该日期的记录信息较集中，适合作为阶段样本。',
-    })
-  }
-
-  if (focusSelection.length >= Math.min(3, maxFocusCount)) {
-    return focusSelection
-  }
-
-  const step = Math.max(1, Math.floor(sourceEntries.length / Math.max(maxFocusCount, 1)))
-  for (let index = 0; index < sourceEntries.length && focusSelection.length < maxFocusCount; index += step) {
-    const entry = sourceEntries[index]
-    if (selectedDates.has(entry.date)) {
-      continue
-    }
-
-    selectedDates.add(entry.date)
-    focusSelection.push({
-      date: entry.date,
-      reason: '该日期用于补足区间不同阶段的上下文。',
+      date: representative.date,
+      reason: '该日期代表区间内的一个阶段，信息较集中，适合作为阶段样本。',
     })
   }
 
@@ -544,40 +546,61 @@ function normalizeFocusSelection(
   return normalizedItems
 }
 
+interface FocusSelectionResult {
+  selection: FocusSelectionItem[]
+  userContent: string
+  responseText: string | null
+}
+
 async function selectFocusEntries(
-  report: RangeReportWithSupplement,
+  report: RangeReportWithContext,
   sourceEntries: RangeReportSummarySourceEntry[],
   systemPrompt: string,
-  summaryClient: ReturnType<typeof createAiChatClient>,
-) {
+  settings: AiSettings,
+  apiKey: string,
+): Promise<FocusSelectionResult> {
   const heuristicSelection = buildHeuristicFocusSelection(report, sourceEntries)
 
   if (sourceEntries.length <= FULL_CONTEXT_ENTRY_THRESHOLD) {
-    return heuristicSelection
+    return {
+      selection: heuristicSelection,
+      userContent: '',
+      responseText: null,
+    }
   }
 
+  const userContent = buildFocusSelectionPrompt(report, sourceEntries)
   const availableDates = new Set(sourceEntries.map((entry) => entry.date))
 
   try {
-    const responseText = await summaryClient.completeJson({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        {
-          role: 'user',
-          content: buildFocusSelectionPrompt(report, sourceEntries),
-        },
-      ],
-      thinking: true,
-    })
+    const responseText = await withAiRetry(
+      (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+      (client) =>
+        client.completeJson({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent },
+          ],
+        }),
+      { minTimeoutMs: Math.max(settings.timeoutMs, FOCUS_TIMEOUT_FLOOR_MS), label: '焦点日期选择' },
+    )
 
     const normalizedSelection = normalizeFocusSelection(
       extractJsonObject<FocusSelectionPayload>(responseText),
       availableDates,
     )
 
-    return normalizedSelection.length > 0 ? normalizedSelection : heuristicSelection
+    return {
+      selection: normalizedSelection.length > 0 ? normalizedSelection : heuristicSelection,
+      userContent,
+      responseText,
+    }
   } catch {
-    return heuristicSelection
+    return {
+      selection: heuristicSelection,
+      userContent,
+      responseText: null,
+    }
   }
 }
 
@@ -586,11 +609,12 @@ export async function generateRangeReportSummaryWithAi(
   sourceEntries: RangeReportSummarySourceEntry[],
   workspacePath: string,
 ) {
-  const [config, focusPrompt, summaryPrompt, supplement] = await Promise.all([
+  const [config, focusPrompt, summaryPrompt, supplement, userProfile] = await Promise.all([
     readAppConfig(),
     loadPrompt('rangeReportSummaryFocusSystem'),
     loadPrompt('rangeReportSummarySystem'),
     readSupplement(workspacePath),
+    readUserProfileContext(workspacePath),
   ])
   const settings = ensureAiSettingsReady(config)
   const apiKey = await readAiApiKey(settings.providerType)
@@ -607,23 +631,23 @@ export async function generateRangeReportSummaryWithAi(
     throw new Error('当前区间没有可用于总结的日记内容。')
   }
 
-  settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
-  const client = createAiChatClient(settings, apiKey)
-  const reportWithSupplement = {
+  const reportWithContext = {
     ...report,
     supplement,
+    userProfile,
   }
-  const focusSelection = await selectFocusEntries(reportWithSupplement, availableEntries, focusPrompt, client)
-  const responseText = await client.completeJson({
-    messages: [
-      { role: 'system', content: summaryPrompt },
-      {
-        role: 'user',
-        content: buildSummaryPrompt(reportWithSupplement, availableEntries, focusSelection),
-      },
-    ],
-    thinking: true,
-  })
+  const { selection: focusSelection, userContent: focusUserContent, responseText: focusResponseText } =
+    await selectFocusEntries(reportWithContext, availableEntries, focusPrompt, settings, apiKey)
+
+  const chat = createRangeReportChat(settings, apiKey, summaryPrompt)
+  if (focusUserContent && focusResponseText) {
+    chat.appendRoundTrip(focusUserContent, focusResponseText)
+  }
+
+  const responseText = await chat.send(
+    buildSummaryPrompt(reportWithContext, availableEntries, focusSelection, !focusResponseText),
+    { thinking: true, label: '区间总结' },
+  )
 
   return normalizeSummaryPayload(
     extractJsonObject<RangeReportSummaryPayload>(responseText),
