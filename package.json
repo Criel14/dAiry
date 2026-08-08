@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "^11.10.0",
     "dayjs": "^1.11.20",
     "echarts": "^6.1.0",
     "exceljs": "^4.4.0",
