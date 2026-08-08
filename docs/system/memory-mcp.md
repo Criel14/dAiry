@@ -73,7 +73,7 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 | `dairy_search_entries` | 语义检索日记，返回详尽回答 + 发现（findings）+ 相关日期 + 置信度 | `query`、`years?`、`limit?` |
 | `dairy_read_entries` | 按日期批量读取正文与元信息，返回 `entries` + `skippedDates` | `dates` |
 | `dairy_grep_entries` | 关键词字面匹配（仅正文），返回命中日期、摘要与上下文片段 | `keyword` |
-| `dairy_read_profile` | 读取最新年份用户画像 Markdown | — |
+| `dairy_read_profile` | 读取最新年份用户画像 Markdown + 补充知识 `supplement` | — |
 | `dairy_read_index` | 年度元索引（摘要/标签/心情/地点/字数） | `year` |
 
 ### 3.1 `dairy_search_entries`（语义检索链路）
@@ -175,9 +175,10 @@ interface MemorySearchResult {
 
 实现：[`memory/retrieval.ts`](../../electron/main/memory/retrieval.ts) 的 `getUserProfile()`。
 
-- 扫描 `<workspace>/.dairy/user-profile/` 下匹配 `user-profile-YYYY.md` 的文件，取**最新年份**读取，返回 `{ year, content }`；
+- 扫描 `<workspace>/.dairy/user-profile/` 下匹配 `user-profile-YYYY.md` 的文件，取**最新年份**读取，返回 `{ year, content, supplement }`；
 - 目录不存在或最新年份读取失败 → 只读回退 legacy 文件 `<workspace>/.dairy/user-profile.md`（返回 `year: null`）；
-- 两者都没有 → 返回 `{ year: null, content: '' }`，不抛错；
+- 两者都没有 → 返回 `{ year: null, content: '', supplement: '' }`，不抛错；
+- `supplement` 为用户在设置页撰写的补充知识（`<workspace>/.dairy/supplement.md`），不存在或为空时返回 `''`；
 - 画像的生成与维护机制见 [user-profile.md](user-profile.md)。
 
 ### 3.5 `dairy_read_index`

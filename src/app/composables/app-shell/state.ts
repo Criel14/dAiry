@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
-import type { AiContextDocument, AiSettingsStatus, UserProfileRebuildProgress } from '../../../types/ai'
+import type { AiSettingsStatus, SupplementDocument, UserProfileRebuildProgress } from '../../../types/ai'
 import type { McpRuntimeStatus } from '../../../types/mcp'
 import type {
   AppTheme,
@@ -29,7 +29,7 @@ export function createDefaultAiSettingsStatus(): AiSettingsStatus {
   }
 }
 
-export function createDefaultAiContextDocument(): AiContextDocument {
+export function createDefaultSupplementDocument(): SupplementDocument {
   return {
     content: '',
   }
@@ -155,7 +155,7 @@ export function useAppShellState() {
   const launchOnStartupSaveMessage = ref('')
   const workspaceLibrariesSaveMessage = ref('')
   const aiSaveMessage = ref('')
-  const aiContextSaveMessage = ref('')
+  const supplementSaveMessage = ref('')
   const mcpSaveMessage = ref('')
   const isCreatingEntry = ref(false)
   const isSavingEntry = ref(false)
@@ -171,7 +171,7 @@ export function useAppShellState() {
   const isSavingLaunchOnStartup = ref(false)
   const isSavingWorkspaceLibraries = ref(false)
   const isSavingAiConfig = ref(false)
-  const isSavingAiContext = ref(false)
+  const isSavingSupplement = ref(false)
   const isSavingMcp = ref(false)
   const isRebuildingProfile = ref(false)
   const isCancellingProfileRebuild = ref(false)
@@ -192,7 +192,7 @@ export function useAppShellState() {
     createDefaultFrontmatterVisibility(),
   )
   const aiSettingsStatus = ref<AiSettingsStatus>(createDefaultAiSettingsStatus())
-  const aiContextDocument = ref<AiContextDocument>(createDefaultAiContextDocument())
+  const supplementDocument = ref<SupplementDocument>(createDefaultSupplementDocument())
   const mcpEnabled = ref(false)
   const mcpPort = ref(9123)
   const mcpRuntimeStatus = ref<McpRuntimeStatus>(createDefaultMcpRuntimeStatus())
@@ -287,8 +287,6 @@ export function useAppShellState() {
 
   return {
     activeSettingsSectionId,
-    aiContextDocument,
-    aiContextSaveMessage,
     aiSaveMessage,
     aiSettingsStatus,
     canCreateEntry,
@@ -315,7 +313,6 @@ export function useAppShellState() {
     isRebuildingProfile,
     isReportExportMode,
     isSavingAiConfig,
-    isSavingAiContext,
     isSavingDayStartHour,
     isSavingEntry,
     isSavingFrontmatterVisibility,
@@ -324,6 +321,7 @@ export function useAppShellState() {
     isSavingMcp,
     isSavingMetadata,
     isSavingNotification,
+    isSavingSupplement,
     isSavingTheme,
     isSavingWindowCloseBehavior,
     isSavingWindowZoomFactor,
@@ -349,6 +347,8 @@ export function useAppShellState() {
     selectedDate,
     selectedDateText,
     statusMessage,
+    supplementDocument,
+    supplementSaveMessage,
     theme,
     themeSaveMessage,
     todayText,

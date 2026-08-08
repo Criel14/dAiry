@@ -97,7 +97,7 @@ journal.ts: generateDailyInsights 返回后
 | 业务日期 | `{YYYY-MM-DD}` | 当天日期 |
 | 最近日记上下文 | `- {date}: {summary}` 列表 | 最近 `dailyContextDays`（默认 7）天日记的 `summary` frontmatter |
 | 已有事件列表 | `- id/ title/ date/ dateEnd` 列表 | `<workspace>/timeline/{year}.json` 中的全部事件 |
-| 补充知识 | `<userData>/ai-context.md` 正文（可选） | 用户在设置页编辑 |
+| 补充知识 | `<workspace>/.dairy/supplement.md` 正文（可选） | 用户在设置页编辑 |
 | 当日日记 | Markdown body（不含 frontmatter） | `<workspace>/journal/YYYY/MM/YYYY-MM-DD.md` |
 
 **约束：**
@@ -116,7 +116,7 @@ journal.ts: generateDailyInsights 返回后
 |----|------|------|
 | 重建说明 | `正在重建 {year} 年时间轴，当前批次：{start} ~ {end}` | — |
 | 当前已有事件 | `- id/ title/ date` 列表 | 前面批次已累积提取的事件 |
-| 补充知识 | `<userData>/ai-context.md` 正文（可选） | 用户在设置页编辑 |
+| 补充知识 | `<workspace>/.dairy/supplement.md` 正文（可选） | 用户在设置页编辑 |
 | 该批次日记 | `## {date}\n{body}` × 1~3 篇 | `<workspace>/journal/` 对应日期的 Markdown body |
 
 **特点：**
@@ -188,7 +188,7 @@ journal.ts: generateDailyInsights 返回后
 | `mergeEvents` | `electron/main/timeline/service.ts:32` | 以 `id` 为键合并事件，incoming 覆盖 existing |
 | `loadPrompt` | `electron/main/ai/prompt-loader.ts` | 加载 `timelineExtractSystem` 系统 prompt |
 | `getRecentDailySummaries` | `electron/main/ai/journal-ai-service.ts` | 获取最近 N 天日记的 summary |
-| `readAiContext` | `electron/main/ai/context.ts` | 读取 `<userData>/ai-context.md` |
+| `readSupplement` | `electron/main/ai/context.ts` | 读取 `<workspace>/.dairy/supplement.md` |
 
 ### IPC 通道
 

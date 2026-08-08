@@ -1,7 +1,7 @@
 import { ipcMain, shell } from 'electron'
 import type {
   SaveAiApiKeyInput,
-  SaveAiContextInput,
+  SaveSupplementInput,
   SaveAiSettingsInput,
 } from '../../../src/types/ai'
 import type {
@@ -29,7 +29,7 @@ import {
   setWindowCloseBehavior,
 } from '../app-config'
 import { getAiSettingsStatus, saveAiSettings } from '../ai/config'
-import { getAiContextDocument, saveAiContext } from '../ai/context'
+import { getSupplementDocument, saveSupplement } from '../ai/context'
 import {
   getEmailNotificationStatus,
   saveAiApiKey,
@@ -80,12 +80,12 @@ export function registerAppIpcHandlers() {
     return saveAiApiKey(input)
   })
 
-  ipcMain.handle(IPC_CHANNELS.getAiContext, () => {
-    return getAiContextDocument()
+  ipcMain.handle(IPC_CHANNELS.getSupplement, (_event, workspacePath: string) => {
+    return getSupplementDocument(workspacePath)
   })
 
-  ipcMain.handle(IPC_CHANNELS.saveAiContext, (_event, input: SaveAiContextInput) => {
-    return saveAiContext(input)
+  ipcMain.handle(IPC_CHANNELS.saveSupplement, (_event, input: SaveSupplementInput) => {
+    return saveSupplement(input.workspacePath, input)
   })
 
   ipcMain.handle(

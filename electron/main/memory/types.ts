@@ -47,4 +47,5 @@ export interface MemoryMetaCandidate {
 export interface MemoryUserProfile {
   year: string | null
   content: string
+  supplement: string
 }

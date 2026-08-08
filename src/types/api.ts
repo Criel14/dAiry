@@ -1,13 +1,13 @@
 import type {
-  AiContextDocument,
   AiSettingsStatus,
   GenerateDailyInsightsInput,
   GenerateDailyInsightsResult,
   RebuildUserProfileInput,
   RebuildUserProfileResult,
   SaveAiApiKeyInput,
-  SaveAiContextInput,
   SaveAiSettingsInput,
+  SaveSupplementInput,
+  SupplementDocument,
   UserProfileRebuildProgress,
 } from './ai'
 import type {
@@ -102,8 +102,8 @@ export interface DairyApi {
   getAiSettingsStatus: () => Promise<AiSettingsStatus>
   saveAiSettings: (input: SaveAiSettingsInput) => Promise<AiSettingsStatus>
   saveAiApiKey: (input: SaveAiApiKeyInput) => Promise<AiSettingsStatus>
-  getAiContext: () => Promise<AiContextDocument>
-  saveAiContext: (input: SaveAiContextInput) => Promise<AiContextDocument>
+  getSupplement: (workspacePath: string) => Promise<SupplementDocument>
+  saveSupplement: (input: SaveSupplementInput) => Promise<SupplementDocument>
   generateDailyInsights: (
     input: GenerateDailyInsightsInput,
   ) => Promise<GenerateDailyInsightsResult>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import packageJson from '../../../../package.json'
-import type { AiContextDocument, AiSettings, AiSettingsStatus, UserProfileRebuildProgress } from '../../../types/ai'
+import type { AiSettings, AiSettingsStatus, SupplementDocument, UserProfileRebuildProgress } from '../../../types/ai'
 import type { McpRuntimeStatus } from '../../../types/mcp'
 import type {
   AppTheme,
@@ -64,9 +64,9 @@ const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
   isSavingAiConfig: boolean
   aiSaveMessage: string
-  aiContextDocument: AiContextDocument
-  isSavingAiContext: boolean
-  aiContextSaveMessage: string
+  supplementDocument: SupplementDocument
+  isSavingSupplement: boolean
+  supplementSaveMessage: string
   isRebuildingProfile: boolean
   isCancellingProfileRebuild: boolean
   profileRebuildProgress: UserProfileRebuildProgress | null
@@ -108,7 +108,7 @@ const emit = defineEmits<{
       apiKey: string
     },
   ]
-  saveAiContext: [value: string]
+  saveSupplement: [value: string]
   rebuildUserProfile: []
   cancelUserProfileRebuild: []
   saveMcpPreference: [value: { enabled: boolean; port: number }]
@@ -205,11 +205,11 @@ function openDebugPanel() {
         :ai-settings-status="props.aiSettingsStatus"
         :is-saving-ai-config="props.isSavingAiConfig"
         :ai-save-message="props.aiSaveMessage"
-        :ai-context-document="props.aiContextDocument"
-        :is-saving-ai-context="props.isSavingAiContext"
-        :ai-context-save-message="props.aiContextSaveMessage"
+        :supplement-document="props.supplementDocument"
+        :is-saving-supplement="props.isSavingSupplement"
+        :supplement-save-message="props.supplementSaveMessage"
         @save-ai-configuration="emit('saveAiConfiguration', $event)"
-        @save-ai-context="emit('saveAiContext', $event)"
+        @save-supplement="emit('saveSupplement', $event)"
         :workspace-path="props.workspacePath"
         :is-rebuilding-profile="props.isRebuildingProfile"
         :is-cancelling-profile-rebuild="props.isCancellingProfileRebuild"

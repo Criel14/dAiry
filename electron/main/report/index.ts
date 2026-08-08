@@ -66,7 +66,12 @@ export async function generateRangeReport(input: GenerateRangeReportInput): Prom
     sections,
   }
 
-  report.summary = await buildReportSummary(report, fallbackSummary, summarySourceEntries)
+  report.summary = await buildReportSummary(
+    report,
+    fallbackSummary,
+    summarySourceEntries,
+    input.workspacePath,
+  )
 
   const filePath = getReportFilePath(input.workspacePath, input.preset, reportId, startDate)
   await writeReport(filePath, report)

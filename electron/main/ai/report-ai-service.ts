@@ -6,7 +6,7 @@ import type {
   ReportSummaryTimeAnchor,
 } from '../../../src/types/report'
 import { normalizeAiSettings, readAppConfig } from '../app-config'
-import { readAiContext } from './context'
+import { readSupplement } from './context'
 import { readAiApiKey } from '../secrets'
 import { createAiChatClient } from './provider-factory'
 import { loadPrompt } from './prompt-loader'
@@ -43,8 +43,8 @@ interface FocusSelectionItem {
   reason: string
 }
 
-interface RangeReportWithAiContext extends RangeReport {
-  aiContext: string
+interface RangeReportWithSupplement extends RangeReport {
+  supplement: string
 }
 
 interface TimeAnchorPayload {
@@ -358,22 +358,22 @@ function buildSummaryFacts(report: RangeReport) {
 }
 
 function buildFocusSelectionPrompt(
-  report: RangeReportWithAiContext,
+  report: RangeReportWithSupplement,
   sourceEntries: RangeReportSummarySourceEntry[],
 ) {
-  return buildPromptWithAiContext(
+  return buildPromptWithSupplement(
     {
       period: report.period,
       source: report.source,
       facts: buildSummaryFacts(report),
       dailyCandidates: sourceEntries.map((entry) => buildEntryCompactDigest(entry)),
     },
-    report.aiContext,
+    report.supplement,
   )
 }
 
 function buildSummaryPrompt(
-  report: RangeReportWithAiContext,
+  report: RangeReportWithSupplement,
   sourceEntries: RangeReportSummarySourceEntry[],
   focusSelection: FocusSelectionItem[],
 ) {
@@ -401,7 +401,7 @@ function buildSummaryPrompt(
 
   const compactTimeline = sourceEntries.slice(0, 20).map((entry) => buildEntryCompactDigest(entry))
 
-  return buildPromptWithAiContext(
+  return buildPromptWithSupplement(
     {
       period: report.period,
       source: report.source,
@@ -416,13 +416,13 @@ function buildSummaryPrompt(
         focusEntries,
       },
     },
-    report.aiContext,
+    report.supplement,
   )
 }
 
-function buildPromptWithAiContext(payload: unknown, aiContext: string) {
+function buildPromptWithSupplement(payload: unknown, supplement: string) {
   const promptParts = [JSON.stringify(payload, null, 2)]
-  const normalizedContext = aiContext.trim()
+  const normalizedContext = supplement.trim()
 
   if (normalizedContext) {
     promptParts.push(
@@ -545,7 +545,7 @@ function normalizeFocusSelection(
 }
 
 async function selectFocusEntries(
-  report: RangeReportWithAiContext,
+  report: RangeReportWithSupplement,
   sourceEntries: RangeReportSummarySourceEntry[],
   systemPrompt: string,
   summaryClient: ReturnType<typeof createAiChatClient>,
@@ -584,12 +584,13 @@ async function selectFocusEntries(
 export async function generateRangeReportSummaryWithAi(
   report: RangeReport,
   sourceEntries: RangeReportSummarySourceEntry[],
+  workspacePath: string,
 ) {
-  const [config, focusPrompt, summaryPrompt, aiContext] = await Promise.all([
+  const [config, focusPrompt, summaryPrompt, supplement] = await Promise.all([
     readAppConfig(),
     loadPrompt('rangeReportSummaryFocusSystem'),
     loadPrompt('rangeReportSummarySystem'),
-    readAiContext(),
+    readSupplement(workspacePath),
   ])
   const settings = ensureAiSettingsReady(config)
   const apiKey = await readAiApiKey(settings.providerType)
@@ -608,17 +609,17 @@ export async function generateRangeReportSummaryWithAi(
 
   settings.timeoutMs = Math.max(settings.timeoutMs, 60_000)
   const client = createAiChatClient(settings, apiKey)
-  const reportWithAiContext = {
+  const reportWithSupplement = {
     ...report,
-    aiContext,
+    supplement,
   }
-  const focusSelection = await selectFocusEntries(reportWithAiContext, availableEntries, focusPrompt, client)
+  const focusSelection = await selectFocusEntries(reportWithSupplement, availableEntries, focusPrompt, client)
   const responseText = await client.completeJson({
     messages: [
       { role: 'system', content: summaryPrompt },
       {
         role: 'user',
-        content: buildSummaryPrompt(reportWithAiContext, availableEntries, focusSelection),
+        content: buildSummaryPrompt(reportWithSupplement, availableEntries, focusSelection),
       },
     ],
     thinking: true,

@@ -2,10 +2,10 @@
 import { computed, ref, watch } from 'vue'
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
 import type {
-  AiContextDocument,
   AiProviderType,
   AiSettings,
   AiSettingsStatus,
+  SupplementDocument,
   UserProfileRebuildProgress,
 } from '../../../types/ai'
 import { AI_PROVIDER_OPTIONS, getAiDefaults } from '../config/config'
@@ -18,9 +18,9 @@ const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
   isSavingAiConfig: boolean
   aiSaveMessage: string
-  aiContextDocument: AiContextDocument
-  isSavingAiContext: boolean
-  aiContextSaveMessage: string
+  supplementDocument: SupplementDocument
+  isSavingSupplement: boolean
+  supplementSaveMessage: string
   workspacePath: string | null
   isRebuildingProfile: boolean
   isCancellingProfileRebuild: boolean
@@ -34,14 +34,14 @@ const emit = defineEmits<{
       apiKey: string
     },
   ]
-  saveAiContext: [value: string]
+  saveSupplement: [value: string]
   rebuildUserProfile: []
   cancelUserProfileRebuild: []
 }>()
 
 const draftAiSettings = ref<AiSettings>({ ...props.aiSettingsStatus.settings })
 const draftApiKey = ref('')
-const draftAiContext = ref(props.aiContextDocument.content)
+const draftSupplement = ref(props.supplementDocument.content)
 
 watch(
   () => props.aiSettingsStatus,
@@ -66,13 +66,13 @@ watch(
 )
 
 watch(
-  () => props.aiContextDocument.content,
+  () => props.supplementDocument.content,
   (value) => {
-    if (props.isSavingAiContext) {
+    if (props.isSavingSupplement) {
       return
     }
 
-    draftAiContext.value = value
+    draftSupplement.value = value
   },
   { immediate: true },
 )
@@ -81,16 +81,16 @@ const isAiSettingsDirty = computed(() => {
   return JSON.stringify(draftAiSettings.value) !== JSON.stringify(props.aiSettingsStatus.settings)
 })
 
-const isAiContextDirty = computed(() => {
-  return draftAiContext.value !== props.aiContextDocument.content
+const isSupplementDirty = computed(() => {
+  return draftSupplement.value !== props.supplementDocument.content
 })
 
 const canSaveAiConfiguration = computed(() => {
   return !props.isSavingAiConfig && (isAiSettingsDirty.value || Boolean(draftApiKey.value.trim()))
 })
 
-const canSaveAiContext = computed(() => {
-  return !props.isSavingAiContext && isAiContextDirty.value
+const canSaveSupplement = computed(() => {
+  return !props.isSavingSupplement && isSupplementDirty.value
 })
 
 const isViewingSavedProvider = computed(
@@ -168,17 +168,17 @@ function emitSaveAiConfiguration() {
   })
 }
 
-function emitSaveAiContext() {
-  emit('saveAiContext', draftAiContext.value)
+function emitSaveSupplement() {
+  emit('saveSupplement', draftSupplement.value)
 }
 
-function handleAiContextKeydown(event: KeyboardEvent) {
+function handleSupplementKeydown(event: KeyboardEvent) {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
     event.preventDefault()
     event.stopPropagation()
 
-    if (canSaveAiContext.value) {
-      emitSaveAiContext()
+    if (canSaveSupplement.value) {
+      emitSaveSupplement()
     }
   }
 }
@@ -373,16 +373,16 @@ function handleAiContextKeydown(event: KeyboardEvent) {
 
       <label class="field">
         <span class="field-label field-label--with-tip">
-          AI Context
-          <SettingsInfoTip text="文件会保存为用户配置目录下的 ai-context.md。" />
+          补充知识
+          <SettingsInfoTip text="文件会保存为当前工作区的 .dairy/supplement.md。" />
         </span>
         <textarea
-          v-model="draftAiContext"
+          v-model="draftSupplement"
           class="field-input field-textarea field-textarea--ai-context"
-          :disabled="isSavingAiContext"
+          :disabled="isSavingSupplement"
           placeholder="例如：我正在做的项目背景、常用缩写、专有名词、重要人物、长期目标、写作习惯等。"
           spellcheck="false"
-          @keydown="handleAiContextKeydown"
+          @keydown="handleSupplementKeydown"
         ></textarea>
       </label>
 
@@ -390,15 +390,15 @@ function handleAiContextKeydown(event: KeyboardEvent) {
         <button
           class="save-button"
           type="button"
-          :disabled="!canSaveAiContext"
-          @click="emitSaveAiContext"
+          :disabled="!canSaveSupplement"
+          @click="emitSaveSupplement"
         >
-          {{ isSavingAiContext ? '正在保存' : '保存' }}
+          {{ isSavingSupplement ? '正在保存' : '保存' }}
         </button>
       </div>
 
-      <p v-if="aiContextSaveMessage" class="setting-feedback">
-        {{ aiContextSaveMessage }}
+      <p v-if="supplementSaveMessage" class="setting-feedback">
+        {{ supplementSaveMessage }}
       </p>
     </section>
   </div>

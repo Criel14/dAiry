@@ -76,9 +76,10 @@ export async function buildReportSummary(
   draftReport: RangeReport,
   fallbackSummary: RangeReportSummary,
   sourceEntries: RangeReportSummarySourceEntry[],
+  workspacePath: string,
 ) {
   try {
-    return await generateRangeReportSummaryWithAi(draftReport, sourceEntries)
+    return await generateRangeReportSummaryWithAi(draftReport, sourceEntries, workspacePath)
   } catch (error) {
     const message = error instanceof Error ? error.message : '区间总结 AI 生成失败。'
     draftReport.generation.warnings.push(`AI 总结未生成：${message}`)

@@ -15,8 +15,6 @@ import { useAppShell } from '../composables/useAppShell'
 
 const {
   activeSettingsSectionId,
-  aiContextDocument,
-  aiContextSaveMessage,
   aiSaveMessage,
   aiSettingsStatus,
   canGenerateDailyInsights,
@@ -37,7 +35,7 @@ const {
   handleCreateEntry,
   handleGenerateDailyInsights,
   handleSaveAiConfiguration,
-  handleSaveAiContext,
+  handleSaveSupplement,
   handleCancelUserProfileRebuild,
   handleRebuildUserProfile,
   handleSaveAll,
@@ -66,7 +64,6 @@ const {
   isJournalReady,
   isRebuildingProfile,
   isSavingAiConfig,
-  isSavingAiContext,
   isSavingDayStartHour,
   isSavingEntry,
   isSavingFrontmatterVisibility,
@@ -115,6 +112,9 @@ const {
   selectedDateText,
   setEditorMode,
   statusMessage,
+  supplementDocument,
+  supplementSaveMessage,
+  isSavingSupplement,
   theme,
   themeSaveMessage,
   todayText,
@@ -277,9 +277,9 @@ const {
         :ai-settings-status="aiSettingsStatus"
         :is-saving-ai-config="isSavingAiConfig"
         :ai-save-message="aiSaveMessage"
-        :ai-context-document="aiContextDocument"
-        :is-saving-ai-context="isSavingAiContext"
-        :ai-context-save-message="aiContextSaveMessage"
+        :supplement-document="supplementDocument"
+        :is-saving-supplement="isSavingSupplement"
+        :supplement-save-message="supplementSaveMessage"
         :mcp-enabled="mcpEnabled"
         :mcp-port="mcpPort"
         :mcp-runtime-status="mcpRuntimeStatus"
@@ -299,7 +299,7 @@ const {
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
         @save-workspace-libraries="handleSaveWorkspaceLibraries"
         @save-ai-configuration="handleSaveAiConfiguration"
-        @save-ai-context="handleSaveAiContext"
+        @save-supplement="handleSaveSupplement"
         :is-rebuilding-profile="isRebuildingProfile"
         :is-cancelling-profile-rebuild="isCancellingProfileRebuild"
         :profile-rebuild-progress="profileRebuildProgress"

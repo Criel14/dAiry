@@ -135,7 +135,7 @@ export function createMemoryMcpServer(): McpServer {
     {
       title: '读取用户画像',
       description:
-        '读取由 dAiry 自动维护的用户画像 Markdown（长期偏好、习惯、进行中的项目等），取最新年份版本。',
+        '读取由 dAiry 自动维护的用户画像 Markdown（长期偏好、习惯、进行中的项目等），取最新年份版本，同时附带用户撰写的补充知识文档（supplement）。',
       inputSchema: {
         workspacePath: workspacePathSchema,
       },

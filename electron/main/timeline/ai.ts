@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import type { TimelineEvent } from '../../../src/types/timeline'
 import { assertValidDate, resolveJournalEntryFilePath } from '../workspace/paths'
 import { readAppConfig, normalizeAiSettings } from '../app-config'
-import { readAiContext } from '../ai/context'
+import { readSupplement } from '../ai/context'
 import { readAiApiKey } from '../secrets'
 import { createAiChatClient } from '../ai/provider-factory'
 import { withAiRetry } from '../ai/retry'
@@ -83,10 +83,10 @@ export async function extractEventsFromDay(
 ): Promise<ExtractResult> {
   assertValidDate(date)
 
-  const [config, systemPrompt, aiContext] = await Promise.all([
+  const [config, systemPrompt, supplement] = await Promise.all([
     readAppConfig(),
     loadPrompt('timelineExtractSystem'),
-    readAiContext(),
+    readSupplement(workspacePath),
   ])
 
   const settings = normalizeAiSettings(config.ai)
@@ -131,7 +131,7 @@ export async function extractEventsFromDay(
     `业务日期：${date}`,
     contextBlock,
     existingEventsBlock,
-    aiContext.trim() ? `补充知识：\n${aiContext.trim()}` : '',
+    supplement.trim() ? `补充知识：\n${supplement.trim()}` : '',
     '当日日记：',
     body,
   ]
@@ -216,10 +216,10 @@ export async function rebuildTimelineYear(
 
     const { start: batchStart, end: batchEnd } = batches[i]
 
-    const [config, systemPrompt, aiContext] = await Promise.all([
+    const [config, systemPrompt, supplement] = await Promise.all([
       readAppConfig(),
       loadPrompt('timelineExtractSystem'),
-      readAiContext(),
+      readSupplement(workspacePath),
     ])
 
     const settings = normalizeAiSettings(config.ai)
@@ -268,7 +268,7 @@ export async function rebuildTimelineYear(
     const userPrompt = [
       `正在重建 ${year} 年时间轴，当前批次：${batchStart} ~ ${batchEnd}`,
       existingEventsBlock,
-      aiContext.trim() ? `补充知识：\n${aiContext.trim()}` : '',
+      supplement.trim() ? `补充知识：\n${supplement.trim()}` : '',
       ...bodies,
     ]
       .filter(Boolean)

@@ -50,6 +50,10 @@ export function getWorkspaceUserProfilePathForYear(workspacePath: string, year: 
   return path.join(getWorkspaceUserProfileDir(workspacePath), `user-profile-${year}.md`)
 }
 
+export function getWorkspaceSupplementPath(workspacePath: string) {
+  return path.join(getWorkspaceMetadataDir(workspacePath), 'supplement.md')
+}
+
 export function getWorkspaceReportsDir(workspacePath: string) {
   return path.join(workspacePath, 'reports')
 }

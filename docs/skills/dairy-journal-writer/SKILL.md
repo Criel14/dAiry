@@ -27,7 +27,7 @@ description: 为本地日记工作区编写、整理或更新日记，或生成�
 | `dairy_read_entries` | 按日期读取日记正文与元信息，用于确认目标日记状态 |
 | `dairy_search_entries` | 语义检索日记，返回回答与相关日期 |
 | `dairy_grep_entries` | 关键词字面匹配正文 |
-| `dairy_read_profile` | 读取用户画像 |
+| `dairy_read_profile` | 读取用户画像（附带补充知识 supplement） |
 | `dairy_read_index` | 读取年度元索引 |
 
 ## 日记编写流程

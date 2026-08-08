@@ -47,19 +47,27 @@ export function useAppShellAi(state: AppShellState) {
     }
   }
 
-  async function handleSaveAiContext(content: string) {
-    state.isSavingAiContext.value = true
-    state.aiContextSaveMessage.value = ''
+  async function handleSaveSupplement(content: string) {
+    if (!state.workspacePath.value) {
+      state.supplementSaveMessage.value = '请先选择工作区。'
+      return
+    }
+
+    state.isSavingSupplement.value = true
+    state.supplementSaveMessage.value = ''
 
     try {
-      const nextDocument = await window.dairy.saveAiContext({ content })
-      state.aiContextDocument.value = nextDocument
-      state.aiContextSaveMessage.value = '补充知识已保存。'
+      const nextDocument = await window.dairy.saveSupplement({
+        workspacePath: state.workspacePath.value,
+        content,
+      })
+      state.supplementDocument.value = nextDocument
+      state.supplementSaveMessage.value = '补充知识已保存。'
     } catch (error) {
-      state.aiContextSaveMessage.value =
+      state.supplementSaveMessage.value =
         error instanceof Error ? error.message : '保存补充知识失败，请稍后重试。'
     } finally {
-      state.isSavingAiContext.value = false
+      state.isSavingSupplement.value = false
     }
   }
 
@@ -121,7 +129,7 @@ export function useAppShellAi(state: AppShellState) {
 
   return {
     handleSaveAiConfiguration,
-    handleSaveAiContext,
+    handleSaveSupplement,
     handleRebuildUserProfile,
     handleCancelUserProfileRebuild,
   }

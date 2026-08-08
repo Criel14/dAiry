@@ -6,6 +6,7 @@ import { readJournalMetaIndex } from '../journal/meta-index'
 import {
   getLegacyUserProfilePath,
   getWorkspaceJournalDir,
+  getWorkspaceSupplementPath,
   getWorkspaceUserProfileDir,
   resolveJournalEntryFilePath,
 } from '../workspace/paths'
@@ -200,6 +201,7 @@ export async function getMetaIndex(
 
 export async function getUserProfile(workspacePath: string): Promise<MemoryUserProfile> {
   const profileDir = getWorkspaceUserProfileDir(workspacePath)
+  const supplement = await readSupplement(workspacePath)
 
   let profileYears: string[] = []
   try {
@@ -218,7 +220,7 @@ export async function getUserProfile(workspacePath: string): Promise<MemoryUserP
         path.join(profileDir, `user-profile-${latestYear}.md`),
         'utf-8',
       )
-      return { year: latestYear, content }
+      return { year: latestYear, content, supplement }
     } catch {
       // 读取失败时继续尝试 legacy 文件
     }
@@ -226,8 +228,16 @@ export async function getUserProfile(workspacePath: string): Promise<MemoryUserP
 
   try {
     const content = await readFile(getLegacyUserProfilePath(workspacePath), 'utf-8')
-    return { year: null, content }
+    return { year: null, content, supplement }
   } catch {
-    return { year: null, content: '' }
+    return { year: null, content: '', supplement }
+  }
+}
+
+async function readSupplement(workspacePath: string): Promise<string> {
+  try {
+    return await readFile(getWorkspaceSupplementPath(workspacePath), 'utf-8')
+  } catch {
+    return ''
   }
 }

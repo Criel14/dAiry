@@ -100,6 +100,7 @@ workspace/
     weather.json
     locations.json
     user-profile.md
+    supplement.md
 ```
 
 当前 Frontmatter 约定：

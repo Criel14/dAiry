@@ -15,7 +15,7 @@ export interface AiSettingsStatus {
   isConfigured: boolean
 }
 
-export interface AiContextDocument {
+export interface SupplementDocument {
   content: string
 }
 
@@ -33,7 +33,8 @@ export interface SaveAiApiKeyInput {
   apiKey: string
 }
 
-export interface SaveAiContextInput {
+export interface SaveSupplementInput {
+  workspacePath: string
   content: string
 }
 

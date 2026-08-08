@@ -7,7 +7,7 @@ import type {
 import { normalizeAiSettings } from '../app-config'
 import { assertValidDate, resolveJournalEntryFilePath } from '../workspace/paths'
 import { readAppConfig } from '../app-config'
-import { readAiContext } from './context'
+import { readSupplement } from './context'
 import { readAiApiKey } from '../secrets'
 import { normalizeStringList, readJournalDocument } from '../journal/document'
 import { createAiChatClient } from './provider-factory'
@@ -27,7 +27,7 @@ interface EnsureDailyInsightsInput extends GenerateDailyInsightsInput {
 }
 
 interface DailyInsightsPromptInput extends GenerateDailyInsightsInput {
-  aiContext: string
+  supplement: string
   recentSummaries: RecentDaySummary[]
 }
 
@@ -117,7 +117,7 @@ function buildDailyInsightsPrompt(input: DailyInsightsPromptInput) {
     `业务日期：${input.date}`,
     `当前工作区已有标签：${workspaceTags}`,
     buildRecentSummariesBlock(input.recentSummaries),
-    buildAiContextPromptBlock(input.aiContext),
+    buildSupplementPromptBlock(input.supplement),
     '当日日记正文：',
     body,
   ]
@@ -125,8 +125,8 @@ function buildDailyInsightsPrompt(input: DailyInsightsPromptInput) {
     .join('\n\n')
 }
 
-function buildAiContextPromptBlock(aiContext: string) {
-  const normalizedContext = aiContext.trim()
+function buildSupplementPromptBlock(supplement: string) {
+  const normalizedContext = supplement.trim()
   if (!normalizedContext) {
     return ''
   }
@@ -228,10 +228,10 @@ export async function generateDailyInsights(
     throw new Error('正文为空，暂时无法自动整理。')
   }
 
-  const [config, systemPrompt, aiContext] = await Promise.all([
+  const [config, systemPrompt, supplement] = await Promise.all([
     readAppConfig(),
     loadPrompt('dailyOrganizeSystem'),
-    readAiContext(),
+    readSupplement(input.workspacePath),
   ])
   const settings = ensureAiSettingsReady(config)
   const apiKey = await readAiApiKey(settings.providerType)
@@ -253,7 +253,7 @@ export async function generateDailyInsights(
       client.completeJson({
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: buildDailyInsightsPrompt({ ...input, aiContext, recentSummaries }) },
+          { role: 'user', content: buildDailyInsightsPrompt({ ...input, supplement, recentSummaries }) },
         ],
       }),
     { minTimeoutMs: settings.timeoutMs, label: '日级整理' },

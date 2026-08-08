@@ -169,16 +169,14 @@ export function useAppShellJournal(state: AppShellState) {
     state.viewState.value = 'loading'
 
     try {
-      const [bootstrap, nextAiSettingsStatus, nextAiContextDocument] = await Promise.all([
+      const [bootstrap, nextAiSettingsStatus] = await Promise.all([
         window.dairy.getAppBootstrap(),
         window.dairy.getAiSettingsStatus(),
-        window.dairy.getAiContext(),
       ])
 
       syncConfigState(bootstrap.config)
       state.emailNotificationStatus.value = bootstrap.emailNotificationStatus
       state.aiSettingsStatus.value = nextAiSettingsStatus
-      state.aiContextDocument.value = nextAiContextDocument
       state.selectedDate.value = state.todayText.value
 
       if (!state.workspacePath.value) {
@@ -189,12 +187,14 @@ export function useAppShellJournal(state: AppShellState) {
         return
       }
 
-      await Promise.all([
+      const [nextSupplementDocument] = await Promise.all([
+        window.dairy.getSupplement(state.workspacePath.value),
         loadWorkspaceLocationOptions(),
         loadWorkspaceWeatherOptions(),
         loadWorkspaceTags(),
         loadEntryForDate(state.selectedDate.value),
       ])
+      state.supplementDocument.value = nextSupplementDocument
     } catch (error) {
       applyErrorState(error)
     }
@@ -253,12 +253,14 @@ export function useAppShellJournal(state: AppShellState) {
 
       applyWorkspaceSelection(result)
       state.selectedDate.value = state.todayText.value
-      await Promise.all([
+      const [nextSupplementDocument] = await Promise.all([
+        window.dairy.getSupplement(result.workspacePath),
         loadWorkspaceLocationOptions(),
         loadWorkspaceWeatherOptions(),
         loadWorkspaceTags(),
         loadEntryForDate(state.selectedDate.value),
       ])
+      state.supplementDocument.value = nextSupplementDocument
     } catch (error) {
       applyErrorState(error)
     }

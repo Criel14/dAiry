@@ -28,7 +28,8 @@ description: 作为用户的人生整理助手，基于 dAiry 日记工作区检
    ├─ locations.json                # 地点候选库
    ├─ user-profile
    │  └─ user-profile-YYYY.md       # 用户画像（读最新年份）
-   └─ user-profile.md               # 旧版画像（兼容回退）
+   ├─ user-profile.md               # 旧版画像（兼容回退）
+   └─ supplement.md                 # 补充知识（用户撰写，随画像返回）
 ```
 
 > 如果当前对话所在的目录不是日记目录，你可以提醒用户最好在日记目录中打开对话
@@ -69,7 +70,7 @@ dAiry 通过 MCP 服务 `dairy-mcp` 提供 5 个只读工具。服务默认关�
 
 | 工具 | 用途 | 成本 |
 |------|------|------|
-| `dairy_read_profile` | 读取用户画像（长期偏好、习惯、进行中的项目等） | 低 |
+| `dairy_read_profile` | 读取用户画像（长期偏好、习惯、进行中的项目等），附带补充知识 `supplement` | 低 |
 | `dairy_read_index` | 某一年全部日记的摘要、标签、心情、地点、字数、创建时间（createdAt，UTC） | 低 |
 | `dairy_grep_entries` | 关键词字面匹配正文，返回命中日期、摘要、上下文片段 | 低，不耗 AI |
 | `dairy_search_entries` | 语义检索，返回详尽回答、相关发现、相关日期、置信度 | 高，需 AI，耗时数十秒到数分钟 |
@@ -79,7 +80,7 @@ dAiry 通过 MCP 服务 `dairy-mcp` 提供 5 个只读工具。服务默认关�
 
 ## 检索策略
 
-1. **先读画像**：会话开始、用户提出第一个整理类需求时，先调用 `dairy_read_profile`。画像能帮你看懂日记里的项目名、人名和长期主线，让后续回答更贴合用户。返回为空属正常（画像由 dAiry 在用户点击"自动整理"后异步维护）。
+1. **先读画像**：会话开始、用户提出第一个整理类需求时，先调用 `dairy_read_profile`。画像能帮你看懂日记里的项目名、人名和长期主线，让后续回答更贴合用户。返回为空属正常（画像由 dAiry 在用户点击"自动整理"后异步维护）；`supplement` 字段为用户撰写的补充知识，可帮助理解固定术语与偏好。
 2. **先概览再精读**：用 `dairy_read_index` 扫一年的摘要与标签，或用 `dairy_grep_entries` 定位关键词命中日期，再用 `dairy_read_entries` 只读需要的几篇正文。不要一上来就批量读大量正文。
 3. **grep 与 search 结合使用**：
    - 记得精确词（人名、项目名、地名）时，先 `dairy_grep_entries`，快且省。

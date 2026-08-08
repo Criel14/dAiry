@@ -28,7 +28,7 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 2. 并行加载:
    - appConfig     (AI 的 baseURL/model/timeout)
    - system prompt (daily-organize.system.md)
-   - aiContext     (用户补充知识，可选)
+   - supplement   (用户补充知识，可选)
 
 3. 检查配置就绪 (baseURL + model + apiKey 都存在)
 
@@ -52,7 +52,7 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 | 业务日期 | `YYYY-MM-DD` | 当天日期 |
 | 工作区已有标签 | `当前工作区已有标签：tag1、tag2...` | `input.workspaceTags`，帮助 AI 优先复用 |
 | 近期日记摘要（可选） | `- {date}: 摘要: {summary} \| 心情: {mood} \| 标签: {tags}` | `getRecentDailySummaries()`，最近 `dailyContextDays` 天 frontmatter，仅作上下文参考 |
-| 补充知识（可选） | 用户撰写的长期背景/术语偏好 | `<userData>/ai-context.md` |
+| 补充知识（可选） | 用户撰写的长期背景/术语偏好 | `<workspace>/.dairy/supplement.md` |
 | 当日日记正文 | Markdown body 全文（不截断） | `input.body`
 
 ### 结果去向

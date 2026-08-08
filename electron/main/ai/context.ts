@@ -1,20 +1,15 @@
-import path from 'node:path'
-import { app } from 'electron'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import type { AiContextDocument, SaveAiContextInput } from '../../../src/types/ai'
+import type { SaveSupplementInput, SupplementDocument } from '../../../src/types/ai'
+import { getWorkspaceMetadataDir, getWorkspaceSupplementPath } from '../workspace/paths'
 
-function getAiContextFilePath() {
-  return path.join(app.getPath('userData'), 'ai-context.md')
-}
-
-function normalizeAiContextContent(value: unknown) {
+function normalizeSupplementContent(value: unknown) {
   return typeof value === 'string' ? value : ''
 }
 
-export async function readAiContext(): Promise<string> {
+export async function readSupplement(workspacePath: string): Promise<string> {
   try {
-    const fileContent = await readFile(getAiContextFilePath(), 'utf-8')
-    return normalizeAiContextContent(fileContent)
+    const fileContent = await readFile(getWorkspaceSupplementPath(workspacePath), 'utf-8')
+    return normalizeSupplementContent(fileContent)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return ''
@@ -24,17 +19,20 @@ export async function readAiContext(): Promise<string> {
   }
 }
 
-export async function getAiContextDocument(): Promise<AiContextDocument> {
+export async function getSupplementDocument(workspacePath: string): Promise<SupplementDocument> {
   return {
-    content: await readAiContext(),
+    content: await readSupplement(workspacePath),
   }
 }
 
-export async function saveAiContext(input: SaveAiContextInput): Promise<AiContextDocument> {
-  await mkdir(app.getPath('userData'), { recursive: true })
+export async function saveSupplement(
+  workspacePath: string,
+  input: SaveSupplementInput,
+): Promise<SupplementDocument> {
+  await mkdir(getWorkspaceMetadataDir(workspacePath), { recursive: true })
 
-  const content = normalizeAiContextContent(input.content)
-  await writeFile(getAiContextFilePath(), content, 'utf-8')
+  const content = normalizeSupplementContent(input.content)
+  await writeFile(getWorkspaceSupplementPath(workspacePath), content, 'utf-8')
 
   return {
     content,
