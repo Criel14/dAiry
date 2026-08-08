@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import {
   BUILTIN_CATEGORIES,
@@ -29,20 +29,17 @@ export async function getBillCategories(workspacePath: string): Promise<BillCate
     }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      console.warn('[bills] 分类文件读取失败，将重新播种：', error)
+      console.warn('[bills] 分类文件读取失败，将按内置分类处理：', error)
     }
   }
 
-  return seedBillCategories(workspacePath)
-}
-
-async function seedBillCategories(workspacePath: string): Promise<BillCategory[]> {
-  await saveBillCategories(workspacePath, BUILTIN_CATEGORIES)
   return [...BUILTIN_CATEGORIES]
 }
 
 export async function saveBillCategories(workspacePath: string, categories: BillCategory[]) {
   const file: CategoryFile = { version: CATEGORIES_VERSION, categories }
+  const dirPath = path.join(workspacePath, '.dairy')
+  await mkdir(dirPath, { recursive: true })
   await writeFile(getBillCategoriesPath(workspacePath), JSON.stringify(file, null, 2), 'utf-8')
 }
 

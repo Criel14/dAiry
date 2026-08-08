@@ -32,8 +32,13 @@ export function openBillsDatabase(workspacePath: string): Database.Database {
   fs.mkdirSync(billsDir, { recursive: true })
 
   const db = new Database(path.join(billsDir, 'bills.db'))
-  db.pragma('journal_mode = WAL')
-  migrate(db)
+  try {
+    db.pragma('journal_mode = WAL')
+    migrate(db)
+  } catch (error) {
+    db.close()
+    throw error
+  }
   return db
 }
 
