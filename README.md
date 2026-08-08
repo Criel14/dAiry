@@ -29,7 +29,7 @@
 
 ![时间轴-浅色(加背景)](docs/images/时间轴-浅色(加背景).png)
 
-![年度总结-深色](docs/images/年度总结-深色(加背景).png)
+![年度总结-深色(加背景)](docs/images/年度总结-深色(加背景).png)
 
 接入 OpenCode 示例：
 
@@ -56,13 +56,7 @@
 
 > 项目没有后端，也没有手机端，想要在电脑不在身边的时候撰写日记，得使用一些其他方法
 
-项目里提供了一个 SKILL: [dairy-journal-writer](https://github.com/Criel14/dAiry/blob/main/docs/skills/dairy-journal-writer)  ，可以使用手机连接 OpenClaw，即可远程实现每日日记的编写、日记信息整理；（不支持月/年度总结以及其他信息的整理）
-
-使用前请修改 `SKILL.md` 中的**工作区目录**：
-
-```
-<WORKSPACE> = 存放日记文件的目录
-```
+项目里提供了一个 SKILL: [dairy-journal-writer](https://github.com/Criel14/dAiry/blob/main/docs/skills/dairy-journal-writer)  ，可以使用手机连接 OpenClaw，即可远程实现每日日记的编写、日记信息整理。（不支持月/年度总结以及其他信息的整理）
 
 同时提供了以下的工具供 AI 使用：
 
@@ -110,6 +104,8 @@ npm install
 npm run dev
 npm run build
 ```
+
+> 仓库中提供了[测试数据](https://github.com/Criel14/dAiry/tree/main/docs/test-workspace)可以使用（用 AI 生成的 2025 年的三百多篇日记）
 
 ## 开源协议
 
