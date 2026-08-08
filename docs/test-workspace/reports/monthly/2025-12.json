@@ -1,0 +1,1220 @@
+{
+  "reportId": "month_2025-12",
+  "preset": "month",
+  "period": {
+    "startDate": "2025-12-01",
+    "endDate": "2025-12-31",
+    "label": "2025 年 12 月总结",
+    "generatedAt": "2026-08-08T10:39:52.572Z",
+    "timezone": "Asia/Shanghai"
+  },
+  "generation": {
+    "requestedSections": [
+      "stats",
+      "heatmap",
+      "moodTrend",
+      "tagCloud",
+      "locationPatterns",
+      "timePatterns"
+    ],
+    "entryInsightPolicy": "reuse-or-generate",
+    "reusedEntryInsightCount": 30,
+    "generatedEntryInsightCount": 1,
+    "skippedEmptyDays": 0,
+    "warnings": []
+  },
+  "summary": {
+    "text": "十二月前半程集中在期末备考，数据库、计算机网络、数据结构三门笔试先后结束，大创一期总结同步提交，学习节奏紧凑。中旬进入课设答辩，数据结构课设顺利通过，期末任务基本清空。下旬生活节奏放慢，为晓雨准备圣诞礼物并互赠，看了元旦彩排和晚会，最后几天写完并归档年度总结，跨年夜在玄武湖看烟火收尾。整月情绪总体稳定，个别日子有起伏，学期在平淡中收束。",
+    "progress": [
+      {
+        "text": "期末笔试全部收官，数据库、数据结构考得较顺，计算机网络完成但心里没底。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "12月9日 - 12月11日",
+          "startDate": "2025-12-09",
+          "endDate": "2025-12-11"
+        }
+      },
+      {
+        "text": "大创一期总结完成并发送给老师，项目底稿在考前整理存档。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "12月11日 - 12月14日",
+          "startDate": "2025-12-11",
+          "endDate": "2025-12-14"
+        }
+      },
+      {
+        "text": "数据结构课设答辩通过，最终版提交，成绩拿到A-。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "12月16日 - 12月23日",
+          "startDate": "2025-12-16",
+          "endDate": "2025-12-23"
+        }
+      },
+      {
+        "text": "年度总结草稿完成并最终封存归档。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "12月26日 - 12月31日",
+          "startDate": "2025-12-26",
+          "endDate": "2025-12-31"
+        }
+      }
+    ],
+    "blockers": [
+      {
+        "text": "计算机网络考后感觉较悬，结果未出来前一直挂念。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "12月10日 - 12月31日",
+          "startDate": "2025-12-10",
+          "endDate": "2025-12-31"
+        }
+      },
+      {
+        "text": "六级单词未按计划背完，考前有些仓促。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "12月6日",
+          "startDate": "2025-12-06"
+        }
+      },
+      {
+        "text": "大创组会指出图表不规范，临时返工修改。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "12月8日",
+          "startDate": "2025-12-08"
+        }
+      }
+    ],
+    "memorableMoments": [
+      {
+        "text": "考完最后一门后给妈妈打电话，得知家里下雪。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "12月11日",
+          "startDate": "2025-12-11"
+        }
+      },
+      {
+        "text": "和晓雨去新街口吃火锅、逛夫子庙。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "12月13日",
+          "startDate": "2025-12-13"
+        }
+      },
+      {
+        "text": "收到晓雨送的深蓝色钢笔，她说下学期拿它写代码。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "12月21日",
+          "startDate": "2025-12-21"
+        }
+      },
+      {
+        "text": "圣诞夜送香薰，她说喜欢这个味道。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "12月24日",
+          "startDate": "2025-12-24"
+        }
+      }
+    ]
+  },
+  "source": {
+    "totalDays": 31,
+    "entryDays": 31,
+    "missingDays": 0,
+    "totalWords": 8552,
+    "averageWords": 276,
+    "longestStreak": 31
+  },
+  "dailyEntries": [
+    {
+      "date": "2025-12-01",
+      "hasEntry": true,
+      "wordCount": 552,
+      "mood": 2,
+      "summary": "周一学B+树，下午在实验室整理大创模块文档，晚上复习数据库和六级，内心踏实。",
+      "tags": [
+        "B+树",
+        "大创",
+        "实验室",
+        "复习备考",
+        "六级",
+        "晓雨",
+        "踏实"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:59:36.711Z",
+      "updatedAt": "2026-08-04T14:59:52.844Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-02",
+      "hasEntry": true,
+      "wordCount": 412,
+      "mood": 2,
+      "summary": "改完大创总结文档，和晓雨吃饭并在图书馆晚自习，晚上回宿舍背了六级高频词。",
+      "tags": [
+        "晓雨",
+        "大创",
+        "图书馆",
+        "数据结构",
+        "六级",
+        "复习备考"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:59:57.784Z",
+      "updatedAt": "2026-08-04T15:00:19.862Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-03",
+      "hasEntry": true,
+      "wordCount": 453,
+      "mood": 2,
+      "summary": "复习B+树和数据库重点，完善大创缓存方案，晚上与晓雨自习并背六级单词。",
+      "tags": [
+        "B+树",
+        "晓雨",
+        "数据库原理",
+        "复习备考",
+        "六级",
+        "大创"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:00:27.162Z",
+      "updatedAt": "2026-08-04T15:00:37.163Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-04",
+      "hasEntry": true,
+      "wordCount": 161,
+      "mood": 2,
+      "summary": "下午项目组会受老师肯定，晚上与晓雨图书馆复习数据结构，回宿舍继续完善文档。",
+      "tags": [
+        "大创",
+        "缓存优化",
+        "异常处理",
+        "晓雨",
+        "图书馆",
+        "数据结构",
+        "数据库原理",
+        "复习备考"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:00:40.98Z",
+      "updatedAt": "2026-08-04T15:00:50.309Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-05",
+      "hasEntry": true,
+      "wordCount": 269,
+      "mood": 2,
+      "summary": "复习图与最短路径，完善大创文档，晚间与晓雨图书馆自习并收到板栗。",
+      "tags": [
+        "数据结构",
+        "最短路径",
+        "计算机网络",
+        "大创",
+        "晓雨",
+        "图书馆",
+        "复习备考",
+        "周末计划"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:00:54.676Z",
+      "updatedAt": "2026-08-04T15:00:56.955Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-06",
+      "hasEntry": true,
+      "wordCount": 523,
+      "mood": 1,
+      "summary": "周六与晓雨图书馆复习数据结构与数据库，六级单词未背完，准备下周组会汇报与考试。",
+      "tags": [
+        "图书馆",
+        "自习室",
+        "数据结构",
+        "复习备考",
+        "晓雨",
+        "六级",
+        "数据库原理",
+        "大创"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:01:03.17Z",
+      "updatedAt": "2026-08-04T15:01:06.152Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-07",
+      "hasEntry": true,
+      "wordCount": 164,
+      "mood": 2,
+      "summary": "周日复习网络应用层，改完大创文档获认可，傍晚复习B树备战下周考试。",
+      "tags": [
+        "图书馆",
+        "计算机网络",
+        "大创",
+        "数据结构",
+        "B树",
+        "复习备考"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:01:09.711Z",
+      "updatedAt": "2026-08-04T15:01:18.09Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-08",
+      "hasEntry": true,
+      "wordCount": 192,
+      "mood": 2,
+      "summary": "周一复习堆排序和路由算法，组会被要求规范图表，与晓雨约考后吃饭。",
+      "tags": [
+        "数据结构",
+        "排序算法",
+        "计算机网络",
+        "复习备考",
+        "晓雨",
+        "组会"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:01:22.208Z",
+      "updatedAt": "2026-08-04T15:01:36.615Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-09",
+      "hasEntry": true,
+      "wordCount": 215,
+      "mood": 2,
+      "summary": "数据库考试顺利，帮李斌改完图表，复习网络路由，和晓雨约好周末火锅。",
+      "tags": [
+        "数据库原理",
+        "晓雨",
+        "复习备考",
+        "计算机网络",
+        "火锅",
+        "背单词"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:01:43.16Z",
+      "updatedAt": "2026-08-04T15:02:01.209Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-10",
+      "hasEntry": true,
+      "wordCount": 374,
+      "mood": 2,
+      "summary": "上午计算机网络考试结束，下午商量大创总结修改，晚上复习数据结构，期待周末与晓雨火锅。",
+      "tags": [
+        "计算机网络",
+        "复习备考",
+        "散列",
+        "B+树",
+        "大创",
+        "晓雨",
+        "火锅",
+        "新街口"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T15:02:05.987Z",
+      "updatedAt": "2026-08-04T15:02:20.682Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-11",
+      "hasEntry": true,
+      "wordCount": 253,
+      "mood": 2,
+      "summary": "上午考完数据结构最后一门，下午完成大创一期总结发给老师，晚上给妈妈打电话。",
+      "tags": [
+        "数据结构",
+        "学期结束",
+        "大创",
+        "项目收尾",
+        "晓雨",
+        "火锅",
+        "家人"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:02:24.838Z",
+      "updatedAt": "2026-08-04T15:02:33.219Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-12",
+      "hasEntry": true,
+      "wordCount": 224,
+      "mood": 2,
+      "summary": "考试结束第一天，和晓雨约好周五去新街口吃火锅，晚上得知妹妹月考不错，学期顺利收官。",
+      "tags": [
+        "学期结束",
+        "火锅",
+        "新街口",
+        "晓雨",
+        "家人",
+        "大创",
+        "项目收尾"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:02:37.688Z",
+      "updatedAt": "2026-08-04T15:02:40.225Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-13",
+      "hasEntry": true,
+      "wordCount": 398,
+      "mood": 1,
+      "summary": "周六与晓雨去新街口吃火锅、逛夫子庙，下午确认大创一期总结基本没问题，晚间与家人通话，日子平常但不算差。",
+      "tags": [
+        "火锅",
+        "新街口",
+        "晓雨",
+        "夫子庙",
+        "大创",
+        "项目收尾",
+        "家人",
+        "学期结束"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:02:44.91Z",
+      "updatedAt": "2026-08-04T15:02:47.859Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-14",
+      "hasEntry": true,
+      "wordCount": 644,
+      "mood": 2,
+      "summary": "周日和晓雨在图书馆待了一下午，整理好大创存档，和家里通了电话，日子平淡安心。",
+      "tags": [
+        "晓雨",
+        "图书馆",
+        "计算机网络",
+        "大创",
+        "项目收尾",
+        "夫子庙",
+        "家人"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:02:54.096Z",
+      "updatedAt": "2026-08-04T15:02:58.578Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-15",
+      "hasEntry": true,
+      "wordCount": 259,
+      "mood": 1,
+      "summary": "期末收尾，复习数据结构并确认大创总结，与晓雨聊寒假又视频，日子平淡踏实。",
+      "tags": [
+        "数据结构",
+        "复习备考",
+        "大创",
+        "项目收尾",
+        "晓雨",
+        "学期结束",
+        "踏实"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T15:03:03.366Z",
+      "updatedAt": "2026-08-04T15:03:09.299Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-16",
+      "hasEntry": true,
+      "wordCount": 195,
+      "mood": 2,
+      "summary": "数据结构课设答辩顺利通过，下午给晓雨挑圣诞礼物，晚上写贺卡。",
+      "tags": [
+        "答辩",
+        "数据结构",
+        "二叉树",
+        "课设",
+        "晓雨",
+        "圣诞礼物"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-04T15:03:20.084Z",
+      "updatedAt": "2026-08-04T15:03:25.305Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-17",
+      "hasEntry": true,
+      "wordCount": 271,
+      "mood": 2,
+      "summary": "课设答辩通过，给晓雨准备好圣诞礼物和贺卡，约好明天见面，心情轻松。",
+      "tags": [
+        "答辩",
+        "课设",
+        "圣诞礼物",
+        "晓雨",
+        "数据库"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:03:29.67Z",
+      "updatedAt": "2026-08-04T15:03:41.143Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-18",
+      "hasEntry": true,
+      "wordCount": 171,
+      "mood": 2,
+      "summary": "整理完课设文档，把圣诞礼物送给晓雨，下午帮李斌哥跑腿交表，学期临近收尾。",
+      "tags": [
+        "课设",
+        "晓雨",
+        "圣诞礼物",
+        "李斌学长",
+        "实验室",
+        "学期结束"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:03:45.069Z",
+      "updatedAt": "2026-08-04T15:03:51.947Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-19",
+      "hasEntry": true,
+      "wordCount": 416,
+      "mood": 2,
+      "summary": "课设答辩结束后缓过劲，交完数据库报告，陪晓雨吃了鸭血粉丝，备好周末礼物，期末收尾心里踏实。",
+      "tags": [
+        "课设",
+        "数据库",
+        "晓雨",
+        "鸭血粉丝",
+        "圣诞礼物",
+        "复习备考",
+        "学期结束",
+        "踏实"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:03:57.969Z",
+      "updatedAt": "2026-08-04T15:04:13.684Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-20",
+      "hasEntry": true,
+      "wordCount": 122,
+      "mood": 2,
+      "summary": "图书馆写课设总结，备齐给晓雨的礼物，晚上收下她的巧克力回礼，回宿舍复习高数。",
+      "tags": [
+        "数据结构",
+        "课设",
+        "晓雨",
+        "圣诞礼物",
+        "高数",
+        "复习备考"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:04:17.17Z",
+      "updatedAt": "2026-08-04T15:04:28.583Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-21",
+      "hasEntry": true,
+      "wordCount": 222,
+      "mood": 3,
+      "summary": "下午把暖宝宝和卡片送给晓雨，收到她送的钢笔，晚上提交课设最终版，数据结构任务收尾。",
+      "tags": [
+        "晓雨",
+        "圣诞礼物",
+        "课设",
+        "数据结构",
+        "学期结束",
+        "朋友"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-04T15:04:36.696Z",
+      "updatedAt": "2026-08-04T15:04:40.447Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-22",
+      "hasEntry": true,
+      "wordCount": 191,
+      "mood": 2,
+      "summary": "数据结构课设答辩顺利，傍晚见晓雨并买了香薰，准备圣诞再送。",
+      "tags": [
+        "答辩",
+        "数据结构",
+        "课设",
+        "晓雨",
+        "圣诞礼物",
+        "鼓楼",
+        "自习室"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:04:44.695Z",
+      "updatedAt": "2026-08-04T15:04:50.173Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-23",
+      "hasEntry": true,
+      "wordCount": 168,
+      "mood": 2,
+      "summary": "数据结构课设答辩拿到A-，Java作业更顺手，备好了晓雨的圣诞礼物。",
+      "tags": [
+        "数据结构",
+        "课设",
+        "答辩",
+        "Java",
+        "晓雨",
+        "圣诞礼物"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:05:01.506Z",
+      "updatedAt": "2026-08-04T15:05:09.465Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-24",
+      "hasEntry": true,
+      "wordCount": 128,
+      "mood": 2,
+      "summary": "圣诞夜把香薰和卡片送给晓雨，她喜欢这个味道，约好明天一起去新街口。",
+      "tags": [
+        "晓雨",
+        "圣诞礼物",
+        "新街口",
+        "Java",
+        "宿舍",
+        "杰哥"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:05:16.029Z",
+      "updatedAt": "2026-08-04T15:05:22.55Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-25",
+      "hasEntry": true,
+      "wordCount": 121,
+      "mood": 2,
+      "summary": "白天写Java并交完课设成绩单，晚上和晓雨逛新街口，收到她补送的挂件，约好看元旦彩排。",
+      "tags": [
+        "晓雨",
+        "新街口",
+        "圣诞礼物",
+        "Java",
+        "课设",
+        "元旦"
+      ],
+      "location": "新街口",
+      "createdAt": "2026-08-04T15:05:26.06Z",
+      "updatedAt": "2026-08-04T15:05:37.185Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-26",
+      "hasEntry": true,
+      "wordCount": 63,
+      "mood": 0,
+      "summary": "下午看晓雨元旦晚会彩排，晚上回宿舍写年度总结草稿，感叹一年过得快。",
+      "tags": [
+        "晓雨",
+        "元旦",
+        "彩排",
+        "年度总结"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T15:05:39.801Z",
+      "updatedAt": "2026-08-04T15:05:48.494Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-27",
+      "hasEntry": true,
+      "wordCount": 157,
+      "mood": 2,
+      "summary": "上午改完年度总结，傍晚看晓雨元旦彩排，并约好跨年夜去玄武湖。",
+      "tags": [
+        "年度总结",
+        "晓雨",
+        "元旦",
+        "彩排",
+        "玄武湖",
+        "杰哥"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:05:51.799Z",
+      "updatedAt": "2026-08-04T15:05:59.264Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-28",
+      "hasEntry": true,
+      "wordCount": 138,
+      "mood": 1,
+      "summary": "整理完期末复习资料，和晓雨约好跨年去玄武湖，收到元旦晚会门票，年度总结归档。",
+      "tags": [
+        "复习备考",
+        "晓雨",
+        "玄武湖",
+        "元旦",
+        "年度总结",
+        "图书馆"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T15:06:02.763Z",
+      "updatedAt": "2026-08-04T15:06:08.12Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-29",
+      "hasEntry": true,
+      "wordCount": 345,
+      "mood": 2,
+      "summary": "学期最后一节课结束，晚上参加社团元旦晚会，看晓雨演出并收到她送的手动暖手宝。",
+      "tags": [
+        "晓雨",
+        "元旦",
+        "学期结束",
+        "玄武湖",
+        "宿舍",
+        "朋友",
+        "年度总结"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T15:06:12.832Z",
+      "updatedAt": "2026-08-04T15:06:18.32Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-30",
+      "hasEntry": true,
+      "wordCount": 228,
+      "mood": 2,
+      "summary": "英语期末考完，收拾行李并和晓雨采购跨年零食，准备明天玄武湖跨年。",
+      "tags": [
+        "英语",
+        "考试",
+        "学期结束",
+        "晓雨",
+        "元旦",
+        "玄武湖",
+        "年度总结"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T15:06:21.777Z",
+      "updatedAt": "2026-08-04T15:06:28.889Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-12-31",
+      "hasEntry": true,
+      "wordCount": 523,
+      "mood": 2,
+      "summary": "跨年夜在玄武湖和晓雨看烟火跨年，回宿舍封好年度总结。",
+      "tags": [
+        "年度总结",
+        "玄武湖",
+        "晓雨",
+        "跨年",
+        "朋友",
+        "宿舍"
+      ],
+      "location": "玄武湖",
+      "createdAt": "2026-08-04T15:07:06.021Z",
+      "updatedAt": "2026-08-04T15:07:06.021Z",
+      "writingHour": 23,
+      "insightSource": "generated"
+    }
+  ],
+  "sections": {
+    "stats": {
+      "recordDays": 31,
+      "missingDays": 0,
+      "totalWords": 8552,
+      "averageWords": 276,
+      "maxWordsInOneDay": 644,
+      "maxWordsDate": "2025-12-14",
+      "longestStreak": 31,
+      "currentStreakAtEnd": 31
+    },
+    "heatmap": {
+      "points": [
+        {
+          "date": "2025-12-01",
+          "value": 552
+        },
+        {
+          "date": "2025-12-02",
+          "value": 412
+        },
+        {
+          "date": "2025-12-03",
+          "value": 453
+        },
+        {
+          "date": "2025-12-04",
+          "value": 161
+        },
+        {
+          "date": "2025-12-05",
+          "value": 269
+        },
+        {
+          "date": "2025-12-06",
+          "value": 523
+        },
+        {
+          "date": "2025-12-07",
+          "value": 164
+        },
+        {
+          "date": "2025-12-08",
+          "value": 192
+        },
+        {
+          "date": "2025-12-09",
+          "value": 215
+        },
+        {
+          "date": "2025-12-10",
+          "value": 374
+        },
+        {
+          "date": "2025-12-11",
+          "value": 253
+        },
+        {
+          "date": "2025-12-12",
+          "value": 224
+        },
+        {
+          "date": "2025-12-13",
+          "value": 398
+        },
+        {
+          "date": "2025-12-14",
+          "value": 644
+        },
+        {
+          "date": "2025-12-15",
+          "value": 259
+        },
+        {
+          "date": "2025-12-16",
+          "value": 195
+        },
+        {
+          "date": "2025-12-17",
+          "value": 271
+        },
+        {
+          "date": "2025-12-18",
+          "value": 171
+        },
+        {
+          "date": "2025-12-19",
+          "value": 416
+        },
+        {
+          "date": "2025-12-20",
+          "value": 122
+        },
+        {
+          "date": "2025-12-21",
+          "value": 222
+        },
+        {
+          "date": "2025-12-22",
+          "value": 191
+        },
+        {
+          "date": "2025-12-23",
+          "value": 168
+        },
+        {
+          "date": "2025-12-24",
+          "value": 128
+        },
+        {
+          "date": "2025-12-25",
+          "value": 121
+        },
+        {
+          "date": "2025-12-26",
+          "value": 63
+        },
+        {
+          "date": "2025-12-27",
+          "value": 157
+        },
+        {
+          "date": "2025-12-28",
+          "value": 138
+        },
+        {
+          "date": "2025-12-29",
+          "value": 345
+        },
+        {
+          "date": "2025-12-30",
+          "value": 228
+        },
+        {
+          "date": "2025-12-31",
+          "value": 523
+        }
+      ]
+    },
+    "moodTrend": {
+      "points": [
+        {
+          "date": "2025-12-01",
+          "value": 2
+        },
+        {
+          "date": "2025-12-02",
+          "value": 2
+        },
+        {
+          "date": "2025-12-03",
+          "value": 2
+        },
+        {
+          "date": "2025-12-04",
+          "value": 2
+        },
+        {
+          "date": "2025-12-05",
+          "value": 2
+        },
+        {
+          "date": "2025-12-06",
+          "value": 1
+        },
+        {
+          "date": "2025-12-07",
+          "value": 2
+        },
+        {
+          "date": "2025-12-08",
+          "value": 2
+        },
+        {
+          "date": "2025-12-09",
+          "value": 2
+        },
+        {
+          "date": "2025-12-10",
+          "value": 2
+        },
+        {
+          "date": "2025-12-11",
+          "value": 2
+        },
+        {
+          "date": "2025-12-12",
+          "value": 2
+        },
+        {
+          "date": "2025-12-13",
+          "value": 1
+        },
+        {
+          "date": "2025-12-14",
+          "value": 2
+        },
+        {
+          "date": "2025-12-15",
+          "value": 1
+        },
+        {
+          "date": "2025-12-16",
+          "value": 2
+        },
+        {
+          "date": "2025-12-17",
+          "value": 2
+        },
+        {
+          "date": "2025-12-18",
+          "value": 2
+        },
+        {
+          "date": "2025-12-19",
+          "value": 2
+        },
+        {
+          "date": "2025-12-20",
+          "value": 2
+        },
+        {
+          "date": "2025-12-21",
+          "value": 3
+        },
+        {
+          "date": "2025-12-22",
+          "value": 2
+        },
+        {
+          "date": "2025-12-23",
+          "value": 2
+        },
+        {
+          "date": "2025-12-24",
+          "value": 2
+        },
+        {
+          "date": "2025-12-25",
+          "value": 2
+        },
+        {
+          "date": "2025-12-26",
+          "value": 0
+        },
+        {
+          "date": "2025-12-27",
+          "value": 2
+        },
+        {
+          "date": "2025-12-28",
+          "value": 1
+        },
+        {
+          "date": "2025-12-29",
+          "value": 2
+        },
+        {
+          "date": "2025-12-30",
+          "value": 2
+        },
+        {
+          "date": "2025-12-31",
+          "value": 2
+        }
+      ],
+      "averageMood": 1.8
+    },
+    "tagCloud": {
+      "items": [
+        {
+          "label": "晓雨",
+          "value": 30
+        },
+        {
+          "label": "复习备考",
+          "value": 14
+        },
+        {
+          "label": "大创",
+          "value": 13
+        },
+        {
+          "label": "数据结构",
+          "value": 13
+        },
+        {
+          "label": "圣诞礼物",
+          "value": 10
+        },
+        {
+          "label": "课设",
+          "value": 9
+        },
+        {
+          "label": "学期结束",
+          "value": 9
+        },
+        {
+          "label": "图书馆",
+          "value": 7
+        },
+        {
+          "label": "计算机网络",
+          "value": 6
+        },
+        {
+          "label": "年度总结",
+          "value": 6
+        },
+        {
+          "label": "元旦",
+          "value": 6
+        },
+        {
+          "label": "火锅",
+          "value": 5
+        },
+        {
+          "label": "项目收尾",
+          "value": 5
+        },
+        {
+          "label": "新街口",
+          "value": 5
+        },
+        {
+          "label": "玄武湖",
+          "value": 5
+        },
+        {
+          "label": "答辩",
+          "value": 4
+        },
+        {
+          "label": "家人",
+          "value": 4
+        },
+        {
+          "label": "六级",
+          "value": 4
+        },
+        {
+          "label": "数据库原理",
+          "value": 4
+        },
+        {
+          "label": "朋友",
+          "value": 3
+        },
+        {
+          "label": "宿舍",
+          "value": 3
+        },
+        {
+          "label": "踏实",
+          "value": 3
+        },
+        {
+          "label": "B+树",
+          "value": 3
+        },
+        {
+          "label": "Java",
+          "value": 3
+        },
+        {
+          "label": "彩排",
+          "value": 2
+        },
+        {
+          "label": "夫子庙",
+          "value": 2
+        },
+        {
+          "label": "杰哥",
+          "value": 2
+        },
+        {
+          "label": "实验室",
+          "value": 2
+        },
+        {
+          "label": "数据库",
+          "value": 2
+        },
+        {
+          "label": "自习室",
+          "value": 2
+        }
+      ]
+    },
+    "locationPatterns": {
+      "topLocation": {
+        "name": "学校",
+        "count": 12
+      },
+      "uniqueLocation": {
+        "name": "新街口",
+        "count": 1
+      },
+      "ranking": [
+        {
+          "name": "学校",
+          "count": 12
+        },
+        {
+          "name": "图书馆",
+          "count": 11
+        },
+        {
+          "name": "宿舍",
+          "count": 4
+        },
+        {
+          "name": "南京",
+          "count": 2
+        },
+        {
+          "name": "新街口",
+          "count": 1
+        },
+        {
+          "name": "玄武湖",
+          "count": 1
+        }
+      ]
+    },
+    "timePatterns": {
+      "topTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 31
+      },
+      "uniqueTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 31
+      },
+      "buckets": [
+        {
+          "label": "晚上 18-23",
+          "count": 31
+        }
+      ]
+    }
+  }
+}

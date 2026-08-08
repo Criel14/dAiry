@@ -1,0 +1,1218 @@
+{
+  "reportId": "month_2025-03",
+  "preset": "month",
+  "period": {
+    "startDate": "2025-03-01",
+    "endDate": "2025-03-31",
+    "label": "2025 年 3 月总结",
+    "generatedAt": "2026-08-04T16:09:54.38Z",
+    "timezone": "Asia/Shanghai"
+  },
+  "generation": {
+    "requestedSections": [
+      "stats",
+      "heatmap",
+      "moodTrend",
+      "tagCloud",
+      "locationPatterns",
+      "timePatterns"
+    ],
+    "entryInsightPolicy": "reuse-or-generate",
+    "reusedEntryInsightCount": 26,
+    "generatedEntryInsightCount": 5,
+    "skippedEmptyDays": 0,
+    "warnings": []
+  },
+  "summary": {
+    "text": "三月开学，前半程以恢复课程与学习节奏为主，Java、离散数学、物理等课程作业逐步推进；中旬参加程序协会爬虫讲座，认识晓雨后社交线打开，并于20日正式加入大创项目，开始编写爬虫接口。下旬软件工程小组需求分析持续推进，28日与张老师确认需求后项目方向得到校准。整月每天都有记录，节奏从开学适应逐步转向课程、项目与日常并行。",
+    "progress": [
+      {
+        "text": "开学第一周完成课程适应，Java、离散数学、物理作业逐步理顺",
+        "timeAnchor": {
+          "type": "range",
+          "label": "3月1日 - 3月9日",
+          "startDate": "2025-03-01",
+          "endDate": "2025-03-09"
+        }
+      },
+      {
+        "text": "实验室开放日接触学长项目，大创参与意愿自此萌芽",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月4日",
+          "startDate": "2025-03-04"
+        }
+      },
+      {
+        "text": "参加爬虫讲座认识晓雨，此后多次在图书馆与协会活动中交集",
+        "timeAnchor": {
+          "type": "range",
+          "label": "3月10日 - 3月15日",
+          "startDate": "2025-03-10",
+          "endDate": "2025-03-15"
+        }
+      },
+      {
+        "text": "正式加入大创项目并写完爬虫接口，项目从准备转入实际推进",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月20日",
+          "startDate": "2025-03-20"
+        }
+      }
+    ],
+    "blockers": [
+      {
+        "text": "月初离散数学推导与证明题学得吃力",
+        "timeAnchor": {
+          "type": "range",
+          "label": "3月1日 - 3月7日",
+          "startDate": "2025-03-01",
+          "endDate": "2025-03-07"
+        }
+      },
+      {
+        "text": "加入大创后担心自身水平不足，对后端任务有些压力",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月20日",
+          "startDate": "2025-03-20"
+        }
+      },
+      {
+        "text": "软件工程需求分析的数据流部分被指出绕，需参考上届文档重改",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月28日",
+          "startDate": "2025-03-28"
+        }
+      },
+      {
+        "text": "六级报名事宜在月中反复犹豫，尚未决定",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月中旬",
+          "startDate": "2025-03-12"
+        }
+      }
+    ],
+    "memorableMoments": [
+      {
+        "text": "开学第一天早八独自从宿舍去食堂买包子赶课",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月1日",
+          "startDate": "2025-03-01"
+        }
+      },
+      {
+        "text": "实验室开放日看到校园二手交易平台项目，向学长了解情况",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月4日",
+          "startDate": "2025-03-04"
+        }
+      },
+      {
+        "text": "爬虫讲座上和晓雨第一次说话，散场时她走得快没追上",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月10日",
+          "startDate": "2025-03-10"
+        }
+      },
+      {
+        "text": "晚上把整理好的爬虫笔记发给晓雨，两人第一次单独相处",
+        "timeAnchor": {
+          "type": "day",
+          "label": "3月11日",
+          "startDate": "2025-03-11"
+        }
+      }
+    ]
+  },
+  "source": {
+    "totalDays": 31,
+    "entryDays": 31,
+    "missingDays": 0,
+    "totalWords": 11273,
+    "averageWords": 364,
+    "longestStreak": 31
+  },
+  "dailyEntries": [
+    {
+      "date": "2025-03-01",
+      "hasEntry": true,
+      "wordCount": 533,
+      "mood": 0,
+      "summary": "开学第一天，上Java和离散数学，领教材，晚上图书馆自习，计划安排新学期时间。",
+      "tags": [
+        "开学",
+        "Java",
+        "图书馆",
+        "离散数学",
+        "大学物理",
+        "计划"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-03T15:49:03.453Z",
+      "updatedAt": "2026-08-03T15:49:08.505Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-02",
+      "hasEntry": true,
+      "wordCount": 442,
+      "mood": 0,
+      "summary": "开学第二周，白天上Java、离散数学和大学物理，晚上在图书馆完成物理作业，并计划预习离散数学。",
+      "tags": [
+        "开学",
+        "Java",
+        "封装",
+        "离散数学",
+        "大学物理",
+        "图书馆"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-03T15:49:15.456Z",
+      "updatedAt": "2026-08-03T15:49:15.456Z",
+      "writingHour": 23,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-03-03",
+      "hasEntry": true,
+      "wordCount": 260,
+      "mood": 2,
+      "summary": "早上自学Java继承和多态，下午物理讨论斜面问题，离散作业完成六道，并计划参观大创实验室。",
+      "tags": [
+        "Java",
+        "多态",
+        "大学物理",
+        "离散数学",
+        "大创",
+        "计划"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-03T15:49:21.422Z",
+      "updatedAt": "2026-08-03T15:49:26.027Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-04",
+      "hasEntry": true,
+      "wordCount": 113,
+      "mood": 0,
+      "summary": "下午参观实验室开放日，看学长项目展示，回宿舍练Java继承，离散作业剩两道。",
+      "tags": [
+        "大创",
+        "Java",
+        "离散数学",
+        "实验室"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-03T15:49:29.252Z",
+      "updatedAt": "2026-08-03T15:49:36.857Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-05",
+      "hasEntry": true,
+      "wordCount": 471,
+      "mood": 1,
+      "summary": "Java上机完成多态练习，离散物理作业收尾，新学期节奏渐稳。",
+      "tags": [
+        "Java",
+        "多态",
+        "离散数学",
+        "大学物理",
+        "实验室",
+        "计划"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-03T15:49:43.791Z",
+      "updatedAt": "2026-08-03T15:49:52.092Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-06",
+      "hasEntry": true,
+      "wordCount": 292,
+      "mood": 1,
+      "summary": "上午上Java和离散数学，下午学物理动量，晚上复习Java代码并计划明天预习抽象类。",
+      "tags": [
+        "Java",
+        "离散数学",
+        "大学物理",
+        "图书馆",
+        "封装",
+        "抽象类"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-03T15:49:57.262Z",
+      "updatedAt": "2026-08-03T15:50:03.836Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-07",
+      "hasEntry": true,
+      "wordCount": 426,
+      "mood": 1,
+      "summary": "上午图书馆完成离散证明题，下午请教并写代码练习Java抽象类，逐渐理解其与接口区别。",
+      "tags": [
+        "Java",
+        "抽象类",
+        "离散数学",
+        "图书馆",
+        "接口",
+        "大学物理"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-03T15:50:10.249Z",
+      "updatedAt": "2026-08-03T15:50:17.873Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-08",
+      "hasEntry": true,
+      "wordCount": 240,
+      "mood": 1,
+      "summary": "上午做离散数学题，下午Java抽象类结合例子更清楚，还看了选课说明会，晚上预习大学物理。",
+      "tags": [
+        "离散数学",
+        "Java",
+        "抽象类",
+        "接口",
+        "大学物理",
+        "计划"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-03T15:50:22.416Z",
+      "updatedAt": "2026-08-03T15:50:40.208Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-09",
+      "hasEntry": true,
+      "wordCount": 257,
+      "mood": 2,
+      "summary": "周日放缓节奏，完成物理作业和Java抽象类复习，确认下周选课与项目组安排。",
+      "tags": [
+        "大学物理",
+        "Java",
+        "抽象类",
+        "多态",
+        "图书馆",
+        "计划",
+        "实验室"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-03T15:50:44.987Z",
+      "updatedAt": "2026-08-03T15:50:52.53Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-10",
+      "hasEntry": true,
+      "wordCount": 259,
+      "mood": 0,
+      "summary": "参加程序协会Python爬虫讲座，认识同学晓雨；晚上练习Java异常处理，物理实验定在周四上午。",
+      "tags": [
+        "程序协会",
+        "Python爬虫",
+        "讲座",
+        "Java",
+        "异常处理",
+        "大学物理",
+        "社交"
+      ],
+      "location": "教室",
+      "createdAt": "2026-08-03T15:50:58.074Z",
+      "updatedAt": "2026-08-03T15:51:06.4Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-11",
+      "hasEntry": true,
+      "wordCount": 195,
+      "mood": 2,
+      "summary": "下午在图书馆写Java作业，偶遇晓雨，晚上整理爬虫笔记发给她，两人第一次单独相处。",
+      "tags": [
+        "图书馆",
+        "Java",
+        "程序协会",
+        "Python爬虫",
+        "社交"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-03T15:51:10.484Z",
+      "updatedAt": "2026-08-03T15:51:16.394Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-12",
+      "hasEntry": true,
+      "wordCount": 190,
+      "mood": 2,
+      "summary": "帮晓雨解决Python缩进问题后，完成大创调研提纲初稿并获认可，六级报名仍在犹豫。",
+      "tags": [
+        "大创",
+        "社交",
+        "Python",
+        "六级",
+        "计划"
+      ],
+      "location": "自习室",
+      "createdAt": "2026-08-03T15:51:21.315Z",
+      "updatedAt": "2026-08-03T15:51:41.341Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-13",
+      "hasEntry": true,
+      "wordCount": 532,
+      "mood": 2,
+      "summary": "上午物理实验顺利，参加程序协会分享会，并和晓雨约好周六图书馆一起自习。",
+      "tags": [
+        "大学物理",
+        "程序协会",
+        "讲座",
+        "社交",
+        "图书馆"
+      ],
+      "location": "教室",
+      "createdAt": "2026-08-03T15:54:02.067Z",
+      "updatedAt": "2026-08-03T15:54:14.73Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-14",
+      "hasEntry": true,
+      "wordCount": 125,
+      "mood": 0,
+      "summary": "周五满课，晚上整理代码作业和分享会笔记，计划周六向晓雨请教并开始准备六级。",
+      "tags": [
+        "数电",
+        "英语",
+        "代码",
+        "六级",
+        "图书馆",
+        "晓雨",
+        "计划"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T13:56:23.106Z",
+      "updatedAt": "2026-08-04T13:56:23.106Z",
+      "writingHour": 21,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-03-15",
+      "hasEntry": true,
+      "wordCount": 149,
+      "mood": 2,
+      "summary": "周末和晓雨在图书馆自习，帮她解答Python问题，并约好下周参加协会茶话会。",
+      "tags": [
+        "图书馆",
+        "社交",
+        "Python",
+        "程序协会",
+        "朋友"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T13:56:27.607Z",
+      "updatedAt": "2026-08-04T13:56:30.646Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-16",
+      "hasEntry": true,
+      "wordCount": 370,
+      "mood": 0,
+      "summary": "周日完成编译原理作业，跑步后思考毕业去向，与家人通话，晚上和室友一起看六级真题。",
+      "tags": [
+        "编译原理",
+        "程序协会",
+        "跑步",
+        "家人",
+        "六级",
+        "毕业规划"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T13:56:34.503Z",
+      "updatedAt": "2026-08-04T13:56:43.123Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-17",
+      "hasEntry": true,
+      "wordCount": 162,
+      "mood": 1,
+      "summary": "下午在实验室写代码，傍晚参加协会招新讲座遇到晓雨，晚上犹豫要不要分享爬虫项目。",
+      "tags": [
+        "程序协会",
+        "讲座",
+        "晓雨",
+        "Python爬虫",
+        "茶话会",
+        "实验室"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:56:46.113Z",
+      "updatedAt": "2026-08-04T13:56:46.113Z",
+      "writingHour": 21,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-03-18",
+      "hasEntry": true,
+      "wordCount": 498,
+      "mood": 1,
+      "summary": "上午数据结构课理清二叉树遍历，下午修复爬虫项目，晚上期待周六茶话会见到晓雨。",
+      "tags": [
+        "二叉树",
+        "Python爬虫",
+        "程序协会",
+        "茶话会",
+        "晓雨",
+        "社交"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:56:52.487Z",
+      "updatedAt": "2026-08-04T13:56:52.487Z",
+      "writingHour": 21,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-03-19",
+      "hasEntry": true,
+      "wordCount": 561,
+      "mood": 2,
+      "summary": "线性代数课上完后，下午背单词并调试爬虫代码，偶遇晓雨，确认周六茶话会都将展示，心里有些波动。",
+      "tags": [
+        "线性代数",
+        "背单词",
+        "Python爬虫",
+        "程序协会",
+        "实验室",
+        "社交"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T13:56:59.97Z",
+      "updatedAt": "2026-08-04T13:57:04.913Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-20",
+      "hasEntry": true,
+      "wordCount": 537,
+      "mood": 1,
+      "summary": "加入大创项目并写完爬虫接口，周六软件工程小组将碰头分工。",
+      "tags": [
+        "大创",
+        "实验室",
+        "软件工程",
+        "高数",
+        "Python爬虫"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:57:10.747Z",
+      "updatedAt": "2026-08-04T13:57:21.471Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-21",
+      "hasEntry": true,
+      "wordCount": 409,
+      "mood": 2,
+      "summary": "项目正式启动并接到Spring Boot接口任务，晚上软件工程小组碰头理清分工；看到晓雨动态，想着明天见面。",
+      "tags": [
+        "实验室",
+        "软件工程",
+        "Spring",
+        "接口",
+        "程序协会",
+        "茶话会"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-04T13:57:25.987Z",
+      "updatedAt": "2026-08-04T13:58:12.313Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-22",
+      "hasEntry": true,
+      "wordCount": 506,
+      "mood": 2,
+      "summary": "周六推进项目并整理流程图，下午在茶话会完成爬虫展示，与晓雨交流后晚上继续改接口。",
+      "tags": [
+        "实验室",
+        "程序协会",
+        "茶话会",
+        "Python爬虫",
+        "Spring",
+        "接口",
+        "社交",
+        "朋友"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T13:58:17.305Z",
+      "updatedAt": "2026-08-04T13:58:19.45Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-23",
+      "hasEntry": true,
+      "wordCount": 462,
+      "mood": 1,
+      "summary": "周日调整Spring Boot用户模块并完善参数校验，下午软件工程小组碰头核对需求文档，晚上在图书馆背六级词汇。",
+      "tags": [
+        "Spring",
+        "接口",
+        "软件工程",
+        "图书馆",
+        "六级",
+        "程序协会",
+        "社交"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T13:58:24.327Z",
+      "updatedAt": "2026-08-04T13:58:26.474Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-24",
+      "hasEntry": true,
+      "wordCount": 259,
+      "mood": 0,
+      "summary": "周一满课后完善Spring Boot注册接口，晚间小组核对流程图，路上遇到晓雨，日子平平。",
+      "tags": [
+        "Spring",
+        "接口",
+        "异常处理",
+        "软件工程",
+        "数据结构",
+        "实验室"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:58:29.988Z",
+      "updatedAt": "2026-08-04T13:58:39.499Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-25",
+      "hasEntry": true,
+      "wordCount": 434,
+      "mood": 0,
+      "summary": "大创项目组正式组队并完成分工，下午碰头定框架，晚上与小组过图，遇见晓雨。",
+      "tags": [
+        "大创",
+        "软件工程",
+        "实验室",
+        "数据库",
+        "社交",
+        "朋友"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T13:58:44.18Z",
+      "updatedAt": "2026-08-04T13:58:49.37Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-26",
+      "hasEntry": true,
+      "wordCount": 221,
+      "mood": 1,
+      "summary": "上午数据结构课练二叉树递归遍历，下午完善数据库表结构，晚间遇晓雨并约好同报编程比赛。",
+      "tags": [
+        "二叉树",
+        "递归",
+        "数据库",
+        "索引优化",
+        "软件工程",
+        "申报书",
+        "程序设计比赛",
+        "晓雨"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T13:58:52.659Z",
+      "updatedAt": "2026-08-04T13:58:52.659Z",
+      "writingHour": 21,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-03-27",
+      "hasEntry": true,
+      "wordCount": 596,
+      "mood": 1,
+      "summary": "完善数据库表结构并简化需求文档流程，明天准备和张老师对方向，晓雨约借《算法图解》。",
+      "tags": [
+        "实验室",
+        "数据库",
+        "软件工程",
+        "需求分析",
+        "程序协会",
+        "朋友",
+        "算法图解"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:59:00.423Z",
+      "updatedAt": "2026-08-04T13:59:02.431Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-28",
+      "hasEntry": true,
+      "wordCount": 233,
+      "mood": 1,
+      "summary": "下午与张老师确认需求，被建议参考上届文档；晚上把《算法图解》借给晓雨，回宿舍继续改流程图。",
+      "tags": [
+        "软件工程",
+        "需求分析",
+        "实验室",
+        "图书馆",
+        "朋友",
+        "算法图解"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T13:59:05.808Z",
+      "updatedAt": "2026-08-04T13:59:09.129Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-29",
+      "hasEntry": true,
+      "wordCount": 679,
+      "mood": 2,
+      "summary": "周六整理上届项目文档并重画流程图，下午小组碰头讨论申报书，晚上完成C语言作业。",
+      "tags": [
+        "软件工程",
+        "实验室",
+        "需求分析",
+        "数据流",
+        "流程图",
+        "申报书",
+        "朋友",
+        "晓雨"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:59:15.804Z",
+      "updatedAt": "2026-08-04T13:59:17.784Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-30",
+      "hasEntry": true,
+      "wordCount": 384,
+      "mood": 2,
+      "summary": "周日大创小组正式碰头，梳理接口定义并定下下周写代码计划，项目推进顺利。",
+      "tags": [
+        "大创",
+        "申报书",
+        "数据流",
+        "接口",
+        "软件工程",
+        "需求分析"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:59:21.897Z",
+      "updatedAt": "2026-08-04T13:59:26.923Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-03-31",
+      "hasEntry": true,
+      "wordCount": 478,
+      "mood": 1,
+      "summary": "上午操作系统课犯困，午后核对大创申报书，下午数据结构分组，晚上完成界面雏形。",
+      "tags": [
+        "大创",
+        "申报书",
+        "数据库",
+        "数据结构",
+        "实验室",
+        "软件工程",
+        "二叉树"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T13:59:32.271Z",
+      "updatedAt": "2026-08-04T13:59:36.428Z",
+      "writingHour": 21,
+      "insightSource": "frontmatter"
+    }
+  ],
+  "sections": {
+    "stats": {
+      "recordDays": 31,
+      "missingDays": 0,
+      "totalWords": 11273,
+      "averageWords": 364,
+      "maxWordsInOneDay": 679,
+      "maxWordsDate": "2025-03-29",
+      "longestStreak": 31,
+      "currentStreakAtEnd": 31
+    },
+    "heatmap": {
+      "points": [
+        {
+          "date": "2025-03-01",
+          "value": 533
+        },
+        {
+          "date": "2025-03-02",
+          "value": 442
+        },
+        {
+          "date": "2025-03-03",
+          "value": 260
+        },
+        {
+          "date": "2025-03-04",
+          "value": 113
+        },
+        {
+          "date": "2025-03-05",
+          "value": 471
+        },
+        {
+          "date": "2025-03-06",
+          "value": 292
+        },
+        {
+          "date": "2025-03-07",
+          "value": 426
+        },
+        {
+          "date": "2025-03-08",
+          "value": 240
+        },
+        {
+          "date": "2025-03-09",
+          "value": 257
+        },
+        {
+          "date": "2025-03-10",
+          "value": 259
+        },
+        {
+          "date": "2025-03-11",
+          "value": 195
+        },
+        {
+          "date": "2025-03-12",
+          "value": 190
+        },
+        {
+          "date": "2025-03-13",
+          "value": 532
+        },
+        {
+          "date": "2025-03-14",
+          "value": 125
+        },
+        {
+          "date": "2025-03-15",
+          "value": 149
+        },
+        {
+          "date": "2025-03-16",
+          "value": 370
+        },
+        {
+          "date": "2025-03-17",
+          "value": 162
+        },
+        {
+          "date": "2025-03-18",
+          "value": 498
+        },
+        {
+          "date": "2025-03-19",
+          "value": 561
+        },
+        {
+          "date": "2025-03-20",
+          "value": 537
+        },
+        {
+          "date": "2025-03-21",
+          "value": 409
+        },
+        {
+          "date": "2025-03-22",
+          "value": 506
+        },
+        {
+          "date": "2025-03-23",
+          "value": 462
+        },
+        {
+          "date": "2025-03-24",
+          "value": 259
+        },
+        {
+          "date": "2025-03-25",
+          "value": 434
+        },
+        {
+          "date": "2025-03-26",
+          "value": 221
+        },
+        {
+          "date": "2025-03-27",
+          "value": 596
+        },
+        {
+          "date": "2025-03-28",
+          "value": 233
+        },
+        {
+          "date": "2025-03-29",
+          "value": 679
+        },
+        {
+          "date": "2025-03-30",
+          "value": 384
+        },
+        {
+          "date": "2025-03-31",
+          "value": 478
+        }
+      ]
+    },
+    "moodTrend": {
+      "points": [
+        {
+          "date": "2025-03-01",
+          "value": 0
+        },
+        {
+          "date": "2025-03-02",
+          "value": 0
+        },
+        {
+          "date": "2025-03-03",
+          "value": 2
+        },
+        {
+          "date": "2025-03-04",
+          "value": 0
+        },
+        {
+          "date": "2025-03-05",
+          "value": 1
+        },
+        {
+          "date": "2025-03-06",
+          "value": 1
+        },
+        {
+          "date": "2025-03-07",
+          "value": 1
+        },
+        {
+          "date": "2025-03-08",
+          "value": 1
+        },
+        {
+          "date": "2025-03-09",
+          "value": 2
+        },
+        {
+          "date": "2025-03-10",
+          "value": 0
+        },
+        {
+          "date": "2025-03-11",
+          "value": 2
+        },
+        {
+          "date": "2025-03-12",
+          "value": 2
+        },
+        {
+          "date": "2025-03-13",
+          "value": 2
+        },
+        {
+          "date": "2025-03-14",
+          "value": 0
+        },
+        {
+          "date": "2025-03-15",
+          "value": 2
+        },
+        {
+          "date": "2025-03-16",
+          "value": 0
+        },
+        {
+          "date": "2025-03-17",
+          "value": 1
+        },
+        {
+          "date": "2025-03-18",
+          "value": 1
+        },
+        {
+          "date": "2025-03-19",
+          "value": 2
+        },
+        {
+          "date": "2025-03-20",
+          "value": 1
+        },
+        {
+          "date": "2025-03-21",
+          "value": 2
+        },
+        {
+          "date": "2025-03-22",
+          "value": 2
+        },
+        {
+          "date": "2025-03-23",
+          "value": 1
+        },
+        {
+          "date": "2025-03-24",
+          "value": 0
+        },
+        {
+          "date": "2025-03-25",
+          "value": 0
+        },
+        {
+          "date": "2025-03-26",
+          "value": 1
+        },
+        {
+          "date": "2025-03-27",
+          "value": 1
+        },
+        {
+          "date": "2025-03-28",
+          "value": 1
+        },
+        {
+          "date": "2025-03-29",
+          "value": 2
+        },
+        {
+          "date": "2025-03-30",
+          "value": 2
+        },
+        {
+          "date": "2025-03-31",
+          "value": 1
+        }
+      ],
+      "averageMood": 1.1
+    },
+    "tagCloud": {
+      "items": [
+        {
+          "label": "实验室",
+          "value": 14
+        },
+        {
+          "label": "程序协会",
+          "value": 12
+        },
+        {
+          "label": "软件工程",
+          "value": 11
+        },
+        {
+          "label": "图书馆",
+          "value": 11
+        },
+        {
+          "label": "Java",
+          "value": 11
+        },
+        {
+          "label": "大学物理",
+          "value": 10
+        },
+        {
+          "label": "社交",
+          "value": 10
+        },
+        {
+          "label": "离散数学",
+          "value": 8
+        },
+        {
+          "label": "大创",
+          "value": 7
+        },
+        {
+          "label": "计划",
+          "value": 7
+        },
+        {
+          "label": "接口",
+          "value": 7
+        },
+        {
+          "label": "Python爬虫",
+          "value": 7
+        },
+        {
+          "label": "朋友",
+          "value": 6
+        },
+        {
+          "label": "晓雨",
+          "value": 5
+        },
+        {
+          "label": "茶话会",
+          "value": 4
+        },
+        {
+          "label": "抽象类",
+          "value": 4
+        },
+        {
+          "label": "六级",
+          "value": 4
+        },
+        {
+          "label": "申报书",
+          "value": 4
+        },
+        {
+          "label": "数据库",
+          "value": 4
+        },
+        {
+          "label": "需求分析",
+          "value": 4
+        },
+        {
+          "label": "Spring",
+          "value": 4
+        },
+        {
+          "label": "多态",
+          "value": 3
+        },
+        {
+          "label": "二叉树",
+          "value": 3
+        },
+        {
+          "label": "讲座",
+          "value": 3
+        },
+        {
+          "label": "封装",
+          "value": 2
+        },
+        {
+          "label": "开学",
+          "value": 2
+        },
+        {
+          "label": "数据结构",
+          "value": 2
+        },
+        {
+          "label": "数据流",
+          "value": 2
+        },
+        {
+          "label": "算法图解",
+          "value": 2
+        },
+        {
+          "label": "异常处理",
+          "value": 2
+        }
+      ]
+    },
+    "locationPatterns": {
+      "topLocation": {
+        "name": "实验室",
+        "count": 9
+      },
+      "uniqueLocation": {
+        "name": "自习室",
+        "count": 1
+      },
+      "ranking": [
+        {
+          "name": "实验室",
+          "count": 9
+        },
+        {
+          "name": "学校",
+          "count": 8
+        },
+        {
+          "name": "宿舍",
+          "count": 6
+        },
+        {
+          "name": "图书馆",
+          "count": 4
+        },
+        {
+          "name": "教室",
+          "count": 2
+        },
+        {
+          "name": "自习室",
+          "count": 1
+        },
+        {
+          "name": "南京",
+          "count": 1
+        }
+      ]
+    },
+    "timePatterns": {
+      "topTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 31
+      },
+      "uniqueTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 31
+      },
+      "buckets": [
+        {
+          "label": "晚上 18-23",
+          "count": 31
+        }
+      ]
+    }
+  }
+}

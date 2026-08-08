@@ -1,0 +1,1109 @@
+{
+  "reportId": "month_2025-02",
+  "preset": "month",
+  "period": {
+    "startDate": "2025-02-01",
+    "endDate": "2025-02-28",
+    "label": "2025 年 2 月总结",
+    "generatedAt": "2026-08-04T15:23:50.665Z",
+    "timezone": "Asia/Shanghai"
+  },
+  "generation": {
+    "requestedSections": [
+      "stats",
+      "heatmap",
+      "moodTrend",
+      "tagCloud",
+      "locationPatterns",
+      "timePatterns"
+    ],
+    "entryInsightPolicy": "reuse-only",
+    "reusedEntryInsightCount": 28,
+    "generatedEntryInsightCount": 0,
+    "skippedEmptyDays": 0,
+    "warnings": []
+  },
+  "summary": {
+    "text": "整个二月基本在安徽阜阳老家度过，前半段是春节尾声与寒假日常：父亲离家返浙后家里明显冷清，白天喂鸡、种菜、辅导妹妹功课，晚上持续学Java，并推进大创申报；中旬开学临近，开始收拾行李并复习Java；22日返校回到南京，切换到校园节奏，计划主攻JavaWeb，学期初英语听力依然吃力。整体节奏从家庭生活平稳过渡到开学状态，Java学习贯穿始终，记录覆盖28天无缺失，日均词数约242字。",
+    "progress": [
+      {
+        "text": "Java学习贯穿整个寒假，从多态、接口到集合框架、IO流与异常处理，返校前已开始接触JavaWeb。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "2月上旬至2月下旬",
+          "startDate": "2025-02-01",
+          "endDate": "2025-02-20"
+        }
+      },
+      {
+        "text": "大创申报在假期持续推进，初版方案已有眉目。",
+        "timeAnchor": {
+          "type": "approx",
+          "label": "2月上旬",
+          "startDate": "2025-02-01",
+          "endDate": "2025-02-10"
+        }
+      },
+      {
+        "text": "2月16日起开始收拾行李、确认接站安排，为返校做准备。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "2月16日 - 2月18日",
+          "startDate": "2025-02-16",
+          "endDate": "2025-02-18"
+        }
+      },
+      {
+        "text": "2月22日返校回到南京，与朋友见面，从家庭生活切换回校园节奏。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "2月22日",
+          "startDate": "2025-02-22"
+        }
+      }
+    ],
+    "blockers": [
+      {
+        "text": "父亲年后离家返浙，家中明显冷清，情绪一度落到低点。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "2月2日",
+          "startDate": "2025-02-02"
+        }
+      },
+      {
+        "text": "Java异常处理一度没吃透，经过反复练习在元宵节前后才顺了一些。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "2月11日 - 2月12日",
+          "startDate": "2025-02-11",
+          "endDate": "2025-02-12"
+        }
+      },
+      {
+        "text": "返校后英语课听力仍跟不上，学习安排需要重新调整。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "2月25日",
+          "startDate": "2025-02-25"
+        }
+      }
+    ],
+    "memorableMoments": [
+      {
+        "text": "大年初五父亲凌晨离家返浙，家里一下子安静下来。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "2月2日",
+          "startDate": "2025-02-02"
+        }
+      },
+      {
+        "text": "2月5日定下寒假计划，家务、辅导妹妹与Java学习的节奏趋于稳定。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "2月5日",
+          "startDate": "2025-02-05"
+        }
+      },
+      {
+        "text": "返校当天阿凯接站，晚上和朋友吃烤串叙旧。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "2月22日",
+          "startDate": "2025-02-22"
+        }
+      }
+    ]
+  },
+  "source": {
+    "totalDays": 28,
+    "entryDays": 28,
+    "missingDays": 0,
+    "totalWords": 6787,
+    "averageWords": 242,
+    "longestStreak": 28
+  },
+  "dailyEntries": [
+    {
+      "date": "2025-02-01",
+      "hasEntry": true,
+      "wordCount": 529,
+      "mood": -1,
+      "summary": "大年初四，父亲将返浙，白天浇菜喂鸡、辅导妹妹数学，晚上推进大创申报并看Java。",
+      "tags": [
+        "春节",
+        "家人",
+        "离别",
+        "大创",
+        "家务",
+        "Java",
+        "寒假"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:37:55.097Z",
+      "updatedAt": "2026-08-03T15:38:02.151Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-02",
+      "hasEntry": true,
+      "wordCount": 604,
+      "mood": -1,
+      "summary": "大年初五父亲凌晨离家返浙，家中冷清；白天喂鸡、辅导妹妹物理，下午学Java多态略有成就感。",
+      "tags": [
+        "离别",
+        "家人",
+        "家务",
+        "Java",
+        "大创",
+        "春节"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:38:15.845Z",
+      "updatedAt": "2026-08-03T15:38:22.532Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-03",
+      "hasEntry": true,
+      "wordCount": 104,
+      "mood": 2,
+      "summary": "大年初六从姥姥家回来，父亲已到浙江准备开工；下午Java多态调通，晚上陪妹妹背英语，日子平稳。",
+      "tags": [
+        "Java",
+        "家人",
+        "家务",
+        "离别",
+        "寒假",
+        "开学"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:38:27.798Z",
+      "updatedAt": "2026-08-03T15:38:38.578Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-04",
+      "hasEntry": true,
+      "wordCount": 551,
+      "mood": 2,
+      "summary": "初七在家帮母亲晾被单、理枯枝，辅导妹妹英语，晚上学Java并修订大创申报，整体安稳。",
+      "tags": [
+        "寒假",
+        "家人",
+        "家务",
+        "Java",
+        "大创"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:39:18.15Z",
+      "updatedAt": "2026-08-03T15:39:43.289Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-05",
+      "hasEntry": true,
+      "wordCount": 592,
+      "mood": 2,
+      "summary": "大年初八父亲工地开工，白天喂鸡、辅导妹妹功课，下午练Java接口，晚间定寒假计划，日子安稳。",
+      "tags": [
+        "寒假",
+        "家人",
+        "家务",
+        "Java",
+        "大创",
+        "计划"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:40:06.239Z",
+      "updatedAt": "2026-08-03T15:40:15.166Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-06",
+      "hasEntry": true,
+      "wordCount": 170,
+      "mood": 2,
+      "summary": "初九在家做豆腐脑、拔蒜苗，辅导妹妹物理，晚上整理Java接口笔记，后天给姥姥拜年。",
+      "tags": [
+        "寒假",
+        "家人",
+        "家务",
+        "Java",
+        "物理",
+        "拜年"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:41:17.575Z",
+      "updatedAt": "2026-08-03T15:41:37.49Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-07",
+      "hasEntry": true,
+      "wordCount": 166,
+      "mood": 2,
+      "summary": "初十去姥姥家拜年，姥姥塞钱让我有些过意不去；下午帮家里喂鸡，晚上调通Java练习。",
+      "tags": [
+        "拜年",
+        "家人",
+        "家务",
+        "Java",
+        "背单词",
+        "寒假"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:41:42.022Z",
+      "updatedAt": "2026-08-03T15:41:52.985Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-08",
+      "hasEntry": true,
+      "wordCount": 125,
+      "mood": 0,
+      "summary": "正月十一在家做家务、辅导妹妹英语，晚上练Java接口回调，父亲视频后母亲沉默。",
+      "tags": [
+        "家务",
+        "Java",
+        "家人",
+        "背单词",
+        "寒假"
+      ],
+      "location": "家",
+      "createdAt": "2026-08-03T15:41:56.429Z",
+      "updatedAt": "2026-08-03T15:42:07.318Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-09",
+      "hasEntry": true,
+      "wordCount": 203,
+      "mood": 0,
+      "summary": "上午帮家里翻地准备种早茬菠菜，辅导妹妹数学二次函数，下午开始学Java集合框架。",
+      "tags": [
+        "寒假",
+        "家人",
+        "家务",
+        "Java",
+        "赶集",
+        "辅导功课"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:43:04.65Z",
+      "updatedAt": "2026-08-03T15:43:21.14Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-10",
+      "hasEntry": true,
+      "wordCount": 352,
+      "mood": 0,
+      "summary": "趁雨前陪母亲赶集买好菜种，下午辅导妹妹英语，晚上学习Java的HashMap。",
+      "tags": [
+        "赶集",
+        "家人",
+        "家务",
+        "辅导功课",
+        "Java",
+        "寒假"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:43:27.292Z",
+      "updatedAt": "2026-08-03T15:43:37.548Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-11",
+      "hasEntry": true,
+      "wordCount": 156,
+      "mood": 0,
+      "summary": "雨停后与母亲去种菠菜，下午辅导妹妹物理浮力题，晚上学Java异常处理但还未吃透。",
+      "tags": [
+        "寒假",
+        "家人",
+        "家务",
+        "辅导功课",
+        "物理",
+        "Java"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:43:41.255Z",
+      "updatedAt": "2026-08-03T15:43:55.05Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-12",
+      "hasEntry": true,
+      "wordCount": 158,
+      "mood": 1,
+      "summary": "元宵节在家喂鸡、陪妹妹写作业，晚上吃汤圆后继续练Java的try-catch，感觉顺了些。",
+      "tags": [
+        "元宵节",
+        "家务",
+        "辅导功课",
+        "Java",
+        "家人",
+        "寒假"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:43:59.132Z",
+      "updatedAt": "2026-08-03T15:44:07.01Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-13",
+      "hasEntry": true,
+      "wordCount": 126,
+      "mood": 2,
+      "summary": "正月十六随母亲去二姨家走亲戚，下午看菠菜冒芽，晚上学Java File类并跑通遍历文件夹程序。",
+      "tags": [
+        "走亲戚",
+        "家人",
+        "家务",
+        "菜地",
+        "Java",
+        "寒假"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:44:10.275Z",
+      "updatedAt": "2026-08-03T15:44:43.999Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-14",
+      "hasEntry": true,
+      "wordCount": 98,
+      "mood": 0,
+      "summary": "陪母亲买菜种，喂鸡时发现鸡受凉；傍晚辅导妹妹英语，晚上学Java集合框架。",
+      "tags": [
+        "寒假",
+        "家人",
+        "家务",
+        "辅导功课",
+        "菜地",
+        "Java"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:44:47.137Z",
+      "updatedAt": "2026-08-03T15:45:08.63Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-15",
+      "hasEntry": true,
+      "wordCount": 126,
+      "mood": 2,
+      "summary": "去二舅家走亲戚，下午喂鸡并查看菜地，后辅导妹妹数学，晚上学习Java集合类。",
+      "tags": [
+        "走亲戚",
+        "家人",
+        "家务",
+        "菜地",
+        "辅导功课",
+        "Java"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:45:11.824Z",
+      "updatedAt": "2026-08-03T15:45:29.207Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-16",
+      "hasEntry": true,
+      "wordCount": 117,
+      "mood": 2,
+      "summary": "收拾行李准备返校，复习Java集合框架并写学生管理系统示例，与同学约好开学见面。",
+      "tags": [
+        "返校",
+        "行李",
+        "寒假",
+        "Java",
+        "开学",
+        "计划",
+        "家人"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:45:32.164Z",
+      "updatedAt": "2026-08-03T15:45:33.595Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-17",
+      "hasEntry": true,
+      "wordCount": 122,
+      "mood": 2,
+      "summary": "整理好Java IO流知识，确认阿凯23号接站，行李基本收拾完毕。",
+      "tags": [
+        "Java",
+        "IO流",
+        "返校",
+        "行李",
+        "计划",
+        "家人",
+        "朋友"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:45:36.319Z",
+      "updatedAt": "2026-08-03T15:45:43.995Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-18",
+      "hasEntry": true,
+      "wordCount": 112,
+      "mood": 0,
+      "summary": "复习Java多态并理顺，下午理发买零食，晚上整理好返校行李，等待23号出发。",
+      "tags": [
+        "Java",
+        "多态",
+        "返校",
+        "行李",
+        "家人",
+        "计划"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:45:47.153Z",
+      "updatedAt": "2026-08-03T15:45:58.012Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-19",
+      "hasEntry": true,
+      "wordCount": 501,
+      "mood": 0,
+      "summary": "返校前在家复习Java异常处理并看HashMap源码，收拾行李，妈妈叮嘱吃早饭，与同学约好南京见。",
+      "tags": [
+        "Java",
+        "复习备考",
+        "返校",
+        "家人",
+        "计划",
+        "朋友"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:46:06.609Z",
+      "updatedAt": "2026-08-03T15:46:13.116Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-20",
+      "hasEntry": true,
+      "wordCount": 304,
+      "mood": 1,
+      "summary": "后天回南京，今天复习HashMap、收拾行李，与父母视频，计划学JavaWeb。",
+      "tags": [
+        "Java",
+        "JavaWeb",
+        "返校",
+        "行李",
+        "家人",
+        "朋友",
+        "计划",
+        "开学"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:46:18.331Z",
+      "updatedAt": "2026-08-03T15:46:49.29Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-21",
+      "hasEntry": true,
+      "wordCount": 278,
+      "mood": -1,
+      "summary": "复习Java继承接口，确认明日返校行程，准备跟学长做JavaWeb项目。",
+      "tags": [
+        "Java",
+        "JavaWeb",
+        "返校",
+        "行李",
+        "家人",
+        "朋友",
+        "计划",
+        "C语言"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:46:54.093Z",
+      "updatedAt": "2026-08-03T15:47:02.838Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-22",
+      "hasEntry": true,
+      "wordCount": 127,
+      "mood": 2,
+      "summary": "返校回到南京，阿凯接站，晚上与朋友吃烤串叙旧，准备明天报到并计划主攻JavaWeb。",
+      "tags": [
+        "返校",
+        "家人",
+        "朋友",
+        "JavaWeb",
+        "开学",
+        "计划"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-03T15:47:06.98Z",
+      "updatedAt": "2026-08-03T15:47:12.388Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-23",
+      "hasEntry": true,
+      "wordCount": 170,
+      "mood": 2,
+      "summary": "正式报到，收拾宿舍、领课表，晚上与朋友吃火锅叙旧，买二手Spring书，准备明天高数。",
+      "tags": [
+        "开学",
+        "朋友",
+        "JavaWeb",
+        "Spring",
+        "高数"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-03T15:47:16.252Z",
+      "updatedAt": "2026-08-03T15:47:36.468Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-24",
+      "hasEntry": true,
+      "wordCount": 158,
+      "mood": 1,
+      "summary": "开学首日上高数导数，下午自学Spring和JavaWeb，晚上整理行李并计划补Java基础。",
+      "tags": [
+        "开学",
+        "高数",
+        "Spring",
+        "JavaWeb",
+        "大创",
+        "Java"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-03T15:47:40.021Z",
+      "updatedAt": "2026-08-03T15:47:45.003Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-25",
+      "hasEntry": true,
+      "wordCount": 145,
+      "mood": 1,
+      "summary": "英语课听力仍跟不上，下午去图书馆复习Java基础找回手感，并暂缓组队比赛。",
+      "tags": [
+        "Java",
+        "JavaWeb",
+        "图书馆",
+        "英语",
+        "计划",
+        "朋友"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-03T15:47:48.901Z",
+      "updatedAt": "2026-08-03T15:47:58.266Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-26",
+      "hasEntry": true,
+      "wordCount": 415,
+      "mood": 0,
+      "summary": "开学初整理JavaWeb笔记，学习Spring依赖注入并跑通代码，晚上与家人通话后预习C语言。",
+      "tags": [
+        "Spring",
+        "JavaWeb",
+        "大创",
+        "朋友",
+        "家人",
+        "C语言"
+      ],
+      "location": "宿舍",
+      "createdAt": "2026-08-03T15:48:04.988Z",
+      "updatedAt": "2026-08-03T15:48:10.893Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-27",
+      "hasEntry": true,
+      "wordCount": 172,
+      "mood": 2,
+      "summary": "上午听软件工程导论，下午复习Java集合与HashMap，晚上聚餐并理清Spring IoC，计划每天练代码。",
+      "tags": [
+        "Java",
+        "Spring",
+        "软件工程",
+        "朋友",
+        "计划"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-03T15:48:15.246Z",
+      "updatedAt": "2026-08-03T15:48:42.526Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-02-28",
+      "hasEntry": true,
+      "wordCount": 106,
+      "mood": 2,
+      "summary": "开学前最后一晚复习Java多线程和异常处理，收拾好行李，与室友聚餐，准备明早返校。",
+      "tags": [
+        "Java",
+        "多线程",
+        "返校",
+        "行李",
+        "朋友",
+        "开学"
+      ],
+      "location": "老家",
+      "createdAt": "2026-08-03T15:48:45.277Z",
+      "updatedAt": "2026-08-03T15:48:55.579Z",
+      "writingHour": 23,
+      "insightSource": "frontmatter"
+    }
+  ],
+  "sections": {
+    "stats": {
+      "recordDays": 28,
+      "missingDays": 0,
+      "totalWords": 6787,
+      "averageWords": 242,
+      "maxWordsInOneDay": 604,
+      "maxWordsDate": "2025-02-02",
+      "longestStreak": 28,
+      "currentStreakAtEnd": 28
+    },
+    "heatmap": {
+      "points": [
+        {
+          "date": "2025-02-01",
+          "value": 529
+        },
+        {
+          "date": "2025-02-02",
+          "value": 604
+        },
+        {
+          "date": "2025-02-03",
+          "value": 104
+        },
+        {
+          "date": "2025-02-04",
+          "value": 551
+        },
+        {
+          "date": "2025-02-05",
+          "value": 592
+        },
+        {
+          "date": "2025-02-06",
+          "value": 170
+        },
+        {
+          "date": "2025-02-07",
+          "value": 166
+        },
+        {
+          "date": "2025-02-08",
+          "value": 125
+        },
+        {
+          "date": "2025-02-09",
+          "value": 203
+        },
+        {
+          "date": "2025-02-10",
+          "value": 352
+        },
+        {
+          "date": "2025-02-11",
+          "value": 156
+        },
+        {
+          "date": "2025-02-12",
+          "value": 158
+        },
+        {
+          "date": "2025-02-13",
+          "value": 126
+        },
+        {
+          "date": "2025-02-14",
+          "value": 98
+        },
+        {
+          "date": "2025-02-15",
+          "value": 126
+        },
+        {
+          "date": "2025-02-16",
+          "value": 117
+        },
+        {
+          "date": "2025-02-17",
+          "value": 122
+        },
+        {
+          "date": "2025-02-18",
+          "value": 112
+        },
+        {
+          "date": "2025-02-19",
+          "value": 501
+        },
+        {
+          "date": "2025-02-20",
+          "value": 304
+        },
+        {
+          "date": "2025-02-21",
+          "value": 278
+        },
+        {
+          "date": "2025-02-22",
+          "value": 127
+        },
+        {
+          "date": "2025-02-23",
+          "value": 170
+        },
+        {
+          "date": "2025-02-24",
+          "value": 158
+        },
+        {
+          "date": "2025-02-25",
+          "value": 145
+        },
+        {
+          "date": "2025-02-26",
+          "value": 415
+        },
+        {
+          "date": "2025-02-27",
+          "value": 172
+        },
+        {
+          "date": "2025-02-28",
+          "value": 106
+        }
+      ]
+    },
+    "moodTrend": {
+      "points": [
+        {
+          "date": "2025-02-01",
+          "value": -1
+        },
+        {
+          "date": "2025-02-02",
+          "value": -1
+        },
+        {
+          "date": "2025-02-03",
+          "value": 2
+        },
+        {
+          "date": "2025-02-04",
+          "value": 2
+        },
+        {
+          "date": "2025-02-05",
+          "value": 2
+        },
+        {
+          "date": "2025-02-06",
+          "value": 2
+        },
+        {
+          "date": "2025-02-07",
+          "value": 2
+        },
+        {
+          "date": "2025-02-08",
+          "value": 0
+        },
+        {
+          "date": "2025-02-09",
+          "value": 0
+        },
+        {
+          "date": "2025-02-10",
+          "value": 0
+        },
+        {
+          "date": "2025-02-11",
+          "value": 0
+        },
+        {
+          "date": "2025-02-12",
+          "value": 1
+        },
+        {
+          "date": "2025-02-13",
+          "value": 2
+        },
+        {
+          "date": "2025-02-14",
+          "value": 0
+        },
+        {
+          "date": "2025-02-15",
+          "value": 2
+        },
+        {
+          "date": "2025-02-16",
+          "value": 2
+        },
+        {
+          "date": "2025-02-17",
+          "value": 2
+        },
+        {
+          "date": "2025-02-18",
+          "value": 0
+        },
+        {
+          "date": "2025-02-19",
+          "value": 0
+        },
+        {
+          "date": "2025-02-20",
+          "value": 1
+        },
+        {
+          "date": "2025-02-21",
+          "value": -1
+        },
+        {
+          "date": "2025-02-22",
+          "value": 2
+        },
+        {
+          "date": "2025-02-23",
+          "value": 2
+        },
+        {
+          "date": "2025-02-24",
+          "value": 1
+        },
+        {
+          "date": "2025-02-25",
+          "value": 1
+        },
+        {
+          "date": "2025-02-26",
+          "value": 0
+        },
+        {
+          "date": "2025-02-27",
+          "value": 2
+        },
+        {
+          "date": "2025-02-28",
+          "value": 2
+        }
+      ],
+      "averageMood": 1
+    },
+    "tagCloud": {
+      "items": [
+        {
+          "label": "Java",
+          "value": 25
+        },
+        {
+          "label": "家人",
+          "value": 23
+        },
+        {
+          "label": "家务",
+          "value": 15
+        },
+        {
+          "label": "寒假",
+          "value": 14
+        },
+        {
+          "label": "计划",
+          "value": 10
+        },
+        {
+          "label": "朋友",
+          "value": 10
+        },
+        {
+          "label": "返校",
+          "value": 8
+        },
+        {
+          "label": "开学",
+          "value": 7
+        },
+        {
+          "label": "JavaWeb",
+          "value": 7
+        },
+        {
+          "label": "大创",
+          "value": 6
+        },
+        {
+          "label": "辅导功课",
+          "value": 6
+        },
+        {
+          "label": "行李",
+          "value": 6
+        },
+        {
+          "label": "Spring",
+          "value": 4
+        },
+        {
+          "label": "菜地",
+          "value": 3
+        },
+        {
+          "label": "离别",
+          "value": 3
+        },
+        {
+          "label": "拜年",
+          "value": 2
+        },
+        {
+          "label": "背单词",
+          "value": 2
+        },
+        {
+          "label": "春节",
+          "value": 2
+        },
+        {
+          "label": "赶集",
+          "value": 2
+        },
+        {
+          "label": "高数",
+          "value": 2
+        },
+        {
+          "label": "物理",
+          "value": 2
+        },
+        {
+          "label": "走亲戚",
+          "value": 2
+        },
+        {
+          "label": "C语言",
+          "value": 2
+        },
+        {
+          "label": "多态",
+          "value": 1
+        },
+        {
+          "label": "多线程",
+          "value": 1
+        },
+        {
+          "label": "复习备考",
+          "value": 1
+        },
+        {
+          "label": "软件工程",
+          "value": 1
+        },
+        {
+          "label": "图书馆",
+          "value": 1
+        },
+        {
+          "label": "英语",
+          "value": 1
+        },
+        {
+          "label": "元宵节",
+          "value": 1
+        }
+      ]
+    },
+    "locationPatterns": {
+      "topLocation": {
+        "name": "老家",
+        "count": 21
+      },
+      "uniqueLocation": {
+        "name": "家",
+        "count": 1
+      },
+      "ranking": [
+        {
+          "name": "老家",
+          "count": 21
+        },
+        {
+          "name": "南京",
+          "count": 3
+        },
+        {
+          "name": "学校",
+          "count": 2
+        },
+        {
+          "name": "家",
+          "count": 1
+        },
+        {
+          "name": "宿舍",
+          "count": 1
+        }
+      ]
+    },
+    "timePatterns": {
+      "topTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 28
+      },
+      "uniqueTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 28
+      },
+      "buckets": [
+        {
+          "label": "晚上 18-23",
+          "count": 28
+        }
+      ]
+    }
+  }
+}

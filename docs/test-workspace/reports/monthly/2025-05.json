@@ -1,0 +1,1185 @@
+{
+  "reportId": "month_2025-05",
+  "preset": "month",
+  "period": {
+    "startDate": "2025-05-01",
+    "endDate": "2025-05-31",
+    "label": "2025 年 5 月总结",
+    "generatedAt": "2026-08-08T10:46:24.723Z",
+    "timezone": "Asia/Shanghai"
+  },
+  "generation": {
+    "requestedSections": [
+      "stats",
+      "heatmap",
+      "moodTrend",
+      "tagCloud",
+      "locationPatterns",
+      "timePatterns"
+    ],
+    "entryInsightPolicy": "reuse-or-generate",
+    "reusedEntryInsightCount": 29,
+    "generatedEntryInsightCount": 2,
+    "skippedEmptyDays": 0,
+    "warnings": []
+  },
+  "summary": {
+    "text": "五月前半段以五一假期收尾开启，连续逛玄武湖后转入大创立项与答辩节奏，同时为晓雨准备生日礼物。中旬在图书馆表白成功，关系从准备、忐忑到确认，成为本月最主要的转折。此后大创推进到前端框架与接口实现，月底开始数据可视化模块，日常围绕图书馆、实验室、操场展开，节奏平稳，整体状态由月初的低落转向踏实的陪伴与推进。",
+    "progress": [
+      {
+        "text": "大创立项答辩通过，明确八月前出原型的阶段性目标。",
+        "timeAnchor": {
+          "type": "approx",
+          "label": "5月上旬"
+        }
+      },
+      {
+        "text": "送出钢笔作为生日礼物，并在图书馆完成表白，确认恋爱关系。",
+        "timeAnchor": {
+          "type": "range",
+          "label": "5月12日 - 5月17日",
+          "startDate": "2025-05-12",
+          "endDate": "2025-05-17"
+        }
+      },
+      {
+        "text": "完成多个大创接口与表单验证，月底开启数据可视化模块。",
+        "timeAnchor": {
+          "type": "approx",
+          "label": "5月下旬"
+        }
+      }
+    ],
+    "blockers": [
+      {
+        "text": "面临大创原型与期末复习并行，时间上有些吃紧。",
+        "timeAnchor": {
+          "type": "approx",
+          "label": "5月中下旬"
+        }
+      },
+      {
+        "text": "概率论考试自我感觉一般。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "5月27日",
+          "startDate": "2025-05-27"
+        }
+      }
+    ],
+    "memorableMoments": [
+      {
+        "text": "五一最后一天在玄武湖聊期末与考研打算，假期结束有些舍不得。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "5月5日",
+          "startDate": "2025-05-05"
+        }
+      },
+      {
+        "text": "表白前夜在操场走圈，想好明天只问一句愿不愿意。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "5月16日",
+          "startDate": "2025-05-16"
+        }
+      },
+      {
+        "text": "在图书馆门口表白成功，她递来纸条写着“那以后就是两个人了”。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "5月17日",
+          "startDate": "2025-05-17"
+        }
+      },
+      {
+        "text": "520晚上大创代码跑通，和晓雨吃完麻辣烫牵手回宿舍。",
+        "timeAnchor": {
+          "type": "day",
+          "label": "5月20日",
+          "startDate": "2025-05-20"
+        }
+      }
+    ]
+  },
+  "source": {
+    "totalDays": 31,
+    "entryDays": 31,
+    "missingDays": 0,
+    "totalWords": 10790,
+    "averageWords": 348,
+    "longestStreak": 31
+  },
+  "dailyEntries": [
+    {
+      "date": "2025-05-01",
+      "hasEntry": true,
+      "wordCount": 354,
+      "mood": 2,
+      "summary": "五一第一天陪晓雨逛玄武湖，一起散步吃糖葫芦，回来收到她说今天很开心。",
+      "tags": [
+        "五一",
+        "晓雨",
+        "玄武湖",
+        "散步",
+        "游玩"
+      ],
+      "location": "玄武湖",
+      "createdAt": "2026-08-04T14:05:43.468Z",
+      "updatedAt": "2026-08-04T14:05:49.56Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-02",
+      "hasEntry": true,
+      "wordCount": 292,
+      "mood": 2,
+      "summary": "五一假期第二天又和晓雨去玄武湖散步，傍晚一起吃饭，觉得假期过得很舒服。",
+      "tags": [
+        "晓雨",
+        "玄武湖",
+        "散步",
+        "五一",
+        "游玩"
+      ],
+      "location": "玄武湖",
+      "createdAt": "2026-08-04T14:05:53.316Z",
+      "updatedAt": "2026-08-04T14:05:56.488Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-03",
+      "hasEntry": true,
+      "wordCount": 257,
+      "mood": 2,
+      "summary": "五一假期第三天，上午休息，下午整理大创文档并写接口测试代码，晚上与晓雨约好明天去老门东。",
+      "tags": [
+        "五一",
+        "晓雨",
+        "老门东",
+        "大创",
+        "接口测试"
+      ],
+      "location": "",
+      "createdAt": "2026-08-04T15:22:02.994Z",
+      "updatedAt": "2026-08-08T10:46:01.565Z",
+      "writingHour": 23,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-05-04",
+      "hasEntry": true,
+      "wordCount": 294,
+      "mood": 2,
+      "summary": "假期第四天和晓雨再逛玄武湖，沿湖散步聊项目，她说改天请吃饭，有些话没说出口但也不急。",
+      "tags": [
+        "晓雨",
+        "玄武湖",
+        "散步",
+        "五一",
+        "大创"
+      ],
+      "location": "",
+      "createdAt": "2026-08-04T14:06:09.453Z",
+      "updatedAt": "2026-08-04T14:06:15.98Z",
+      "writingHour": 22,
+      "insightSource": "generated"
+    },
+    {
+      "date": "2025-05-05",
+      "hasEntry": true,
+      "wordCount": 134,
+      "mood": -1,
+      "summary": "五一最后一天和晓雨逛玄武湖，聊期末与考研打算，假期结束有些舍不得。",
+      "tags": [
+        "五一",
+        "晓雨",
+        "玄武湖",
+        "散步",
+        "毕业规划",
+        "复习备考"
+      ],
+      "location": "玄武湖",
+      "createdAt": "2026-08-04T14:06:18.467Z",
+      "updatedAt": "2026-08-04T14:06:27.44Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-06",
+      "hasEntry": true,
+      "wordCount": 94,
+      "mood": 3,
+      "summary": "大创立项答辩通过，老师认可，学长要求八月前出原型；晓雨道贺，开始琢磨她下周生日礼物。",
+      "tags": [
+        "大创",
+        "答辩",
+        "晓雨",
+        "生日礼物",
+        "学长"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:06:29.925Z",
+      "updatedAt": "2026-08-04T14:06:41.203Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-07",
+      "hasEntry": true,
+      "wordCount": 141,
+      "mood": 0,
+      "summary": "上午复习二叉树，下午帮学长调接口测试，晚上与晓雨聊到生日礼物，计划送钢笔。",
+      "tags": [
+        "数据结构",
+        "二叉树",
+        "图书馆",
+        "实验室",
+        "接口测试",
+        "学长",
+        "晓雨",
+        "生日礼物"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:06:44.162Z",
+      "updatedAt": "2026-08-04T14:06:53.439Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-08",
+      "hasEntry": true,
+      "wordCount": 337,
+      "mood": 0,
+      "summary": "周四上数据库课后去实验室了解前端框架，同学约周末爬紫金山，计划周六为晓雨买钢笔。",
+      "tags": [
+        "数据库",
+        "实验室",
+        "学长",
+        "前端框架",
+        "紫金山",
+        "晓雨",
+        "生日礼物",
+        "复习备考"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:06:57.798Z",
+      "updatedAt": "2026-08-04T14:07:01.009Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-09",
+      "hasEntry": true,
+      "wordCount": 168,
+      "mood": 0,
+      "summary": "周五上课犯困，下午搭Vue较顺手；晓雨约新街口，因班级活动去紫金山而作罢，与阿凯约定买钢笔。",
+      "tags": [
+        "软件工程",
+        "前端框架",
+        "晓雨",
+        "紫金山",
+        "生日礼物",
+        "朋友"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:07:04.58Z",
+      "updatedAt": "2026-08-04T14:07:25.844Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-10",
+      "hasEntry": true,
+      "wordCount": 250,
+      "mood": 2,
+      "summary": "周六上午与朋友爬紫金山，下午去新街口给晓雨买生日礼物，晚上看Vue文档准备项目草图。",
+      "tags": [
+        "紫金山",
+        "新街口",
+        "晓雨",
+        "生日礼物",
+        "答辩",
+        "前端框架"
+      ],
+      "location": "新街口",
+      "createdAt": "2026-08-04T14:07:29.321Z",
+      "updatedAt": "2026-08-08T10:41:29.529Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-11",
+      "hasEntry": true,
+      "wordCount": 132,
+      "mood": 0,
+      "summary": "画好vue项目布局草图获学长认可，下午图书馆自习偶遇晓雨，明天答辩略紧张但决定顺其自然。",
+      "tags": [
+        "前端框架",
+        "李斌学长",
+        "组会",
+        "图书馆",
+        "晓雨",
+        "答辩"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:07:34.046Z",
+      "updatedAt": "2026-08-08T10:41:40.686Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-12",
+      "hasEntry": true,
+      "wordCount": 178,
+      "mood": 2,
+      "summary": "大创答辩通过，下午将钢笔作为生日礼物送给晓雨，她有些意外。",
+      "tags": [
+        "大创",
+        "答辩",
+        "晓雨",
+        "生日礼物",
+        "生日",
+        "朋友"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:07:39.22Z",
+      "updatedAt": "2026-08-04T14:07:55.247Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-13",
+      "hasEntry": true,
+      "wordCount": 182,
+      "mood": 1,
+      "summary": "上午上数据结构课，给晓雨发生日祝福，下午图书馆自习见她用上送的钢笔，心里踏实。",
+      "tags": [
+        "晓雨",
+        "图书馆",
+        "数据结构",
+        "生日礼物",
+        "朋友"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:07:59.047Z",
+      "updatedAt": "2026-08-04T14:08:06.64Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-14",
+      "hasEntry": true,
+      "wordCount": 249,
+      "mood": 2,
+      "summary": "白天弄懂背包问题并给晓雨讲操作系统题，晚上写大创前端时看到她发的朋友圈。",
+      "tags": [
+        "动态规划",
+        "操作系统",
+        "图书馆",
+        "晓雨",
+        "大创",
+        "前端框架"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:08:10.148Z",
+      "updatedAt": "2026-08-04T14:08:16.228Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-15",
+      "hasEntry": true,
+      "wordCount": 175,
+      "mood": 1,
+      "summary": "上午英语课小组讨论发言不多，下午在图书馆晓雨因钢笔道谢并递糖，晚上补大创验收材料。",
+      "tags": [
+        "英语",
+        "晓雨",
+        "图书馆",
+        "大创",
+        "学长"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:08:19.41Z",
+      "updatedAt": "2026-08-04T14:08:31.596Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-16",
+      "hasEntry": true,
+      "wordCount": 427,
+      "mood": -1,
+      "summary": "为明天与晓雨的约定忐忑一整天，最终决定下午在图书馆见面，带钢笔表明心意。",
+      "tags": [
+        "晓雨",
+        "表白",
+        "图书馆",
+        "数据结构",
+        "复习备考",
+        "大创",
+        "学长",
+        "散步"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:08:36.243Z",
+      "updatedAt": "2026-08-04T14:08:51.94Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-17",
+      "hasEntry": true,
+      "wordCount": 686,
+      "mood": 4,
+      "summary": "在图书馆向晓雨表白成功，她答应后两人一起自习，晚上与室友庆祝。",
+      "tags": [
+        "表白",
+        "晓雨",
+        "图书馆",
+        "恋爱",
+        "朋友"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:08:57.94Z",
+      "updatedAt": "2026-08-04T14:09:07.438Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-18",
+      "hasEntry": true,
+      "wordCount": 685,
+      "mood": 3,
+      "summary": "表白后第一天，与晓雨一起吃饭、晚上散步牵手，心中甜蜜而踏实。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "散步",
+        "操场",
+        "实验室"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:09:13.353Z",
+      "updatedAt": "2026-08-04T14:09:21.541Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-19",
+      "hasEntry": true,
+      "wordCount": 285,
+      "mood": 3,
+      "summary": "表白后第二天，帮晓雨看作业、一起吃饭，下午实验室写大创代码效率不错，心里踏实甜蜜。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "离散数学",
+        "图书馆",
+        "大创",
+        "实验室"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:09:25.547Z",
+      "updatedAt": "2026-08-04T14:09:31.529Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-20",
+      "hasEntry": true,
+      "wordCount": 432,
+      "mood": 3,
+      "summary": "520与晓雨外出吃麻辣烫，收到充电线礼物，晚上牵手回宿舍，大创代码跑通，心里有点甜。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "520",
+        "大创",
+        "实验室",
+        "学长",
+        "英语"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:09:36.564Z",
+      "updatedAt": "2026-08-04T14:09:40.392Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-21",
+      "hasEntry": true,
+      "wordCount": 571,
+      "mood": 2,
+      "summary": "与晓雨图书馆自习，下午完成大创接口任务，傍晚一起吃饭散步，平淡安稳。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "图书馆",
+        "实验室",
+        "大创",
+        "操场",
+        "高数"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:09:46.348Z",
+      "updatedAt": "2026-08-04T14:09:49.972Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-22",
+      "hasEntry": true,
+      "wordCount": 901,
+      "mood": 3,
+      "summary": "与晓雨一起学习、写接口，修复越界问题，晚饭后得知她明天去紫金山团建。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "图书馆",
+        "实验室",
+        "接口",
+        "概率论"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:09:57.712Z",
+      "updatedAt": "2026-08-04T14:10:29.832Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-23",
+      "hasEntry": true,
+      "wordCount": 505,
+      "mood": 2,
+      "summary": "晓雨去紫金山团建，自己刷概率论并完成大创验证码功能，晚间互报平安，习惯有她的日子。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "紫金山",
+        "概率论",
+        "大创",
+        "图书馆"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:10:35.84Z",
+      "updatedAt": "2026-08-04T14:10:43.275Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-24",
+      "hasEntry": true,
+      "wordCount": 343,
+      "mood": 2,
+      "summary": "周六与晓雨图书馆自习，午后操场散步，下午完成大创用户信息接口，与学长约定下周联调。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "图书馆",
+        "大创",
+        "接口",
+        "操场"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:10:50.52Z",
+      "updatedAt": "2026-08-04T14:10:54.512Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-25",
+      "hasEntry": true,
+      "wordCount": 263,
+      "mood": 2,
+      "summary": "周日与晓雨在实验室度过下午，傍晚操场散步，顺带复习概率论并检查大创代码。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "实验室",
+        "操场",
+        "概率论",
+        "大创"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T14:10:58.811Z",
+      "updatedAt": "2026-08-04T14:11:04.818Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-26",
+      "hasEntry": true,
+      "wordCount": 206,
+      "mood": 2,
+      "summary": "与晓雨一起学习，张老师检查大创原型后晚上改代码提交，日子过得踏实顺遂。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "图书馆",
+        "大创",
+        "概率论",
+        "学长"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:11:10.483Z",
+      "updatedAt": "2026-08-04T14:11:14.9Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-27",
+      "hasEntry": true,
+      "wordCount": 223,
+      "mood": 2,
+      "summary": "概率论考得一般，下午理顺前端表单验证，晚上和晓雨操场散步。",
+      "tags": [
+        "概率论",
+        "考试",
+        "晓雨",
+        "恋爱",
+        "实验室",
+        "前端框架",
+        "操场"
+      ],
+      "location": "学校",
+      "createdAt": "2026-08-04T14:11:18.599Z",
+      "updatedAt": "2026-08-04T14:11:31.249Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-28",
+      "hasEntry": true,
+      "wordCount": 173,
+      "mood": 2,
+      "summary": "与晓雨看电影、吃鸭血粉丝，傍晚修好大创表单验证，晚上操场散步，习惯有她陪伴的第十一天。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "图书馆",
+        "大创",
+        "实验室",
+        "操场",
+        "前端框架",
+        "学长"
+      ],
+      "location": "南京",
+      "createdAt": "2026-08-04T14:11:34.152Z",
+      "updatedAt": "2026-08-04T14:11:43.092Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-29",
+      "hasEntry": true,
+      "wordCount": 577,
+      "mood": 2,
+      "summary": "上午学Dijkstra算法，下午修好大创接口，晚上陪晓雨操场散步，在一起第十二天。",
+      "tags": [
+        "数据结构",
+        "Dijkstra",
+        "大创",
+        "接口",
+        "实验室",
+        "晓雨",
+        "恋爱",
+        "操场"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T14:11:49.462Z",
+      "updatedAt": "2026-08-04T14:12:17.853Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-30",
+      "hasEntry": true,
+      "wordCount": 800,
+      "mood": 2,
+      "summary": "大创数据可视化模块开工，傍晚和晓雨散步聊天，在一起第十三天，日子平淡踏实。",
+      "tags": [
+        "大创",
+        "晓雨",
+        "恋爱",
+        "实验室",
+        "操场",
+        "数据可视化"
+      ],
+      "location": "实验室",
+      "createdAt": "2026-08-04T14:12:25.78Z",
+      "updatedAt": "2026-08-04T14:12:35.198Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    },
+    {
+      "date": "2025-05-31",
+      "hasEntry": true,
+      "wordCount": 476,
+      "mood": 2,
+      "summary": "周末与晓雨在图书馆整合大创可视化模块，她邀我下周末去栖霞山，第十四天有人陪伴挺好。",
+      "tags": [
+        "晓雨",
+        "恋爱",
+        "大创",
+        "数据可视化",
+        "图书馆",
+        "操场",
+        "栖霞山"
+      ],
+      "location": "图书馆",
+      "createdAt": "2026-08-04T14:12:41.249Z",
+      "updatedAt": "2026-08-04T14:12:51.111Z",
+      "writingHour": 22,
+      "insightSource": "frontmatter"
+    }
+  ],
+  "sections": {
+    "stats": {
+      "recordDays": 31,
+      "missingDays": 0,
+      "totalWords": 10790,
+      "averageWords": 348,
+      "maxWordsInOneDay": 901,
+      "maxWordsDate": "2025-05-22",
+      "longestStreak": 31,
+      "currentStreakAtEnd": 31
+    },
+    "heatmap": {
+      "points": [
+        {
+          "date": "2025-05-01",
+          "value": 354
+        },
+        {
+          "date": "2025-05-02",
+          "value": 292
+        },
+        {
+          "date": "2025-05-03",
+          "value": 257
+        },
+        {
+          "date": "2025-05-04",
+          "value": 294
+        },
+        {
+          "date": "2025-05-05",
+          "value": 134
+        },
+        {
+          "date": "2025-05-06",
+          "value": 94
+        },
+        {
+          "date": "2025-05-07",
+          "value": 141
+        },
+        {
+          "date": "2025-05-08",
+          "value": 337
+        },
+        {
+          "date": "2025-05-09",
+          "value": 168
+        },
+        {
+          "date": "2025-05-10",
+          "value": 250
+        },
+        {
+          "date": "2025-05-11",
+          "value": 132
+        },
+        {
+          "date": "2025-05-12",
+          "value": 178
+        },
+        {
+          "date": "2025-05-13",
+          "value": 182
+        },
+        {
+          "date": "2025-05-14",
+          "value": 249
+        },
+        {
+          "date": "2025-05-15",
+          "value": 175
+        },
+        {
+          "date": "2025-05-16",
+          "value": 427
+        },
+        {
+          "date": "2025-05-17",
+          "value": 686
+        },
+        {
+          "date": "2025-05-18",
+          "value": 685
+        },
+        {
+          "date": "2025-05-19",
+          "value": 285
+        },
+        {
+          "date": "2025-05-20",
+          "value": 432
+        },
+        {
+          "date": "2025-05-21",
+          "value": 571
+        },
+        {
+          "date": "2025-05-22",
+          "value": 901
+        },
+        {
+          "date": "2025-05-23",
+          "value": 505
+        },
+        {
+          "date": "2025-05-24",
+          "value": 343
+        },
+        {
+          "date": "2025-05-25",
+          "value": 263
+        },
+        {
+          "date": "2025-05-26",
+          "value": 206
+        },
+        {
+          "date": "2025-05-27",
+          "value": 223
+        },
+        {
+          "date": "2025-05-28",
+          "value": 173
+        },
+        {
+          "date": "2025-05-29",
+          "value": 577
+        },
+        {
+          "date": "2025-05-30",
+          "value": 800
+        },
+        {
+          "date": "2025-05-31",
+          "value": 476
+        }
+      ]
+    },
+    "moodTrend": {
+      "points": [
+        {
+          "date": "2025-05-01",
+          "value": 2
+        },
+        {
+          "date": "2025-05-02",
+          "value": 2
+        },
+        {
+          "date": "2025-05-03",
+          "value": 2
+        },
+        {
+          "date": "2025-05-04",
+          "value": 2
+        },
+        {
+          "date": "2025-05-05",
+          "value": -1
+        },
+        {
+          "date": "2025-05-06",
+          "value": 3
+        },
+        {
+          "date": "2025-05-07",
+          "value": 0
+        },
+        {
+          "date": "2025-05-08",
+          "value": 0
+        },
+        {
+          "date": "2025-05-09",
+          "value": 0
+        },
+        {
+          "date": "2025-05-10",
+          "value": 2
+        },
+        {
+          "date": "2025-05-11",
+          "value": 0
+        },
+        {
+          "date": "2025-05-12",
+          "value": 2
+        },
+        {
+          "date": "2025-05-13",
+          "value": 1
+        },
+        {
+          "date": "2025-05-14",
+          "value": 2
+        },
+        {
+          "date": "2025-05-15",
+          "value": 1
+        },
+        {
+          "date": "2025-05-16",
+          "value": -1
+        },
+        {
+          "date": "2025-05-17",
+          "value": 4
+        },
+        {
+          "date": "2025-05-18",
+          "value": 3
+        },
+        {
+          "date": "2025-05-19",
+          "value": 3
+        },
+        {
+          "date": "2025-05-20",
+          "value": 3
+        },
+        {
+          "date": "2025-05-21",
+          "value": 2
+        },
+        {
+          "date": "2025-05-22",
+          "value": 3
+        },
+        {
+          "date": "2025-05-23",
+          "value": 2
+        },
+        {
+          "date": "2025-05-24",
+          "value": 2
+        },
+        {
+          "date": "2025-05-25",
+          "value": 2
+        },
+        {
+          "date": "2025-05-26",
+          "value": 2
+        },
+        {
+          "date": "2025-05-27",
+          "value": 2
+        },
+        {
+          "date": "2025-05-28",
+          "value": 2
+        },
+        {
+          "date": "2025-05-29",
+          "value": 2
+        },
+        {
+          "date": "2025-05-30",
+          "value": 2
+        },
+        {
+          "date": "2025-05-31",
+          "value": 2
+        }
+      ],
+      "averageMood": 1.7
+    },
+    "tagCloud": {
+      "items": [
+        {
+          "label": "晓雨",
+          "value": 31
+        },
+        {
+          "label": "大创",
+          "value": 18
+        },
+        {
+          "label": "恋爱",
+          "value": 15
+        },
+        {
+          "label": "图书馆",
+          "value": 15
+        },
+        {
+          "label": "实验室",
+          "value": 12
+        },
+        {
+          "label": "操场",
+          "value": 9
+        },
+        {
+          "label": "学长",
+          "value": 8
+        },
+        {
+          "label": "前端框架",
+          "value": 7
+        },
+        {
+          "label": "生日礼物",
+          "value": 7
+        },
+        {
+          "label": "散步",
+          "value": 6
+        },
+        {
+          "label": "概率论",
+          "value": 5
+        },
+        {
+          "label": "五一",
+          "value": 5
+        },
+        {
+          "label": "答辩",
+          "value": 4
+        },
+        {
+          "label": "朋友",
+          "value": 4
+        },
+        {
+          "label": "数据结构",
+          "value": 4
+        },
+        {
+          "label": "玄武湖",
+          "value": 4
+        },
+        {
+          "label": "紫金山",
+          "value": 4
+        },
+        {
+          "label": "复习备考",
+          "value": 3
+        },
+        {
+          "label": "接口",
+          "value": 3
+        },
+        {
+          "label": "表白",
+          "value": 2
+        },
+        {
+          "label": "接口测试",
+          "value": 2
+        },
+        {
+          "label": "数据可视化",
+          "value": 2
+        },
+        {
+          "label": "英语",
+          "value": 2
+        },
+        {
+          "label": "游玩",
+          "value": 2
+        },
+        {
+          "label": "520",
+          "value": 1
+        },
+        {
+          "label": "毕业规划",
+          "value": 1
+        },
+        {
+          "label": "操作系统",
+          "value": 1
+        },
+        {
+          "label": "动态规划",
+          "value": 1
+        },
+        {
+          "label": "二叉树",
+          "value": 1
+        },
+        {
+          "label": "高数",
+          "value": 1
+        }
+      ]
+    },
+    "locationPatterns": {
+      "topLocation": {
+        "name": "图书馆",
+        "count": 11
+      },
+      "uniqueLocation": {
+        "name": "新街口",
+        "count": 1
+      },
+      "ranking": [
+        {
+          "name": "图书馆",
+          "count": 11
+        },
+        {
+          "name": "学校",
+          "count": 10
+        },
+        {
+          "name": "实验室",
+          "count": 3
+        },
+        {
+          "name": "玄武湖",
+          "count": 3
+        },
+        {
+          "name": "新街口",
+          "count": 1
+        },
+        {
+          "name": "南京",
+          "count": 1
+        }
+      ]
+    },
+    "timePatterns": {
+      "topTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 31
+      },
+      "uniqueTimeBucket": {
+        "label": "晚上 18-23",
+        "count": 31
+      },
+      "buckets": [
+        {
+          "label": "晚上 18-23",
+          "count": 31
+        }
+      ]
+    }
+  }
+}
