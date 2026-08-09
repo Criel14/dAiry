@@ -164,7 +164,7 @@
 }
 
 .record-row + .record-row {
-  border-top: 1px solid var(--color-border-softest, rgba(0, 0, 0, 0.04));
+  border-top: 1px solid var(--color-border-soft);
 }
 
 .record-icon {

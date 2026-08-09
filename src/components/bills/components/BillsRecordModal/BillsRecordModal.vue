@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import dayjs from 'dayjs'
 import type { BillCategory, BillType } from '../../../../types/bills'
 import { BILL_TYPE_LABELS } from '../../../../types/bills'
 import { getReadableErrorMessage } from '../../../../utils/error'
@@ -51,7 +52,7 @@ watch(
       form.category = editing.category
       form.note = editing.note
     } else {
-      form.date = new Date().toISOString().slice(0, 10)
+      form.date = dayjs().format('YYYY-MM-DD')
       form.type = 'expense'
       form.amount = ''
       form.category = ''

@@ -30,6 +30,8 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   const sidebarStatusMessage = ref('')
   const modalState = ref<BillsModalState>({ open: false, editing: null })
   let loadSequence = 0
+  let yearLoadSequence = 0
+  let categoryLoadSequence = 0
 
   const hasWorkspace = computed(() => Boolean(workspacePath.value))
   const isLoadingCategories = computed(() => false)
@@ -53,6 +55,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   watch(selectedMonth, () => {
     void reloadMonthRecords()
+    void reloadYearRecords()
   })
 
   async function handleWorkspaceChange() {
@@ -68,8 +71,13 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   async function loadCategories() {
     if (!workspacePath.value) return
+    const current = ++categoryLoadSequence
     try {
-      categories.value = await window.dairy.getBillCategories({ workspacePath: workspacePath.value })
+      statusMessage.value = ''
+      const records = await window.dairy.getBillCategories({ workspacePath: workspacePath.value })
+      if (current === categoryLoadSequence) {
+        categories.value = records
+      }
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '读取分类失败')
     }
@@ -79,6 +87,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     if (!workspacePath.value) return
     const current = ++loadSequence
     try {
+      statusMessage.value = ''
       const records = await window.dairy.listBillsByMonth({
         workspacePath: workspacePath.value,
         month: selectedMonth.value,
@@ -93,11 +102,16 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   async function reloadYearRecords() {
     if (!workspacePath.value) return
+    const current = ++yearLoadSequence
     try {
-      yearRecords.value = await window.dairy.listBillsByYear({
+      statusMessage.value = ''
+      const records = await window.dairy.listBillsByYear({
         workspacePath: workspacePath.value,
         year: selectedYear.value,
       })
+      if (current === yearLoadSequence) {
+        yearRecords.value = records
+      }
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '读取账单失败')
     }
