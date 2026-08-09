@@ -153,8 +153,26 @@ export function createCategory(input: BillsCreateCategoryInput) {
   return createBillCategory(input.workspacePath, input.type, input.name)
 }
 
-export function updateCategory(input: BillsRenameCategoryInput) {
-  return renameBillCategory(input.workspacePath, input.type, input.name, input.newName)
+export async function updateCategory(input: BillsRenameCategoryInput) {
+  const next = await renameBillCategory(input.workspacePath, input.type, input.name, input.newName)
+  const db = getBillsDatabase(input.workspacePath)
+  if (db) {
+    const newName = input.newName.trim()
+    const timestamp = nowIso()
+    if (input.type === 'transfer') {
+      db.prepare('UPDATE bills SET category = ?, updated_at = ? WHERE category = ?').run(
+        newName,
+        timestamp,
+        input.name,
+      )
+    } else {
+      const signCondition = input.type === 'expense' ? '< 0' : '> 0'
+      db.prepare(
+        `UPDATE bills SET category = ?, updated_at = ? WHERE category = ? AND amount_cents ${signCondition}`,
+      ).run(newName, timestamp, input.name)
+    }
+  }
+  return next
 }
 
 export function removeCategory(input: BillsDeleteCategoryInput) {
