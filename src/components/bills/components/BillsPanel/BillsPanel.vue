@@ -11,6 +11,7 @@ import {
   resolveCategory,
 } from '../../composables/useBillsPanel'
 import { iconForName } from '../../bills-icons'
+import AppSelect from '../../../shared/AppSelect/AppSelect.vue'
 import BillsRecordModal from '../BillsRecordModal/BillsRecordModal.vue'
 import BillsCharts from '../BillsCharts/BillsCharts.vue'
 import BillsCategorySelect from '../BillsCategorySelect/BillsCategorySelect.vue'
@@ -70,6 +71,14 @@ const detailPeriodText = computed(() => {
   }
   return periodText.value
 })
+
+const monthOptions = computed(() => [
+  { label: '全部月份', value: 'all' },
+  ...Array.from({ length: 12 }, (_, index) => ({
+    label: `${index + 1}月`,
+    value: String(index + 1).padStart(2, '0'),
+  })),
+])
 
 function dayLabel(date: string) {
   const [year, month, day] = date.split('-').map(Number)
@@ -147,15 +156,13 @@ function formatAmount(record: Bill): string {
             <span class="summary-income">{{ formatPlainCents(detailSummary.income) }}</span>
           </span>
           <div class="summary-filters">
-            <select
+            <AppSelect
               v-if="statsMode === 'year'"
-              class="summary-filter-select"
-              :value="detailMonthFilter"
-              @change="emit('update:detailMonthFilter', ($event.target as HTMLSelectElement).value)"
-            >
-              <option value="all">全部月份</option>
-              <option v-for="m in 12" :key="m" :value="String(m).padStart(2, '0')">{{ m }}月</option>
-            </select>
+              class="summary-filter-month"
+              :model-value="detailMonthFilter"
+              :options="monthOptions"
+              @update:model-value="emit('update:detailMonthFilter', $event)"
+            />
             <BillsCategorySelect
               class="summary-filter"
               :categories="categories"

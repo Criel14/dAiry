@@ -115,19 +115,14 @@
   flex: none;
 }
 
-.summary-filter-select {
-  min-height: 2.2rem;
-  padding: 0 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface-elevated);
-  color: var(--color-text-main);
-  font-size: 0.9rem;
-  outline: none;
+.summary-filter-month {
+  width: 8.5rem;
+  flex: none;
 }
 
-.summary-filter-select:focus {
-  border-color: var(--color-border-strong);
+.summary-filter-month :deep(.app-select-trigger) {
+  min-height: 2.2rem;
+  font-size: 0.9rem;
 }
 
 .summary-filter :deep(.category-select-trigger) {

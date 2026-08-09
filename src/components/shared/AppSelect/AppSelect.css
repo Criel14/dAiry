@@ -1,0 +1,131 @@
+.app-select {
+  position: relative;
+}
+
+.app-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+  outline: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.app-select-trigger:hover {
+  border-color: var(--color-border-strong);
+}
+
+.app-select-trigger:focus-visible {
+  border-color: var(--color-border-strong);
+}
+
+.app-select-placeholder {
+  color: var(--color-text-soft);
+}
+
+.app-select-arrow {
+  width: 1rem;
+  height: 1rem;
+  margin-left: auto;
+  color: var(--color-text-subtle);
+  transition: transform 160ms ease;
+}
+
+.app-select-trigger--open .app-select-arrow {
+  transform: rotate(180deg);
+}
+
+.app-select-trigger--open {
+  border-color: var(--color-border-strong);
+}
+
+.app-select-option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 8px;
+  color: #fff;
+  flex: none;
+}
+
+.app-select-option-svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.app-select-option-name {
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+}
+
+.app-select-menu {
+  z-index: 120;
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-modal);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-color) transparent;
+}
+
+.app-select-menu::-webkit-scrollbar {
+  width: 10px;
+}
+
+.app-select-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-select-menu::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--gradient-scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+.app-select-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--gradient-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+.app-select-menu-group {
+  margin: 0.2rem 0.5rem 0.1rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text-soft);
+}
+
+.app-select-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.app-select-menu-item:hover {
+  background: var(--color-surface-hover-soft);
+}
+
+.app-select-menu-item--selected {
+  background: var(--color-surface-nav-active);
+}
