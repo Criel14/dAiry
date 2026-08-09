@@ -78,6 +78,11 @@ export interface BillsExportResult {
   canceled: boolean
 }
 
+export interface BillsWindowTotal {
+  period: string
+  total: number
+}
+
 export const BILL_TYPES: BillType[] = ['expense', 'income', 'transfer']
 
 export const BILL_TYPE_LABELS: Record<BillType, string> = {
@@ -121,8 +126,3 @@ export const BUILTIN_CATEGORIES: BillCategory[] = [
   { type: 'transfer', name: '理财', color: '#8A7FA8', icon: 'piggy-bank', builtin: true },
   { type: 'transfer', name: '其他', color: '#8B948E', icon: 'ellipsis', builtin: true },
 ]
-
-export interface BillsWindowTotal {
-  period: string
-  total: number
-}

@@ -56,11 +56,11 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   })
 
   async function loadAvailableYears() {
+    const current = ++yearsLoadSequence
     if (!props.workspacePath) {
       availableYears.value = []
       return
     }
-    const current = ++yearsLoadSequence
     try {
       const years = await window.dairy.listBillsYears({ workspacePath: props.workspacePath })
       if (current === yearsLoadSequence) {
@@ -72,11 +72,11 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   }
 
   async function loadAvailableMonths() {
+    const current = ++monthsLoadSequence
     if (!props.workspacePath) {
       availableMonths.value = []
       return
     }
-    const current = ++monthsLoadSequence
     try {
       const months = await window.dairy.listBillsMonths({
         workspacePath: props.workspacePath,

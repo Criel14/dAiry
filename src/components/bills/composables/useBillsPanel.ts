@@ -62,12 +62,9 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     return monthRecords.value
   })
 
-  const detailSummary = computed(() => aggregateRecords(detailRecords.value, categories.value))
-
   const statsRecords = computed(() =>
     statsMode.value === 'month' ? monthRecords.value : yearRecords.value,
   )
-  const statsSummary = computed(() => aggregateRecords(statsRecords.value, categories.value))
 
   watch(
     workspacePath,
@@ -88,6 +85,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   })
 
   watch(statsMode, () => {
+    windowTotals.value = []
     void reloadWindowTotals()
   })
 
@@ -270,7 +268,6 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     closeModal,
     detailMonthFilter,
     detailRecords,
-    detailSummary,
     handleCategoriesChanged,
     handleDeleteFromModal,
     handleDeleteRecord,
@@ -288,7 +285,6 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     sidebarStatusMessage,
     statsMode,
     statsRecords,
-    statsSummary,
     statusMessage,
     windowTotals,
     yearRecords,

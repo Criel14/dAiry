@@ -250,10 +250,7 @@ function renderWindowChart(labels: string[], values: number[]) {
 watch(
   () => [props.records, props.categories, props.scope, props.selectedMonth, props.scopeYear, props.windowTotals],
   async () => {
-    if (props.scope === 'year') {
-      windowChart?.dispose()
-      windowChart = null
-    } else {
+    if (props.scope === 'month') {
       lineChart?.dispose()
       lineChart = null
     }

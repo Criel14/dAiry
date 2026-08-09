@@ -61,6 +61,16 @@ const periodText = computed(() =>
     : `${Number(props.selectedMonth.slice(0, 4))}年${Number(props.selectedMonth.slice(5, 7))}月`,
 )
 
+const detailPeriodText = computed(() => {
+  if (props.statsMode === 'year') {
+    if (props.detailMonthFilter !== 'all') {
+      return `${props.selectedYear}年${Number(props.detailMonthFilter)}月`
+    }
+    return `${props.selectedYear}年`
+  }
+  return periodText.value
+})
+
 function dayLabel(date: string) {
   const [year, month, day] = date.split('-').map(Number)
   const weekday = WEEK_NAMES[new Date(year, month - 1, day).getDay()]
@@ -131,7 +141,7 @@ function formatAmount(record: Bill): string {
       <template v-if="activeTab === 'detail'">
         <div class="summary-bar">
           <span>
-            {{ periodText }} · 共
+            {{ detailPeriodText }} · 共
             <strong>{{ detailSummary.count }}</strong>
             笔 · 支出 <span class="summary-expense">{{ formatPlainCents(detailSummary.expense) }}</span> · 收入
             <span class="summary-income">{{ formatPlainCents(detailSummary.income) }}</span>
