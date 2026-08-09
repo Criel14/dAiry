@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
+import AppSelect from '../../shared/AppSelect/AppSelect.vue'
 import type { FrontmatterVisibilityConfig, WindowCloseBehavior } from '../../../types/app'
 import { DAY_START_HOUR_OPTIONS, WINDOW_CLOSE_BEHAVIOR_OPTIONS } from '../config/config'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
@@ -52,23 +53,17 @@ async function handleRebuildMeta() {
   }
 }
 
-function handleDayStartHourChange(event: Event) {
-  const target = event.target
-  if (!(target instanceof HTMLSelectElement)) {
-    return
-  }
+const dayStartHourOptions = computed(() =>
+  DAY_START_HOUR_OPTIONS.map((hour) => ({ value: String(hour), label: `${hour} 点` })),
+)
 
-  emit('update:dayStartHour', Number(target.value))
+function handleDayStartHourChange(value: string) {
+  emit('update:dayStartHour', Number(value))
 }
 
-function handleWindowCloseBehaviorChange(event: Event) {
-  const target = event.target
-  if (!(target instanceof HTMLSelectElement)) {
-    return
-  }
-
-  if (target.value === 'tray' || target.value === 'quit') {
-    emit('update:windowCloseBehavior', target.value)
+function handleWindowCloseBehaviorChange(value: string) {
+  if (value === 'tray' || value === 'quit') {
+    emit('update:windowCloseBehavior', value)
   }
 }
 
@@ -97,17 +92,14 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
           <p class="panel-description">可选范围为 0 点到 6 点，将凌晨的时间也划在前一天。</p>
         </div>
 
-        <select
+        <AppSelect
           class="setting-select"
-          :value="dayStartHour"
+          :model-value="String(dayStartHour)"
+          :options="dayStartHourOptions"
           :disabled="isSavingDayStartHour"
           aria-label="选择新一天开始时间"
-          @change="handleDayStartHourChange"
-        >
-          <option v-for="hour in DAY_START_HOUR_OPTIONS" :key="hour" :value="hour">
-            {{ hour }} 点
-          </option>
-        </select>
+          @update:model-value="handleDayStartHourChange"
+        />
       </div>
 
       <p v-if="dayStartHourSaveMessage" class="setting-feedback">
@@ -130,17 +122,14 @@ function toggleFrontmatterField(field: keyof FrontmatterVisibilityConfig) {
           <p class="panel-description">最小化到托盘后应用会继续在后台运行；如果直接关闭应用，通知也会随之停止</p>
         </div>
 
-        <select
+        <AppSelect
           class="setting-select"
-          :value="windowCloseBehavior"
+          :model-value="windowCloseBehavior"
+          :options="WINDOW_CLOSE_BEHAVIOR_OPTIONS"
           :disabled="isSavingWindowCloseBehavior"
           aria-label="选择关闭窗口行为"
-          @change="handleWindowCloseBehaviorChange"
-        >
-          <option v-for="option in WINDOW_CLOSE_BEHAVIOR_OPTIONS" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+          @update:model-value="handleWindowCloseBehaviorChange"
+        />
       </div>
 
       <p v-if="windowCloseBehaviorSaveMessage" class="setting-feedback">

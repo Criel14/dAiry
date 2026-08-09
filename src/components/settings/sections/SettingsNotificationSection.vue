@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import SettingsDropdownSelect from '../components/SettingsDropdownSelect/SettingsDropdownSelect.vue'
+import AppSelect from '../../shared/AppSelect/AppSelect.vue'
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 import type {
@@ -297,14 +297,14 @@ function emitSaveEmailNotificationConfiguration() {
         </div>
 
         <div class="setting-time-picker-row" aria-label="选择写日记提醒时间">
-          <SettingsDropdownSelect class="setting-time-dropdown" :model-value="reminderTimeParts.hour"
-            :options="HOUR_OPTIONS" :disabled="isSavingNotification" label="选择写日记提醒小时"
+          <AppSelect class="setting-time-dropdown" :model-value="reminderTimeParts.hour"
+            :options="HOUR_OPTIONS" :disabled="isSavingNotification" aria-label="选择写日记提醒小时"
             @update:model-value="updateReminderTime({ hour: $event })" />
 
           <span class="setting-time-picker-separator" aria-hidden="true">:</span>
 
-          <SettingsDropdownSelect class="setting-time-dropdown" :model-value="reminderTimeParts.minute"
-            :options="MINUTE_OPTIONS" :disabled="isSavingNotification" label="选择写日记提醒分钟"
+          <AppSelect class="setting-time-dropdown" :model-value="reminderTimeParts.minute"
+            :options="MINUTE_OPTIONS" :disabled="isSavingNotification" aria-label="选择写日记提醒分钟"
             @update:model-value="updateReminderTime({ minute: $event })" />
         </div>
       </div>
@@ -329,8 +329,8 @@ function emitSaveEmailNotificationConfiguration() {
             邮箱服务商
             <SettingsInfoTip text="默认支持 QQ 邮箱，163 邮箱，Gmail 和 Outlook。" />
           </span>
-          <SettingsDropdownSelect :model-value="draftEmailConfig.providerType" :options="EMAIL_PROVIDER_OPTIONS"
-            :disabled="isSavingNotification" label="选择邮箱服务商" @update:model-value="handleEmailProviderTypeChange" />
+          <AppSelect class="field-select" :model-value="draftEmailConfig.providerType" :options="EMAIL_PROVIDER_OPTIONS"
+            :disabled="isSavingNotification" aria-label="选择邮箱服务商" @update:model-value="handleEmailProviderTypeChange" />
         </label>
 
         <label class="field">
@@ -338,8 +338,8 @@ function emitSaveEmailNotificationConfiguration() {
             加密方式
             <SettingsInfoTip text="465 端口通常使用 SSL/TLS，587 端口通常使用 STARTTLS；内网 SMTP 才可能使用无加密。" />
           </span>
-          <SettingsDropdownSelect :model-value="draftEmailConfig.encryption" :options="EMAIL_ENCRYPTION_OPTIONS"
-            :disabled="isSavingNotification" label="选择 SMTP 加密方式" @update:model-value="handleEmailEncryptionChange" />
+          <AppSelect class="field-select" :model-value="draftEmailConfig.encryption" :options="EMAIL_ENCRYPTION_OPTIONS"
+            :disabled="isSavingNotification" aria-label="选择 SMTP 加密方式" @update:model-value="handleEmailEncryptionChange" />
         </label>
 
         <label class="field">

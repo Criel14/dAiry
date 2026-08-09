@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
+import AppSelect from '../../shared/AppSelect/AppSelect.vue'
 import type {
   AiProviderType,
   AiSettings,
@@ -122,17 +123,19 @@ const apiKeyInputPlaceholder = computed(() => {
   return '输入 API Key'
 })
 
-function handleProviderTypeChange(event: Event) {
-  const target = event.target
-  if (!(target instanceof HTMLSelectElement)) {
-    return
-  }
+const dailyContextOptions = computed(() =>
+  DAILY_CONTEXT_DAYS_OPTIONS.map((days) => ({ value: String(days), label: `${days} 天` })),
+)
 
-  const providerType = target.value as AiProviderType
-  const defaults = getAiDefaults(providerType)
+const profileIntervalOptions = computed(() =>
+  PROFILE_REFRESH_INTERVAL_OPTIONS.map((days) => ({ value: String(days), label: `${days} 天` })),
+)
+
+function handleProviderTypeChange(providerType: string) {
+  const defaults = getAiDefaults(providerType as AiProviderType)
   draftAiSettings.value = {
     ...draftAiSettings.value,
-    providerType,
+    providerType: providerType as AiProviderType,
     baseURL: defaults.baseURL,
     model: defaults.model,
   }
@@ -205,20 +208,14 @@ function handleSupplementKeydown(event: KeyboardEvent) {
             Provider
             <SettingsInfoTip text="选择你要连接的大模型服务商。官方接口就选对应 provider，兼容 OpenAI 协议的网关或中转服务可选 OpenAI Compatible。" />
           </span>
-          <select
-            class="field-input"
-            :value="draftAiSettings.providerType"
+          <AppSelect
+            class="field-select"
+            :model-value="draftAiSettings.providerType"
+            :options="AI_PROVIDER_OPTIONS"
             :disabled="isSavingAiConfig"
-            @change="handleProviderTypeChange"
-          >
-            <option
-              v-for="option in AI_PROVIDER_OPTIONS"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
+            aria-label="选择大模型服务商"
+            @update:model-value="handleProviderTypeChange"
+          />
         </label>
 
         <label class="field">
@@ -268,15 +265,14 @@ function handleSupplementKeydown(event: KeyboardEvent) {
             日总结上下文天数
             <SettingsInfoTip text="自动整理时会附带最近 N 天的日记摘要，帮助 AI 理解近期状态；天数越大消耗的 token 越多。" />
           </span>
-          <select
-            v-model="draftAiSettings.dailyContextDays"
-            class="field-input"
+          <AppSelect
+            class="field-select"
+            :model-value="String(draftAiSettings.dailyContextDays)"
+            :options="dailyContextOptions"
             :disabled="isSavingAiConfig"
-          >
-            <option v-for="option in DAILY_CONTEXT_DAYS_OPTIONS" :key="option" :value="option">
-              {{ option }} 天
-            </option>
-          </select>
+            aria-label="选择日总结上下文天数"
+            @update:model-value="draftAiSettings.dailyContextDays = Number($event)"
+          />
         </label>
 
         <label class="field">
@@ -284,19 +280,14 @@ function handleSupplementKeydown(event: KeyboardEvent) {
             画像整理间隔
             <SettingsInfoTip text="每次自动整理后 AI 会静默维护一份用户画像（保存在工作区 .dairy/user-profile/ 下，按年份归档），并每隔 N 天做一次全面整理。" />
           </span>
-          <select
-            v-model="draftAiSettings.profileRefreshIntervalDays"
-            class="field-input"
+          <AppSelect
+            class="field-select"
+            :model-value="String(draftAiSettings.profileRefreshIntervalDays)"
+            :options="profileIntervalOptions"
             :disabled="isSavingAiConfig"
-          >
-            <option
-              v-for="option in PROFILE_REFRESH_INTERVAL_OPTIONS"
-              :key="option"
-              :value="option"
-            >
-              {{ option }} 天
-            </option>
-          </select>
+            aria-label="选择画像整理间隔"
+            @update:model-value="draftAiSettings.profileRefreshIntervalDays = Number($event)"
+          />
         </label>
       </div>
 

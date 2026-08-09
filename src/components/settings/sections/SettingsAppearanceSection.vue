@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
+import AppSelect from '../../shared/AppSelect/AppSelect.vue'
 import { THEME_OPTIONS, WINDOW_ZOOM_OPTIONS } from '../config/config'
 import { formatWindowZoomPercent } from '../../../shared/window-zoom'
 import type { AppTheme } from '../../../types/app'
@@ -22,24 +24,18 @@ const emit = defineEmits<{
   'update:journalHeatmapEnabled': [value: boolean]
 }>()
 
-function handleThemeChange(event: Event) {
-  const target = event.target
-  if (!(target instanceof HTMLSelectElement)) {
-    return
-  }
+const zoomOptions = computed(() =>
+  WINDOW_ZOOM_OPTIONS.map((option) => ({ value: String(option.value), label: option.label })),
+)
 
-  if (target.value === 'system' || target.value === 'light' || target.value === 'dark') {
-    emit('update:theme', target.value)
+function handleThemeChange(value: string) {
+  if (value === 'system' || value === 'light' || value === 'dark') {
+    emit('update:theme', value)
   }
 }
 
-function handleWindowZoomFactorChange(event: Event) {
-  const target = event.target
-  if (!(target instanceof HTMLSelectElement)) {
-    return
-  }
-
-  emit('update:windowZoomFactor', Number(target.value))
+function handleWindowZoomFactorChange(value: string) {
+  emit('update:windowZoomFactor', Number(value))
 }
 </script>
 
@@ -60,17 +56,14 @@ function handleWindowZoomFactorChange(event: Event) {
           </p>
         </div>
 
-        <select
+        <AppSelect
           class="setting-select"
-          :value="theme"
+          :model-value="theme"
+          :options="THEME_OPTIONS"
           :disabled="isSavingTheme"
           aria-label="选择主题模式"
-          @change="handleThemeChange"
-        >
-          <option v-for="option in THEME_OPTIONS" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+          @update:model-value="handleThemeChange"
+        />
       </div>
 
       <p v-if="themeSaveMessage" class="setting-feedback">
@@ -93,17 +86,14 @@ function handleWindowZoomFactorChange(event: Event) {
           </p>
         </div>
 
-        <select
+        <AppSelect
           class="setting-select"
-          :value="windowZoomFactor"
+          :model-value="String(windowZoomFactor)"
+          :options="zoomOptions"
           :disabled="isSavingWindowZoomFactor"
           aria-label="选择界面缩放比例"
-          @change="handleWindowZoomFactorChange"
-        >
-          <option v-for="option in WINDOW_ZOOM_OPTIONS" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+          @update:model-value="handleWindowZoomFactorChange"
+        />
       </div>
 
       <p v-if="windowZoomFactorSaveMessage" class="setting-feedback">

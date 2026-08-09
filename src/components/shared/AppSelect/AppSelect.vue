@@ -16,10 +16,14 @@ const props = withDefaults(
     modelValue: string
     placeholder?: string
     clearable?: boolean
+    disabled?: boolean
+    ariaLabel?: string
   }>(),
   {
     placeholder: '请选择',
     clearable: false,
+    disabled: false,
+    ariaLabel: '',
   },
 )
 
@@ -52,6 +56,9 @@ const groupedOptions = computed(() => {
 })
 
 function toggleMenu() {
+  if (props.disabled) {
+    return
+  }
   if (menuOpen.value) {
     menuOpen.value = false
     return
@@ -134,6 +141,8 @@ onBeforeUnmount(() => {
       type="button"
       class="app-select-trigger"
       :class="{ 'app-select-trigger--open': menuOpen }"
+      :disabled="disabled"
+      :aria-label="ariaLabel || undefined"
       @click="toggleMenu"
     >
       <template v-if="selectedOption">
