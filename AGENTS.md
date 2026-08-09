@@ -28,6 +28,7 @@
 - `electron/main/`：主进程模块
 - `electron/main/report/`：报告生成、读取、列表
 - `electron/main/report-export/`：报告 PNG 导出
+- `electron/main/bills/`：记账数据访问（db/categories/service/export）
 - `electron/main/memory/`：记忆检索能力（retrieval、语义检索编排，供 MCP 与主进程内部使用，不经 IPC 暴露渲染层）
 - `electron/main/mcp/`：MCP 服务生命周期与工具映射
 - `electron/preload.ts`：受控桥接 API
@@ -61,21 +62,24 @@
 - 区间报告生成、历史列表读取、JSON 落盘
 - 报告 section：`stats`、`heatmap`、`moodTrend`、`tagCloud`、`highlights`、`locationPatterns`、`timePatterns`
 - 报告 PNG 导出：专用导出页面 + 主进程截图链路
+- 记账：月度明细/统计视图、录入编辑删除、分类库（内置+自定义）、导出 Excel（sheet 按年份）
 
 当前优先级：
 
 - 持续打磨 V1 写作主流程
 - 提升区间总结与报告展示质量
 - 保持导出和 AI 能力为辅助，不干扰正文写作
+- 记账主流程（录入/浏览/统计/导出）稳定可用
 
 ## 4. 架构边界
 
-- 渲染进程负责 UI、编辑、预览、交互态状态
-- 主进程负责文件读写、配置、AI、Git、报告生成、导出
+- 渲染进程负责 UI、编辑、预览、交互态状态（记账：记账 UI 与统计聚合）
+- 主进程负责文件读写、配置、AI、Git、报告生成、导出（记账：账单读写（SQLite）、分类库、Excel 导出）
 - `preload` 只暴露最小且明确的 API，保持可审计
 - 本地 Markdown 是唯一事实源，报告 JSON 和导出 PNG 都是派生物
 - AI 失败不能影响保存；Git 失败不能影响保存；导出失败不能影响已有报告和日记
 - 渲染进程不能直接访问文件系统，也不能直接持有明文敏感信息
+- 记账纯逻辑（分类解析/聚合/格式化）在 src/shared/bills-logic.ts，主进程与渲染进程共享
 - IPC / preload 传参必须是可结构化克隆的普通对象，不要直接传 Vue 响应式对象
 
 联动修改时注意：
@@ -93,12 +97,14 @@
 ```text
 workspace/
   journal/YYYY/MM/YYYY-MM-DD.md
+  bills/bills.db
   reports/
   .dairy/
     workspace.json
     tags.json
     weather.json
     locations.json
+    bill-categories.json
     user-profile.md
     supplement.md
 ```
@@ -123,6 +129,11 @@ tags: []
 - 本地文件写入成功才算保存成功
 - 不要假设存在 `date`、`title`、`git` 等额外字段
 - `mood` 为 `-5` 到 `5` 的整数，默认 `0`
+- 记账数据存 `<workspace>/bills/bills.db`（SQLite，better-sqlite3 原生模块，打包需 asarUnpack 与 electron-builder install-app-deps）
+- 分类库存 `<workspace>/.dairy/bill-categories.json`（物理删除，历史账单按金额符号兜底到对应类型「其他」样式）
+- 金额以「分」整数存储（amount_cents），UI 显示保留 2 位小数
+- 记账统计在前端聚合（list-year + 分类解析三步匹配），transfer 类型（理财等）不计入收支统计
+- better-sqlite3 为 Electron ABI 编译产物，Node 环境（vitest）不可直接加载；db 层不写单测，纯逻辑在 src/shared/bills-logic.ts 可测
 
 配置分层：
 
