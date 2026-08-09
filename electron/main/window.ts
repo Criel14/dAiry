@@ -40,7 +40,7 @@ const MAIN_WINDOW_MIN_HEIGHT = 720
 const WINDOW_STATE_SAVE_DELAY_MS = 500
 
 export function applyNativeThemeSource(theme: AppTheme) {
-  nativeTheme.themeSource = theme
+  nativeTheme.themeSource = theme === 'pure' ? 'light' : theme
 }
 
 export function getMainWindow() {

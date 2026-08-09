@@ -1,7 +1,7 @@
 import type { AiSettings } from './ai'
 import type { McpConfig } from './mcp'
 
-export type AppTheme = 'system' | 'light' | 'dark'
+export type AppTheme = 'system' | 'light' | 'dark' | 'pure'
 export type WindowCloseBehavior = 'tray' | 'quit'
 export type EmailNotificationProviderType = 'qq' | '163' | 'gmail' | 'outlook' | 'custom'
 export type EmailNotificationEncryption = 'ssl' | 'starttls' | 'none'

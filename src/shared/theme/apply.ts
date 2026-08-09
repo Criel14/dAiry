@@ -2,8 +2,8 @@ import type { AppTheme } from '../../types/app'
 
 const SYSTEM_DARK_MEDIA_QUERY = '(prefers-color-scheme: dark)'
 
-export function resolveThemePreference(theme: AppTheme): 'light' | 'dark' {
-  if (theme === 'light' || theme === 'dark') {
+export function resolveThemePreference(theme: AppTheme): 'light' | 'dark' | 'pure' {
+  if (theme === 'light' || theme === 'dark' || theme === 'pure') {
     return theme
   }
 
