@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Plus } from 'lucide-vue-next'
-import type { Bill, BillCategory } from '../../../../types/bills'
+import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bills'
 import type { BillsModalState } from '../../composables/useBillsPanel'
 import {
   aggregateRecords,
@@ -13,16 +13,20 @@ import {
 import { iconForName } from '../../bills-icons'
 import BillsRecordModal from '../BillsRecordModal/BillsRecordModal.vue'
 import BillsCharts from '../BillsCharts/BillsCharts.vue'
+import BillsCategorySelect from '../BillsCategorySelect/BillsCategorySelect.vue'
 
 const props = defineProps<{
   hasWorkspace: boolean
   workspacePath: string | null
   selectedMonth: string
-  monthRecords: Bill[]
-  yearRecords: Bill[]
+  records: Bill[]
+  detailRecords: Bill[]
   categories: BillCategory[]
   activeTab: 'detail' | 'stats'
-  statsScope: 'month' | 'year'
+  statsMode: 'month' | 'year'
+  selectedYear: number
+  detailMonthFilter: 'all' | string
+  windowTotals: BillsWindowTotal[]
   isLoading: boolean
   statusMessage: string
   modalState: BillsModalState
@@ -30,7 +34,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:activeTab': [value: 'detail' | 'stats']
-  'update:statsScope': [value: 'month' | 'year']
+  'update:detailMonthFilter': [value: 'all' | string]
   openCreate: []
   openEdit: [bill: Bill]
   closeModal: []
@@ -40,11 +44,22 @@ const emit = defineEmits<{
 
 const WEEK_NAMES = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
-const detailGroups = computed(() => groupBillsByDay(props.monthRecords))
-const detailSummary = computed(() => aggregateRecords(props.monthRecords, props.categories))
+const categoryFilter = ref('')
 
-const yearText = computed(() => props.selectedMonth.slice(0, 4))
-const monthText = computed(() => props.selectedMonth.slice(5, 7))
+const filteredRecords = computed(() =>
+  categoryFilter.value
+    ? props.detailRecords.filter((r) => r.category === categoryFilter.value)
+    : props.detailRecords,
+)
+
+const detailGroups = computed(() => groupBillsByDay(filteredRecords.value))
+const detailSummary = computed(() => aggregateRecords(filteredRecords.value, props.categories))
+
+const periodText = computed(() =>
+  props.statsMode === 'year'
+    ? `${props.selectedYear}年`
+    : `${Number(props.selectedMonth.slice(0, 4))}年${Number(props.selectedMonth.slice(5, 7))}月`,
+)
 
 function dayLabel(date: string) {
   const [year, month, day] = date.split('-').map(Number)
@@ -105,7 +120,7 @@ function formatAmount(record: Bill): string {
             统计
           </button>
         </div>
-        <button class="add-button" type="button" @click="emit('openCreate')">
+        <button v-if="activeTab === 'detail'" class="add-button" type="button" @click="emit('openCreate')">
           <Plus class="add-button-icon" aria-hidden="true" />
           记一笔
         </button>
@@ -116,14 +131,38 @@ function formatAmount(record: Bill): string {
       <template v-if="activeTab === 'detail'">
         <div class="summary-bar">
           <span>
-            {{ Number(yearText) }}年{{ Number(monthText) }}月 · 共
+            {{ periodText }} · 共
             <strong>{{ detailSummary.count }}</strong>
             笔 · 支出 <span class="summary-expense">{{ formatPlainCents(detailSummary.expense) }}</span> · 收入
             <span class="summary-income">{{ formatPlainCents(detailSummary.income) }}</span>
           </span>
+          <div class="summary-filters">
+            <select
+              v-if="statsMode === 'year'"
+              class="summary-filter-select"
+              :value="detailMonthFilter"
+              @change="emit('update:detailMonthFilter', ($event.target as HTMLSelectElement).value)"
+            >
+              <option value="all">全部月份</option>
+              <option v-for="m in 12" :key="m" :value="String(m).padStart(2, '0')">{{ m }}月</option>
+            </select>
+            <BillsCategorySelect
+              class="summary-filter"
+              :categories="categories"
+              v-model="categoryFilter"
+              placeholder="全部分类"
+              clearable
+            />
+          </div>
         </div>
 
-        <div v-if="detailGroups.length === 0" class="placeholder-box">本月暂无账单记录</div>
+        <div v-if="detailGroups.length === 0" class="placeholder-box">
+          {{ categoryFilter
+            ? '该分类下暂无账单记录'
+            : statsMode === 'year'
+              ? (detailMonthFilter === 'all' ? '该年暂无账单记录' : '该月份暂无账单记录')
+              : '本月暂无账单记录' }}
+        </div>
 
         <div v-else class="day-list">
           <article v-for="[date, records] in detailGroups" :key="date" class="day-card">
@@ -161,29 +200,13 @@ function formatAmount(record: Bill): string {
       </template>
 
       <div v-else class="stats-view">
-        <div class="stats-scope-tabs">
-          <button
-            class="stats-scope-tab"
-            :class="{ 'stats-scope-tab--active': statsScope === 'month' }"
-            type="button"
-            @click="emit('update:statsScope', 'month')"
-          >
-            本月
-          </button>
-          <button
-            class="stats-scope-tab"
-            :class="{ 'stats-scope-tab--active': statsScope === 'year' }"
-            type="button"
-            @click="emit('update:statsScope', 'year')"
-          >
-            全年
-          </button>
-        </div>
         <BillsCharts
-          :records="statsScope === 'month' ? monthRecords : yearRecords"
+          :records="records"
           :categories="categories"
-          :scope="statsScope"
+          :scope="statsMode"
           :selected-month="selectedMonth"
+          :scope-year="statsMode === 'year' ? String(selectedYear) : selectedMonth.slice(0, 4)"
+          :window-totals="windowTotals"
         />
       </div>
     </div>
