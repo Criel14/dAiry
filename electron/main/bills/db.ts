@@ -64,7 +64,23 @@ function migrate(db: Database.Database) {
 
 const connectionCache = new Map<string, Database.Database>()
 
-export function getBillsDatabase(workspacePath: string): Database.Database {
+export function getBillsDatabase(workspacePath: string): Database.Database | null {
+  const cached = connectionCache.get(workspacePath)
+  if (cached) {
+    return cached
+  }
+
+  const dbPath = path.join(workspacePath, 'bills', 'bills.db')
+  if (!fs.existsSync(dbPath)) {
+    return null
+  }
+
+  const db = openBillsDatabase(workspacePath)
+  connectionCache.set(workspacePath, db)
+  return db
+}
+
+export function ensureBillsDatabase(workspacePath: string): Database.Database {
   const cached = connectionCache.get(workspacePath)
   if (cached) {
     return cached

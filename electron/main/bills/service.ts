@@ -16,7 +16,7 @@ import {
   getBillCategories,
   renameBillCategory,
 } from './categories'
-import { getBillsDatabase, mapRowToBill } from './db'
+import { ensureBillsDatabase, getBillsDatabase, mapRowToBill } from './db'
 import { assertValidAmountCents, assertValidDate, assertValidNote, resolveCategory } from '../../../src/shared/bills-logic'
 
 function nowIso() {
@@ -44,6 +44,9 @@ export async function listBillsByMonth(input: BillsListMonthInput): Promise<Bill
   }
 
   const db = getBillsDatabase(input.workspacePath)
+  if (!db) {
+    return []
+  }
   const rows = db
     .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date ASC, id ASC')
     .all(`${input.month}-%`) as import('./db').BillRow[]
@@ -56,6 +59,9 @@ export async function listBillsByYear(input: BillsListYearInput): Promise<Bill[]
   }
 
   const db = getBillsDatabase(input.workspacePath)
+  if (!db) {
+    return []
+  }
   const rows = db
     .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date ASC, id ASC')
     .all(`${input.year}-%`) as import('./db').BillRow[]
@@ -64,6 +70,9 @@ export async function listBillsByYear(input: BillsListYearInput): Promise<Bill[]
 
 export async function getAllBills(workspacePath: string): Promise<Bill[]> {
   const db = getBillsDatabase(workspacePath)
+  if (!db) {
+    return []
+  }
   const rows = db.prepare('SELECT * FROM bills ORDER BY date ASC, id ASC').all() as import('./db').BillRow[]
   return rows.map(mapRowToBill)
 }
@@ -72,7 +81,7 @@ export async function createBill(input: BillsRecordInput): Promise<Bill> {
   const { categories, date, amountCents, note } = await normalizeRecordInput(input)
   assertCategoryExists(categories, amountCents, input.category)
 
-  const db = getBillsDatabase(input.workspacePath)
+  const db = ensureBillsDatabase(input.workspacePath)
   const timestamp = nowIso()
   const result = db
     .prepare('INSERT INTO bills (date, amount_cents, category, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
@@ -89,6 +98,9 @@ export async function updateBill(input: BillsUpdateInput): Promise<Bill> {
   assertCategoryExists(categories, amountCents, input.category)
 
   const db = getBillsDatabase(input.workspacePath)
+  if (!db) {
+    throw new Error('账单记录不存在或已被删除。')
+  }
   const existing = db.prepare('SELECT id FROM bills WHERE id = ?').get(input.id)
   if (!existing) {
     throw new Error('账单记录不存在或已被删除。')
@@ -104,6 +116,9 @@ export async function updateBill(input: BillsUpdateInput): Promise<Bill> {
 
 export async function deleteBill(input: BillsDeleteInput): Promise<void> {
   const db = getBillsDatabase(input.workspacePath)
+  if (!db) {
+    return
+  }
   db.prepare('DELETE FROM bills WHERE id = ?').run(input.id)
 }
 
