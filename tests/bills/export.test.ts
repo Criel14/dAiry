@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import ExcelJS from 'exceljs'
 import { buildBillsWorkbook } from '../../electron/main/bills/export'
 import type { Bill } from '../../src/types/bills'
 
@@ -16,7 +15,7 @@ function makeBill(date: string, amountCents: number, category: string, note = ''
 }
 
 describe('buildBillsWorkbook', () => {
-  it('creates one sheet per year with header row', async () => {
+  it('creates one sheet per year with header row', () => {
     const bills = [
       makeBill('2026-08-01', -2346, '餐饮', '黄焖鸡'),
       makeBill('2026-08-01', 12000, '工资'),
@@ -41,12 +40,12 @@ describe('buildBillsWorkbook', () => {
     expect(row2?.getCell(4).value).toBe('黄焖鸡')
   })
 
-  it('handles empty bills without creating sheets', async () => {
+  it('handles empty bills without creating sheets', () => {
     const workbook = buildBillsWorkbook([])
     expect(workbook.worksheets.length).toBe(0)
   })
 
-  it('sorts rows by date ascending', async () => {
+  it('sorts rows by date ascending', () => {
     const bills = [
       makeBill('2026-08-02', -100, '餐饮'),
       makeBill('2026-08-01', -200, '餐饮'),
