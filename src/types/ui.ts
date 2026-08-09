@@ -7,6 +7,6 @@
   | 'future-empty'
   | 'error'
 
-export type RightPanel = 'journal' | 'reports' | 'settings' | 'timeline' | 'workspace'
+export type RightPanel = 'journal' | 'reports' | 'settings' | 'timeline' | 'workspace' | 'bills'
 
 export type EditorMode = 'source' | 'preview'

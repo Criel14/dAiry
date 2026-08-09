@@ -10,6 +10,7 @@ const KICKER_BY_PANEL: Record<RightPanel, string> = {
   journal: 'Daily Journal',
   reports: 'Range Reports',
   timeline: 'Life Timeline',
+  bills: 'Bills',
   settings: 'App Setting',
 }
 </script>

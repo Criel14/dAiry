@@ -7,6 +7,7 @@ import { useAppShellAi } from './app-shell/ai'
 import { useAppShellJournal } from './app-shell/journal'
 import { useAppShellPreferences } from './app-shell/preferences'
 import { useAppShellState } from './app-shell/state'
+import { useBillsPanel } from '../../components/bills/composables/useBillsPanel'
 import { useTimeline } from '../../components/timeline/composables/useTimeline'
 
 export function useAppShell() {
@@ -20,6 +21,7 @@ export function useAppShell() {
     syncConfigState: journal.syncConfigState,
   })
   const ai = useAppShellAi(state)
+  const billsPanel = useBillsPanel(state.workspacePath)
 
   let removeWindowZoomListener: (() => void) | null = null
   let removeMainPanelNavigationListener: (() => void) | null = null
@@ -162,6 +164,10 @@ export function useAppShell() {
     state.rightPanel.value = 'workspace'
   }
 
+  function openBillsPage() {
+    state.rightPanel.value = 'bills'
+  }
+
   function jumpToDiary(date: string) {
     state.rightPanel.value = 'journal'
     journal.handleSelectDate(date)
@@ -186,6 +192,8 @@ export function useAppShell() {
     jumpToDiary,
     openReportsPage,
     openSettingsPage,
+    openBillsPage,
+    billsPanel,
     reportsPanel,
     setEditorMode,
   }

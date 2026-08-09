@@ -5,6 +5,7 @@ import {
   ListFilter,
   PencilLine,
   Settings,
+  Wallet,
 } from 'lucide-vue-next'
 import type { RightPanel } from '../../../types/ui'
 
@@ -25,6 +26,7 @@ const navItems: Array<{
   { panel: 'journal', label: '写日记', icon: PencilLine },
   { panel: 'reports', label: '总结报告', icon: ChartColumnBig },
   { panel: 'timeline', label: '大事件时间轴', icon: ListFilter },
+  { panel: 'bills', label: '记账', icon: Wallet },
   { panel: 'settings', label: '设置', icon: Settings },
 ]
 </script>

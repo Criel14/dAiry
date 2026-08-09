@@ -10,6 +10,8 @@ import ReportsPanel from '../../components/report/components/ReportsPanel/Report
 import SettingsPanel from '../../components/settings/panel/SettingsPanel.vue'
 import TimelinePage from '../../components/timeline/TimelinePage.vue'
 import TimelineSidebar from '../../components/timeline/TimelineSidebar.vue'
+import BillsSidebar from '../../components/bills/components/BillsSidebar/BillsSidebar.vue'
+import BillsPanel from '../../components/bills/components/BillsPanel/BillsPanel.vue'
 import WorkspacePanel from '../../components/workspace/components/WorkspacePanel/WorkspacePanel.vue'
 import ActivityBar from '../components/ActivityBar/ActivityBar.vue'
 import type { RightPanel } from '../../types/ui'
@@ -98,6 +100,8 @@ const {
   openSettingsPage,
   openTimelinePage,
   openWorkspacePage,
+  openBillsPage,
+  billsPanel,
   selectedTimelineYear,
   timelineData,
   hasDataYears,
@@ -145,6 +149,8 @@ function handleActivitySelect(panel: RightPanel) {
     openSettingsPage()
   } else if (panel === 'workspace') {
     openWorkspacePage()
+  } else if (panel === 'bills') {
+    openBillsPage()
   }
 }
 </script>
@@ -215,6 +221,20 @@ function handleActivitySelect(panel: RightPanel) {
           @select-year="handleSelectTimelineYear"
           @rebuild="handleRebuildTimeline"
           @cancel-rebuild="handleCancelTimelineRebuild"
+        />
+
+        <BillsSidebar
+          v-else-if="rightPanel === 'bills'"
+          :has-workspace="billsPanel.hasWorkspace.value"
+          :workspace-path="workspacePath"
+          :selected-month="billsPanel.selectedMonth.value"
+          :categories="billsPanel.categories.value"
+          :is-loading-categories="billsPanel.isLoadingCategories.value"
+          :is-exporting="billsPanel.isExporting.value"
+          :status-message="billsPanel.sidebarStatusMessage.value"
+          @update:selected-month="billsPanel.selectedMonth.value = $event"
+          @category-changed="billsPanel.handleCategoriesChanged"
+          @export="billsPanel.handleExportExcel"
         />
       </template>
     </WorkspaceSidebar>
@@ -356,6 +376,28 @@ function handleActivitySelect(panel: RightPanel) {
           @jump-to-diary="jumpToDiary"
         />
       </section>
+
+      <BillsPanel
+        v-else-if="rightPanel === 'bills'"
+        :has-workspace="billsPanel.hasWorkspace.value"
+        :workspace-path="workspacePath"
+        :selected-month="billsPanel.selectedMonth.value"
+        :month-records="billsPanel.monthRecords.value"
+        :year-records="billsPanel.yearRecords.value"
+        :categories="billsPanel.categories.value"
+        :active-tab="billsPanel.activeTab.value"
+        :stats-scope="billsPanel.statsScope.value"
+        :is-loading="billsPanel.isLoading.value"
+        :status-message="billsPanel.statusMessage.value"
+        :modal-state="billsPanel.modalState.value"
+        @update:active-tab="billsPanel.activeTab.value = $event"
+        @update:stats-scope="billsPanel.statsScope.value = $event"
+        @open-create="billsPanel.openCreateModal"
+        @open-edit="billsPanel.openEditModal"
+        @close-modal="billsPanel.closeModal"
+        @record-saved="billsPanel.handleRecordSaved"
+        @delete-record="billsPanel.handleDeleteRecord"
+      />
 
       <div v-else-if="rightPanel === 'workspace'" class="workspace-welcome">
         <h2 class="workspace-welcome-title">Welcome to dAiry!</h2>
