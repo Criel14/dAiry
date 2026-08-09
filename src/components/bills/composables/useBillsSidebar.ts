@@ -8,6 +8,8 @@ export interface BillsSidebarProps {
   hasWorkspace: boolean
   workspacePath: string | null
   selectedMonth: string
+  selectedYear: number
+  statsMode: 'month' | 'year'
   categories: BillCategory[]
   isExporting: boolean
   statusMessage: string
@@ -15,6 +17,8 @@ export interface BillsSidebarProps {
 
 export type BillsSidebarEmits = {
   'update:selectedMonth': [value: string]
+  'update:selectedYear': [value: number]
+  'update:statsMode': [value: 'month' | 'year']
   categoryChanged: []
   export: []
 }
@@ -31,6 +35,61 @@ const monthLabels = [
 
 export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmitFn) {
   const monthPickerYear = ref(parseMonthYear(props.selectedMonth))
+  const availableYears = ref<string[]>([])
+  const availableMonths = ref<string[]>([])
+  const hasDataYears = computed(() => new Set(availableYears.value))
+  const availableMonthsSet = computed(() => new Set(availableMonths.value))
+  let yearsLoadSequence = 0
+  let monthsLoadSequence = 0
+
+  watch(
+    () => props.workspacePath,
+    () => {
+      void loadAvailableYears()
+      void loadAvailableMonths()
+    },
+    { immediate: true },
+  )
+
+  watch(monthPickerYear, () => {
+    void loadAvailableMonths()
+  })
+
+  async function loadAvailableYears() {
+    if (!props.workspacePath) {
+      availableYears.value = []
+      return
+    }
+    const current = ++yearsLoadSequence
+    try {
+      const years = await window.dairy.listBillsYears({ workspacePath: props.workspacePath })
+      if (current === yearsLoadSequence) {
+        availableYears.value = years
+      }
+    } catch {
+      // 高亮是增强能力，查询失败不影响月份/年份选择
+    }
+  }
+
+  async function loadAvailableMonths() {
+    if (!props.workspacePath) {
+      availableMonths.value = []
+      return
+    }
+    const current = ++monthsLoadSequence
+    try {
+      const months = await window.dairy.listBillsMonths({
+        workspacePath: props.workspacePath,
+        year: String(monthPickerYear.value),
+      })
+      if (current === monthsLoadSequence) {
+        availableMonths.value = months
+      }
+    } catch {
+      // 高亮是增强能力，查询失败不影响月份/年份选择
+    }
+  }
+
   const isCategoryPanelExpanded = ref(false)
   const categoryPanelTab = ref<BillType>('expense')
   const newCategoryName = ref('')
@@ -54,6 +113,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
         label,
         isSelected: key === props.selectedMonth,
         isCurrent: key === dayjs().format('YYYY-MM'),
+        hasData: availableMonthsSet.value.has(key),
       }
     }),
   )
@@ -170,6 +230,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
     handleCreateKeydown,
     handleDeleteCategory,
     handleRenamePrompt,
+    hasDataYears,
     isCategoryPanelExpanded,
     isMutatingCategory,
     monthCells,

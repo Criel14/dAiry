@@ -2,6 +2,7 @@
 import { ChevronDown, ChevronUp, ChevronsLeft, ChevronsRight, Download, Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import { useBillsSidebar, type BillsSidebarEmits, type BillsSidebarProps } from '../../composables/useBillsSidebar'
 import { iconForName } from '../../bills-icons'
+import YearPickerGrid from '../../../shared/YearPickerGrid.vue'
 
 const props = defineProps<BillsSidebarProps>()
 const emit = defineEmits<BillsSidebarEmits>()
@@ -15,6 +16,7 @@ const {
   handleCreateKeydown,
   handleDeleteCategory,
   handleRenamePrompt,
+  hasDataYears,
   isCategoryPanelExpanded,
   isMutatingCategory,
   monthCells,
@@ -37,35 +39,66 @@ const {
     <section class="panel-card">
       <h3 class="panel-title">记账月份</h3>
 
-      <section class="selector-card">
-        <header class="selector-toolbar">
-          <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftMonthPickerYear(-1)">
-            <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
-          </button>
-          <strong class="selector-title">{{ monthPickerTitle }}</strong>
-          <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftMonthPickerYear(1)">
-            <ChevronsRight class="toolbar-icon" aria-hidden="true" />
-          </button>
-        </header>
+      <div class="preset-tabs" role="tablist">
+        <button
+          class="preset-tab"
+          :class="{ 'preset-tab--active': statsMode === 'month' }"
+          type="button"
+          role="tab"
+          @click="emit('update:statsMode', 'month')"
+        >
+          月度
+        </button>
+        <button
+          class="preset-tab"
+          :class="{ 'preset-tab--active': statsMode === 'year' }"
+          type="button"
+          role="tab"
+          @click="emit('update:statsMode', 'year')"
+        >
+          年度
+        </button>
+      </div>
 
-        <div class="picker-grid picker-grid--month">
-          <button
-            v-for="item in monthCells"
-            :key="item.key"
-            class="picker-cell"
-            :class="{
-              'picker-cell--selected': item.isSelected,
-              'picker-cell--current': item.isCurrent,
-            }"
-            type="button"
-            @click="selectMonth(item.key)"
-          >
-            {{ item.label }}
-          </button>
-        </div>
+      <template v-if="statsMode === 'month'">
+        <section class="selector-card">
+          <header class="selector-toolbar">
+            <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" @click="shiftMonthPickerYear(-1)">
+              <ChevronsLeft class="toolbar-icon" aria-hidden="true" />
+            </button>
+            <strong class="selector-title">{{ monthPickerTitle }}</strong>
+            <button class="toolbar-button" type="button" title="下一年" aria-label="下一年" @click="shiftMonthPickerYear(1)">
+              <ChevronsRight class="toolbar-icon" aria-hidden="true" />
+            </button>
+          </header>
 
-        <button class="today-button" type="button" @click="goToCurrentMonth">回到本月</button>
-      </section>
+          <div class="picker-grid picker-grid--month">
+            <button
+              v-for="item in monthCells"
+              :key="item.key"
+              class="picker-cell"
+              :class="{
+                'picker-cell--selected': item.isSelected,
+                'picker-cell--current': item.isCurrent,
+                'picker-cell--has-data': item.hasData,
+              }"
+              type="button"
+              @click="selectMonth(item.key)"
+            >
+              {{ item.label }}
+            </button>
+          </div>
+
+          <button class="today-button" type="button" @click="goToCurrentMonth">回到本月</button>
+        </section>
+      </template>
+
+      <YearPickerGrid
+        v-else
+        :selected-year="selectedYear"
+        :has-data-years="hasDataYears"
+        @update:selected-year="emit('update:selectedYear', $event)"
+      />
     </section>
 
     <section class="panel-card">
