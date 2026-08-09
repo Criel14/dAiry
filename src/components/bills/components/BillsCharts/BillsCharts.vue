@@ -8,6 +8,7 @@ import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bil
 import {
   aggregateRecords,
   buildDailyAxis,
+  formatCents,
   formatPlainCents,
   resolveCategory,
 } from '../../../../shared/bills-logic'
@@ -304,7 +305,7 @@ onBeforeUnmount(() => {
       </div>
       <div class="stat-card">
         <div class="stat-label">结余</div>
-        <div class="stat-value stat-net">{{ formatPlainCents(aggregateRecords(props.records, props.categories).net) }}</div>
+        <div class="stat-value stat-net">{{ formatCents(aggregateRecords(props.records, props.categories).net) }}</div>
       </div>
     </div>
 
