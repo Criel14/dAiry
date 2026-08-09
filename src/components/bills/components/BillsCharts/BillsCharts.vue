@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts/core'
 import { BarChart, PieChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
@@ -88,8 +88,15 @@ function splitLineStyle() {
   return { lineStyle: { color: readCssColor('--color-border-soft', CHART_SPLIT) } }
 }
 
+function ensureWindowChart() {
+  if (!windowChart && windowEl.value) {
+    windowChart = echarts.init(windowEl.value)
+  }
+}
+
 function renderCharts() {
-  if (!ringChart || !barChart || !windowChart) return
+  ensureWindowChart()
+  if (!ringChart || !barChart) return
 
   const total = props.records
     .filter((r) => resolveCategory(props.categories, r.amountCents, r.category).type === 'expense')
@@ -151,7 +158,7 @@ function renderCharts() {
     })
     const windowLabels = monthWindow.value.map(([y, m]) => (y === Number(props.selectedMonth.slice(0, 4)) ? '' : `${y}年`) + `${m}月`)
     const windowHasData = windowValues.some((v) => v > 0)
-    windowChart.setOption({
+    windowChart?.setOption({
       title: { text: windowHasData ? '近6个月支出对比' : '暂无支出数据', left: 'center', top: 4, textStyle: { fontSize: 16, ...textStyle() } },
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
       grid: { left: 8, right: 8, top: 42, bottom: 8, containLabel: true },
@@ -177,11 +184,18 @@ function renderCharts() {
       yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
       series: [{ type: 'bar', data: monthValues, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
     })
-    windowChart.setOption({ title: { text: '', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } } })
+    windowChart?.setOption({ title: { text: '', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } } })
   }
 }
 
-watch(() => [props.records, props.categories, props.scope, props.selectedMonth], () => {
+watch(() => [props.records, props.categories, props.scope, props.selectedMonth], async () => {
+  if (props.scope === 'year' && windowChart) {
+    windowChart.dispose()
+    windowChart = null
+  }
+  ensureWindowChart()
+  await nextTick()
+  ensureWindowChart()
   renderCharts()
 })
 
