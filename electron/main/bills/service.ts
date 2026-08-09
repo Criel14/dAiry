@@ -5,6 +5,7 @@ import type {
   BillsDeleteCategoryInput,
   BillsDeleteInput,
   BillsListMonthInput,
+  BillsListMonthsInput,
   BillsListYearInput,
   BillsRecordInput,
   BillsRenameCategoryInput,
@@ -66,6 +67,32 @@ export async function listBillsByYear(input: BillsListYearInput): Promise<Bill[]
     .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
     .all(`${input.year}-%`) as import('./db').BillRow[]
   return rows.map(mapRowToBill)
+}
+
+export async function listBillsYears(workspacePath: string): Promise<string[]> {
+  const db = getBillsDatabase(workspacePath)
+  if (!db) {
+    return []
+  }
+  const rows = db
+    .prepare('SELECT DISTINCT substr(date, 1, 4) AS period FROM bills ORDER BY period')
+    .all() as Array<{ period: string }>
+  return rows.map((row) => row.period)
+}
+
+export async function listBillsMonthsOfYear(input: BillsListMonthsInput): Promise<string[]> {
+  if (!/^\d{4}$/.test(input.year)) {
+    throw new Error('年份格式无效，必须为 YYYY。')
+  }
+
+  const db = getBillsDatabase(input.workspacePath)
+  if (!db) {
+    return []
+  }
+  const rows = db
+    .prepare('SELECT DISTINCT substr(date, 1, 7) AS period FROM bills WHERE date LIKE ? ORDER BY period')
+    .all(`${input.year}-%`) as Array<{ period: string }>
+  return rows.map((row) => row.period)
 }
 
 export async function getAllBills(workspacePath: string): Promise<Bill[]> {

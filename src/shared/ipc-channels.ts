@@ -70,4 +70,6 @@ export const IPC_CHANNELS = {
   renameBillCategory: 'bills:update-category',
   deleteBillCategory: 'bills:delete-category',
   exportBillsExcel: 'bills:export-excel',
+  listBillsYears: 'bills:list-years',
+  listBillsMonths: 'bills:list-months',
 } as const

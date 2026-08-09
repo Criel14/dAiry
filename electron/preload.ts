@@ -136,6 +136,8 @@ const dairyApi: DairyApi = {
   },
   listBillsByMonth: (input) => ipcRenderer.invoke(IPC_CHANNELS.listBillsByMonth, input),
   listBillsByYear: (input) => ipcRenderer.invoke(IPC_CHANNELS.listBillsByYear, input),
+  listBillsYears: (input) => ipcRenderer.invoke(IPC_CHANNELS.listBillsYears, input),
+  listBillsMonths: (input) => ipcRenderer.invoke(IPC_CHANNELS.listBillsMonths, input),
   createBill: (input) => ipcRenderer.invoke(IPC_CHANNELS.createBill, input),
   updateBill: (input) => ipcRenderer.invoke(IPC_CHANNELS.updateBill, input),
   deleteBill: (input) => ipcRenderer.invoke(IPC_CHANNELS.deleteBill, input),

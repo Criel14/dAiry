@@ -28,6 +28,11 @@ export interface BillsListYearInput {
   year: string
 }
 
+export interface BillsListMonthsInput {
+  workspacePath: string
+  year: string
+}
+
 export interface BillsRecordInput {
   workspacePath: string
   date: string
