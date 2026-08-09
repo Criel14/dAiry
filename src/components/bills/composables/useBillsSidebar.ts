@@ -13,6 +13,7 @@ export interface BillsSidebarProps {
   categories: BillCategory[]
   isExporting: boolean
   statusMessage: string
+  refreshTick: number
 }
 
 export type BillsSidebarEmits = {
@@ -54,6 +55,14 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   watch(monthPickerYear, () => {
     void loadAvailableMonths()
   })
+
+  watch(
+    () => props.refreshTick,
+    () => {
+      void loadAvailableYears()
+      void loadAvailableMonths()
+    },
+  )
 
   async function loadAvailableYears() {
     const current = ++yearsLoadSequence

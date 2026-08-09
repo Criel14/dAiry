@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import WorkspaceSidebar from '../../components/workspace/components/WorkspaceSidebar/WorkspaceSidebar.vue'
 import ReportsSidebar from '../../components/report/components/ReportsSidebar/ReportsSidebar.vue'
 import SettingsNav from '../../components/settings/components/SettingsNav/SettingsNav.vue'
@@ -153,6 +154,23 @@ function handleActivitySelect(panel: RightPanel) {
     openBillsPage()
   }
 }
+
+const billsSidebarRefreshTick = ref(0)
+
+function handleBillsRecordSaved() {
+  billsSidebarRefreshTick.value += 1
+  void billsPanel.handleRecordSaved()
+}
+
+function handleBillsRecordDeleted() {
+  billsSidebarRefreshTick.value += 1
+  void billsPanel.handleDeleteFromModal()
+}
+
+function handleBillsCategoriesChanged() {
+  billsSidebarRefreshTick.value += 1
+  void billsPanel.handleCategoriesChanged()
+}
 </script>
 
 <template>
@@ -233,10 +251,11 @@ function handleActivitySelect(panel: RightPanel) {
           :categories="billsPanel.categories.value"
           :is-exporting="billsPanel.isExporting.value"
           :status-message="billsPanel.sidebarStatusMessage.value"
+          :refresh-tick="billsSidebarRefreshTick"
           @update:selected-month="billsPanel.selectedMonth.value = $event"
           @update:selected-year="billsPanel.selectedYear.value = $event"
           @update:stats-mode="billsPanel.statsMode.value = $event"
-          @category-changed="billsPanel.handleCategoriesChanged"
+          @category-changed="handleBillsCategoriesChanged"
           @export="billsPanel.handleExportExcel"
         />
       </template>
@@ -401,8 +420,8 @@ function handleActivitySelect(panel: RightPanel) {
         @open-create="billsPanel.openCreateModal"
         @open-edit="billsPanel.openEditModal"
         @close-modal="billsPanel.closeModal"
-        @record-saved="billsPanel.handleRecordSaved"
-        @deleted="billsPanel.handleDeleteFromModal"
+        @record-saved="handleBillsRecordSaved"
+        @deleted="handleBillsRecordDeleted"
       />
 
       <div v-else-if="rightPanel === 'workspace'" class="workspace-welcome">

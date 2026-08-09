@@ -93,16 +93,13 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     if (!workspacePath.value) {
       monthRecords.value = []
       yearRecords.value = []
+      windowTotals.value = []
       categories.value = []
       return
     }
 
-    await Promise.all([
-      loadCategories(),
-      reloadMonthRecords(),
-      reloadYearRecords(),
-      reloadWindowTotals(),
-    ])
+    await loadCategories()
+    await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 
   async function loadCategories() {
