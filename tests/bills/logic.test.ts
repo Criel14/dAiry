@@ -9,6 +9,7 @@ import {
   formatPlainCents,
   pickPaletteColor,
   resolveCategory,
+  sliceLatestMonths,
   toBillQueryRecord,
   toCents,
   typeFromAmount,
@@ -230,5 +231,50 @@ describe('formatPlainCents', () => {
   it('formats plain two decimals without sign', () => {
     expect(formatPlainCents(-2346)).toBe('23.46')
     expect(formatPlainCents(12000)).toBe('120.00')
+  })
+})
+
+describe('sliceLatestMonths', () => {
+  function makeBills(dates: string[]): Bill[] {
+    return dates.map((date, index) => makeBill({ id: index + 1, date }))
+  }
+
+  it('keeps only the latest month when records span multiple months', () => {
+    const records = makeBills(['2025-12-31', '2025-12-01', '2025-11-15', '2025-10-01'])
+    const result = sliceLatestMonths(records, 1)
+    expect(result.map((record) => record.id)).toEqual([1, 2])
+  })
+
+  it('keeps latest months across year boundary', () => {
+    const records = makeBills(['2026-01-10', '2025-12-20', '2025-11-05'])
+    const result = sliceLatestMonths(records, 2)
+    expect(result.map((record) => record.id)).toEqual([1, 2])
+  })
+
+  it('returns everything when month count exceeds available months', () => {
+    const records = makeBills(['2025-12-31', '2025-11-15'])
+    const result = sliceLatestMonths(records, 3)
+    expect(result).toEqual(records)
+  })
+
+  it('returns everything when month count matches exactly', () => {
+    const records = makeBills(['2025-12-31', '2025-11-15'])
+    const result = sliceLatestMonths(records, 2)
+    expect(result).toEqual(records)
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(sliceLatestMonths([], 3)).toEqual([])
+  })
+
+  it('returns empty array for zero month count', () => {
+    const records = makeBills(['2025-12-31'])
+    expect(sliceLatestMonths(records, 0)).toEqual([])
+  })
+
+  it('preserves input order within kept records', () => {
+    const records = makeBills(['2025-12-30', '2025-12-01', '2025-11-30'])
+    const result = sliceLatestMonths(records, 1)
+    expect(result.map((record) => record.date)).toEqual(['2025-12-30', '2025-12-01'])
   })
 })

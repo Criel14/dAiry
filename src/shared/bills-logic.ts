@@ -188,6 +188,29 @@ export function filterBillsByMonth(records: Bill[], month: string): Bill[] {
   return records.filter((record) => record.date.slice(5, 7) === month)
 }
 
+// records 需按 date 降序（最新在前），返回最新 monthCount 个月的记录，保持原顺序
+export function sliceLatestMonths(records: Bill[], monthCount: number): Bill[] {
+  if (monthCount <= 0) {
+    return []
+  }
+
+  const seen = new Set<string>()
+  let kept = 0
+  let cutIndex = records.length
+  for (let i = 0; i < records.length; i++) {
+    const month = records[i].date.slice(0, 7)
+    if (!seen.has(month)) {
+      if (kept >= monthCount) {
+        cutIndex = i
+        break
+      }
+      seen.add(month)
+      kept += 1
+    }
+  }
+  return records.slice(0, cutIndex)
+}
+
 export function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
 }

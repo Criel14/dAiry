@@ -11,6 +11,7 @@ import {
   formatCents,
   formatPlainCents,
   resolveCategory,
+  sliceLatestMonths,
 } from '../../../shared/bills-logic'
 
 export interface BillsModalState {
@@ -62,6 +63,47 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     return monthRecords.value
   })
 
+  const loadedMonthCount = ref(1)
+  const LOAD_MORE_STEP = 3
+
+  function distinctMonthCount(records: Bill[]): number {
+    const months = new Set<string>()
+    for (const record of records) {
+      months.add(record.date.slice(0, 7))
+    }
+    return months.size
+  }
+
+  const categoryFilter = ref('')
+
+  const filteredRecords = computed(() =>
+    categoryFilter.value
+      ? detailRecords.value.filter((r) => r.category === categoryFilter.value)
+      : detailRecords.value,
+  )
+
+  const renderedDetailRecords = computed(() => {
+    if (statsMode.value === 'year' && detailMonthFilter.value === 'all') {
+      return sliceLatestMonths(filteredRecords.value, loadedMonthCount.value)
+    }
+    return filteredRecords.value
+  })
+
+  const hasMoreMonths = computed(() => {
+    if (statsMode.value !== 'year' || detailMonthFilter.value !== 'all') {
+      return false
+    }
+    return distinctMonthCount(filteredRecords.value) > loadedMonthCount.value
+  })
+
+  const remainingMonthCount = computed(() =>
+    Math.max(0, distinctMonthCount(filteredRecords.value) - loadedMonthCount.value),
+  )
+
+  function loadMoreMonths() {
+    loadedMonthCount.value += LOAD_MORE_STEP
+  }
+
   const statsRecords = computed(() =>
     statsMode.value === 'month' ? monthRecords.value : yearRecords.value,
   )
@@ -80,13 +122,23 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   })
 
   watch(statsYear, () => {
+    loadedMonthCount.value = 1
     void reloadYearRecords()
     void reloadWindowTotals()
   })
 
   watch(statsMode, () => {
+    loadedMonthCount.value = 1
     windowTotals.value = []
     void reloadWindowTotals()
+  })
+
+  watch(detailMonthFilter, () => {
+    loadedMonthCount.value = 1
+  })
+
+  watch(categoryFilter, () => {
+    loadedMonthCount.value = 1
   })
 
   async function handleWorkspaceChange() {
@@ -95,6 +147,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
       yearRecords.value = []
       windowTotals.value = []
       categories.value = []
+      loadedMonthCount.value = 1
       return
     }
 
@@ -262,21 +315,27 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   return {
     activeTab,
     categories,
+    categoryFilter,
     closeModal,
     detailMonthFilter,
     detailRecords,
+    filteredRecords,
     handleCategoriesChanged,
     handleDeleteFromModal,
     handleDeleteRecord,
     handleExportExcel,
     handleRecordSaved,
+    hasMoreMonths,
     hasWorkspace,
     isLoading,
     isExporting,
+    loadMoreMonths,
     modalState,
     monthRecords,
     openCreateModal,
     openEditModal,
+    remainingMonthCount,
+    renderedDetailRecords,
     selectedMonth,
     selectedYear,
     sidebarStatusMessage,

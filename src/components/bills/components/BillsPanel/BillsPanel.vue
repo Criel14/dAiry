@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bills'
 import type { BillsModalState } from '../../composables/useBillsPanel'
@@ -22,12 +22,17 @@ const props = defineProps<{
   selectedMonth: string
   records: Bill[]
   detailRecords: Bill[]
+  filteredRecords: Bill[]
+  renderedRecords: Bill[]
   categories: BillCategory[]
   activeTab: 'detail' | 'stats'
   statsMode: 'month' | 'year'
   selectedYear: number
   detailMonthFilter: 'all' | string
   windowTotals: BillsWindowTotal[]
+  categoryFilter: string
+  hasMoreMonths: boolean
+  remainingMonthCount: number
   isLoading: boolean
   statusMessage: string
   modalState: BillsModalState
@@ -36,25 +41,20 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:activeTab': [value: 'detail' | 'stats']
   'update:detailMonthFilter': [value: 'all' | string]
+  'update:categoryFilter': [value: string]
   openCreate: []
   openEdit: [bill: Bill]
   closeModal: []
   'record-saved': []
   deleted: []
+  'load-more': []
 }>()
 
 const WEEK_NAMES = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
-const categoryFilter = ref('')
-
-const filteredRecords = computed(() =>
-  categoryFilter.value
-    ? props.detailRecords.filter((r) => r.category === categoryFilter.value)
-    : props.detailRecords,
-)
-
-const detailGroups = computed(() => groupBillsByDay(filteredRecords.value))
-const detailSummary = computed(() => aggregateRecords(filteredRecords.value, props.categories))
+const detailGroups = computed(() => groupBillsByDay(props.renderedRecords))
+const detailSummary = computed(() => aggregateRecords(props.filteredRecords, props.categories))
+const hasAnyRecords = computed(() => props.filteredRecords.length > 0)
 
 const periodText = computed(() =>
   props.statsMode === 'year'
@@ -166,14 +166,15 @@ function formatAmount(record: Bill): string {
             <BillsCategorySelect
               class="summary-filter"
               :categories="categories"
-              v-model="categoryFilter"
+              :model-value="categoryFilter"
               placeholder="全部分类"
               clearable
+              @update:model-value="emit('update:categoryFilter', $event)"
             />
           </div>
         </div>
 
-        <div v-if="detailGroups.length === 0" class="placeholder-box">
+        <div v-if="!hasAnyRecords" class="placeholder-box">
           {{ categoryFilter
             ? '该分类下暂无账单记录'
             : statsMode === 'year'
@@ -213,6 +214,15 @@ function formatAmount(record: Bill): string {
               </span>
             </div>
           </article>
+
+          <button
+            v-if="hasMoreMonths"
+            class="load-more-button"
+            type="button"
+            @click="emit('load-more')"
+          >
+            查看更多（剩余 {{ remainingMonthCount }} 个月）
+          </button>
         </div>
       </template>
 

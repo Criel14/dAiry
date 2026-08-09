@@ -189,6 +189,26 @@
   background: transparent;
 }
 
+.load-more-button {
+  justify-self: center;
+  min-height: 2.4rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.load-more-button:hover {
+  color: var(--color-accent-strong);
+  background-color: var(--color-surface-hover-soft);
+}
+
 .day-card {
   padding: 0.85rem 1rem;
   border: 1px solid var(--color-border-soft);
