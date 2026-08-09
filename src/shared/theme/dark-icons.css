@@ -1,0 +1,7 @@
+/* 分类图标色块在深色主题下略微压暗：内阴影只影响背景，不改变白色图标亮度 */
+html[data-theme='dark'] .record-icon,
+html[data-theme='dark'] .category-swatch,
+html[data-theme='dark'] .category-option-icon:not(.category-option-icon--all),
+html[data-theme='dark'] .app-select-option-icon {
+  box-shadow: inset 0 0 0 100px rgba(0, 0, 0, 0.25);
+}
