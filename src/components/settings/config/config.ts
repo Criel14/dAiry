@@ -131,6 +131,7 @@ export const THEME_OPTIONS: ThemeOption[] = [
   { value: 'system', label: '跟随系统' },
   { value: 'light', label: '浅色' },
   { value: 'dark', label: '深色' },
+  { value: 'pure', label: '纯白' },
 ]
 
 export const SHORTCUT_GROUPS: ShortcutGroup[] = [

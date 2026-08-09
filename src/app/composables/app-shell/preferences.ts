@@ -68,7 +68,9 @@ export function useAppShellPreferences(
       state.themeSaveMessage.value =
         nextValue === 'system'
           ? '主题模式已切换为跟随系统，当前先保留现有视觉。'
-          : `主题模式已切换为${nextValue === 'light' ? '浅色' : '深色'}，样式方案会后续补齐。`
+          : nextValue === 'pure'
+            ? '主题模式已切换为纯白。'
+            : `主题模式已切换为${nextValue === 'light' ? '浅色' : '深色'}，样式方案会后续补齐。`
     } catch (error) {
       state.themeSaveMessage.value =
         error instanceof Error ? error.message : '保存主题模式失败，请稍后重试。'

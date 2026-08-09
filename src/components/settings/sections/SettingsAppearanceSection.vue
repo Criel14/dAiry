@@ -29,7 +29,7 @@ const zoomOptions = computed(() =>
 )
 
 function handleThemeChange(value: string) {
-  if (value === 'system' || value === 'light' || value === 'dark') {
+  if (value === 'system' || value === 'light' || value === 'dark' || value === 'pure') {
     emit('update:theme', value)
   }
 }
@@ -52,7 +52,7 @@ function handleWindowZoomFactorChange(value: string) {
             <strong class="panel-value">主题切换</strong>
           </div>
           <p class="panel-description">
-            支持跟随系统、浅色和深色模式，深色主题会同步应用到写作、报告浏览和 PNG 导出。
+            支持跟随系统、浅色、纯白和深色模式；纯白主题为固定浅色，不跟随系统变化。
           </p>
         </div>
 
