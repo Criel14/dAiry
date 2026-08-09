@@ -124,3 +124,53 @@ export function assertValidNote(note: string) {
     throw new Error('备注不能超过 200 个字符。')
   }
 }
+
+export function buildMonthWindow(selectedMonth: string, count: number): string[] {
+  const [year, month] = selectedMonth.split('-').map(Number)
+  const list: string[] = []
+  let y = year
+  let m = month
+  for (let i = 0; i < count; i++) {
+    list.unshift(`${y}-${String(m).padStart(2, '0')}`)
+    m -= 1
+    if (m === 0) {
+      m = 12
+      y -= 1
+    }
+  }
+  return list
+}
+
+export function buildYearWindow(selectedYear: string, count: number): string[] {
+  const year = Number(selectedYear)
+  return Array.from({ length: count }, (_, i) => String(year - count + 1 + i))
+}
+
+export function expenseTotal(records: Bill[], categories: BillCategory[]): number {
+  let total = 0
+  for (const record of records) {
+    if (resolveCategory(categories, record.amountCents, record.category).type === 'expense') {
+      total += -record.amountCents
+    }
+  }
+  return total
+}
+
+export function filterBillsByMonth(records: Bill[], month: string): Bill[] {
+  return records.filter((record) => record.date.slice(5, 7) === month)
+}
+
+export function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+}
+
+export function buildDailyAxis(year: number): string[] {
+  const monthDays = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+  const dates: string[] = []
+  for (let m = 1; m <= 12; m++) {
+    for (let d = 1; d <= monthDays[m - 1]; d++) {
+      dates.push(`${year}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`)
+    }
+  }
+  return dates
+}
