@@ -25,15 +25,17 @@
 
 应用界面：
 
-![日记编写-浅色(加背景)](docs/images/日记编写-浅色(加背景).png)
+![写日记-纯白](docs/images/写日记-纯白.png)
 
-![时间轴-浅色(加背景)](docs/images/时间轴-浅色(加背景).png)
+![时间轴-浅色](docs/images/时间轴-浅色.png)
 
-![年度总结-深色(加背景)](docs/images/年度总结-深色(加背景).png)
+![总结报告-深色](docs/images/总结报告-深色.png)
+
+![记账-浅色](docs/images/记账-浅色.png)
 
 接入 OpenCode 示例：
 
-![接入OpenCode(加背景)](docs/images/接入OpenCode(加背景).png)
+![接入OpenCode](docs/images/接入OpenCode.png)
 
 ## 特色
 
@@ -44,11 +46,12 @@
 
 ## 功能
 
-- 📝 支持今日写作、历史浏览、月历切换、Markdown 预览，日记按日期保存为 Markdown 文件
+- 📝 支持日记写作、历史浏览、月历切换等，日记按日期保存为 Markdown 文件
 - 🏷️ 支持天气、地点、心情、总结、标签等 frontmatter 信息维护
 - ✨ 支持 AI 自动整理正文，生成总结、标签与心情建议
 - ⌛ 支持 AI 自动提取事件，形成年度大事件"时间轴"报告
 - 📊 支持月报、年报与自定义区间报告，生成支持字数热力图、情绪趋势、标签词云等可视化摘要，支持将报告导出为 PNG
+- 🧾 提供记账功能，支持导出为 Excel
 
 ## SKILL 与 MCP
 
@@ -79,6 +82,8 @@
 | `dairy_grep_entries` | 关键词字面匹配（仅正文），返回命中日期、摘要与上下文片段 |
 | `dairy_read_profile` | 读取最新年份用户画像 Markdown |
 | `dairy_read_index` | 年度元索引（摘要/标签/心情/地点/字数） |
+| `dairy_bills_query` | 按时间范围（月份/年份/自定义区间）查询账单，可按分类/类型/备注关键词筛选，返回区间聚合统计（收入/支出/结余/笔数）与明细 |
+| `dairy_bills_categories` | 读取记账分类库（内置 + 自定义） |
 
 ### MCP 服务
 
@@ -105,7 +110,7 @@ npm run dev
 npm run build
 ```
 
-> 仓库中提供了[测试数据](https://github.com/Criel14/dAiry/tree/main/docs/test-workspace)可以使用（用 AI 生成的 2025 年的三百多篇日记）
+> 仓库中提供了[测试数据](https://github.com/Criel14/dAiry/tree/main/docs/test-workspace)可以使用（用 AI 生成的 2025 年的 300 多篇日记）
 
 ## 开源协议
 
