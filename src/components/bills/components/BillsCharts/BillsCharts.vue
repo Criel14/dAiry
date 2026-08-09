@@ -189,11 +189,10 @@ function renderCharts() {
 }
 
 watch(() => [props.records, props.categories, props.scope, props.selectedMonth], async () => {
-  if (props.scope === 'year' && windowChart) {
-    windowChart.dispose()
+  if (props.scope === 'year') {
+    windowChart?.dispose()
     windowChart = null
   }
-  ensureWindowChart()
   await nextTick()
   ensureWindowChart()
   renderCharts()
