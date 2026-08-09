@@ -65,6 +65,10 @@
   height: 350px;
 }
 
+.chart--line {
+  height: 320px;
+}
+
 @media (max-width: 700px) {
   .stats-cards {
     grid-template-columns: repeat(2, 1fr);

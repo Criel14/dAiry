@@ -1,48 +1,41 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as echarts from 'echarts/core'
-import { BarChart, PieChart } from 'echarts/charts'
+import { BarChart, LineChart, PieChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
-import type { Bill, BillCategory } from '../../../../types/bills'
-import { aggregateRecords, formatPlainCents, resolveCategory } from '../../../../shared/bills-logic'
+import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bills'
+import {
+  aggregateRecords,
+  buildDailyAxis,
+  formatPlainCents,
+  resolveCategory,
+} from '../../../../shared/bills-logic'
 
-echarts.use([BarChart, PieChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
+echarts.use([BarChart, LineChart, PieChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])
 
 const props = defineProps<{
   records: Bill[]
   categories: BillCategory[]
   scope: 'month' | 'year'
   selectedMonth: string
+  scopeYear: string
+  windowTotals: BillsWindowTotal[]
 }>()
 
 const ringEl = ref<HTMLElement | null>(null)
 const barEl = ref<HTMLElement | null>(null)
+const lineEl = ref<HTMLElement | null>(null)
 const windowEl = ref<HTMLElement | null>(null)
 let ringChart: echarts.ECharts | null = null
 let barChart: echarts.ECharts | null = null
+let lineChart: echarts.ECharts | null = null
 let windowChart: echarts.ECharts | null = null
 let themeObserver: MutationObserver | null = null
 let resizeHandler: (() => void) | null = null
 
 const CHART_TEXT = '#6B766D'
 const CHART_SPLIT = '#EDF1EC'
-
-const monthWindow = computed(() => {
-  const [year, month] = props.selectedMonth.split('-').map(Number)
-  const list: Array<[number, number]> = []
-  let y = year
-  let m = month
-  for (let i = 0; i < 6; i++) {
-    list.unshift([y, m])
-    m -= 1
-    if (m === 0) {
-      m = 12
-      y -= 1
-    }
-  }
-  return list
-})
 
 const categoryExpense = computed(() => {
   const map = new Map<string, number>()
@@ -68,9 +61,20 @@ const dailyExpense = computed(() => {
 })
 
 const periodText = computed(() => {
+  if (props.scope === 'year') {
+    return `${props.scopeYear}年`
+  }
   const [year, month] = props.selectedMonth.split('-')
-  return props.scope === 'year' ? `${year}年` : `${year}年${Number(month)}月`
+  return `${year}年${Number(month)}月`
 })
+
+const dailyAxis = computed(() => buildDailyAxis(Number(props.scopeYear)))
+
+const dailyValues = computed(() =>
+  dailyAxis.value.map((date) =>
+    Math.round(((dailyExpense.value.get(date) ?? 0) / 100) * 100) / 100,
+  ),
+)
 
 function colorForCategory(name: string): string {
   const category = props.categories.find((c) => c.name === name)
@@ -93,14 +97,23 @@ function splitLineStyle() {
   return { lineStyle: { color: readCssColor('--color-border-soft', CHART_SPLIT) } }
 }
 
-function ensureWindowChart() {
+function ensureCharts() {
+  if (!ringChart && ringEl.value) {
+    ringChart = echarts.init(ringEl.value)
+  }
+  if (!barChart && barEl.value) {
+    barChart = echarts.init(barEl.value)
+  }
+  if (!lineChart && lineEl.value) {
+    lineChart = echarts.init(lineEl.value)
+  }
   if (!windowChart && windowEl.value) {
     windowChart = echarts.init(windowEl.value)
   }
 }
 
 function renderCharts() {
-  ensureWindowChart()
+  ensureCharts()
   if (!ringChart || !barChart) return
 
   const total = props.records
@@ -148,27 +161,16 @@ function renderCharts() {
       series: [{ type: 'bar', data: values, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
     })
 
-    const windowValues = monthWindow.value.map(([y, m]) => {
-      const prefix = `${y}-${String(m).padStart(2, '0')}`
-      let sum = 0
-      for (const [date, amount] of dailyExpense.value) {
-        if (date.startsWith(prefix)) sum += amount
-      }
-      return Math.round((sum / 100) * 100) / 100
-    })
-    const windowLabels = monthWindow.value.map(([y, m]) => (y === Number(props.selectedMonth.slice(0, 4)) ? '' : `${y}年`) + `${m}月`)
-    const windowHasData = windowValues.some((v) => v > 0)
-    windowChart?.setOption({
-      title: { text: windowHasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
-      grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
-      xAxis: { type: 'category', data: windowLabels, axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
-      yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
-      series: [{ type: 'bar', data: windowValues, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
-    })
+    renderWindowChart(
+      props.windowTotals.map(({ period }) => {
+        const [y, m] = period.split('-')
+        return y === props.scopeYear ? `${Number(m)}月` : `${y}年${Number(m)}月`
+      }),
+      props.windowTotals.map(({ total }) => Math.round((total / 100) * 100) / 100),
+    )
   } else {
     const monthValues = Array.from({ length: 12 }, (_, i) => {
-      const prefix = `${props.selectedMonth.slice(0, 4)}-${String(i + 1).padStart(2, '0')}`
+      const prefix = `${props.scopeYear}-${String(i + 1).padStart(2, '0')}`
       let sum = 0
       for (const [date, amount] of dailyExpense.value) {
         if (date.startsWith(prefix)) sum += amount
@@ -184,28 +186,90 @@ function renderCharts() {
       yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
       series: [{ type: 'bar', data: monthValues, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
     })
-    windowChart?.setOption({ title: { text: '', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } } })
+
+    renderDailyLine()
+
+    renderWindowChart(
+      props.windowTotals.map(({ period }) => `${Number(period)}年`),
+      props.windowTotals.map(({ total }) => Math.round((total / 100) * 100) / 100),
+    )
   }
 }
 
-watch(() => [props.records, props.categories, props.scope, props.selectedMonth], async () => {
-  if (props.scope === 'year') {
-    windowChart?.dispose()
-    windowChart = null
-  }
-  await nextTick()
-  ensureWindowChart()
-  renderCharts()
-})
+function renderDailyLine() {
+  if (!lineChart) return
+  const hasData = dailyValues.value.some((v) => v > 0)
+  const lineColor = readCssColor('--color-chart-positive', '#5A9F61')
+  lineChart.setOption({
+    title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'cross' },
+      textStyle: { fontSize: 13 },
+      formatter: (params: Array<{ axisValue: string; value: number }>) => `${params[0].axisValue}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}`,
+    },
+    grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: dailyAxis.value,
+      boundaryGap: false,
+      axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } },
+      axisTick: { show: false },
+      axisLabel: {
+        interval: (index: number, value: string) =>
+          index === 0 || index === dailyAxis.value.length - 1 || value.endsWith('-01'),
+        formatter: (value: string) => `${Number(value.slice(5, 7))}/${Number(value.slice(8, 10))}`,
+        ...textStyle(),
+      },
+    },
+    yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
+    series: [{
+      type: 'line',
+      data: dailyValues.value,
+      smooth: false,
+      symbol: 'none',
+      lineStyle: { width: 2, color: lineColor },
+      areaStyle: { opacity: 0.12, color: lineColor },
+    }],
+  })
+}
+
+function renderWindowChart(labels: string[], values: number[]) {
+  if (!windowChart) return
+  const hasData = values.some((v) => v > 0)
+  windowChart.setOption({
+    title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
+    grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
+    xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
+    yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
+    series: [{ type: 'bar', data: values, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
+  })
+}
+
+watch(
+  () => [props.records, props.categories, props.scope, props.selectedMonth, props.scopeYear, props.windowTotals],
+  async () => {
+    if (props.scope === 'year') {
+      windowChart?.dispose()
+      windowChart = null
+    } else {
+      lineChart?.dispose()
+      lineChart = null
+    }
+    await nextTick()
+    ensureCharts()
+    renderCharts()
+  },
+)
 
 onMounted(() => {
-  if (ringEl.value) ringChart = echarts.init(ringEl.value)
-  if (barEl.value) barChart = echarts.init(barEl.value)
-  if (windowEl.value) windowChart = echarts.init(windowEl.value)
+  ensureCharts()
 
   resizeHandler = () => {
     ringChart?.resize()
     barChart?.resize()
+    lineChart?.resize()
     windowChart?.resize()
   }
   window.addEventListener('resize', resizeHandler)
@@ -221,9 +285,11 @@ onBeforeUnmount(() => {
   themeObserver?.disconnect()
   ringChart?.dispose()
   barChart?.dispose()
+  lineChart?.dispose()
   windowChart?.dispose()
   ringChart = null
   barChart = null
+  lineChart = null
   windowChart = null
 })
 </script>
@@ -250,11 +316,15 @@ onBeforeUnmount(() => {
       <div ref="ringEl" class="chart chart--ring"></div>
     </div>
     <div class="chart-box">
-      <h3 class="chart-title">{{ periodText }}{{ props.scope === 'month' ? '每日支出' : '月度支出' }}</h3>
+      <h3 class="chart-title">{{ periodText }}{{ scope === 'month' ? '每日支出' : '月度支出' }}</h3>
       <div ref="barEl" class="chart"></div>
     </div>
-    <div v-if="props.scope === 'month'" class="chart-box">
-      <h3 class="chart-title">近6个月支出对比</h3>
+    <div v-if="scope === 'year'" class="chart-box">
+      <h3 class="chart-title">{{ periodText }}每日支出</h3>
+      <div ref="lineEl" class="chart chart--line"></div>
+    </div>
+    <div class="chart-box">
+      <h3 class="chart-title">{{ scope === 'month' ? '近6个月支出对比' : '近6年支出对比' }}</h3>
       <div ref="windowEl" class="chart"></div>
     </div>
   </div>
