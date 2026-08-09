@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import WorkspaceSidebar from '../../components/workspace/components/WorkspaceSidebar/WorkspaceSidebar.vue'
 import ReportsSidebar from '../../components/report/components/ReportsSidebar/ReportsSidebar.vue'
 import SettingsNav from '../../components/settings/components/SettingsNav/SettingsNav.vue'
@@ -171,6 +171,32 @@ function handleBillsCategoriesChanged() {
   billsSidebarRefreshTick.value += 1
   void billsPanel.handleCategoriesChanged()
 }
+
+function handleGlobalKeydown(event: KeyboardEvent) {
+  if (rightPanel.value !== 'journal') {
+    return
+  }
+
+  if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+    return
+  }
+
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    void handleShiftSelectedDate(-1)
+  } else if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    void handleShiftSelectedDate(1)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
 
 <template>
@@ -274,8 +300,6 @@ function handleBillsCategoriesChanged() {
           :is-saving-entry="isSavingEntry"
           :is-generating-insights="isGeneratingDailyInsights"
           @update:editor-mode="setEditorMode"
-          @previous-date="handleShiftSelectedDate(-1)"
-          @next-date="handleShiftSelectedDate(1)"
           @save-entry="handleSaveEntry"
         />
 

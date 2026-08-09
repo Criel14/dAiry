@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, CodeXml, Eye } from 'lucide-vue-next'
+import { CodeXml, Eye } from 'lucide-vue-next'
 import type { EditorMode } from '../../../../types/ui'
 
 defineProps<{
@@ -16,8 +16,6 @@ defineProps<{
 
 defineEmits<{
   'update:editorMode': [mode: EditorMode]
-  previousDate: []
-  nextDate: []
   saveEntry: []
 }>()
 </script>
@@ -26,33 +24,9 @@ defineEmits<{
   <header class="editor-header">
     <div class="editor-heading">
       <div class="editor-title-row">
-        <div class="date-switcher" aria-label="日记日期切换">
-          <button
-            class="date-switch-button"
-            type="button"
-            title="前一天"
-            aria-label="前一天"
-            :disabled="isGeneratingInsights"
-            @click="$emit('previousDate')"
-          >
-            <ChevronLeft class="date-switch-icon" aria-hidden="true" />
-          </button>
-
-          <h2 class="editor-title">
-            {{ selectedDateText }}<span v-if="isDirty" class="editor-dirty-mark">*</span>
-          </h2>
-
-          <button
-            class="date-switch-button"
-            type="button"
-            title="后一天"
-            aria-label="后一天"
-            :disabled="isGeneratingInsights"
-            @click="$emit('nextDate')"
-          >
-            <ChevronRight class="date-switch-icon" aria-hidden="true" />
-          </button>
-        </div>
+        <h2 class="editor-title">
+          {{ selectedDateText }}<span v-if="isDirty" class="editor-dirty-mark">*</span>
+        </h2>
         <span v-if="isSelectedDateToday" class="today-badge">今天</span>
       </div>
       <p class="editor-description">简单地写下今天的心情与发生的事情吧</p>

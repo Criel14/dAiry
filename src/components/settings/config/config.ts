@@ -149,6 +149,28 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
         ],
       },
       {
+        id: 'previous-day',
+        label: '切换前一天',
+        description: '在日记页跳转到前一天的日记。',
+        bindings: [
+          {
+            id: 'default',
+            keys: ['Alt', '←'],
+          },
+        ],
+      },
+      {
+        id: 'next-day',
+        label: '切换后一天',
+        description: '在日记页跳转到后一天的日记。',
+        bindings: [
+          {
+            id: 'default',
+            keys: ['Alt', '→'],
+          },
+        ],
+      },
+      {
         id: 'zoom-in',
         label: '放大界面',
         description: '提升整个应用界面的显示比例。',
