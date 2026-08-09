@@ -395,7 +395,7 @@ function handleActivitySelect(panel: RightPanel) {
         @open-edit="billsPanel.openEditModal"
         @close-modal="billsPanel.closeModal"
         @record-saved="billsPanel.handleRecordSaved"
-        @delete-record="billsPanel.handleDeleteRecord"
+        @deleted="billsPanel.handleDeleteFromModal"
       />
 
       <div v-else-if="rightPanel === 'workspace'" class="workspace-welcome">

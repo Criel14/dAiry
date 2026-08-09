@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { Plus } from 'lucide-vue-next'
 import type { Bill, BillCategory } from '../../../../types/bills'
 import type { BillsModalState } from '../../composables/useBillsPanel'
 import {
@@ -35,7 +35,7 @@ const emit = defineEmits<{
   openEdit: [bill: Bill]
   closeModal: []
   'record-saved': []
-  deleteRecord: [bill: Bill]
+  deleted: []
 }>()
 
 const WEEK_NAMES = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
@@ -62,6 +62,17 @@ function recordIconName(record: Bill): string {
 
 function recordColor(record: Bill): string {
   return resolveCategory(props.categories, record.amountCents, record.category).color
+}
+
+function amountClass(record: Bill): string {
+  const type = resolveCategory(props.categories, record.amountCents, record.category).type
+  if (type === 'transfer') return 'amount-transfer'
+  return record.amountCents < 0 ? 'amount-expense' : 'amount-income'
+}
+
+function formatAmount(record: Bill): string {
+  const type = resolveCategory(props.categories, record.amountCents, record.category).type
+  return type === 'transfer' ? formatPlainCents(record.amountCents) : formatCents(record.amountCents)
 }
 </script>
 
@@ -107,8 +118,8 @@ function recordColor(record: Bill): string {
           <span>
             {{ Number(yearText) }}年{{ Number(monthText) }}月 · 共
             <strong>{{ detailSummary.count }}</strong>
-            笔 · 支出 {{ formatPlainCents(detailSummary.expense) }} · 收入
-            {{ formatPlainCents(detailSummary.income) }}
+            笔 · 支出 <span class="summary-expense">{{ formatPlainCents(detailSummary.expense) }}</span> · 收入
+            <span class="summary-income">{{ formatPlainCents(detailSummary.income) }}</span>
           </span>
         </div>
 
@@ -124,7 +135,16 @@ function recordColor(record: Bill): string {
               </span>
             </header>
             <hr class="day-divider" />
-            <div v-for="record in records" :key="record.id" class="record-row">
+            <div
+              v-for="record in records"
+              :key="record.id"
+              class="record-row"
+              role="button"
+              tabindex="0"
+              @click="emit('openEdit', record)"
+              @keydown.enter="emit('openEdit', record)"
+              @keydown.space.prevent="emit('openEdit', record)"
+            >
               <span class="record-icon" :style="{ backgroundColor: recordColor(record) }">
                 <component :is="iconForName(recordIconName(record))" class="record-icon-svg" aria-hidden="true" />
               </span>
@@ -132,16 +152,8 @@ function recordColor(record: Bill): string {
                 <span class="record-category">{{ record.category }}</span>
                 <span v-if="record.note" class="record-note">{{ record.note }}</span>
               </div>
-              <span class="record-amount" :class="record.amountCents < 0 ? 'amount-expense' : 'amount-income'">
-                {{ formatCents(record.amountCents) }}
-              </span>
-              <span class="record-actions">
-                <button class="record-action" type="button" title="编辑" aria-label="编辑" @click="emit('openEdit', record)">
-                  <Pencil class="record-action-icon" aria-hidden="true" />
-                </button>
-                <button class="record-action record-action--danger" type="button" title="删除" aria-label="删除" @click="emit('deleteRecord', record)">
-                  <Trash2 class="record-action-icon" aria-hidden="true" />
-                </button>
+              <span class="record-amount" :class="amountClass(record)">
+                {{ formatAmount(record) }}
               </span>
             </div>
           </article>
@@ -182,6 +194,7 @@ function recordColor(record: Bill): string {
       :workspace-path="workspacePath"
       @close="emit('closeModal')"
       @saved="emit('record-saved')"
+      @deleted="emit('deleted')"
     />
   </section>
 </template>

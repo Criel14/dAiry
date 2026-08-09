@@ -48,7 +48,7 @@ export async function listBillsByMonth(input: BillsListMonthInput): Promise<Bill
     return []
   }
   const rows = db
-    .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date ASC, id ASC')
+    .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
     .all(`${input.month}-%`) as import('./db').BillRow[]
   return rows.map(mapRowToBill)
 }
@@ -63,7 +63,7 @@ export async function listBillsByYear(input: BillsListYearInput): Promise<Bill[]
     return []
   }
   const rows = db
-    .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date ASC, id ASC')
+    .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
     .all(`${input.year}-%`) as import('./db').BillRow[]
   return rows.map(mapRowToBill)
 }

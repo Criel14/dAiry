@@ -67,6 +67,11 @@ const dailyExpense = computed(() => {
   return map
 })
 
+const periodText = computed(() => {
+  const [year, month] = props.selectedMonth.split('-')
+  return props.scope === 'year' ? `${year}年` : `${year}年${Number(month)}月`
+})
+
 function colorForCategory(name: string): string {
   const category = props.categories.find((c) => c.name === name)
   return category?.color ?? '#8B948E'
@@ -103,16 +108,11 @@ function renderCharts() {
     .reduce((acc, r) => acc + -r.amountCents, 0)
 
   if (total > 0) {
-    const ringTitle =
-      props.scope === 'year'
-        ? `${props.selectedMonth.slice(0, 4)}年分类支出占比`
-        : `${props.selectedMonth.slice(0, 4)}年${props.selectedMonth.slice(5, 7)}月分类支出占比`
     ringChart.setOption({
-      title: { text: ringTitle, left: 'center', top: 10, textStyle: { fontSize: 16, ...textStyle() } },
       tooltip: {
         trigger: 'item',
         textStyle: { fontSize: 13 },
-        formatter: (p: { name: string; value: number; percent: number }) => `${p.name}：${(p.value / 100).toFixed(2)}（${p.percent}%）`,
+        formatter: (p: { name: string; value: number; percent: number }) => `${p.name}：${p.value.toFixed(2)}（${p.percent}%）`,
       },
       legend: { bottom: 0, icon: 'circle', itemWidth: 12, itemHeight: 12, textStyle: { fontSize: 13, ...textStyle() } },
       series: [{
@@ -140,9 +140,9 @@ function renderCharts() {
     }
     const hasData = values.some((v) => v > 0)
     barChart.setOption({
-      title: { text: hasData ? `${props.selectedMonth.slice(0, 4)}年${props.selectedMonth.slice(5, 7)}月每日支出` : '暂无支出数据', left: 'center', top: 4, textStyle: { fontSize: 16, ...textStyle() } },
+      title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
-      grid: { left: 8, right: 8, top: 42, bottom: 8, containLabel: true },
+      grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
       xAxis: { type: 'category', data: values.map((_, i) => `${i + 1}日`), axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
       yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
       series: [{ type: 'bar', data: values, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
@@ -159,9 +159,9 @@ function renderCharts() {
     const windowLabels = monthWindow.value.map(([y, m]) => (y === Number(props.selectedMonth.slice(0, 4)) ? '' : `${y}年`) + `${m}月`)
     const windowHasData = windowValues.some((v) => v > 0)
     windowChart?.setOption({
-      title: { text: windowHasData ? '近6个月支出对比' : '暂无支出数据', left: 'center', top: 4, textStyle: { fontSize: 16, ...textStyle() } },
+      title: { text: windowHasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
-      grid: { left: 8, right: 8, top: 42, bottom: 8, containLabel: true },
+      grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
       xAxis: { type: 'category', data: windowLabels, axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
       yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
       series: [{ type: 'bar', data: windowValues, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
@@ -177,9 +177,9 @@ function renderCharts() {
     })
     const hasData = monthValues.some((v) => v > 0)
     barChart.setOption({
-      title: { text: hasData ? `${props.selectedMonth.slice(0, 4)}年月度支出` : '暂无支出数据', left: 'center', top: 4, textStyle: { fontSize: 16, ...textStyle() } },
+      title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
-      grid: { left: 8, right: 8, top: 42, bottom: 8, containLabel: true },
+      grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
       xAxis: { type: 'category', data: monthValues.map((_, i) => `${i + 1}月`), axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
       yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
       series: [{ type: 'bar', data: monthValues, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
@@ -245,9 +245,18 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="chart-box"><div ref="ringEl" class="chart chart--ring"></div></div>
-    <div class="chart-box"><div ref="barEl" class="chart"></div></div>
-    <div v-if="props.scope === 'month'" class="chart-box"><div ref="windowEl" class="chart"></div></div>
+    <div class="chart-box">
+      <h3 class="chart-title">{{ periodText }}分类支出占比</h3>
+      <div ref="ringEl" class="chart chart--ring"></div>
+    </div>
+    <div class="chart-box">
+      <h3 class="chart-title">{{ periodText }}{{ props.scope === 'month' ? '每日支出' : '月度支出' }}</h3>
+      <div ref="barEl" class="chart"></div>
+    </div>
+    <div v-if="props.scope === 'month'" class="chart-box">
+      <h3 class="chart-title">近6个月支出对比</h3>
+      <div ref="windowEl" class="chart"></div>
+    </div>
   </div>
 </template>
 

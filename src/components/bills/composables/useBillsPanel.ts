@@ -146,6 +146,22 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     }
   }
 
+  async function handleDeleteFromModal() {
+    const bill = modalState.value.editing
+    if (!bill) return
+    const confirmed = window.confirm('确定删除这笔账单记录？')
+    if (!confirmed) return
+    if (!workspacePath.value) return
+
+    try {
+      await window.dairy.deleteBill({ workspacePath: workspacePath.value, id: bill.id })
+      closeModal()
+      await Promise.all([reloadMonthRecords(), reloadYearRecords()])
+    } catch (error) {
+      statusMessage.value = getReadableErrorMessage(error, '删除账单失败')
+    }
+  }
+
   async function handleCategoriesChanged() {
     await loadCategories()
     await Promise.all([reloadMonthRecords(), reloadYearRecords()])
@@ -176,6 +192,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     detailRecords,
     detailSummary,
     handleCategoriesChanged,
+    handleDeleteFromModal,
     handleDeleteRecord,
     handleExportExcel,
     handleRecordSaved,
@@ -212,7 +229,7 @@ export function groupBillsByDay(records: Bill[]): Array<[string, Bill[]]> {
     list.push(record)
     map.set(record.date, list)
   }
-  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]))
 }
 
 export { aggregateRecords, formatCents, formatPlainCents, resolveCategory }

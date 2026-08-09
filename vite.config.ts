@@ -57,6 +57,15 @@ export default defineConfig({
     electron({
       main: {
         entry: 'electron/main.ts',
+        vite: {
+          build: {
+            rollupOptions: {
+              // better-sqlite3 的 bindings 依赖在 ESM bundle 中会引用未定义的 __filename，
+              // exceljs 体积大且为纯 CJS，均交给 Node 原生加载。
+              external: ['better-sqlite3', 'exceljs'],
+            },
+          },
+        },
         onstart() {
           startElectronProcess()
         },
