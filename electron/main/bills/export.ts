@@ -47,7 +47,7 @@ export async function exportBillsExcel(workspacePath: string): Promise<BillsExpo
 
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: '导出记账 Excel',
-    defaultPath: path.join(workspacePath, 'bills.xlsx'),
+    defaultPath: path.join(workspacePath, '个人账单.xlsx'),
     filters: [{ name: 'Excel 工作簿', extensions: ['xlsx'] }],
   })
 
