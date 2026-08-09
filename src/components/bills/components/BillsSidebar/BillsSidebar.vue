@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, ChevronsLeft, ChevronsRight, Download, Pencil, 
 import { useBillsSidebar, type BillsSidebarEmits, type BillsSidebarProps } from '../../composables/useBillsSidebar'
 import { iconForName } from '../../bills-icons'
 import YearPickerGrid from '../../../shared/YearPickerGrid.vue'
+import BillsRenameModal from '../BillsRenameModal/BillsRenameModal.vue'
 
 const props = defineProps<BillsSidebarProps>()
 const emit = defineEmits<BillsSidebarEmits>()
@@ -15,6 +16,8 @@ const {
   handleCreateCategory,
   handleCreateKeydown,
   handleDeleteCategory,
+  handleRenameCancel,
+  handleRenameConfirm,
   handleRenamePrompt,
   hasDataYears,
   isCategoryPanelExpanded,
@@ -22,6 +25,7 @@ const {
   monthCells,
   monthPickerTitle,
   newCategoryName,
+  renameState,
   selectMonth,
   shiftMonthPickerYear,
   switchCategoryTab,
@@ -197,6 +201,12 @@ const {
       <p v-if="statusMessage" class="report-status-inline">{{ statusMessage }}</p>
     </section>
   </div>
+
+  <BillsRenameModal
+    :state="renameState"
+    @close="handleRenameCancel"
+    @confirm="handleRenameConfirm"
+  />
 </template>
 
 <style scoped src="./BillsSidebar.css"></style>

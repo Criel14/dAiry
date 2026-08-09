@@ -1,0 +1,74 @@
+.rename-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay-scrim);
+  backdrop-filter: blur(2px);
+}
+
+.rename-card {
+  display: grid;
+  gap: 0.85rem;
+  width: min(320px, calc(100vw - 3rem));
+  padding: 1.25rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-modal);
+}
+
+.rename-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.rename-input {
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-text-main);
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.rename-input:focus {
+  border-color: var(--color-border-strong);
+}
+
+.rename-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.rename-button {
+  min-height: 2.3rem;
+  padding: 0 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-interactive);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.rename-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft-sm);
+}
+
+.rename-button--primary {
+  background: var(--color-accent-soft);
+  border-color: var(--color-border-strong);
+}

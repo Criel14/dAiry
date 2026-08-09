@@ -104,6 +104,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   const newCategoryName = ref('')
   const categoryError = ref('')
   const isMutatingCategory = ref(false)
+  const renameState = ref<{ type: BillType; name: string } | null>(null)
 
   watch(
     () => props.selectedMonth,
@@ -183,31 +184,34 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
     }
   }
 
-  async function handleRenameCategory(type: BillType, name: string, newName: string) {
-    if (isMutatingCategory.value) return
+  function handleRenamePrompt(name: string) {
+    renameState.value = { type: categoryPanelTab.value, name }
+  }
+
+  async function handleRenameConfirm(newName: string) {
+    const state = renameState.value
+    if (!state || isMutatingCategory.value) return
     if (!props.workspacePath) return
     isMutatingCategory.value = true
     try {
       await window.dairy.renameBillCategory({
         workspacePath: props.workspacePath,
-        type,
-        name,
+        type: state.type,
+        name: state.name,
         newName,
       })
+      renameState.value = null
       emit('categoryChanged')
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '重命名分类失败')
+      renameState.value = null
     } finally {
       isMutatingCategory.value = false
     }
   }
 
-  function handleRenamePrompt(name: string) {
-    const newName = window.prompt('输入新的分类名', name)
-    if (!newName || newName.trim() === '' || newName.trim() === name) {
-      return
-    }
-    void handleRenameCategory(categoryPanelTab.value, name, newName.trim())
+  function handleRenameCancel() {
+    renameState.value = null
   }
 
   async function handleDeleteCategory(type: BillType, name: string) {
@@ -238,6 +242,8 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
     handleCreateCategory,
     handleCreateKeydown,
     handleDeleteCategory,
+    handleRenameConfirm,
+    handleRenameCancel,
     handleRenamePrompt,
     hasDataYears,
     isCategoryPanelExpanded,
@@ -245,6 +251,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
     monthCells,
     monthPickerTitle,
     newCategoryName,
+    renameState,
     selectMonth,
     shiftMonthPickerYear,
     switchCategoryTab,
