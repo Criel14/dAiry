@@ -55,7 +55,7 @@ function normalizeUiZoomFactor(rawValue: unknown) {
 }
 
 function normalizeTheme(rawValue: unknown): AppTheme {
-  return rawValue === 'light' || rawValue === 'dark' || rawValue === 'system'
+  return rawValue === 'light' || rawValue === 'dark' || rawValue === 'pure' || rawValue === 'system'
     ? rawValue
     : 'system'
 }
