@@ -1,9 +1,9 @@
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { readAppConfig } from '../app-config'
 import { writeJournalEntryFull } from '../journal/write-flow'
 import { generateRangeReport, getRangeReport } from '../report'
 import { resolveTargetReportId, validateReportRange } from '../report/range'
+import { resolveWorkspacePath, toErrorResult, toJsonTextResult } from './helpers'
 
 const REPORT_PRESETS = ['month', 'year', 'custom'] as const
 const REPORT_SECTIONS = [
@@ -17,29 +17,6 @@ const REPORT_SECTIONS = [
 
 // reportId -> 后台生成失败时的中文错误信息；生成成功后删除
 const reportTaskErrors = new Map<string, string>()
-
-async function resolveActiveWorkspace(): Promise<string> {
-  const config = await readAppConfig()
-  if (config.lastOpenedWorkspace) {
-    return config.lastOpenedWorkspace
-  }
-
-  throw new Error('当前还没有打开的工作区，请先在 dAiry 中打开一个工作区。')
-}
-
-function toJsonTextResult(data: unknown) {
-  return {
-    content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }],
-  }
-}
-
-function toErrorResult(error: unknown) {
-  const message = error instanceof Error ? error.message : '操作失败，请稍后重试。'
-  return {
-    content: [{ type: 'text' as const, text: message }],
-    isError: true,
-  }
-}
 
 export function registerWriteTools(server: McpServer) {
   server.registerTool(
@@ -67,7 +44,7 @@ export function registerWriteTools(server: McpServer) {
     },
     async ({ date, body, weather, location, mode, organize }) => {
       try {
-        const workspacePath = await resolveActiveWorkspace()
+        const workspacePath = await resolveWorkspacePath()
         const result = await writeJournalEntryFull({
           workspacePath,
           date,
@@ -104,7 +81,7 @@ export function registerWriteTools(server: McpServer) {
     },
     async ({ preset, startDate, endDate, requestedSections }) => {
       try {
-        const workspacePath = await resolveActiveWorkspace()
+        const workspacePath = await resolveWorkspacePath()
         const input = {
           workspacePath,
           preset,
@@ -155,7 +132,7 @@ export function registerWriteTools(server: McpServer) {
     },
     async ({ reportId }) => {
       try {
-        const workspacePath = await resolveActiveWorkspace()
+        const workspacePath = await resolveWorkspacePath()
         const normalizedId = reportId.trim()
         const taskError = reportTaskErrors.get(normalizedId)
         if (taskError) {

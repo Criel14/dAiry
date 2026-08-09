@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
-import { readAppConfig } from '../app-config'
 import {
   batchReadEntries,
   getMetaIndex,
@@ -8,41 +7,9 @@ import {
   grepDiaryText,
   searchMemory,
 } from '../memory'
+import { resolveWorkspacePath, toErrorResult, toJsonTextResult, workspacePathSchema } from './helpers'
 
 const YEAR_PATTERN = /^\d{4}$/
-
-const workspacePathSchema = z
-  .string()
-  .optional()
-  .describe('工作区根目录绝对路径；缺省时使用 dAiry 当前打开的工作区')
-
-async function resolveWorkspacePath(rawWorkspacePath?: string): Promise<string> {
-  const explicitWorkspacePath = typeof rawWorkspacePath === 'string' ? rawWorkspacePath.trim() : ''
-  if (explicitWorkspacePath) {
-    return explicitWorkspacePath
-  }
-
-  const config = await readAppConfig()
-  if (config.lastOpenedWorkspace) {
-    return config.lastOpenedWorkspace
-  }
-
-  throw new Error('当前还没有可用的工作区，请先在 dAiry 中打开一个工作区。')
-}
-
-function toJsonTextResult(data: unknown) {
-  return {
-    content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }],
-  }
-}
-
-function toErrorResult(error: unknown) {
-  const message = error instanceof Error ? error.message : '操作失败，请稍后重试。'
-  return {
-    content: [{ type: 'text' as const, text: message }],
-    isError: true,
-  }
-}
 
 export function createMemoryMcpServer(): McpServer {
   const server = new McpServer({ name: 'dairy-mcp', version: '2.0.0' })

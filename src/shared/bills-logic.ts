@@ -1,4 +1,11 @@
-import { DEFAULT_CATEGORY_PALETTE, FALLBACK_CATEGORY_NAME, type Bill, type BillCategory, type BillType } from '../types/bills'
+import {
+  DEFAULT_CATEGORY_PALETTE,
+  FALLBACK_CATEGORY_NAME,
+  type Bill,
+  type BillCategory,
+  type BillQueryRecord,
+  type BillType,
+} from '../types/bills'
 
 export interface ResolvedCategory {
   type: BillType
@@ -154,6 +161,27 @@ export function expenseTotal(records: Bill[], categories: BillCategory[]): numbe
     }
   }
   return total
+}
+
+export function filterBillsByType(
+  records: Bill[],
+  type: BillType,
+  categories: BillCategory[],
+): Bill[] {
+  return records.filter(
+    (record) => resolveCategory(categories, record.amountCents, record.category).type === type,
+  )
+}
+
+export function toBillQueryRecord(bill: Bill): BillQueryRecord {
+  return {
+    id: bill.id,
+    date: bill.date,
+    amountCents: bill.amountCents,
+    amount: bill.amountCents / 100,
+    category: bill.category,
+    note: bill.note,
+  }
 }
 
 export function filterBillsByMonth(records: Bill[], month: string): Bill[] {

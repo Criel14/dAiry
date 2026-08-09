@@ -7,6 +7,8 @@ import type {
   BillsListMonthInput,
   BillsListMonthsInput,
   BillsListYearInput,
+  BillsQueryInput,
+  BillsQueryResult,
   BillsRecordInput,
   BillsRenameCategoryInput,
   BillsUpdateInput,
@@ -18,7 +20,15 @@ import {
   renameBillCategory,
 } from './categories'
 import { ensureBillsDatabase, getBillsDatabase, mapRowToBill } from './db'
-import { assertValidAmountCents, assertValidDate, assertValidNote, resolveCategory } from '../../../src/shared/bills-logic'
+import {
+  aggregateRecords,
+  assertValidAmountCents,
+  assertValidDate,
+  assertValidNote,
+  filterBillsByType,
+  resolveCategory,
+  toBillQueryRecord,
+} from '../../../src/shared/bills-logic'
 
 function nowIso() {
   return new Date().toISOString()
@@ -102,6 +112,91 @@ export async function getAllBills(workspacePath: string): Promise<Bill[]> {
   }
   const rows = db.prepare('SELECT * FROM bills ORDER BY date ASC, id ASC').all() as import('./db').BillRow[]
   return rows.map(mapRowToBill)
+}
+
+function daysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate()
+}
+
+function expandQueryRange(range: BillsQueryInput['range']): { start: string; end: string } {
+  if ('month' in range) {
+    const match = /^(\d{4})-(\d{2})$/.exec(range.month)
+    if (!match) {
+      throw new Error('月份格式无效，必须为 YYYY-MM。')
+    }
+    const year = Number(match[1])
+    const month = Number(match[2])
+    if (month < 1 || month > 12) {
+      throw new Error('月份格式无效，必须为 YYYY-MM。')
+    }
+    const days = daysInMonth(year, month)
+    return { start: `${range.month}-01`, end: `${range.month}-${String(days).padStart(2, '0')}` }
+  }
+
+  if ('year' in range) {
+    if (!/^\d{4}$/.test(range.year)) {
+      throw new Error('年份格式无效，必须为 YYYY。')
+    }
+    return {
+      start: `${range.year}-01-01`,
+      end: `${range.year}-12-31`,
+    }
+  }
+
+  assertValidDate(range.start)
+  assertValidDate(range.end)
+  if (range.start > range.end) {
+    throw new Error('开始日期不能晚于结束日期。')
+  }
+  return { start: range.start, end: range.end }
+}
+
+function escapeLikeKeyword(keyword: string): string {
+  return keyword.replace(/[\\%_]/g, (char) => `\\${char}`)
+}
+
+export async function queryBills(input: BillsQueryInput): Promise<BillsQueryResult> {
+  const { start, end } = expandQueryRange(input.range)
+  const category = input.category?.trim() || null
+  const keyword = input.keyword?.trim() || null
+  const type = input.type ?? null
+
+  const db = getBillsDatabase(input.workspacePath)
+  let rows: import('./db').BillRow[] = []
+  if (db) {
+    const conditions: string[] = ['date >= ?', 'date <= ?']
+    const params: Array<string | number> = [start, end]
+    if (category) {
+      conditions.push('category = ?')
+      params.push(category)
+    }
+    if (keyword) {
+      conditions.push("note LIKE ? ESCAPE '\\'")
+      params.push(`%${escapeLikeKeyword(keyword)}%`)
+    }
+    rows = db
+      .prepare(`SELECT * FROM bills WHERE ${conditions.join(' AND ')} ORDER BY date ASC, id ASC`)
+      .all(...params) as import('./db').BillRow[]
+  }
+
+  const bills = rows.map(mapRowToBill)
+  const categories = await getBillCategories(input.workspacePath)
+  const matched = type ? filterBillsByType(bills, type, categories) : bills
+  const cents = aggregateRecords(matched, categories)
+
+  return {
+    range: { start, end },
+    filter: { category, type, keyword },
+    summary: {
+      income: cents.income / 100,
+      expense: cents.expense / 100,
+      net: cents.net / 100,
+      count: cents.count,
+    },
+    truncated: matched.length > input.limit,
+    limit: input.limit,
+    records: matched.slice(0, input.limit).map(toBillQueryRecord),
+  }
 }
 
 export async function createBill(input: BillsRecordInput): Promise<Bill> {

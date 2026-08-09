@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import type { McpRuntimeStatus } from '../../../src/types/mcp'
 import { createMemoryMcpServer } from './tools'
 import { registerWriteTools } from './write-tools'
+import { registerBillsTools } from './bills-tools'
 
 const MCP_ENDPOINT_PATH = '/mcp'
 const MCP_LISTEN_HOST = '127.0.0.1'
@@ -44,6 +45,7 @@ function handleMcpRequest(req: http.IncomingMessage, res: http.ServerResponse) {
   void (async () => {
     const mcpServer = createMemoryMcpServer()
     registerWriteTools(mcpServer)
+    registerBillsTools(mcpServer)
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined })
 
     res.on('close', () => {

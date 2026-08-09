@@ -4,10 +4,12 @@ import {
   assertValidAmountCents,
   assertValidDate,
   assertValidNote,
+  filterBillsByType,
   formatCents,
   formatPlainCents,
   pickPaletteColor,
   resolveCategory,
+  toBillQueryRecord,
   toCents,
   typeFromAmount,
 } from '../../src/shared/bills-logic'
@@ -86,6 +88,55 @@ describe('aggregateRecords', () => {
     const result = aggregateRecords(records, CATEGORIES)
     expect(result.expense).toBe(100)
     expect(result.income).toBe(0)
+  })
+})
+
+describe('filterBillsByType', () => {
+  const records = [
+    makeBill({ id: 1, amountCents: -2346, category: '餐饮' }),
+    makeBill({ id: 2, amountCents: -5000, category: '转账' }),
+    makeBill({ id: 3, amountCents: 12000, category: '工资' }),
+    makeBill({ id: 4, amountCents: 5000, category: '转账' }),
+    makeBill({ id: 5, amountCents: -100000, category: '理财' }),
+  ]
+
+  it('filters expense by resolved category (sign disambiguation)', () => {
+    const result = filterBillsByType(records, 'expense', CATEGORIES)
+    expect(result.map((record) => record.id)).toEqual([1, 2])
+  })
+
+  it('filters income by resolved category', () => {
+    const result = filterBillsByType(records, 'income', CATEGORIES)
+    expect(result.map((record) => record.id)).toEqual([3, 4])
+  })
+
+  it('filters transfer by name lookup', () => {
+    const result = filterBillsByType(records, 'transfer', CATEGORIES)
+    expect(result.map((record) => record.id)).toEqual([5])
+  })
+
+  it('returns empty when no record matches', () => {
+    const result = filterBillsByType([], 'expense', CATEGORIES)
+    expect(result).toEqual([])
+  })
+})
+
+describe('toBillQueryRecord', () => {
+  it('converts cents to yuan amount alongside facts', () => {
+    const record = toBillQueryRecord(makeBill({ id: 7, amountCents: -3550, category: '餐饮', note: '午饭' }))
+    expect(record).toEqual({
+      id: 7,
+      date: '2026-08-01',
+      amountCents: -3550,
+      amount: -35.5,
+      category: '餐饮',
+      note: '午饭',
+    })
+  })
+
+  it('keeps positive amounts for income', () => {
+    const record = toBillQueryRecord(makeBill({ amountCents: 12000 }))
+    expect(record.amount).toBe(120)
   })
 })
 

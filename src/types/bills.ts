@@ -83,6 +83,45 @@ export interface BillsWindowTotal {
   total: number
 }
 
+export type BillsQueryRange =
+  | { month: string }
+  | { year: string }
+  | { start: string; end: string }
+
+export interface BillsQueryInput {
+  workspacePath: string
+  range: BillsQueryRange
+  category?: string
+  type?: BillType
+  keyword?: string
+  limit: number
+}
+
+export interface BillQueryRecord {
+  id: number
+  date: string
+  amountCents: number
+  amount: number
+  category: string
+  note: string
+}
+
+export interface BillsQuerySummary {
+  income: number
+  expense: number
+  net: number
+  count: number
+}
+
+export interface BillsQueryResult {
+  range: { start: string; end: string }
+  filter: { category: string | null; type: BillType | null; keyword: string | null }
+  summary: BillsQuerySummary
+  truncated: boolean
+  limit: number
+  records: BillQueryRecord[]
+}
+
 export const BILL_TYPES: BillType[] = ['expense', 'income', 'transfer']
 
 export const BILL_TYPE_LABELS: Record<BillType, string> = {
