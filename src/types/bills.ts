@@ -121,3 +121,8 @@ export const BUILTIN_CATEGORIES: BillCategory[] = [
   { type: 'transfer', name: '理财', color: '#8A7FA8', icon: 'piggy-bank', builtin: true },
   { type: 'transfer', name: '其他', color: '#8B948E', icon: 'ellipsis', builtin: true },
 ]
+
+export interface BillsWindowTotal {
+  period: string
+  total: number
+}

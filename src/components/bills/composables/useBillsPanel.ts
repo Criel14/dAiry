@@ -1,8 +1,17 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import dayjs from 'dayjs'
-import type { Bill, BillCategory } from '../../../types/bills'
+import type { Bill, BillCategory, BillsWindowTotal } from '../../../types/bills'
 import { getReadableErrorMessage } from '../../../utils/error'
-import { aggregateRecords, formatCents, formatPlainCents, resolveCategory } from '../../../shared/bills-logic'
+import {
+  aggregateRecords,
+  buildMonthWindow,
+  buildYearWindow,
+  expenseTotal,
+  filterBillsByMonth,
+  formatCents,
+  formatPlainCents,
+  resolveCategory,
+} from '../../../shared/bills-logic'
 
 export interface BillsModalState {
   open: boolean
@@ -20,7 +29,11 @@ export interface BillsRecordForm {
 export function useBillsPanel(workspacePath: Ref<string | null>) {
   const selectedMonth = ref(dayjs().format('YYYY-MM'))
   const activeTab = ref<'detail' | 'stats'>('detail')
-  const statsScope = ref<'month' | 'year'>('month')
+  const statsMode = ref<'month' | 'year'>('month')
+  const selectedYear = ref(dayjs().year())
+  const detailMonthFilter = ref<'all' | string>('all')
+  const windowTotals = ref<BillsWindowTotal[]>([])
+  let windowLoadSequence = 0
   const monthRecords = ref<Bill[]>([])
   const yearRecords = ref<Bill[]>([])
   const categories = ref<BillCategory[]>([])
@@ -34,13 +47,25 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   let categoryLoadSequence = 0
 
   const hasWorkspace = computed(() => Boolean(workspacePath.value))
-  const selectedYear = computed(() => selectedMonth.value.slice(0, 4))
+  const selectedYearText = computed(() => String(selectedYear.value))
+  const statsYear = computed(() =>
+    statsMode.value === 'year' ? selectedYearText.value : selectedMonth.value.slice(0, 4),
+  )
 
-  const detailRecords = computed(() => monthRecords.value)
+  const detailRecords = computed(() => {
+    if (statsMode.value === 'year') {
+      if (detailMonthFilter.value === 'all') {
+        return yearRecords.value
+      }
+      return filterBillsByMonth(yearRecords.value, detailMonthFilter.value)
+    }
+    return monthRecords.value
+  })
+
   const detailSummary = computed(() => aggregateRecords(detailRecords.value, categories.value))
 
   const statsRecords = computed(() =>
-    statsScope.value === 'month' ? monthRecords.value : yearRecords.value,
+    statsMode.value === 'month' ? monthRecords.value : yearRecords.value,
   )
   const statsSummary = computed(() => aggregateRecords(statsRecords.value, categories.value))
 
@@ -54,7 +79,16 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   watch(selectedMonth, () => {
     void reloadMonthRecords()
+    void reloadWindowTotals()
+  })
+
+  watch(statsYear, () => {
     void reloadYearRecords()
+    void reloadWindowTotals()
+  })
+
+  watch(statsMode, () => {
+    void reloadWindowTotals()
   })
 
   async function handleWorkspaceChange() {
@@ -65,7 +99,12 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
       return
     }
 
-    await Promise.all([loadCategories(), reloadMonthRecords(), reloadYearRecords()])
+    await Promise.all([
+      loadCategories(),
+      reloadMonthRecords(),
+      reloadYearRecords(),
+      reloadWindowTotals(),
+    ])
   }
 
   async function loadCategories() {
@@ -106,10 +145,50 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
       statusMessage.value = ''
       const records = await window.dairy.listBillsByYear({
         workspacePath: workspacePath.value,
-        year: selectedYear.value,
+        year: statsYear.value,
       })
       if (current === yearLoadSequence) {
         yearRecords.value = records
+      }
+    } catch (error) {
+      statusMessage.value = getReadableErrorMessage(error, '读取账单失败')
+    }
+  }
+
+  async function reloadWindowTotals() {
+    if (!workspacePath.value) {
+      windowTotals.value = []
+      return
+    }
+    const current = ++windowLoadSequence
+    try {
+      statusMessage.value = ''
+      if (statsMode.value === 'month') {
+        const periods = buildMonthWindow(selectedMonth.value, 6)
+        const results = await Promise.all(
+          periods.map((period) =>
+            window.dairy.listBillsByMonth({ workspacePath: workspacePath.value!, month: period }),
+          ),
+        )
+        if (current === windowLoadSequence) {
+          windowTotals.value = periods.map((period, index) => ({
+            period,
+            total: expenseTotal(results[index], categories.value),
+          }))
+        }
+      } else {
+        const periods = buildYearWindow(selectedYearText.value, 6)
+        const results = await Promise.all(
+          periods.map((year) =>
+            window.dairy.listBillsByYear({ workspacePath: workspacePath.value!, year }),
+          ),
+        )
+        if (current === windowLoadSequence) {
+          windowTotals.value = periods.map((period, index) => ({
+            period,
+            total: expenseTotal(results[index], categories.value),
+          }))
+        }
       }
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '读取账单失败')
@@ -130,7 +209,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   async function handleRecordSaved() {
     closeModal()
-    await Promise.all([reloadMonthRecords(), reloadYearRecords()])
+    await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 
   async function handleDeleteRecord(bill: Bill) {
@@ -140,7 +219,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
     try {
       await window.dairy.deleteBill({ workspacePath: workspacePath.value, id: bill.id })
-      await Promise.all([reloadMonthRecords(), reloadYearRecords()])
+      await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '删除账单失败')
     }
@@ -156,7 +235,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     try {
       await window.dairy.deleteBill({ workspacePath: workspacePath.value, id: bill.id })
       closeModal()
-      await Promise.all([reloadMonthRecords(), reloadYearRecords()])
+      await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '删除账单失败')
     }
@@ -164,7 +243,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   async function handleCategoriesChanged() {
     await loadCategories()
-    await Promise.all([reloadMonthRecords(), reloadYearRecords()])
+    await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 
   async function handleExportExcel() {
@@ -189,6 +268,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     activeTab,
     categories,
     closeModal,
+    detailMonthFilter,
     detailRecords,
     detailSummary,
     handleCategoriesChanged,
@@ -204,11 +284,13 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     openCreateModal,
     openEditModal,
     selectedMonth,
+    selectedYear,
     sidebarStatusMessage,
+    statsMode,
     statsRecords,
-    statsScope,
     statsSummary,
     statusMessage,
+    windowTotals,
     yearRecords,
   }
 }
