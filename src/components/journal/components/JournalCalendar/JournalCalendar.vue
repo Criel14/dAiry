@@ -215,7 +215,12 @@ function getDayTitle(day: {
 </script>
 
 <template>
-  <section class="calendar-panel">
+  <div class="calendar-section">
+    <div class="calendar-head">
+      <h2 class="calendar-panel-title">日记</h2>
+    </div>
+
+    <section class="calendar-panel">
     <header class="calendar-toolbar">
       <div class="calendar-switches">
         <button class="toolbar-button" type="button" title="上一年" aria-label="上一年" :disabled="disabled" @click="shiftYear(-1)">
@@ -262,7 +267,8 @@ function getDayTitle(day: {
     <button class="today-button" type="button" :disabled="disabled" @click="goToToday">
       回到今天
     </button>
-  </section>
+    </section>
+  </div>
 </template>
 
 <style scoped src="./JournalCalendar.css"></style>

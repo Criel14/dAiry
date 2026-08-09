@@ -4,6 +4,17 @@
   gap: 1rem;
 }
 
+.timeline-head {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.timeline-panel-title {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--color-text-main);
+}
+
 .timeline-actions {
   display: grid;
   gap: 0.75rem;

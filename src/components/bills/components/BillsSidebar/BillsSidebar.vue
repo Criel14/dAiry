@@ -41,7 +41,7 @@ const {
 
   <div v-else class="bills-sidebar-stack">
     <section class="panel-card">
-      <h3 class="panel-title">记账月份</h3>
+      <h3 class="panel-title panel-title--hero">记账</h3>
 
       <div class="preset-tabs" role="tablist">
         <button

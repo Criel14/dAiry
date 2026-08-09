@@ -49,7 +49,7 @@ const yearReportKeysSet = computed(() =>
 
   <div v-else class="reports-sidebar-stack">
     <section class="panel-card">
-      <h3 class="panel-title">生成报告</h3>
+      <h3 class="panel-title panel-title--hero">生成报告</h3>
 
       <div class="preset-tabs">
         <button

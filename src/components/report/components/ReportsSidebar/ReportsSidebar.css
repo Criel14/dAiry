@@ -31,6 +31,13 @@
   color: var(--color-text-subtle);
 }
 
+.panel-title--hero {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--color-text-main);
+}
+
 .reports-sidebar-empty p,
 .empty-inline {
   margin: 0;

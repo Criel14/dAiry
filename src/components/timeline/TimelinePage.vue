@@ -17,7 +17,7 @@ const emit = defineEmits<{
   <div class="timeline-page">
     <header class="timeline-header">
       <div class="timeline-heading">
-        <h2 class="timeline-title">时间轴</h2>
+        <h2 class="timeline-title">{{ selectedYear }} 年大事件时间轴</h2>
       </div>
     </header>
 

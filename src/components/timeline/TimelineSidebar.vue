@@ -27,6 +27,10 @@ function handleRebuild() {
 
 <template>
   <aside class="timeline-sidebar">
+    <div class="timeline-head">
+      <h2 class="timeline-panel-title">时间轴</h2>
+    </div>
+
     <YearPickerGrid
       :selected-year="selectedYear"
       :has-data-years="hasDataYears"

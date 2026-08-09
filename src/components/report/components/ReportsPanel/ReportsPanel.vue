@@ -70,7 +70,6 @@ const {
     <header class="reports-header">
       <div class="reports-heading">
         <h2 class="reports-title">总结报告</h2>
-        <p class="reports-description">这段时间你过得怎么样呢</p>
       </div>
 
       <div class="reports-actions">

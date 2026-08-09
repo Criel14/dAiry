@@ -1,4 +1,20 @@
-﻿.calendar-panel {
+﻿.calendar-section {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.calendar-head {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.calendar-panel-title {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--color-text-main);
+}
+
+.calendar-panel {
   display: grid;
   gap: 1rem;
   padding: 1rem;
