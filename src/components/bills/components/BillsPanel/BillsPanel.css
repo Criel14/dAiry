@@ -257,8 +257,31 @@
   height: 0.85rem;
 }
 
-.stats-placeholder {
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--color-text-soft);
+.stats-view {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.stats-scope-tabs {
+  display: inline-flex;
+  justify-self: start;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--color-surface-status);
+}
+
+.stats-scope-tab {
+  min-height: 2.1rem;
+  padding: 0 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+}
+
+.stats-scope-tab--active {
+  background: var(--color-surface-nav-active);
+  color: var(--color-text-main);
+  font-weight: 600;
 }

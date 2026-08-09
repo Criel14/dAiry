@@ -12,6 +12,7 @@ import {
 } from '../../composables/useBillsPanel'
 import { iconForName } from '../../bills-icons'
 import BillsRecordModal from '../BillsRecordModal/BillsRecordModal.vue'
+import BillsCharts from '../BillsCharts/BillsCharts.vue'
 
 const props = defineProps<{
   hasWorkspace: boolean
@@ -147,7 +148,32 @@ function recordColor(record: Bill): string {
         </div>
       </template>
 
-      <div v-else class="stats-placeholder">统计视图将在 Task 11 实现</div>
+      <div v-else class="stats-view">
+        <div class="stats-scope-tabs">
+          <button
+            class="stats-scope-tab"
+            :class="{ 'stats-scope-tab--active': statsScope === 'month' }"
+            type="button"
+            @click="emit('update:statsScope', 'month')"
+          >
+            本月
+          </button>
+          <button
+            class="stats-scope-tab"
+            :class="{ 'stats-scope-tab--active': statsScope === 'year' }"
+            type="button"
+            @click="emit('update:statsScope', 'year')"
+          >
+            全年
+          </button>
+        </div>
+        <BillsCharts
+          :records="statsScope === 'month' ? monthRecords : yearRecords"
+          :categories="categories"
+          :scope="statsScope"
+          :selected-month="selectedMonth"
+        />
+      </div>
     </div>
 
     <BillsRecordModal

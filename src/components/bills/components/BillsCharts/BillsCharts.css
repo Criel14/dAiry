@@ -1,0 +1,67 @@
+.charts-stack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+}
+
+.stat-card {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-surface-elevated);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+}
+
+.stat-value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin-top: 0.3rem;
+}
+
+.stat-expense {
+  color: var(--color-text-danger);
+}
+
+.stat-income {
+  color: var(--color-chart-positive);
+}
+
+.stat-net {
+  color: var(--color-text-main);
+}
+
+.chart-box {
+  padding: 0.7rem;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-surface-elevated);
+}
+
+.chart {
+  width: 100%;
+  height: 420px;
+}
+
+.chart--ring {
+  height: 380px;
+}
+
+@media (max-width: 700px) {
+  .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart {
+    height: 340px;
+  }
+}
