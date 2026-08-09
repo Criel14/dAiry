@@ -9,7 +9,6 @@ export interface BillsSidebarProps {
   workspacePath: string | null
   selectedMonth: string
   categories: BillCategory[]
-  isLoadingCategories: boolean
   isExporting: boolean
   statusMessage: string
 }

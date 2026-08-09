@@ -34,7 +34,6 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   let categoryLoadSequence = 0
 
   const hasWorkspace = computed(() => Boolean(workspacePath.value))
-  const isLoadingCategories = computed(() => false)
   const selectedYear = computed(() => selectedMonth.value.slice(0, 4))
 
   const detailRecords = computed(() => monthRecords.value)
@@ -182,7 +181,6 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     handleRecordSaved,
     hasWorkspace,
     isLoading,
-    isLoadingCategories,
     isExporting,
     modalState,
     monthRecords,

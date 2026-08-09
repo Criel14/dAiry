@@ -120,7 +120,7 @@ function renderCharts() {
         radius: ['50%', '78%'],
         center: ['50%', '52%'],
         avoidLabelOverlap: true,
-        itemStyle: { borderColor: '#FFFFFF', borderWidth: 2, borderRadius: 4 },
+        itemStyle: { borderColor: readCssColor('--color-surface-elevated', '#FFFFFF'), borderWidth: 2, borderRadius: 4 },
         label: { show: true, formatter: '{b} {d}%', fontSize: 12, color: readCssColor('--color-text-main', '#37433A') },
         labelLine: { length: 10, length2: 8 },
         emphasis: { scaleSize: 4, label: { show: true, formatter: '{b} {d}%', fontSize: 12 } },

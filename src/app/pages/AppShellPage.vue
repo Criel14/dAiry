@@ -229,7 +229,6 @@ function handleActivitySelect(panel: RightPanel) {
           :workspace-path="workspacePath"
           :selected-month="billsPanel.selectedMonth.value"
           :categories="billsPanel.categories.value"
-          :is-loading-categories="billsPanel.isLoadingCategories.value"
           :is-exporting="billsPanel.isExporting.value"
           :status-message="billsPanel.sidebarStatusMessage.value"
           @update:selected-month="billsPanel.selectedMonth.value = $event"
