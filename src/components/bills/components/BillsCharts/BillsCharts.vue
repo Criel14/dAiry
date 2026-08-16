@@ -5,11 +5,13 @@ import { BarChart, LineChart, PieChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bills'
+import type { BillsChartJumpPayload } from '../../../../types/bills'
 import {
   aggregateRecords,
   buildDailyAxis,
   formatCents,
   formatPlainCents,
+  lastRecordedDateOfMonth,
   resolveCategory,
 } from '../../../../shared/bills-logic'
 
@@ -22,6 +24,10 @@ const props = defineProps<{
   selectedMonth: string
   scopeYear: string
   windowTotals: BillsWindowTotal[]
+}>()
+
+const emit = defineEmits<{
+  'jump-to-detail': [payload: BillsChartJumpPayload]
 }>()
 
 const ringEl = ref<HTMLElement | null>(null)
@@ -101,15 +107,49 @@ function splitLineStyle() {
 function ensureCharts() {
   if (!ringChart && ringEl.value) {
     ringChart = echarts.init(ringEl.value)
+    ringChart.on('click', (params: echarts.ECElementEvent) => {
+      const name = params.name
+      if (typeof name === 'string') {
+        emit('jump-to-detail', { kind: 'category', category: name })
+      }
+    })
   }
   if (!barChart && barEl.value) {
     barChart = echarts.init(barEl.value)
+    barChart.on('click', (params: echarts.ECElementEvent) => {
+      const index = params.dataIndex
+      const value = params.value
+      if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
+      if (props.scope === 'month') {
+        const day = String(index + 1).padStart(2, '0')
+        emit('jump-to-detail', { kind: 'day', date: `${props.selectedMonth}-${day}` })
+      } else {
+        const month = String(index + 1).padStart(2, '0')
+        emit('jump-to-detail', {
+          kind: 'monthOfYear',
+          month,
+          scrollDate: lastRecordedDateOfMonth(props.records, props.scopeYear, month),
+        })
+      }
+    })
   }
   if (!lineChart && lineEl.value) {
     lineChart = echarts.init(lineEl.value)
   }
   if (!windowChart && windowEl.value) {
     windowChart = echarts.init(windowEl.value)
+    windowChart.on('click', (params: echarts.ECElementEvent) => {
+      const index = params.dataIndex
+      const value = params.value
+      if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
+      const period = props.windowTotals[index]?.period
+      if (!period) return
+      if (props.scope === 'month') {
+        emit('jump-to-detail', { kind: 'month', month: period })
+      } else {
+        emit('jump-to-detail', { kind: 'year', year: period })
+      }
+    })
   }
 }
 
