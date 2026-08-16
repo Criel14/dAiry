@@ -107,6 +107,9 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   function handleChartJump(payload: BillsChartJumpPayload) {
     activeTab.value = 'detail'
+    if (payload.kind !== 'category') {
+      categoryFilter.value = ''
+    }
     switch (payload.kind) {
       case 'category':
         categoryFilter.value = payload.category
