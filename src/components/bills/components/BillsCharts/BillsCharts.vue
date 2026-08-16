@@ -109,9 +109,8 @@ function ensureCharts() {
     ringChart = echarts.init(ringEl.value)
     ringChart.on('click', (params: echarts.ECElementEvent) => {
       const name = params.name
-      if (typeof name === 'string') {
-        emit('jump-to-detail', { kind: 'category', category: name })
-      }
+      if (params.componentType !== 'series' || typeof name !== 'string') return
+      emit('jump-to-detail', { kind: 'category', category: name })
     })
   }
   if (!barChart && barEl.value) {
