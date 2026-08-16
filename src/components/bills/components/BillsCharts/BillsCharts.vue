@@ -180,11 +180,11 @@ function renderCharts() {
         textStyle: { fontSize: 13 },
         formatter: (p: { name: string; value: number; percent: number }) => `${p.name}：${p.value.toFixed(2)}（${p.percent}%）`,
       },
-      legend: { bottom: 0, icon: 'circle', itemWidth: 12, itemHeight: 12, textStyle: { fontSize: 13, ...textStyle() } },
+      legend: { bottom: 14, icon: 'circle', itemWidth: 12, itemHeight: 12, textStyle: { fontSize: 13, ...textStyle() } },
       series: [{
         type: 'pie',
         radius: ['50%', '78%'],
-        center: ['50%', '52%'],
+        center: ['50%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: { borderColor: readCssColor('--color-surface-elevated', '#FFFFFF'), borderWidth: 2, borderRadius: 4 },
         label: { show: true, formatter: '{b} {d}%', fontSize: 12, color: readCssColor('--color-text-main', '#37433A') },
