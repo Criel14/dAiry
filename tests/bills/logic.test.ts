@@ -304,17 +304,21 @@ describe('sliceLatestMonths', () => {
 })
 
 describe('averageDailyExpense', () => {
-  it('divides by natural days of the month', () => {
+  it('divides by full natural days when todayDay is omitted (past month)', () => {
     expect(averageDailyExpense(30000, 2026, 6)).toBe(1000)
     expect(averageDailyExpense(31000, 2026, 1)).toBe(1000)
   })
 
-  it('handles leap year February (29 days)', () => {
-    expect(averageDailyExpense(29000, 2028, 2)).toBe(1000)
+  it('divides by elapsed days of the current month', () => {
+    expect(averageDailyExpense(16000, 2026, 8, 16)).toBe(1000)
   })
 
-  it('handles non-leap February (28 days)', () => {
-    expect(averageDailyExpense(28000, 2026, 2)).toBe(1000)
+  it('clamps todayDay to the natural day count', () => {
+    expect(averageDailyExpense(30000, 2026, 6, 40)).toBe(1000)
+  })
+
+  it('handles leap year February (29 days)', () => {
+    expect(averageDailyExpense(29000, 2028, 2, 29)).toBe(1000)
   })
 
   it('rounds to the nearest cent', () => {
@@ -322,7 +326,7 @@ describe('averageDailyExpense', () => {
   })
 
   it('returns zero for no expense', () => {
-    expect(averageDailyExpense(0, 2026, 6)).toBe(0)
+    expect(averageDailyExpense(0, 2026, 8, 16)).toBe(0)
   })
 })
 

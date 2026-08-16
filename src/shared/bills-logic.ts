@@ -230,9 +230,17 @@ export function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
 }
 
-// 每日平均支出：expenseCents ÷ 指定月份自然天数，四舍五入到分
-export function averageDailyExpense(expenseCents: number, year: number, month: number): number {
-  return Math.round(expenseCents / daysInMonth(year, month))
+// 每日平均支出：expenseCents ÷ 该月已经历天数，四舍五入到分
+// 当前月传 todayDay（今天几号）按已过天数计算；过去月份省略则按当月自然天数
+export function averageDailyExpense(
+  expenseCents: number,
+  year: number,
+  month: number,
+  todayDay?: number,
+): number {
+  const fullDays = daysInMonth(year, month)
+  const days = todayDay === undefined ? fullDays : Math.min(todayDay, fullDays)
+  return Math.round(expenseCents / days)
 }
 
 // 每月平均支出：expenseCents ÷ 12，四舍五入到分

@@ -83,7 +83,9 @@ const averageExpense = computed(() => {
   const expense = aggregateRecords(props.records, props.categories).expense
   if (props.scope === 'month') {
     const [year, month] = props.selectedMonth.split('-').map(Number)
-    return averageDailyExpense(expense, year, month)
+    const now = new Date()
+    const todayDay = year === now.getFullYear() && month === now.getMonth() + 1 ? now.getDate() : undefined
+    return averageDailyExpense(expense, year, month, todayDay)
   }
   return averageMonthlyExpense(expense)
 })
