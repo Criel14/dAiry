@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, watch } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bills'
+import type { BillsChartJumpPayload } from '../../../../types/bills'
 import type { BillsModalState } from '../../composables/useBillsPanel'
 import {
   aggregateRecords,
@@ -36,6 +37,7 @@ const props = defineProps<{
   isLoading: boolean
   statusMessage: string
   modalState: BillsModalState
+  scrollTargetDate: string | null
 }>()
 
 const emit = defineEmits<{
@@ -48,6 +50,8 @@ const emit = defineEmits<{
   'record-saved': []
   deleted: []
   'load-more': []
+  'jump-to-detail': [payload: BillsChartJumpPayload]
+  'scroll-target-consumed': []
 }>()
 
 const WEEK_NAMES = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
@@ -108,6 +112,20 @@ function formatAmount(record: Bill): string {
   const type = resolveCategory(props.categories, record.amountCents, record.category).type
   return type === 'transfer' ? formatPlainCents(record.amountCents) : formatCents(record.amountCents)
 }
+
+watch(
+  () => props.scrollTargetDate,
+  (target) => {
+    if (!target) return
+    nextTick(() => {
+      document.querySelector(`.day-card[data-date="${target}"]`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+      emit('scroll-target-consumed')
+    })
+  },
+)
 </script>
 
 <template>
@@ -183,7 +201,7 @@ function formatAmount(record: Bill): string {
         </div>
 
         <div v-else class="day-list">
-          <article v-for="[date, records] in detailGroups" :key="date" class="day-card">
+          <article v-for="[date, records] in detailGroups" :key="date" class="day-card" :data-date="date">
             <header class="day-header">
               <span class="day-date">{{ dayLabel(date) }}</span>
               <span class="day-sum">
@@ -234,6 +252,7 @@ function formatAmount(record: Bill): string {
           :selected-month="selectedMonth"
           :scope-year="statsMode === 'year' ? String(selectedYear) : selectedMonth.slice(0, 4)"
           :window-totals="windowTotals"
+          @jump-to-detail="emit('jump-to-detail', $event)"
         />
       </div>
     </div>
