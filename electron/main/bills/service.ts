@@ -19,7 +19,7 @@ import {
   getBillCategories,
   renameBillCategory,
 } from './categories'
-import { ensureBillsDatabase, getBillsDatabase, mapRowToBill } from './db'
+import { mapRowToBill, withBillsDatabase, withExistingBillsDatabase } from './db'
 import {
   aggregateRecords,
   assertValidAmountCents,
@@ -54,14 +54,14 @@ export async function listBillsByMonth(input: BillsListMonthInput): Promise<Bill
     throw new Error('月份格式无效，必须为 YYYY-MM。')
   }
 
-  const db = getBillsDatabase(input.workspacePath)
-  if (!db) {
-    return []
-  }
-  const rows = db
-    .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
-    .all(`${input.month}-%`) as import('./db').BillRow[]
-  return rows.map(mapRowToBill)
+  return (
+    withExistingBillsDatabase(input.workspacePath, (db) => {
+      const rows = db
+        .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
+        .all(`${input.month}-%`) as import('./db').BillRow[]
+      return rows.map(mapRowToBill)
+    }) ?? []
+  )
 }
 
 export async function listBillsByYear(input: BillsListYearInput): Promise<Bill[]> {
@@ -69,25 +69,25 @@ export async function listBillsByYear(input: BillsListYearInput): Promise<Bill[]
     throw new Error('年份格式无效，必须为 YYYY。')
   }
 
-  const db = getBillsDatabase(input.workspacePath)
-  if (!db) {
-    return []
-  }
-  const rows = db
-    .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
-    .all(`${input.year}-%`) as import('./db').BillRow[]
-  return rows.map(mapRowToBill)
+  return (
+    withExistingBillsDatabase(input.workspacePath, (db) => {
+      const rows = db
+        .prepare('SELECT * FROM bills WHERE date LIKE ? ORDER BY date DESC, id DESC')
+        .all(`${input.year}-%`) as import('./db').BillRow[]
+      return rows.map(mapRowToBill)
+    }) ?? []
+  )
 }
 
 export async function listBillsYears(workspacePath: string): Promise<string[]> {
-  const db = getBillsDatabase(workspacePath)
-  if (!db) {
-    return []
-  }
-  const rows = db
-    .prepare('SELECT DISTINCT substr(date, 1, 4) AS period FROM bills ORDER BY period')
-    .all() as Array<{ period: string }>
-  return rows.map((row) => row.period)
+  return (
+    withExistingBillsDatabase(workspacePath, (db) => {
+      const rows = db
+        .prepare('SELECT DISTINCT substr(date, 1, 4) AS period FROM bills ORDER BY period')
+        .all() as Array<{ period: string }>
+      return rows.map((row) => row.period)
+    }) ?? []
+  )
 }
 
 export async function listBillsMonthsOfYear(input: BillsListMonthsInput): Promise<string[]> {
@@ -95,23 +95,27 @@ export async function listBillsMonthsOfYear(input: BillsListMonthsInput): Promis
     throw new Error('年份格式无效，必须为 YYYY。')
   }
 
-  const db = getBillsDatabase(input.workspacePath)
-  if (!db) {
-    return []
-  }
-  const rows = db
-    .prepare('SELECT DISTINCT substr(date, 1, 7) AS period FROM bills WHERE date LIKE ? ORDER BY period')
-    .all(`${input.year}-%`) as Array<{ period: string }>
-  return rows.map((row) => row.period)
+  return (
+    withExistingBillsDatabase(input.workspacePath, (db) => {
+      const rows = db
+        .prepare(
+          'SELECT DISTINCT substr(date, 1, 7) AS period FROM bills WHERE date LIKE ? ORDER BY period',
+        )
+        .all(`${input.year}-%`) as Array<{ period: string }>
+      return rows.map((row) => row.period)
+    }) ?? []
+  )
 }
 
 export async function getAllBills(workspacePath: string): Promise<Bill[]> {
-  const db = getBillsDatabase(workspacePath)
-  if (!db) {
-    return []
-  }
-  const rows = db.prepare('SELECT * FROM bills ORDER BY date ASC, id ASC').all() as import('./db').BillRow[]
-  return rows.map(mapRowToBill)
+  return (
+    withExistingBillsDatabase(workspacePath, (db) => {
+      const rows = db
+        .prepare('SELECT * FROM bills ORDER BY date ASC, id ASC')
+        .all() as import('./db').BillRow[]
+      return rows.map(mapRowToBill)
+    }) ?? []
+  )
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -161,23 +165,22 @@ export async function queryBills(input: BillsQueryInput): Promise<BillsQueryResu
   const keyword = input.keyword?.trim() || null
   const type = input.type ?? null
 
-  const db = getBillsDatabase(input.workspacePath)
-  let rows: import('./db').BillRow[] = []
-  if (db) {
-    const conditions: string[] = ['date >= ?', 'date <= ?']
-    const params: Array<string | number> = [start, end]
-    if (category) {
-      conditions.push('category = ?')
-      params.push(category)
-    }
-    if (keyword) {
-      conditions.push("note LIKE ? ESCAPE '\\'")
-      params.push(`%${escapeLikeKeyword(keyword)}%`)
-    }
-    rows = db
-      .prepare(`SELECT * FROM bills WHERE ${conditions.join(' AND ')} ORDER BY date ASC, id ASC`)
-      .all(...params) as import('./db').BillRow[]
-  }
+  const rows =
+    withExistingBillsDatabase(input.workspacePath, (db) => {
+      const conditions: string[] = ['date >= ?', 'date <= ?']
+      const params: Array<string | number> = [start, end]
+      if (category) {
+        conditions.push('category = ?')
+        params.push(category)
+      }
+      if (keyword) {
+        conditions.push("note LIKE ? ESCAPE '\\'")
+        params.push(`%${escapeLikeKeyword(keyword)}%`)
+      }
+      return db
+        .prepare(`SELECT * FROM bills WHERE ${conditions.join(' AND ')} ORDER BY date ASC, id ASC`)
+        .all(...params) as import('./db').BillRow[]
+    }) ?? []
 
   const bills = rows.map(mapRowToBill)
   const categories = await getBillCategories(input.workspacePath)
@@ -203,45 +206,48 @@ export async function createBill(input: BillsRecordInput): Promise<Bill> {
   const { categories, date, amountCents, note } = await normalizeRecordInput(input)
   assertCategoryExists(categories, amountCents, input.category)
 
-  const db = ensureBillsDatabase(input.workspacePath)
-  const timestamp = nowIso()
-  const result = db
-    .prepare('INSERT INTO bills (date, amount_cents, category, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(date, amountCents, input.category, note, timestamp, timestamp)
+  return withBillsDatabase(input.workspacePath, (db) => {
+    const timestamp = nowIso()
+    const result = db
+      .prepare(
+        'INSERT INTO bills (date, amount_cents, category, note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+      )
+      .run(date, amountCents, input.category, note, timestamp, timestamp)
 
-  const row = db
-    .prepare('SELECT * FROM bills WHERE id = ?')
-    .get(result.lastInsertRowid) as import('./db').BillRow
-  return mapRowToBill(row)
+    const row = db
+      .prepare('SELECT * FROM bills WHERE id = ?')
+      .get(result.lastInsertRowid) as import('./db').BillRow
+    return mapRowToBill(row)
+  })
 }
 
 export async function updateBill(input: BillsUpdateInput): Promise<Bill> {
   const { categories, date, amountCents, note } = await normalizeRecordInput(input)
   assertCategoryExists(categories, amountCents, input.category)
 
-  const db = getBillsDatabase(input.workspacePath)
-  if (!db) {
+  const bill = withExistingBillsDatabase(input.workspacePath, (db) => {
+    const existing = db.prepare('SELECT id FROM bills WHERE id = ?').get(input.id)
+    if (!existing) {
+      throw new Error('账单记录不存在或已被删除。')
+    }
+
+    db.prepare(
+      'UPDATE bills SET date = ?, amount_cents = ?, category = ?, note = ?, updated_at = ? WHERE id = ?',
+    ).run(date, amountCents, input.category, note, nowIso(), input.id)
+
+    const row = db.prepare('SELECT * FROM bills WHERE id = ?').get(input.id) as import('./db').BillRow
+    return mapRowToBill(row)
+  })
+  if (!bill) {
     throw new Error('账单记录不存在或已被删除。')
   }
-  const existing = db.prepare('SELECT id FROM bills WHERE id = ?').get(input.id)
-  if (!existing) {
-    throw new Error('账单记录不存在或已被删除。')
-  }
-
-  db.prepare(
-    'UPDATE bills SET date = ?, amount_cents = ?, category = ?, note = ?, updated_at = ? WHERE id = ?',
-  ).run(date, amountCents, input.category, note, nowIso(), input.id)
-
-  const row = db.prepare('SELECT * FROM bills WHERE id = ?').get(input.id) as import('./db').BillRow
-  return mapRowToBill(row)
+  return bill
 }
 
 export async function deleteBill(input: BillsDeleteInput): Promise<void> {
-  const db = getBillsDatabase(input.workspacePath)
-  if (!db) {
-    return
-  }
-  db.prepare('DELETE FROM bills WHERE id = ?').run(input.id)
+  withExistingBillsDatabase(input.workspacePath, (db) => {
+    db.prepare('DELETE FROM bills WHERE id = ?').run(input.id)
+  })
 }
 
 export function createCategory(input: BillsCreateCategoryInput) {
@@ -250,8 +256,7 @@ export function createCategory(input: BillsCreateCategoryInput) {
 
 export async function updateCategory(input: BillsRenameCategoryInput) {
   const next = await renameBillCategory(input.workspacePath, input.type, input.name, input.newName)
-  const db = getBillsDatabase(input.workspacePath)
-  if (db) {
+  withExistingBillsDatabase(input.workspacePath, (db) => {
     const newName = input.newName.trim()
     const timestamp = nowIso()
     if (input.type === 'transfer') {
@@ -266,7 +271,7 @@ export async function updateCategory(input: BillsRenameCategoryInput) {
         `UPDATE bills SET category = ?, updated_at = ? WHERE category = ? AND amount_cents ${signCondition}`,
       ).run(newName, timestamp, input.name)
     }
-  }
+  })
   return next
 }
 

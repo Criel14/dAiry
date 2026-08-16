@@ -62,39 +62,27 @@ function migrate(db: Database.Database) {
   }
 }
 
-const connectionCache = new Map<string, Database.Database>()
-
-export function getBillsDatabase(workspacePath: string): Database.Database | null {
-  const cached = connectionCache.get(workspacePath)
-  if (cached) {
-    return cached
+// 打开连接执行操作后立即关闭，避免 db/wal/shm 句柄长期占用导致文件同步工具（坚果云等）挂起
+export function withBillsDatabase<T>(
+  workspacePath: string,
+  fn: (db: Database.Database) => T,
+): T {
+  const db = openBillsDatabase(workspacePath)
+  try {
+    return fn(db)
+  } finally {
+    db.close()
   }
+}
 
+// 数据库文件不存在时返回 null（不创建空库），存在时打开执行并关闭
+export function withExistingBillsDatabase<T>(
+  workspacePath: string,
+  fn: (db: Database.Database) => T,
+): T | null {
   const dbPath = path.join(workspacePath, 'bills', 'bills.db')
   if (!fs.existsSync(dbPath)) {
     return null
   }
-
-  const db = openBillsDatabase(workspacePath)
-  connectionCache.set(workspacePath, db)
-  return db
-}
-
-export function ensureBillsDatabase(workspacePath: string): Database.Database {
-  const cached = connectionCache.get(workspacePath)
-  if (cached) {
-    return cached
-  }
-
-  const db = openBillsDatabase(workspacePath)
-  connectionCache.set(workspacePath, db)
-  return db
-}
-
-export function closeBillsDatabase(workspacePath: string) {
-  const db = connectionCache.get(workspacePath)
-  if (db) {
-    db.close()
-    connectionCache.delete(workspacePath)
-  }
+  return withBillsDatabase(workspacePath, fn)
 }
