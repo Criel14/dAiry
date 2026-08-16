@@ -7,6 +7,7 @@ import {
   filterBillsByType,
   formatCents,
   formatPlainCents,
+  lastRecordedDateOfMonth,
   pickPaletteColor,
   resolveCategory,
   sliceLatestMonths,
@@ -119,6 +120,27 @@ describe('filterBillsByType', () => {
   it('returns empty when no record matches', () => {
     const result = filterBillsByType([], 'expense', CATEGORIES)
     expect(result).toEqual([])
+  })
+})
+
+describe('lastRecordedDateOfMonth', () => {
+  it('returns the latest recorded date within the month', () => {
+    const records = [
+      makeBill({ id: 1, date: '2026-07-15' }),
+      makeBill({ id: 2, date: '2026-07-31' }),
+      makeBill({ id: 3, date: '2026-07-02' }),
+      makeBill({ id: 4, date: '2026-08-01' }),
+    ]
+    expect(lastRecordedDateOfMonth(records, '2026', '07')).toBe('2026-07-31')
+  })
+
+  it('returns null when the month has no records', () => {
+    const records = [makeBill({ id: 1, date: '2026-06-30' }), makeBill({ id: 2, date: '2026-08-01' })]
+    expect(lastRecordedDateOfMonth(records, '2026', '07')).toBeNull()
+  })
+
+  it('returns null for empty records', () => {
+    expect(lastRecordedDateOfMonth([], '2026', '07')).toBeNull()
   })
 })
 

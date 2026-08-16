@@ -225,3 +225,17 @@ export function buildDailyAxis(year: number): string[] {
   }
   return dates
 }
+
+// 返回 records 中指定月份（year-month）内有记录的最晚日期 YYYY-MM-DD；无记录返回 null
+export function lastRecordedDateOfMonth(records: Bill[], year: string, month: string): string | null {
+  const prefix = `${year}-${month}`
+  let latest: string | null = null
+  for (const record of records) {
+    if (record.date.startsWith(prefix)) {
+      if (latest === null || record.date > latest) {
+        latest = record.date
+      }
+    }
+  }
+  return latest
+}
