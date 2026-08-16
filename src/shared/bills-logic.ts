@@ -226,6 +226,20 @@ export function buildDailyAxis(year: number): string[] {
   return dates
 }
 
+export function daysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate()
+}
+
+// 每日平均支出：expenseCents ÷ 指定月份自然天数，四舍五入到分
+export function averageDailyExpense(expenseCents: number, year: number, month: number): number {
+  return Math.round(expenseCents / daysInMonth(year, month))
+}
+
+// 每月平均支出：expenseCents ÷ 12，四舍五入到分
+export function averageMonthlyExpense(expenseCents: number): number {
+  return Math.round(expenseCents / 12)
+}
+
 // 返回 records 中指定月份（year-month）内有记录的最晚日期 YYYY-MM-DD；无记录返回 null
 export function lastRecordedDateOfMonth(records: Bill[], year: string, month: string): string | null {
   const prefix = `${year}-${month}`

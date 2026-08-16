@@ -8,6 +8,8 @@ import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bil
 import type { BillsChartJumpPayload } from '../../../../types/bills'
 import {
   aggregateRecords,
+  averageDailyExpense,
+  averageMonthlyExpense,
   buildDailyAxis,
   formatCents,
   formatPlainCents,
@@ -76,6 +78,15 @@ const periodText = computed(() => {
 })
 
 const dailyAxis = computed(() => buildDailyAxis(Number(props.scopeYear)))
+
+const averageExpense = computed(() => {
+  const expense = aggregateRecords(props.records, props.categories).expense
+  if (props.scope === 'month') {
+    const [year, month] = props.selectedMonth.split('-').map(Number)
+    return averageDailyExpense(expense, year, month)
+  }
+  return averageMonthlyExpense(expense)
+})
 
 const dailyValues = computed(() =>
   dailyAxis.value.map((date) =>
@@ -345,6 +356,10 @@ onBeforeUnmount(() => {
       <div class="stat-card">
         <div class="stat-label">结余</div>
         <div class="stat-value stat-net">{{ formatCents(aggregateRecords(props.records, props.categories).net) }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">{{ scope === 'month' ? '每日平均支出' : '每月平均支出' }}</div>
+        <div class="stat-value stat-expense">{{ formatPlainCents(averageExpense) }}</div>
       </div>
     </div>
 

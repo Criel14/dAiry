@@ -4,6 +4,8 @@ import {
   assertValidAmountCents,
   assertValidDate,
   assertValidNote,
+  averageDailyExpense,
+  averageMonthlyExpense,
   filterBillsByType,
   formatCents,
   formatPlainCents,
@@ -298,5 +300,42 @@ describe('sliceLatestMonths', () => {
     const records = makeBills(['2025-12-30', '2025-12-01', '2025-11-30'])
     const result = sliceLatestMonths(records, 1)
     expect(result.map((record) => record.date)).toEqual(['2025-12-30', '2025-12-01'])
+  })
+})
+
+describe('averageDailyExpense', () => {
+  it('divides by natural days of the month', () => {
+    expect(averageDailyExpense(30000, 2026, 6)).toBe(1000)
+    expect(averageDailyExpense(31000, 2026, 1)).toBe(1000)
+  })
+
+  it('handles leap year February (29 days)', () => {
+    expect(averageDailyExpense(29000, 2028, 2)).toBe(1000)
+  })
+
+  it('handles non-leap February (28 days)', () => {
+    expect(averageDailyExpense(28000, 2026, 2)).toBe(1000)
+  })
+
+  it('rounds to the nearest cent', () => {
+    expect(averageDailyExpense(30001, 2026, 6)).toBe(1000)
+  })
+
+  it('returns zero for no expense', () => {
+    expect(averageDailyExpense(0, 2026, 6)).toBe(0)
+  })
+})
+
+describe('averageMonthlyExpense', () => {
+  it('divides by twelve months', () => {
+    expect(averageMonthlyExpense(12000)).toBe(1000)
+  })
+
+  it('rounds to the nearest cent', () => {
+    expect(averageMonthlyExpense(12500)).toBe(1042)
+  })
+
+  it('returns zero for no expense', () => {
+    expect(averageMonthlyExpense(0)).toBe(0)
   })
 })
