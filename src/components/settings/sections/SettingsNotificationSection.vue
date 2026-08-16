@@ -289,7 +289,6 @@ function emitSaveEmailNotificationConfiguration() {
         <div class="setting-copy">
           <div class="setting-title-row">
             <strong class="panel-value">提醒时间</strong>
-            <SettingsInfoTip text="使用应用内自定义下拉，保留两个时间选择框，同时统一下拉面板和滚动条样式。" />
           </div>
           <p class="panel-description">
             当前设定为每天 {{ notificationReminderTime }}。建议选一个你每天准备收尾、复盘或放松的时间。
