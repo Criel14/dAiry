@@ -83,6 +83,13 @@ export interface BillsWindowTotal {
   total: number
 }
 
+export type BillsChartJumpPayload =
+  | { kind: 'category'; category: string }
+  | { kind: 'day'; date: string } // 'YYYY-MM-DD'，滚动定位到该日分组
+  | { kind: 'month'; month: string } // 'YYYY-MM'，切换 selectedMonth
+  | { kind: 'monthOfYear'; month: string; scrollDate: string | null } // 'MM' + 该月有记录的最晚一天
+  | { kind: 'year'; year: string } // 'YYYY'，切换 selectedYear
+
 export type BillsQueryRange =
   | { month: string }
   | { year: string }

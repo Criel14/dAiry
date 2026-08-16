@@ -1,6 +1,6 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import dayjs from 'dayjs'
-import type { Bill, BillCategory, BillsWindowTotal } from '../../../types/bills'
+import type { Bill, BillCategory, BillsChartJumpPayload, BillsWindowTotal } from '../../../types/bills'
 import { getReadableErrorMessage } from '../../../utils/error'
 import {
   aggregateRecords,
@@ -75,6 +75,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   }
 
   const categoryFilter = ref('')
+  const scrollTargetDate = ref<string | null>(null)
 
   const filteredRecords = computed(() =>
     categoryFilter.value
@@ -102,6 +103,31 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   function loadMoreMonths() {
     loadedMonthCount.value += LOAD_MORE_STEP
+  }
+
+  function handleChartJump(payload: BillsChartJumpPayload) {
+    activeTab.value = 'detail'
+    switch (payload.kind) {
+      case 'category':
+        categoryFilter.value = payload.category
+        break
+      case 'day':
+        scrollTargetDate.value = payload.date
+        break
+      case 'month':
+        selectedMonth.value = payload.month
+        break
+      case 'monthOfYear':
+        detailMonthFilter.value = payload.month
+        if (payload.scrollDate) {
+          scrollTargetDate.value = payload.scrollDate
+        }
+        break
+      case 'year':
+        selectedYear.value = Number(payload.year)
+        detailMonthFilter.value = 'all'
+        break
+    }
   }
 
   const statsRecords = computed(() =>
@@ -321,6 +347,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     detailRecords,
     filteredRecords,
     handleCategoriesChanged,
+    handleChartJump,
     handleDeleteFromModal,
     handleDeleteRecord,
     handleExportExcel,
@@ -338,6 +365,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     renderedDetailRecords,
     selectedMonth,
     selectedYear,
+    scrollTargetDate,
     sidebarStatusMessage,
     statsMode,
     statsRecords,
