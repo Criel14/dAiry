@@ -36,10 +36,14 @@ const ringEl = ref<HTMLElement | null>(null)
 const barEl = ref<HTMLElement | null>(null)
 const lineEl = ref<HTMLElement | null>(null)
 const windowEl = ref<HTMLElement | null>(null)
+const incomeBarEl = ref<HTMLElement | null>(null)
+const incomeWindowEl = ref<HTMLElement | null>(null)
 let ringChart: echarts.ECharts | null = null
 let barChart: echarts.ECharts | null = null
 let lineChart: echarts.ECharts | null = null
 let windowChart: echarts.ECharts | null = null
+let incomeBarChart: echarts.ECharts | null = null
+let incomeWindowChart: echarts.ECharts | null = null
 let themeObserver: MutationObserver | null = null
 let resizeHandler: (() => void) | null = null
 
@@ -65,6 +69,16 @@ const dailyExpense = computed(() => {
     const resolved = resolveCategory(props.categories, record.amountCents, record.category)
     if (resolved.type !== 'expense') continue
     map.set(record.date, (map.get(record.date) ?? 0) + -record.amountCents)
+  }
+  return map
+})
+
+const dailyIncome = computed(() => {
+  const map = new Map<string, number>()
+  for (const record of props.records) {
+    const resolved = resolveCategory(props.categories, record.amountCents, record.category)
+    if (resolved.type !== 'income') continue
+    map.set(record.date, (map.get(record.date) ?? 0) + record.amountCents)
   }
   return map
 })
@@ -117,6 +131,76 @@ function splitLineStyle() {
   return { lineStyle: { color: readCssColor('--color-border-soft', CHART_SPLIT) } }
 }
 
+function monthlySeriesValues(daily: Map<string, number>, year: string): number[] {
+  return Array.from({ length: 12 }, (_, i) => {
+    const prefix = `${year}-${String(i + 1).padStart(2, '0')}`
+    let sum = 0
+    for (const [date, amount] of daily) {
+      if (date.startsWith(prefix)) sum += amount
+    }
+    return Math.round((sum / 100) * 100) / 100
+  })
+}
+
+const expenseBarOptions = () => ({
+  tooltipLabel: '支出',
+  emptyText: '暂无支出数据',
+  color: readCssColor('--color-chart-positive', '#5A9F61'),
+})
+
+const incomeBarOptions = () => ({
+  tooltipLabel: '收入',
+  emptyText: '暂无收入数据',
+  color: readCssColor('--color-chart-income', '#5A8FD6'),
+})
+
+function emitMonthOfYearJump(index: number) {
+  const month = String(index + 1).padStart(2, '0')
+  emit('jump-to-detail', {
+    kind: 'monthOfYear',
+    month,
+    scrollDate: lastRecordedDateOfMonth(props.records, props.scopeYear, month),
+  })
+}
+
+function attachBarJump(chart: echarts.ECharts) {
+  chart.on('click', (params: echarts.ECElementEvent) => {
+    const index = params.dataIndex
+    const value = params.value
+    if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
+    if (props.scope === 'month') {
+      const day = String(index + 1).padStart(2, '0')
+      emit('jump-to-detail', { kind: 'day', date: `${props.selectedMonth}-${day}` })
+    } else {
+      emitMonthOfYearJump(index)
+    }
+  })
+}
+
+function attachMonthBarJump(chart: echarts.ECharts) {
+  chart.on('click', (params: echarts.ECElementEvent) => {
+    const index = params.dataIndex
+    const value = params.value
+    if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
+    emitMonthOfYearJump(index)
+  })
+}
+
+function attachWindowJump(chart: echarts.ECharts) {
+  chart.on('click', (params: echarts.ECElementEvent) => {
+    const index = params.dataIndex
+    const value = params.value
+    if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
+    const period = props.windowTotals[index]?.period
+    if (!period) return
+    if (props.scope === 'month') {
+      emit('jump-to-detail', { kind: 'month', month: period })
+    } else {
+      emit('jump-to-detail', { kind: 'year', year: period })
+    }
+  })
+}
+
 function ensureCharts() {
   if (!ringChart && ringEl.value) {
     ringChart = echarts.init(ringEl.value)
@@ -128,40 +212,22 @@ function ensureCharts() {
   }
   if (!barChart && barEl.value) {
     barChart = echarts.init(barEl.value)
-    barChart.on('click', (params: echarts.ECElementEvent) => {
-      const index = params.dataIndex
-      const value = params.value
-      if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
-      if (props.scope === 'month') {
-        const day = String(index + 1).padStart(2, '0')
-        emit('jump-to-detail', { kind: 'day', date: `${props.selectedMonth}-${day}` })
-      } else {
-        const month = String(index + 1).padStart(2, '0')
-        emit('jump-to-detail', {
-          kind: 'monthOfYear',
-          month,
-          scrollDate: lastRecordedDateOfMonth(props.records, props.scopeYear, month),
-        })
-      }
-    })
+    attachBarJump(barChart)
   }
   if (!lineChart && lineEl.value) {
     lineChart = echarts.init(lineEl.value)
   }
   if (!windowChart && windowEl.value) {
     windowChart = echarts.init(windowEl.value)
-    windowChart.on('click', (params: echarts.ECElementEvent) => {
-      const index = params.dataIndex
-      const value = params.value
-      if (typeof index !== 'number' || typeof value !== 'number' || value <= 0) return
-      const period = props.windowTotals[index]?.period
-      if (!period) return
-      if (props.scope === 'month') {
-        emit('jump-to-detail', { kind: 'month', month: period })
-      } else {
-        emit('jump-to-detail', { kind: 'year', year: period })
-      }
-    })
+    attachWindowJump(windowChart)
+  }
+  if (!incomeBarChart && incomeBarEl.value) {
+    incomeBarChart = echarts.init(incomeBarEl.value)
+    attachMonthBarJump(incomeBarChart)
+  }
+  if (!incomeWindowChart && incomeWindowEl.value) {
+    incomeWindowChart = echarts.init(incomeWindowEl.value)
+    attachWindowJump(incomeWindowChart)
   }
 }
 
@@ -204,48 +270,32 @@ function renderCharts() {
       const key = `${props.selectedMonth}-${String(d).padStart(2, '0')}`
       values.push(Math.round(((dailyExpense.value.get(key) ?? 0) / 100) * 100) / 100)
     }
-    const hasData = values.some((v) => v > 0)
-    barChart.setOption({
-      title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
-      grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
-      xAxis: { type: 'category', data: values.map((_, i) => `${i + 1}日`), axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
-      yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
-      series: [{ type: 'bar', data: values, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
-    })
+    const labels = values.map((_, i) => `${i + 1}日`)
+    renderBarChart(barChart, labels, values, expenseBarOptions())
 
-    renderWindowChart(
-      props.windowTotals.map(({ period }) => {
-        const [y, m] = period.split('-')
-        return y === props.scopeYear ? `${Number(m)}月` : `${y}年${Number(m)}月`
-      }),
-      props.windowTotals.map(({ total }) => Math.round((total / 100) * 100) / 100),
-    )
+    const windowLabels = props.windowTotals.map(({ period }) => {
+      const [y, m] = period.split('-')
+      return y === props.scopeYear ? `${Number(m)}月` : `${y}年${Number(m)}月`
+    })
+    const windowExpense = props.windowTotals.map(({ total }) => Math.round((total / 100) * 100) / 100)
+    const windowIncome = props.windowTotals.map(({ income }) => Math.round((income / 100) * 100) / 100)
+    renderBarChart(windowChart, windowLabels, windowExpense, expenseBarOptions())
+    renderBarChart(incomeWindowChart, windowLabels, windowIncome, incomeBarOptions())
   } else {
-    const monthValues = Array.from({ length: 12 }, (_, i) => {
-      const prefix = `${props.scopeYear}-${String(i + 1).padStart(2, '0')}`
-      let sum = 0
-      for (const [date, amount] of dailyExpense.value) {
-        if (date.startsWith(prefix)) sum += amount
-      }
-      return Math.round((sum / 100) * 100) / 100
-    })
-    const hasData = monthValues.some((v) => v > 0)
-    barChart.setOption({
-      title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
-      grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
-      xAxis: { type: 'category', data: monthValues.map((_, i) => `${i + 1}月`), axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
-      yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
-      series: [{ type: 'bar', data: monthValues, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
-    })
+    const monthValues = monthlySeriesValues(dailyExpense.value, props.scopeYear)
+    const labels = monthValues.map((_, i) => `${i + 1}月`)
+    renderBarChart(barChart, labels, monthValues, expenseBarOptions())
 
     renderDailyLine()
 
-    renderWindowChart(
-      props.windowTotals.map(({ period }) => `${Number(period)}年`),
-      props.windowTotals.map(({ total }) => Math.round((total / 100) * 100) / 100),
-    )
+    const monthIncomeValues = monthlySeriesValues(dailyIncome.value, props.scopeYear)
+    renderBarChart(incomeBarChart, labels, monthIncomeValues, incomeBarOptions())
+
+    const windowLabels = props.windowTotals.map(({ period }) => `${Number(period)}年`)
+    const windowExpense = props.windowTotals.map(({ total }) => Math.round((total / 100) * 100) / 100)
+    const windowIncome = props.windowTotals.map(({ income }) => Math.round((income / 100) * 100) / 100)
+    renderBarChart(windowChart, windowLabels, windowExpense, expenseBarOptions())
+    renderBarChart(incomeWindowChart, windowLabels, windowIncome, incomeBarOptions())
   }
 }
 
@@ -287,16 +337,27 @@ function renderDailyLine() {
   })
 }
 
-function renderWindowChart(labels: string[], values: number[]) {
-  if (!windowChart) return
+interface BarRenderOptions {
+  tooltipLabel: string
+  emptyText: string
+  color: string
+}
+
+function renderBarChart(
+  chart: echarts.ECharts | null,
+  labels: string[],
+  values: number[],
+  options: BarRenderOptions,
+) {
+  if (!chart) return
   const hasData = values.some((v) => v > 0)
-  windowChart.setOption({
-    title: { text: hasData ? '' : '暂无支出数据', left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>支出 ${(params[0].value ?? 0).toFixed(2)}` },
+  chart.setOption({
+    title: { text: hasData ? '' : options.emptyText, left: 'center', top: '42%', textStyle: { fontSize: 15, ...textStyle() } },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, textStyle: { fontSize: 13 }, formatter: (params: Array<{ name: string; value: number }>) => `${params[0].name}<br/>${options.tooltipLabel} ${(params[0].value ?? 0).toFixed(2)}` },
     grid: { left: 8, right: 8, top: 8, bottom: 8, containLabel: true },
     xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: readCssColor('--color-border', CHART_SPLIT) } }, axisTick: { show: false }, axisLabel: textStyle() },
     yAxis: { type: 'value', splitLine: splitLineStyle(), axisLabel: textStyle() },
-    series: [{ type: 'bar', data: values, barWidth: '60%', itemStyle: { color: readCssColor('--color-chart-positive', '#5A9F61'), borderRadius: [4, 4, 0, 0] } }],
+    series: [{ type: 'bar', data: values, barWidth: '60%', itemStyle: { color: options.color, borderRadius: [4, 4, 0, 0] } }],
   })
 }
 
@@ -306,6 +367,8 @@ watch(
     if (props.scope === 'month') {
       lineChart?.dispose()
       lineChart = null
+      incomeBarChart?.dispose()
+      incomeBarChart = null
     }
     await nextTick()
     ensureCharts()
@@ -321,6 +384,8 @@ onMounted(() => {
     barChart?.resize()
     lineChart?.resize()
     windowChart?.resize()
+    incomeBarChart?.resize()
+    incomeWindowChart?.resize()
   }
   window.addEventListener('resize', resizeHandler)
 
@@ -337,10 +402,14 @@ onBeforeUnmount(() => {
   barChart?.dispose()
   lineChart?.dispose()
   windowChart?.dispose()
+  incomeBarChart?.dispose()
+  incomeWindowChart?.dispose()
   ringChart = null
   barChart = null
   lineChart = null
   windowChart = null
+  incomeBarChart = null
+  incomeWindowChart = null
 })
 </script>
 
@@ -380,6 +449,14 @@ onBeforeUnmount(() => {
     <div class="chart-box">
       <h3 class="chart-title">{{ scope === 'month' ? '近6个月支出对比' : '近6年支出对比' }}</h3>
       <div ref="windowEl" class="chart"></div>
+    </div>
+    <div v-if="scope === 'year'" class="chart-box">
+      <h3 class="chart-title">{{ periodText }}月度收入</h3>
+      <div ref="incomeBarEl" class="chart"></div>
+    </div>
+    <div class="chart-box">
+      <h3 class="chart-title">{{ scope === 'month' ? '近6个月收入对比' : '近6年收入对比' }}</h3>
+      <div ref="incomeWindowEl" class="chart"></div>
     </div>
   </div>
 </template>

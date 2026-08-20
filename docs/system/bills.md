@@ -144,7 +144,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 
 ### 4.1 分类解析（三步匹配）
 
-`resolveCategory`（`src/shared/bills-logic.ts:22`）：
+`resolveCategory`（`src/shared/bills-logic.ts:29`）：
 
 1. 按「金额符号对应类型 + 分类名」精确匹配
 2. 按分类名兜底匹配（如 transfer 的「理财」记录，金额符号不定）
@@ -179,7 +179,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 | `detailMonthFilter` | 年度明细月份筛选（`all` 或 `01`..`12`） |
 | `monthRecords` | 当月账单（`bills:list-month`） |
 | `yearRecords` | `statsYear` 年份账单（`bills:list-year`） |
-| `windowTotals` | 近 6 月/近 6 年每期支出总额，`{ period, total }[]` |
+| `windowTotals` | 近 6 月/近 6 年每期支出+收入总额，`{ period, total, income }[]` |
 
 关键联动：
 
@@ -188,9 +188,9 @@ CREATE INDEX idx_bills_date ON bills(date);
 - `statsRecords` = 统计视图数据源（月度/年度二选一）
 - 所有加载带自增序列号防竞态（快速切换时旧响应不覆盖新数据）
 
-### 5.2 窗口对比数据（`reloadWindowTotals`，`useBillsPanel.ts:153`）
+### 5.2 窗口对比数据（`reloadWindowTotals`，`useBillsPanel.ts:236`）
 
-「近6个月/近6年支出对比」图的数据来源：前端**并行调用** 6 次 `listBillsByMonth`/`listBillsByYear`，再用 `expenseTotal` 聚合每期支出总额。这是修复过的逻辑——早期版本误用当月记录计算窗口导致前 5 个月恒为 0。
+「近6个月/近6年支出对比」与「近6个月/近6年收入对比」图的数据来源：前端**并行调用** 6 次 `listBillsByMonth`/`listBillsByYear`，再用 `expenseTotal`/`incomeTotal` 聚合每期支出与收入总额，同一次请求同时产出两份统计。这是修复过的逻辑——早期版本误用当月记录计算窗口导致前 5 个月恒为 0。
 
 - 月度窗口：`buildMonthWindow(selectedMonth, 6)`（含跨年）
 - 年度窗口：`buildYearWindow(selectedYear, 6)`
@@ -198,17 +198,18 @@ CREATE INDEX idx_bills_date ON bills(date);
 
 ### 5.3 图表（`BillsCharts.vue`）
 
-ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer），主题色从 CSS 变量读取（`readCssColor`），支持深色主题实时切换（MutationObserver 监听 `data-theme`）。
+ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer），主题色从 CSS 变量读取（`readCssColor`），支持深色主题实时切换（MutationObserver 监听 `data-theme`）。支出图表统一绿色（`--color-chart-positive`）、收入图表统一蓝色（`--color-chart-income`），空态文案分别为「暂无支出数据」/「暂无收入数据」。
 
 | 视图 | 图表块 |
 |------|--------|
-| 月度 | 统计卡（总支出/总收入/结余）+ 分类支出占比环形图 + 每日支出柱状图 + 近6个月支出对比 |
-| 年度 | 统计卡 + 环形图（全年）+ 月度支出柱状图（12 月）+ 每日支出折线图（全年 365/366 天）+ 近6年支出对比 |
+| 月度 | 统计卡（总支出/总收入/结余）+ 分类支出占比环形图 + 每日支出柱状图 + 近6个月支出对比 + 近6个月收入对比 |
+| 年度 | 统计卡 + 环形图（全年）+ 月度支出柱状图（12 月）+ 每日支出折线图（全年 365/366 天）+ 近6年支出对比 + 月度收入柱状图（12 月）+ 近6年收入对比 |
 
-- 所有图表只统计支出；`transfer` 不计入
+- 支出图表只统计支出、收入图表只统计收入；`transfer` 不计入
+- 收入图表点击跳转与支出图表一致（对比图→对应月/年、月度收入→对应月）
 - 结余 = 收入 − 支出，显示带符号金额（`formatCents`）
 - 每日折线图 x 轴每月 1 号 + 首尾显示刻度（`buildDailyAxis` + interval 回调）
-- 空数据年份显示「暂无支出数据」占位
+- 空数据区块显示「暂无支出数据」/「暂无收入数据」占位
 
 ### 5.4 侧栏数据标记（`useBillsSidebar.ts`）
 
@@ -255,12 +256,12 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 
 ## 八、测试
 
-`tests/bills/`（vitest，共 40 用例）：
+`tests/bills/`（vitest，共 67 用例）：
 
 | 文件 | 覆盖 |
 |------|------|
 | `logic.test.ts` | `resolveCategory` 三步匹配、`aggregateRecords`（transfer 排除）、金额格式化、校验函数、调色板 |
-| `window.test.ts` | 窗口期推导（跨年）、支出总额、月份过滤、闰年、全年日期序列 |
+| `window.test.ts` | 窗口期推导（跨年）、支出/收入总额、月份过滤、闰年、全年日期序列 |
 | `export.test.ts` | `buildBillsWorkbook` 按年分 sheet/排序/空数据 |
 | `smoke.test.ts` | 冒烟 |
 
@@ -281,10 +282,10 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 | `getBillCategories` / `saveBillCategories` | `electron/main/bills/categories.ts:23/39` | 分类库读写 |
 | `createBillCategory` / `renameBillCategory` / `deleteBillCategory` | `electron/main/bills/categories.ts:66/93/120` | 分类增删改 |
 | `buildBillsWorkbook` / `exportBillsExcel` | `electron/main/bills/export.ts:7/44` | Excel 导出 |
-| `resolveCategory` / `aggregateRecords` | `src/shared/bills-logic.ts:22/59` | 分类解析 / 收支聚合 |
-| `buildMonthWindow` / `buildYearWindow` | `src/shared/bills-logic.ts:128/144` | 窗口期推导 |
-| `expenseTotal` / `filterBillsByMonth` | `src/shared/bills-logic.ts:149/159` | 支出总额 / 月份过滤 |
-| `isLeapYear` / `buildDailyAxis` | `src/shared/bills-logic.ts:163/167` | 闰年 / 全年日期序列 |
+| `resolveCategory` / `aggregateRecords` | `src/shared/bills-logic.ts:29/66` | 分类解析 / 收支聚合 |
+| `buildMonthWindow` / `buildYearWindow` | `src/shared/bills-logic.ts:135/151` | 窗口期推导 |
+| `expenseTotal` / `incomeTotal` | `src/shared/bills-logic.ts:156/166` | 支出总额 / 收入总额 |
+| `filterBillsByMonth` / `isLeapYear` / `buildDailyAxis` | `src/shared/bills-logic.ts:197/224/228` | 月份过滤 / 闰年 / 全年日期序列 |
 | `useBillsPanel` | `src/components/bills/composables/useBillsPanel.ts:29` | 面板状态与数据加载 |
 | `useBillsSidebar` | `src/components/bills/composables/useBillsSidebar.ts:37` | 侧栏状态、数据标记、分类管理 |
 | `registerBillsIpcHandlers` | `electron/main/ipc/bills.ts:27` | IPC 注册入口 |

@@ -163,6 +163,16 @@ export function expenseTotal(records: Bill[], categories: BillCategory[]): numbe
   return total
 }
 
+export function incomeTotal(records: Bill[], categories: BillCategory[]): number {
+  let total = 0
+  for (const record of records) {
+    if (resolveCategory(categories, record.amountCents, record.category).type === 'income') {
+      total += record.amountCents
+    }
+  }
+  return total
+}
+
 export function filterBillsByType(
   records: Bill[],
   type: BillType,

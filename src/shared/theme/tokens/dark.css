@@ -96,6 +96,7 @@ html[data-theme='dark'] {
 
   --color-chart-positive: #6fbe79;
   --color-chart-positive-soft: #7ccd88;
+  --color-chart-income: #7fa8dd;
   --color-chart-negative: #d98282;
   --color-chart-negative-soft: #e79292;
   --color-status-dot-running: #6fbe79;

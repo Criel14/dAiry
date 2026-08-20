@@ -10,6 +10,7 @@ import {
   filterBillsByMonth,
   formatCents,
   formatPlainCents,
+  incomeTotal,
   resolveCategory,
   sliceLatestMonths,
 } from '../../../shared/bills-logic'
@@ -251,6 +252,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
           windowTotals.value = periods.map((period, index) => ({
             period,
             total: expenseTotal(results[index], categories.value),
+            income: incomeTotal(results[index], categories.value),
           }))
         }
       } else {
@@ -264,6 +266,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
           windowTotals.value = periods.map((period, index) => ({
             period,
             total: expenseTotal(results[index], categories.value),
+            income: incomeTotal(results[index], categories.value),
           }))
         }
       }

@@ -5,6 +5,7 @@ import {
   buildYearWindow,
   expenseTotal,
   filterBillsByMonth,
+  incomeTotal,
   isLeapYear,
 } from '../../src/shared/bills-logic'
 import { BUILTIN_CATEGORIES, type Bill } from '../../src/types/bills'
@@ -65,6 +66,23 @@ describe('expenseTotal', () => {
   it('returns 0 when no expense', () => {
     const records = [makeBill({ amountCents: 12000, category: '工资' })]
     expect(expenseTotal(records, CATEGORIES)).toBe(0)
+  })
+})
+
+describe('incomeTotal', () => {
+  it('sums income records, excludes transfer category 理财 and expense', () => {
+    const records = [
+      makeBill({ amountCents: 12000, category: '工资' }),
+      makeBill({ amountCents: 5000, category: '转账' }),
+      makeBill({ amountCents: -2346, category: '餐饮' }),
+      makeBill({ amountCents: 3000, category: '理财' }),
+    ]
+    expect(incomeTotal(records, CATEGORIES)).toBe(17000)
+  })
+
+  it('returns 0 when no income', () => {
+    const records = [makeBill({ amountCents: -500 })]
+    expect(incomeTotal(records, CATEGORIES)).toBe(0)
   })
 })
 

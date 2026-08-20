@@ -81,6 +81,7 @@ export interface BillsExportResult {
 export interface BillsWindowTotal {
   period: string
   total: number
+  income: number
 }
 
 export type BillsChartJumpPayload =
