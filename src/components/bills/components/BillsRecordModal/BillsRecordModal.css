@@ -147,6 +147,11 @@
   color: var(--color-text-subtle);
 }
 
+.modal-button--ghost:hover {
+  background: var(--color-surface-hover-soft);
+  border-color: var(--color-border-strong);
+}
+
 .modal-button--danger {
   margin-right: auto;
   background: transparent;
@@ -164,6 +169,10 @@
   border-color: var(--color-border-strong);
   color: var(--color-text-main);
   font-weight: 600;
+}
+
+.modal-button--primary:hover {
+  background: var(--color-accent-muted);
 }
 
 .modal-button:disabled {

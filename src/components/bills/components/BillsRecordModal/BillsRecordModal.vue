@@ -122,6 +122,47 @@ async function handleSubmit() {
     isSaving.value = false
   }
 }
+
+async function handleDuplicate() {
+  errorMessage.value = ''
+
+  const confirmed = window.confirm('该账单将复制为今天的一笔新账单，确定继续吗？')
+  if (!confirmed) return
+
+  let amountCents: number
+  try {
+    amountCents = toCentsFromInput(form.amount, form.type)
+  } catch {
+    errorMessage.value = '请输入有效的金额'
+    return
+  }
+
+  if (!form.category) {
+    errorMessage.value = '请选择分类'
+    return
+  }
+
+  if (!props.workspacePath) {
+    errorMessage.value = '请先选择工作区'
+    return
+  }
+
+  isSaving.value = true
+  try {
+    await window.dairy.createBill({
+      workspacePath: props.workspacePath,
+      date: dayjs().format('YYYY-MM-DD'),
+      amountCents,
+      category: form.category,
+      note: form.note.trim(),
+    })
+    emit('saved')
+  } catch (error) {
+    errorMessage.value = getReadableErrorMessage(error, '复制失败')
+  } finally {
+    isSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -193,7 +234,16 @@ async function handleSubmit() {
         >
           删除
         </button>
-        <button class="modal-button modal-button--ghost" type="button" @click="emit('close')">取消</button>
+        <button
+          v-if="modalState.editing"
+          class="modal-button modal-button--ghost"
+          type="button"
+          :disabled="isSaving"
+          @click="handleDuplicate"
+        >
+          复制到今天
+        </button>
+        <button v-else class="modal-button modal-button--ghost" type="button" @click="emit('close')">取消</button>
         <button class="modal-button modal-button--primary" type="button" :disabled="isSaving" @click="handleSubmit">
           {{ isSaving ? '保存中...' : '保存' }}
         </button>
