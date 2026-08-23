@@ -31,6 +31,40 @@ const form = reactive<BillsRecordForm>({
 const errorMessage = ref('')
 const isSaving = ref(false)
 
+const initialForm = reactive<BillsRecordForm>({
+  date: '',
+  type: 'expense',
+  amount: '',
+  category: '',
+  note: '',
+})
+
+function snapshotInitialForm() {
+  initialForm.date = form.date
+  initialForm.type = form.type
+  initialForm.amount = form.amount
+  initialForm.category = form.category
+  initialForm.note = form.note
+}
+
+function formChanged(): boolean {
+  return (
+    form.date !== initialForm.date ||
+    form.type !== initialForm.type ||
+    form.amount !== initialForm.amount ||
+    form.category !== initialForm.category ||
+    form.note !== initialForm.note
+  )
+}
+
+function requestClose() {
+  if (formChanged()) {
+    const confirmed = window.confirm('该账单有未保存的修改，确定放弃并关闭吗？')
+    if (!confirmed) return
+  }
+  emit('close')
+}
+
 const typeTabs: Array<{ type: BillType; label: string }> = [
   { type: 'expense', label: BILL_TYPE_LABELS.expense },
   { type: 'income', label: BILL_TYPE_LABELS.income },
@@ -61,6 +95,7 @@ watch(
       form.note = ''
     }
     errorMessage.value = ''
+    snapshotInitialForm()
   },
 )
 
@@ -166,11 +201,11 @@ async function handleDuplicate() {
 </script>
 
 <template>
-  <div v-if="modalState.open" class="modal-overlay" @click.self="emit('close')">
+  <div v-if="modalState.open" class="modal-overlay" @click.self="requestClose">
     <div class="modal-card" role="dialog" aria-modal="true" :aria-label="modalState.editing ? '编辑账单' : '记一笔'">
       <header class="modal-header">
         <h3 class="modal-title">{{ modalState.editing ? '编辑账单' : '记一笔' }}</h3>
-        <button class="modal-close" type="button" aria-label="关闭" @click="emit('close')">×</button>
+        <button class="modal-close" type="button" aria-label="关闭" @click="requestClose">×</button>
       </header>
 
       <div class="modal-body">
@@ -243,7 +278,7 @@ async function handleDuplicate() {
         >
           复制到今天
         </button>
-        <button v-else class="modal-button modal-button--ghost" type="button" @click="emit('close')">取消</button>
+        <button v-else class="modal-button modal-button--ghost" type="button" @click="requestClose">取消</button>
         <button class="modal-button modal-button--primary" type="button" :disabled="isSaving" @click="handleSubmit">
           {{ isSaving ? '保存中...' : '保存' }}
         </button>
