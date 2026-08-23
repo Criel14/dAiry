@@ -20,6 +20,7 @@ import BillsCategorySelect from '../BillsCategorySelect/BillsCategorySelect.vue'
 const props = defineProps<{
   hasWorkspace: boolean
   workspacePath: string | null
+  dayStartHour: number
   selectedMonth: string
   records: Bill[]
   detailRecords: Bill[]
@@ -261,6 +262,7 @@ watch(
       :modal-state="modalState"
       :categories="categories"
       :workspace-path="workspacePath"
+      :day-start-hour="dayStartHour"
       @close="emit('closeModal')"
       @saved="emit('record-saved')"
       @deleted="emit('deleted')"

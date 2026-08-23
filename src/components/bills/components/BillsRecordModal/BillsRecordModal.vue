@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import dayjs from 'dayjs'
 import type { BillCategory, BillType } from '../../../../types/bills'
 import { BILL_TYPE_LABELS } from '../../../../types/bills'
 import { getReadableErrorMessage } from '../../../../utils/error'
+import { getJournalDateText } from '../../../../shared/date-utils'
 import type { BillsModalState, BillsRecordForm } from '../../composables/useBillsPanel'
 import { toCentsFromInput } from '../../composables/useBillsPanel'
 import BillsCategorySelect from '../BillsCategorySelect/BillsCategorySelect.vue'
@@ -12,6 +12,7 @@ const props = defineProps<{
   modalState: BillsModalState
   categories: BillCategory[]
   workspacePath: string | null
+  dayStartHour: number
 }>()
 
 const emit = defineEmits<{
@@ -88,7 +89,7 @@ watch(
       form.category = editing.category
       form.note = editing.note
     } else {
-      form.date = dayjs().format('YYYY-MM-DD')
+      form.date = getJournalDateText(props.dayStartHour)
       form.type = 'expense'
       form.amount = ''
       form.category = ''
@@ -186,7 +187,7 @@ async function handleDuplicate() {
   try {
     await window.dairy.createBill({
       workspacePath: props.workspacePath,
-      date: dayjs().format('YYYY-MM-DD'),
+      date: getJournalDateText(props.dayStartHour),
       amountCents,
       category: form.category,
       note: form.note.trim(),

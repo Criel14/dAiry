@@ -427,6 +427,7 @@ onBeforeUnmount(() => {
         v-else-if="rightPanel === 'bills'"
         :has-workspace="billsPanel.hasWorkspace.value"
         :workspace-path="workspacePath"
+        :day-start-hour="dayStartHour"
         :selected-month="billsPanel.selectedMonth.value"
         :records="billsPanel.statsRecords.value"
         :detail-records="billsPanel.detailRecords.value"

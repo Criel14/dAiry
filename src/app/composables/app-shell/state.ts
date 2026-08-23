@@ -18,6 +18,7 @@ import {
   DEFAULT_AI_SETTINGS,
   EMPTY_METADATA,
 } from '../../../shared/defaults'
+import { getJournalDateText } from '../../../shared/date-utils'
 
 export { createDefaultFrontmatterVisibility }
 
@@ -122,10 +123,6 @@ export function frontmatterToMetadata(frontmatter: JournalFrontmatter): JournalE
     summary: frontmatter.summary,
     tags: [...frontmatter.tags],
   }
-}
-
-export function getJournalDateText(hour: number, baseDate = dayjs()) {
-  return baseDate.subtract(hour, 'hour').format('YYYY-MM-DD')
 }
 
 export function useAppShellState() {
