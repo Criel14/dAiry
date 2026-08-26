@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import SettingsInfoTip from '../components/SettingsInfoTip/SettingsInfoTip.vue'
 import AppSelect from '../../shared/AppSelect/AppSelect.vue'
 import type { FrontmatterVisibilityConfig, WindowCloseBehavior } from '../../../types/app'
+import { confirmDialog } from '../../../shared/dialog'
 import { DAY_START_HOUR_OPTIONS, WINDOW_CLOSE_BEHAVIOR_OPTIONS } from '../config/config'
 import SettingsToggleRow from '../components/SettingsToggleRow/SettingsToggleRow.vue'
 
@@ -34,7 +35,7 @@ const metaRebuildMessage = ref('')
 
 async function handleRebuildMeta() {
   if (!props.workspacePath) return
-  const confirmed = window.confirm(
+  const confirmed = await confirmDialog(
     '此操作将覆盖已有的年份索引文件，确认重新整理？',
   )
   if (!confirmed) return

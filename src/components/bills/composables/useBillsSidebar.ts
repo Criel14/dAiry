@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import type { BillCategory, BillType } from '../../../types/bills'
 import { BILL_TYPE_LABELS, BILL_TYPES } from '../../../types/bills'
 import { getReadableErrorMessage } from '../../../utils/error'
+import { confirmDialog } from '../../../shared/dialog'
 
 export interface BillsSidebarProps {
   hasWorkspace: boolean
@@ -217,7 +218,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
   async function handleDeleteCategory(type: BillType, name: string) {
     if (isMutatingCategory.value) return
     if (!props.workspacePath) return
-    const confirmed = window.confirm(`删除分类「${name}」？历史账单将回退为其他样式。`)
+    const confirmed = await confirmDialog(`删除分类「${name}」？历史账单将回退为其他样式。`)
     if (!confirmed) return
     isMutatingCategory.value = true
     try {

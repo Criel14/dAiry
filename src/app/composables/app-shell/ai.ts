@@ -1,5 +1,6 @@
 import type { AiSettings } from '../../../types/ai'
 import type { AppShellState } from './state'
+import { confirmDialog } from '../../../shared/dialog'
 
 export function useAppShellAi(state: AppShellState) {
   async function handleSaveAiConfiguration(
@@ -81,7 +82,7 @@ export function useAppShellAi(state: AppShellState) {
       return
     }
 
-    const confirmed = window.confirm(
+    const confirmed = await confirmDialog(
       '将扫描当前工作区的全部日记，按月重新构建用户画像（每个有日记的月份消耗一轮 AI 调用，token 消耗较大）。整理完成前现有画像保持不变，是否继续？',
     )
     if (!confirmed) {

@@ -4,6 +4,7 @@ import type { BillCategory, BillType } from '../../../../types/bills'
 import { BILL_TYPE_LABELS } from '../../../../types/bills'
 import { getReadableErrorMessage } from '../../../../utils/error'
 import { getJournalDateText } from '../../../../shared/date-utils'
+import { confirmDialog } from '../../../../shared/dialog'
 import type { BillsModalState, BillsRecordForm } from '../../composables/useBillsPanel'
 import { toCentsFromInput } from '../../composables/useBillsPanel'
 import BillsCategorySelect from '../BillsCategorySelect/BillsCategorySelect.vue'
@@ -58,9 +59,9 @@ function formChanged(): boolean {
   )
 }
 
-function requestClose() {
+async function requestClose() {
   if (formChanged()) {
-    const confirmed = window.confirm('该账单有未保存的修改，确定放弃并关闭吗？')
+    const confirmed = await confirmDialog('该账单有未保存的修改，确定放弃并关闭吗？')
     if (!confirmed) return
   }
   emit('close')
@@ -162,7 +163,7 @@ async function handleSubmit() {
 async function handleDuplicate() {
   errorMessage.value = ''
 
-  const confirmed = window.confirm('该账单将复制为今天的一笔新账单，确定继续吗？')
+  const confirmed = await confirmDialog('该账单将复制为今天的一笔新账单，确定继续吗？')
   if (!confirmed) return
 
   let amountCents: number

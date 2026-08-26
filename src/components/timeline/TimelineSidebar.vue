@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import YearPickerGrid from '../shared/YearPickerGrid.vue'
+import { confirmDialog } from '../../shared/dialog'
 
 defineProps<{
   selectedYear: number
@@ -15,8 +16,8 @@ const emit = defineEmits<{
   cancelRebuild: []
 }>()
 
-function handleRebuild() {
-  const confirmed = window.confirm(
+async function handleRebuild() {
+  const confirmed = await confirmDialog(
     'AI 将完整扫描本年所有日记重新生成时间轴，预计消耗较多 token，确定继续？',
   )
   if (confirmed) {

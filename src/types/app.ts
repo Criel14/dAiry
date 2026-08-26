@@ -121,3 +121,13 @@ export interface WindowDirtyStateInput {
 export interface OpenExternalLinkInput {
   url: string
 }
+
+export interface ShowMessageBoxInput {
+  type?: 'info' | 'warning' | 'error' | 'question'
+  title?: string
+  message: string
+  detail?: string
+  buttons?: string[]
+  defaultId?: number
+  cancelId?: number
+}

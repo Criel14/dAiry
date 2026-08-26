@@ -1,4 +1,4 @@
-import { ipcMain, shell } from 'electron'
+import { dialog, ipcMain, shell } from 'electron'
 import type {
   SaveAiApiKeyInput,
   SaveSupplementInput,
@@ -13,6 +13,7 @@ import type {
   NotificationPreferenceInput,
   OpenExternalLinkInput,
   SaveEmailNotificationAuthCodeInput,
+  ShowMessageBoxInput,
   ThemePreferenceInput,
   WindowCloseBehaviorPreferenceInput,
   WindowDirtyStateInput,
@@ -39,6 +40,7 @@ import { IPC_CHANNELS } from '../constants'
 import { applyLaunchOnStartup } from '../launch-on-startup'
 import { configureDiaryReminder } from '../notification'
 import {
+  getMainWindow,
   openMainWindowDevTools,
   applyNativeThemeSource,
   applyWindowCloseBehavior,
@@ -159,5 +161,23 @@ export function registerAppIpcHandlers() {
 
   ipcMain.handle(IPC_CHANNELS.openDevTools, () => {
     openMainWindowDevTools()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.showMessageBox, async (_event, input: ShowMessageBoxInput) => {
+    const options: Electron.MessageBoxOptions = {
+      type: input.type ?? 'info',
+      title: input.title ?? 'dAiry',
+      message: input.message,
+      detail: input.detail,
+      buttons: input.buttons ?? ['确定'],
+      defaultId: input.defaultId ?? 0,
+      cancelId: input.cancelId ?? 0,
+      noLink: true,
+    }
+    const parentWindow = getMainWindow()
+    const { response } = parentWindow
+      ? await dialog.showMessageBox(parentWindow, options)
+      : await dialog.showMessageBox(options)
+    return response
   })
 }

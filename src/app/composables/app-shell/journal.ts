@@ -5,6 +5,7 @@ import type {
   JournalEntryReadResult,
 } from '../../../types/journal'
 import type { WorkspaceSelectionResult } from '../../../types/workspace'
+import { confirmDialog } from '../../../shared/dialog'
 import {
   cloneMetadata,
   createEmptyMetadata,
@@ -118,7 +119,7 @@ export function useAppShellJournal(state: AppShellState) {
       return true
     }
 
-    return window.confirm('当前内容还没有保存，继续切换会丢失修改。要继续吗？')
+    return confirmDialog('当前内容还没有保存，继续切换会丢失修改。要继续吗？')
   }
 
   async function loadWorkspaceTags() {
@@ -442,7 +443,7 @@ export function useAppShellJournal(state: AppShellState) {
       state.metadataDraft.value.tags.length > 0 ||
       state.metadataDraft.value.mood !== 0
     ) {
-      const shouldContinue = window.confirm(
+      const shouldContinue = await confirmDialog(
         '自动整理会覆盖当前的一句话总结、标签和心情，是否继续？',
       )
       if (!shouldContinue) {

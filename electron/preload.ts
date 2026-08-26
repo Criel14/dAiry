@@ -111,6 +111,7 @@ const dairyApi: DairyApi = {
   getMcpRuntimeStatus: () => ipcRenderer.invoke(IPC_CHANNELS.getMcpRuntimeStatus),
   openExternalLink: (input) => ipcRenderer.invoke(IPC_CHANNELS.openExternalLink, input),
   openDevTools: () => ipcRenderer.invoke(IPC_CHANNELS.openDevTools),
+  showMessageBox: (input) => ipcRenderer.invoke(IPC_CHANNELS.showMessageBox, input),
   getTimeline: (input) => ipcRenderer.invoke(IPC_CHANNELS.getTimeline, input),
   rebuildTimeline: (input) => ipcRenderer.invoke(IPC_CHANNELS.rebuildTimeline, input),
   cancelTimelineRebuild: () => ipcRenderer.invoke(IPC_CHANNELS.cancelTimelineRebuild),

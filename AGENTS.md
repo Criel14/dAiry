@@ -79,6 +79,7 @@
 - 本地 Markdown 是唯一事实源，报告 JSON 和导出 PNG 都是派生物
 - AI 失败不能影响保存；Git 失败不能影响保存；导出失败不能影响已有报告和日记
 - 渲染进程不能直接访问文件系统，也不能直接持有明文敏感信息
+- 渲染层禁用 `window.confirm/alert/prompt`（Electron 原生 JS 对话框在 Windows 上关闭后会导致焦点失同步、全应用输入失效，上游 bug electron#31917 至今未修），统一使用 `src/shared/dialog.ts` 的 `confirmDialog`/`showAlertMessage`（经 IPC 走主进程 `dialog.showMessageBox`）
 - 记账纯逻辑（分类解析/聚合/格式化）在 src/shared/bills-logic.ts，主进程与渲染进程共享
 - IPC / preload 传参必须是可结构化克隆的普通对象，不要直接传 Vue 响应式对象
 

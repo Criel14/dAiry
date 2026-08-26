@@ -14,6 +14,7 @@ import {
   DAILY_CONTEXT_DAYS_OPTIONS,
   PROFILE_REFRESH_INTERVAL_OPTIONS,
 } from '../../../shared/defaults'
+import { showAlertMessage } from '../../../shared/dialog'
 
 const props = defineProps<{
   aiSettingsStatus: AiSettingsStatus
@@ -141,14 +142,14 @@ function handleProviderTypeChange(providerType: string) {
   }
 }
 
-function emitSaveAiConfiguration() {
+async function emitSaveAiConfiguration() {
   if (!draftAiSettings.value.baseURL.trim()) {
-    window.alert('请先填写 Base URL。')
+    await showAlertMessage('请先填写 Base URL。')
     return
   }
 
   if (!draftAiSettings.value.model.trim()) {
-    window.alert('请先填写 Model Name。')
+    await showAlertMessage('请先填写 Model Name。')
     return
   }
 
@@ -156,7 +157,7 @@ function emitSaveAiConfiguration() {
     isViewingSavedProvider.value && props.aiSettingsStatus.hasApiKey
 
   if (!draftApiKey.value.trim() && !hasSavedApiKeyForCurrentDraftProvider) {
-    window.alert('请先填写 API Key。')
+    await showAlertMessage('请先填写 API Key。')
     return
   }
 

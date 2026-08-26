@@ -14,6 +14,7 @@ import {
   resolveCategory,
   sliceLatestMonths,
 } from '../../../shared/bills-logic'
+import { confirmDialog } from '../../../shared/dialog'
 
 export interface BillsModalState {
   open: boolean
@@ -294,7 +295,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   async function handleDeleteRecord(bill: Bill) {
     if (!workspacePath.value) return
-    const confirmed = window.confirm('确定删除这笔账单记录？')
+    const confirmed = await confirmDialog('确定删除这笔账单记录？')
     if (!confirmed) return
 
     try {
@@ -308,7 +309,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   async function handleDeleteFromModal() {
     const bill = modalState.value.editing
     if (!bill) return
-    const confirmed = window.confirm('确定删除这笔账单记录？')
+    const confirmed = await confirmDialog('确定删除这笔账单记录？')
     if (!confirmed) return
     if (!workspacePath.value) return
 

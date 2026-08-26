@@ -22,6 +22,7 @@ import type {
   NotificationPreferenceInput,
   OpenExternalLinkInput,
   SaveEmailNotificationAuthCodeInput,
+  ShowMessageBoxInput,
   ThemePreferenceInput,
   WindowCloseBehaviorPreferenceInput,
   WindowDirtyStateInput,
@@ -134,6 +135,7 @@ export interface DairyApi {
   getMcpRuntimeStatus: () => Promise<McpRuntimeStatus>
   openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
   openDevTools: () => Promise<void>
+  showMessageBox: (input: ShowMessageBoxInput) => Promise<number>
   getTimeline: (input: { workspacePath: string; year: number }) => Promise<TimelineYearData | null>
   rebuildTimeline: (input: {
     workspacePath: string

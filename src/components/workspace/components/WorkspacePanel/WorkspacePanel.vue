@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { showAlertMessage } from '../../../../shared/dialog'
 
 const props = defineProps<{
   workspacePath: string | null
@@ -19,7 +20,7 @@ async function handleOpenWorkspaceFolder() {
   try {
     await window.dairy.openWorkspaceFolder({ workspacePath: props.workspacePath })
   } catch (error) {
-    window.alert(error instanceof Error ? error.message : '打开目录失败，请稍后重试。')
+    await showAlertMessage(error instanceof Error ? error.message : '打开目录失败，请稍后重试。')
   }
 }
 </script>

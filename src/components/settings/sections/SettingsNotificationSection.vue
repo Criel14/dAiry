@@ -10,6 +10,7 @@ import type {
   EmailNotificationSecretStatus,
   WindowCloseBehavior,
 } from '../../../types/app'
+import { showAlertMessage } from '../../../shared/dialog'
 
 const props = defineProps<{
   systemNotificationEnabled: boolean
@@ -175,9 +176,9 @@ function updateReminderTime(nextValue: { hour?: string; minute?: string }) {
   emit('update:notificationReminderTime', `${hour}:${minute}`)
 }
 
-function handleEmailNotificationToggle() {
+async function handleEmailNotificationToggle() {
   if (!props.emailNotificationEnabled && !props.emailNotificationStatus.isConfigured) {
-    window.alert('请先保存可用的邮箱通知配置和授权码。')
+    await showAlertMessage('请先保存可用的邮箱通知配置和授权码。')
     return
   }
 
@@ -216,13 +217,13 @@ function markCustomEmailProvider() {
   }
 }
 
-function emitSaveEmailNotificationConfiguration() {
+async function emitSaveEmailNotificationConfiguration() {
   const smtpHost = draftEmailConfig.value.smtpHost.trim()
   const username = draftEmailConfig.value.username.trim()
   const recipientEmail = draftEmailConfig.value.recipientEmail.trim()
 
   if (!smtpHost) {
-    window.alert('请先填写 SMTP 服务器。')
+    await showAlertMessage('请先填写 SMTP 服务器。')
     return
   }
 
@@ -231,22 +232,22 @@ function emitSaveEmailNotificationConfiguration() {
     draftEmailConfig.value.smtpPort < 1 ||
     draftEmailConfig.value.smtpPort > 65535
   ) {
-    window.alert('请填写 1 到 65535 之间的 SMTP 端口。')
+    await showAlertMessage('请填写 1 到 65535 之间的 SMTP 端口。')
     return
   }
 
   if (!isValidEmail(username)) {
-    window.alert('请填写正确的发件邮箱。')
+    await showAlertMessage('请填写正确的发件邮箱。')
     return
   }
 
   if (!isValidEmail(recipientEmail)) {
-    window.alert('请填写正确的收件邮箱。')
+    await showAlertMessage('请填写正确的收件邮箱。')
     return
   }
 
   if (!draftAuthCode.value.trim() && !props.emailNotificationStatus.hasAuthCode) {
-    window.alert('请先填写邮箱授权码。')
+    await showAlertMessage('请先填写邮箱授权码。')
     return
   }
 

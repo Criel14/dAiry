@@ -1,6 +1,7 @@
 import { ref, type Ref } from 'vue'
 import type { TimelineYearData } from '../../../types/timeline'
 import dayjs from 'dayjs'
+import { showAlertMessage } from '../../../shared/dialog'
 
 export function useTimeline(workspacePath: Ref<string | null>) {
   const selectedTimelineYear = ref(dayjs().year())
@@ -38,13 +39,13 @@ export function useTimeline(workspacePath: Ref<string | null>) {
         year: selectedTimelineYear.value,
       })
       if (result.skipped) {
-        window.alert(
+        await showAlertMessage(
           `未找到 ${selectedTimelineYear.value} 年的日记，未生成时间轴，请确认该年份已写入日记。`,
         )
       }
       await loadTimeline(selectedTimelineYear.value)
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : '时间轴整理失败，请稍后重试。')
+      await showAlertMessage(err instanceof Error ? err.message : '时间轴整理失败，请稍后重试。')
     } finally {
       isRebuildingTimeline.value = false
       isCancellingTimelineRebuild.value = false

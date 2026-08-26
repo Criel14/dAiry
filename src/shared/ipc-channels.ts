@@ -24,6 +24,7 @@ export const IPC_CHANNELS = {
   getMcpRuntimeStatus: 'app:get-mcp-runtime-status',
   openExternalLink: 'app:open-external-link',
   openDevTools: 'app:open-dev-tools',
+  showMessageBox: 'app:show-message-box',
   // workspace
   chooseWorkspace: 'workspace:choose',
   openWorkspaceFolder: 'workspace:open-folder',

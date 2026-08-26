@@ -7,6 +7,7 @@ import {
   type ReportSectionKey,
 } from '../../../types/report'
 import { getReadableErrorMessage } from '../../../utils/error'
+import { confirmDialog } from '../../../shared/dialog'
 import {
   buildEmptyStateDescription,
   buildEmptyStateTitle,
@@ -281,7 +282,7 @@ export function useReportsPanel(workspacePath: Ref<string | null>) {
       customReportList: customReportList.value,
     })
     if (existingReport) {
-      const shouldOverwrite = window.confirm(buildOverwriteConfirmMessage(input, existingReport))
+      const shouldOverwrite = await confirmDialog(buildOverwriteConfirmMessage(input, existingReport))
       if (!shouldOverwrite) {
         return
       }
