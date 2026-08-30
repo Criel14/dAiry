@@ -206,7 +206,7 @@ export function useAppShellJournal(state: AppShellState) {
       return
     }
 
-    if (state.isGeneratingDailyInsights.value) {
+    if (state.isGeneratingDailyInsights.value || state.isRecordingTimelineEvent.value) {
       state.dailyInsightsStatusMessage.value =
         '大模型整理中，暂时无法切换日记。'
       return
@@ -497,6 +497,7 @@ export function useAppShellJournal(state: AppShellState) {
     }
 
     if (state.selectedDate.value !== targetDate) {
+      state.dailyInsightsStatusMessage.value = '整理期间已切换到其他日期，时间轴事件已跳过。'
       return
     }
 
@@ -523,7 +524,7 @@ export function useAppShellJournal(state: AppShellState) {
 
       if (state.selectedDate.value !== targetDate) {
         state.dailyInsightsStatusMessage.value =
-          '整理期间已切换到其他日期，时间轴事件结果已丢弃。'
+          '整理期间已切换到其他日期，时间轴事件已跳过。'
         return
       }
 
