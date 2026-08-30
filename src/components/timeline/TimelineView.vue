@@ -75,12 +75,6 @@ const MONTH_LABELS = [
           >
             <div class="timeline-event-marker">
               <div
-                v-if="event.dateEnd"
-                class="timeline-event-range"
-                :style="{ backgroundColor: event.color }"
-              ></div>
-              <div
-                v-else
                 class="timeline-event-dot"
                 :style="{ backgroundColor: event.color }"
               ></div>
@@ -88,7 +82,6 @@ const MONTH_LABELS = [
 
             <span class="timeline-event-date" :style="{ color: event.color }">
               {{ event.date }}
-              <template v-if="event.dateEnd"> ~ {{ event.dateEnd }}</template>
             </span>
 
             <TimelineCard
