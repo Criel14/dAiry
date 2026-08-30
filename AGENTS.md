@@ -167,6 +167,7 @@ AI 约束：
 - 日总结会附带最近 N 天（`config.json` 的 `ai.dailyContextDays`）的日记摘要作为上下文
 - AI 自动维护 `<workspace>/.dairy/user-profile.md` 用户画像：仅在用户点击“自动整理”成功后异步触发（日更 + 每隔 `ai.profileRefreshIntervalDays` 天全量刷新，刷新时间戳存 `workspace.json` 的 `lastProfileRefresh`）；画像文件不存在时日更自动从零创建初始画像（首次自动播种，无需手动生成）；画像对前端透明，不暴露查看入口；画像失败只记日志，绝不影响日总结返回；报告链路补做 insight 不触发画像
 - 设置页提供"重新整理用户画像"：扫描全部日记按月迭代重建画像，全成功才写盘并更新 `lastProfileRefresh`；重建期间自动画像维护跳过；preload 暴露重建/取消/进度三个 API，但画像内容仍不经过 IPC
+- 时间轴仅支持时间点事件（无时间段）；单日事件在"自动整理"判定 `timelineWorthy` 且用户确认后经 `timeline:add-day-event` 提取落盘（同一天覆盖更新，一天最多一条），`dairy_write_entry` 不自动触发时间轴提取，仅透传 `timelineWorthy` 供外部确认后调用 `dairy_record_timeline_event`
 
 Git 约束：
 
@@ -217,7 +218,7 @@ MCP 约束：
 - MCP 服务是可选能力，默认关闭；用户在设置页手动开启后才启动，关闭开关或退出应用即停止
 - 协议层使用官方 `@modelcontextprotocol/sdk`，Streamable HTTP transport（stateless，每个请求独立 server + transport），仅监听 `127.0.0.1`，端点 `/mcp`
 - 服务启动失败（端口占用等）只体现在运行态与设置页错误提示，不影响写作与其他功能，不做无限重试
-- MCP 读工具全部只读（检索/批读/grep/画像/元索引/记账查询/分类库），支持可选 `workspacePath` 参数，缺省回退 `lastOpenedWorkspace`；写工具仅三个：`dairy_write_entry`（写入 `journal/` 与合并 `.dairy/` 候选库）、`dairy_generate_report`（异步生成，落盘 `reports/`）、`dairy_read_report`（读取报告）；不暴露敏感配置；写工具工作区固定取 `lastOpenedWorkspace`，不接收 `workspacePath` 参数
+- MCP 读工具全部只读（检索/批读/grep/画像/元索引/记账查询/分类库），支持可选 `workspacePath` 参数，缺省回退 `lastOpenedWorkspace`；写工具仅四个：`dairy_write_entry`（写入 `journal/` 与合并 `.dairy/` 候选库）、`dairy_record_timeline_event`（确认制整理并记录单日时间轴事件）、`dairy_generate_report`（异步生成，落盘 `reports/`）、`dairy_read_report`（读取报告）；不暴露敏感配置；写工具工作区固定取 `lastOpenedWorkspace`，不接收 `workspacePath` 参数
 - 记账只读工具 `dairy_bills_query`（时间范围 month/year/start+end 三选一 + 分类精确 + 类型筛选 + 备注关键词，返回区间聚合与明细，明细超 limit 截断但统计仍全量）与 `dairy_bills_categories`（分类库），只查不改；`transfer` 类型语义为"不计入收支"（理财等内部变动）
 - 记忆能力（`electron/main/memory/`）仅供主进程内部与 MCP 层直接调用，本期不经 IPC 暴露渲染层；后续界面需要时再补 `memory:*` 通道
 - 配置写入与服务启停串行执行（先持久化，再按最新配置启停）；start/stop 内部串行化防竞态
