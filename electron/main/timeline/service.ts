@@ -7,6 +7,13 @@ export function getTimelineFilePath(workspacePath: string, year: number): string
   return join(resolveTimelineDirPath(workspacePath), `${year}.json`)
 }
 
+// 旧版本数据可能带 dateEnd 字段（时间段事件），读取时统一剥离，
+// 旧事件自动降级为以 date 为准的时间点事件，无需迁移脚本。
+export function stripLegacyDateEnd(event: TimelineEvent): TimelineEvent {
+  const { dateEnd, ...rest } = event as TimelineEvent & { dateEnd?: unknown }
+  return rest
+}
+
 export function readTimelineYear(workspacePath: string, year: number): TimelineYearData | null {
   const filePath = getTimelineFilePath(workspacePath, year)
 
@@ -15,7 +22,11 @@ export function readTimelineYear(workspacePath: string, year: number): TimelineY
   }
 
   const raw = readFileSync(filePath, 'utf-8')
-  return JSON.parse(raw) as TimelineYearData
+  const data = JSON.parse(raw) as TimelineYearData
+  return {
+    ...data,
+    events: data.events.map(stripLegacyDateEnd),
+  }
 }
 
 export function writeTimelineYear(workspacePath: string, data: TimelineYearData): void {
@@ -41,4 +52,39 @@ export function mergeEvents(existing: TimelineEvent[], incoming: TimelineEvent[]
   }
 
   return Array.from(eventMap.values())
+}
+
+// 单日事件 upsert：同一天已有事件则覆盖 title/detail（保留原 id），
+// 否则新增一条 id 固定为 evt_{YYYYMMDD}_001 的时间点事件。
+export function upsertEventForDate(
+  events: TimelineEvent[],
+  date: string,
+  draft: { title: string; detail: string },
+): { events: TimelineEvent[]; created: boolean } {
+  const index = events.findIndex((e) => e.date === date)
+
+  if (index !== -1) {
+    const next = [...events]
+    next[index] = {
+      ...next[index],
+      title: draft.title,
+      detail: draft.detail,
+    }
+    return { events: next, created: false }
+  }
+
+  const id = `evt_${date.replace(/-/g, '')}_001`
+  return {
+    events: [
+      ...events,
+      {
+        id,
+        date,
+        title: draft.title,
+        detail: draft.detail,
+        diaryDates: [date],
+      },
+    ],
+    created: true,
+  }
 }

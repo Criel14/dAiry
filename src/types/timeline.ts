@@ -1,7 +1,6 @@
 export interface TimelineEvent {
   id: string
   date: string
-  dateEnd: string | null
   title: string
   detail: string
   diaryDates: string[]
@@ -18,4 +17,15 @@ export interface RebuildTimelineProgress {
   weekLabel: string
   current: number
   total: number
+}
+
+export interface AddTimelineDayEventInput {
+  workspacePath: string
+  date: string
+}
+
+export interface AddTimelineDayEventResult {
+  recorded: boolean
+  reason?: 'empty'
+  event?: TimelineEvent
 }
