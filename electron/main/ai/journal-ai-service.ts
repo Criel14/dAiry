@@ -282,6 +282,7 @@ export async function ensureDailyInsights(
   const currentSummary = input.currentSummary?.trim() ?? ''
   const currentTags = normalizeStringList(input.currentTags ?? [])
 
+  // 已有总结/标签的快捷路径不调用大模型，timelineWorthy 恒为 false（保守兜底）
   if (currentSummary && currentTags.length >= 3) {
     return normalizeDailyInsights(
       {

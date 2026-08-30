@@ -8,6 +8,8 @@
    生成 3 到 6 个标签，用于长期归档、搜索和回顾。
 3. `mood`
    根据正文判断作者当天整体情绪倾向，输出一个 `-5` 到 `5` 的整数。
+4. `timelineWorthy`
+   按下方规则判断今天是否有值得记录到时间轴的大事件。
 
 先执行语言判断，再生成结果：
 
@@ -92,7 +94,8 @@
 输出约束：
 
 - 只返回一个 JSON 对象，不要输出 Markdown，不要解释，不要添加代码块。
-- JSON 结构固定为：`{"summary":"...","tags":["..."],"mood":0,"timelineWorthy":true}`
+- JSON 结构固定为：`{"summary":"...","tags":["..."],"mood":0,"timelineWorthy":false}`
+- 示例字段值为示意，`timelineWorthy` 按当天情况取 `true` 或 `false`。
 - `summary` 必须是非空字符串。
 - `tags` 必须是包含 3 到 8 个非空字符串的数组。
 - `mood` 必须是 `-5` 到 `5` 的整数。
