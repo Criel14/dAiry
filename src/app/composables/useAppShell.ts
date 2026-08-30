@@ -70,22 +70,14 @@ export function useAppShell() {
     const targetMs = computeNextBoundary()
     const delay = Math.max(0, targetMs - Date.now())
     boundaryTimer = setTimeout(() => {
-      const wasOnToday = state.isSelectedDateToday.value
       state.updateTimeTick()
-      if (wasOnToday) {
-        state.selectedDate.value = state.todayText.value
-      }
       scheduleDayBoundary()
     }, delay)
   }
 
   function handleVisibilityChange() {
     if (document.visibilityState !== 'visible') return
-    const wasOnToday = state.isSelectedDateToday.value
     state.updateTimeTick()
-    if (wasOnToday) {
-      state.selectedDate.value = state.todayText.value
-    }
     scheduleDayBoundary()
   }
 
