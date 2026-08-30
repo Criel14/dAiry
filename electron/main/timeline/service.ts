@@ -56,6 +56,7 @@ export function mergeEvents(existing: TimelineEvent[], incoming: TimelineEvent[]
 
 // 单日事件 upsert：同一天已有事件则覆盖 title/detail（保留原 id），
 // 否则新增一条 id 固定为 evt_{YYYYMMDD}_001 的时间点事件。
+// 约定一天最多一个事件；若旧数据中同一天存在多条重复事件，仅第一条会被更新。
 export function upsertEventForDate(
   events: TimelineEvent[],
   date: string,

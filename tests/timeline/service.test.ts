@@ -29,6 +29,18 @@ describe('stripLegacyDateEnd', () => {
     expect(result).not.toHaveProperty('dateEnd')
     expect(result.date).toBe('2026-03-15')
   })
+
+  it('removes legacy dateEnd field when it is null', () => {
+    const legacy = {
+      ...makeEvent(),
+      dateEnd: null,
+    } as TimelineEvent & { dateEnd?: unknown }
+
+    const result = stripLegacyDateEnd(legacy)
+
+    expect(result).not.toHaveProperty('dateEnd')
+    expect(result).toEqual(makeEvent())
+  })
 })
 
 describe('upsertEventForDate', () => {
@@ -61,6 +73,8 @@ describe('upsertEventForDate', () => {
     expect(result.events[0].id).toBe('evt_20260315_001')
     expect(result.events[0].title).toBe('新标题')
     expect(result.events[0].detail).toBe('新详情')
+    expect(existing).toHaveLength(1)
+    expect(existing[0].title).toBe('旧标题')
   })
 })
 
