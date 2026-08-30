@@ -40,7 +40,7 @@ export function registerWriteTools(server: McpServer) {
         organize: z
           .boolean()
           .default(true)
-          .describe('是否自动整理总结/标签/心情并异步维护画像与时间轴，默认 true'),
+          .describe('是否自动整理总结/标签/心情并异步维护用户画像，默认 true'),
       },
     },
     async ({ date, body, weather, location, mode, organize }) => {
