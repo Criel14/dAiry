@@ -2,7 +2,6 @@ import type { GenerateDailyInsightsResult } from '../../../src/types/ai'
 import type { JournalFrontmatter } from '../../../src/types/journal'
 import { generateDailyInsights } from '../ai'
 import { runProfileMaintenance } from '../profile'
-import { updateTimelineForDay } from '../timeline/ai'
 import { getWorkspaceTags } from '../workspace/libraries'
 import { mergeWorkspaceLocationOptions } from '../workspace/libraries'
 import { mergeWorkspaceTags } from '../workspace/libraries'
@@ -37,13 +36,13 @@ export interface WriteJournalEntryFullResult {
   addedWeather: string[]
   addedLocations: string[]
   addedTags: string[]
+  timelineWorthy: boolean
   organize: {
     status: 'ok' | 'skipped' | 'failed'
     warning?: string
   }
   maintenance: {
     profile: 'triggered' | 'skipped'
-    timeline: 'triggered' | 'skipped'
   }
 }
 
@@ -112,10 +111,10 @@ export async function writeJournalEntryFull(
 
   let finalFrontmatter = baseFrontmatter
   let addedTags: string[] = []
+  let timelineWorthy = false
   let organizeStatus: WriteJournalEntryFullResult['organize'] = { status: 'skipped' }
   let maintenance: WriteJournalEntryFullResult['maintenance'] = {
     profile: 'skipped',
-    timeline: 'skipped',
   }
 
   if (organize) {
@@ -140,11 +139,11 @@ export async function writeJournalEntryFull(
       addedTags = await mergeWorkspaceTags(workspacePath, insights.tags)
 
       organizeStatus = { status: 'ok' }
-      maintenance = { profile: 'triggered', timeline: 'triggered' }
+      timelineWorthy = insights.timelineWorthy
+      maintenance = { profile: 'triggered' }
 
       // 与应用内"自动整理"行为一致：异步触发，失败只记日志，不影响返回
       void runProfileMaintenance({ workspacePath, date: input.date, body: finalBody })
-      void updateTimelineForDay(workspacePath, input.date)
     } catch (error) {
       const warning = error instanceof Error ? error.message : '自动整理失败。'
       organizeStatus = { status: 'failed', warning }
@@ -164,6 +163,7 @@ export async function writeJournalEntryFull(
     addedWeather,
     addedLocations,
     addedTags,
+    timelineWorthy,
     organize: organizeStatus,
     maintenance,
   }

@@ -8,8 +8,13 @@ import { createAiChatClient } from '../ai/provider-factory'
 import { withAiRetry } from '../ai/retry'
 import { loadPrompt } from '../ai/prompt-loader'
 import { readJournalDocument } from '../journal/document'
-import { getRecentDailySummaries } from '../ai/journal-ai-service'
-import { readTimelineYear, writeTimelineYear, mergeEvents } from './service'
+import { readUserProfile } from '../profile/profile-service'
+import {
+  readTimelineYear,
+  stripLegacyDateEnd,
+  upsertEventForDate,
+  writeTimelineYear,
+} from './service'
 
 interface ExtractResult {
   newEvents: TimelineEvent[]
@@ -74,87 +79,6 @@ function fixUnescapedStrings(json: string): string {
     })
   }
   return json
-}
-
-export async function extractEventsFromDay(
-  workspacePath: string,
-  date: string,
-  existingEvents: TimelineEvent[],
-): Promise<ExtractResult> {
-  assertValidDate(date)
-
-  const [config, systemPrompt, supplement] = await Promise.all([
-    readAppConfig(),
-    loadPrompt('timelineExtractSystem'),
-    readSupplement(workspacePath),
-  ])
-
-  const settings = normalizeAiSettings(config.ai)
-  const apiKey = await readAiApiKey(settings.providerType)
-
-  if (!apiKey) {
-    throw new Error('请先在设置页保存当前 provider 的 API Key。')
-  }
-
-  const { body } = await readJournalDocument(
-    resolveJournalEntryFilePath(workspacePath, date),
-  )
-
-  if (!body.trim()) {
-    return { newEvents: [], updatedEvents: [] }
-  }
-
-  const recentSummaries = await getRecentDailySummaries(
-    workspacePath,
-    date,
-    settings.dailyContextDays,
-  )
-
-  const existingEventsBlock =
-    existingEvents.length > 0
-      ? '已有事件列表：\n' +
-        existingEvents
-          .map(
-            (e) =>
-              `- id: ${e.id}, title: ${e.title}, date: ${e.date}, dateEnd: ${e.dateEnd ?? '进行中'}`,
-          )
-          .join('\n')
-      : '暂无已有事件'
-
-  const contextBlock =
-    recentSummaries.length > 0
-      ? '最近日记上下文：\n' +
-        recentSummaries.map((s) => `- ${s.date}: ${s.summary || '无摘要'}`).join('\n')
-      : ''
-
-  const userPrompt = [
-    `业务日期：${date}`,
-    contextBlock,
-    existingEventsBlock,
-    supplement.trim() ? `补充知识：\n${supplement.trim()}` : '',
-    '当日日记：',
-    body,
-  ]
-    .filter(Boolean)
-    .join('\n\n')
-
-  const responseText = await withAiRetry(
-    (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
-    (client) =>
-      client.completeText({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-      }),
-    { minTimeoutMs: 120_000, label: '时间轴日更事件提取' },
-  )
-
-  const result = extractJsonObject(responseText)
-  return {
-    newEvents: Array.isArray(result.newEvents) ? result.newEvents : [],
-    updatedEvents: Array.isArray(result.updatedEvents) ? result.updatedEvents : [],
-  }
 }
 
 const __timelineCancelTokens = new Map<number, { cancelled: boolean }>()
@@ -314,7 +238,6 @@ export async function rebuildTimelineYear(
     for (const update of result.updatedEvents) {
       const idx = allEvents.findIndex((e) => e.id === update.id)
       if (idx !== -1) {
-        if (update.dateEnd !== undefined) allEvents[idx].dateEnd = update.dateEnd
         if (update.detail !== undefined) allEvents[idx].detail = update.detail
       }
     }
@@ -324,7 +247,7 @@ export async function rebuildTimelineYear(
   console.log(
     `[timeline] ${year} 年时间轴重建完成：${diaryBatchCount}/${totalBatches} 个批次有日记，共提取 ${allEvents.length} 个事件。`,
   )
-  return { events: allEvents, diaryBatchCount }
+  return { events: allEvents.map(stripLegacyDateEnd), diaryBatchCount }
 }
 
 export function cancelTimelineRebuild(year: number): void {
@@ -334,44 +257,159 @@ export function cancelTimelineRebuild(year: number): void {
   }
 }
 
-export async function updateTimelineForDay(
+const MAX_RECENT_BODY_LENGTH = 2200
+
+function truncateRecentBody(body: string) {
+  const normalizedBody = body.trim()
+  if (normalizedBody.length <= MAX_RECENT_BODY_LENGTH) {
+    return normalizedBody
+  }
+
+  return `${normalizedBody.slice(0, MAX_RECENT_BODY_LENGTH)}...`
+}
+
+export interface ExtractedDayEvent {
+  title: string
+  detail: string
+}
+
+function extractDayEventJson(rawText: string): { title?: unknown; detail?: unknown } {
+  let text = rawText.trim()
+
+  const codeBlockMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)```/)
+  if (codeBlockMatch) {
+    text = codeBlockMatch[1].trim()
+  }
+
+  try {
+    return JSON.parse(text) as { title?: unknown; detail?: unknown }
+  } catch {
+    // 继续
+  }
+
+  const jsonMatch = text.match(/\{[\s\S]*\}/)
+  if (jsonMatch) {
+    const candidate = jsonMatch[0].replace(/,(\s*[}\]])/g, '$1')
+    try {
+      return JSON.parse(candidate) as { title?: unknown; detail?: unknown }
+    } catch {
+      // 继续
+    }
+  }
+
+  const preview = rawText.length > 300 ? rawText.slice(0, 300) + '...' : rawText
+  throw new Error(`大模型返回内容无法解析为 JSON。返回内容预览：\n${preview}`)
+}
+
+// 确认制单日事件提取：当天全文 + 近 7 天全文（截断保护）+ 画像/补充资料（非空才拼）
+export async function extractTimelineEventForDay(
   workspacePath: string,
   date: string,
-): Promise<void> {
+): Promise<ExtractedDayEvent> {
+  assertValidDate(date)
+
+  const [config, systemPrompt, supplement, userProfile] = await Promise.all([
+    readAppConfig(),
+    loadPrompt('timelineEventExtractSystem'),
+    readSupplement(workspacePath),
+    readUserProfile(workspacePath, date.slice(0, 4)),
+  ])
+
+  const settings = normalizeAiSettings(config.ai)
+  const apiKey = await readAiApiKey(settings.providerType)
+
+  if (!apiKey) {
+    throw new Error('请先在设置页保存当前 provider 的 API Key。')
+  }
+
+  const { body } = await readJournalDocument(
+    resolveJournalEntryFilePath(workspacePath, date),
+  )
+
+  if (!body.trim()) {
+    throw new Error('当天还没有写日记，无法整理时间轴事件。')
+  }
+
+  const recentBodies: string[] = []
+  for (let offset = 7; offset >= 1; offset -= 1) {
+    const targetDate = dayjs(date).subtract(offset, 'day').format('YYYY-MM-DD')
+
+    try {
+      const document = await readJournalDocument(
+        resolveJournalEntryFilePath(workspacePath, targetDate),
+      )
+      if (document.body.trim()) {
+        recentBodies.push(`## ${targetDate}\n${truncateRecentBody(document.body)}`)
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        continue
+      }
+      throw error
+    }
+  }
+
+  const userPrompt = [
+    `业务日期：${date}`,
+    recentBodies.length > 0
+      ? `近期日记（过去 7 天，仅作背景参考）：\n${recentBodies.join('\n\n')}`
+      : '',
+    supplement.trim() ? `补充知识：\n${supplement.trim()}` : '',
+    userProfile.trim() ? `用户画像：\n${userProfile.trim()}` : '',
+    '当日日记：',
+    body,
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+
+  const responseText = await withAiRetry(
+    (timeoutMs) => createAiChatClient(settings, apiKey, timeoutMs),
+    (client) =>
+      client.completeJson({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }),
+    { minTimeoutMs: 120_000, label: '时间轴事件提取' },
+  )
+
+  const payload = extractDayEventJson(responseText)
+  const title = typeof payload.title === 'string' ? payload.title.trim() : ''
+  const detail = typeof payload.detail === 'string' ? payload.detail.trim() : ''
+
+  return { title, detail }
+}
+
+// 提取并落盘单日事件（IPC 与 MCP 共用）：同一天已有事件则覆盖更新
+export async function addTimelineDayEvent(
+  workspacePath: string,
+  date: string,
+): Promise<{ recorded: boolean; reason?: 'empty'; event?: TimelineEvent }> {
+  const { title, detail } = await extractTimelineEventForDay(workspacePath, date)
+
+  if (!title.trim()) {
+    return { recorded: false, reason: 'empty' }
+  }
+
   const year = Number.parseInt(date.split('-')[0], 10)
-  // 时间轴文件不存在时自动初始化，从整理当天开始建立
   const existingData = readTimelineYear(workspacePath, year) ?? {
     year,
-    version: 1,
+    version: 2,
     generatedAt: new Date().toISOString(),
     events: [],
   }
 
-  try {
-    const result = await extractEventsFromDay(workspacePath, date, existingData.events)
-
-    if (result.newEvents.length === 0 && result.updatedEvents.length === 0) {
-      return
-    }
-
-    const mergedEvents = mergeEvents(existingData.events, result.newEvents)
-
-    for (const update of result.updatedEvents) {
-      const idx = mergedEvents.findIndex((e) => e.id === update.id)
-      if (idx !== -1) {
-        if (update.dateEnd !== undefined) mergedEvents[idx].dateEnd = update.dateEnd
-        if (update.detail !== undefined) mergedEvents[idx].detail = update.detail
-      }
-    }
-
-    const updatedData = {
-      ...existingData,
-      events: mergedEvents,
-      generatedAt: new Date().toISOString(),
-    }
-
-    writeTimelineYear(workspacePath, updatedData)
-  } catch (err) {
-    console.error('时间轴日更失败：', err)
+  const { events } = upsertEventForDate(existingData.events, date, { title, detail })
+  const updatedData = {
+    ...existingData,
+    version: 2,
+    events,
+    generatedAt: new Date().toISOString(),
   }
+
+  writeTimelineYear(workspacePath, updatedData)
+
+  const event = events.find((e) => e.date === date)
+  return { recorded: true, event }
 }

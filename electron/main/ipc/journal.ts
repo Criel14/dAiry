@@ -10,7 +10,6 @@ import type {
 } from '../../../src/types/journal'
 import { generateDailyInsights } from '../ai'
 import { runProfileMaintenance } from '../profile'
-import { updateTimelineForDay } from '../timeline/ai'
 import { IPC_CHANNELS } from '../constants'
 import {
   createJournalEntry,
@@ -61,9 +60,6 @@ export function registerJournalIpcHandlers() {
         date: input.date,
         body: input.body,
       })
-
-      // 时间轴日更异步执行，不阻塞主流程
-      void updateTimelineForDay(input.workspacePath, input.date)
 
       return result
     },
