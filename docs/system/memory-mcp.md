@@ -39,7 +39,8 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 
 | 工具 | 说明 | 关键入参 |
 |------|------|----------|
-| `dairy_write_entry` | 完整写入日记：正文落盘 → 主进程 AI 自动整理回填 summary/tags/mood → 异步触发画像日更与时间轴日更 | `date`、`body`、`weather`、`location`、`mode?`、`organize?` |
+| `dairy_write_entry` | 完整写入日记：正文落盘 → 主进程 AI 自动整理回填 summary/tags/mood → 异步触发画像日更；返回值含 `timelineWorthy`，需记录时间轴时经 `dairy_record_timeline_event` | `date`、`body`、`weather`、`location`、`mode?`、`organize?` |
+| `dairy_record_timeline_event` | 确认制整理并记录单日时间轴事件（读取当天与近 7 天日记全文、画像/补充知识，同一天覆盖更新），会消耗一轮 AI 调用 | `date` |
 | `dairy_generate_report` | 异步触发区间报告生成，立即返回 reportId；生成需几分钟，完成后落盘 `reports/` | `preset`、`startDate`、`endDate`、`requestedSections?` |
 | `dairy_read_report` | 按 reportId 读取已落盘的报告 JSON；尚未生成/仍在生成中返回中文提示 | `reportId` |
 
@@ -49,7 +50,8 @@ dAiry 的记忆系统是主进程内的统一能力层，负责把本地日记�
 
 - `weather` / `location` 必填（由用户在对话中给出）；`mode` 为 `create`（默认）/ `append` / `overwrite`，`create` 遇到已存在日记抛中文错误；`organize` 默认 `true`
 - 工作区固定取 `config.lastOpenedWorkspace`，不接收 `workspacePath` 参数
-- 正文先落盘（更新 `updatedAt` 与元索引），再调用 `generateDailyInsights` 自动整理；整理成功则回填 summary/tags/mood 并合并候选库，随后**异步**触发 `runProfileMaintenance` 与 `updateTimelineForDay`（不阻塞返回，失败只记日志）
+- 正文先落盘（更新 `updatedAt` 与元索引），再调用 `generateDailyInsights` 自动整理；整理成功则回填 summary/tags/mood 并合并候选库，随后**异步**触发 `runProfileMaintenance`（不阻塞返回，失败只记日志）
+- 返回值含 `timelineWorthy`（当天是否有值得记录到时间轴的大事件）；为 true 时由外部 AI 向用户确认后，调用 `dairy_record_timeline_event` 记录单日时间轴事件
 - 整理失败不抛错：正文已保存，返回 `organize.status = 'failed'` 与 `warning`
 - 候选库新增项（`addedWeather` / `addedLocations` / `addedTags`）通过合并前后差值计算，由 `libraries.ts` 的 merge 函数返回
 
