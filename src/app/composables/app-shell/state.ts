@@ -158,6 +158,7 @@ export function useAppShellState() {
   const isSavingEntry = ref(false)
   const isSavingMetadata = ref(false)
   const isGeneratingDailyInsights = ref(false)
+  const isRecordingTimelineEvent = ref(false)
   const isSavingTheme = ref(false)
   const isSavingWindowZoomFactor = ref(false)
   const isSavingJournalHeatmap = ref(false)
@@ -248,7 +249,8 @@ export function useAppShellState() {
       Boolean(editorContent.value.trim()) &&
       aiSettingsStatus.value.isConfigured &&
       !isSavingMetadata.value &&
-      !isGeneratingDailyInsights.value,
+      !isGeneratingDailyInsights.value &&
+      !isRecordingTimelineEvent.value,
   )
   const hasVisibleMetadataFields = computed(
     () =>
@@ -308,6 +310,7 @@ export function useAppShellState() {
     isJournalHeatmapEnabled,
     isJournalReady,
     isRebuildingProfile,
+    isRecordingTimelineEvent,
     isReportExportMode,
     isSavingAiConfig,
     isSavingDayStartHour,

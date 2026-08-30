@@ -481,11 +481,62 @@ export function useAppShellJournal(state: AppShellState) {
         result.newTags.length > 0
           ? `已生成总结、标签和心情。保存信息后会新增 ${result.newTags.length} 个候选标签。`
           : '已生成总结、标签和心情。'
+
+      await handleTimelineWorthyConfirm(result.timelineWorthy, targetDate)
     } catch (error) {
       state.dailyInsightsStatusMessage.value =
         error instanceof Error ? error.message : '自动整理失败，请稍后重试。'
     } finally {
       state.isGeneratingDailyInsights.value = false
+    }
+  }
+
+  async function handleTimelineWorthyConfirm(timelineWorthy: boolean, targetDate: string) {
+    if (!timelineWorthy) {
+      return
+    }
+
+    if (state.selectedDate.value !== targetDate) {
+      return
+    }
+
+    const shouldRecord = await confirmDialog(
+      '检测到今天的事情比较有意义，是否记录到时间轴中？',
+    )
+    if (!shouldRecord) {
+      return
+    }
+
+    if (state.selectedDate.value !== targetDate) {
+      state.dailyInsightsStatusMessage.value = '整理期间已切换到其他日期，时间轴事件已跳过。'
+      return
+    }
+
+    state.isRecordingTimelineEvent.value = true
+    state.dailyInsightsStatusMessage.value = '正在整理时间轴事件...'
+
+    try {
+      const recordResult = await window.dairy.addTimelineDayEvent({
+        workspacePath: `${state.workspacePath.value}`,
+        date: targetDate,
+      })
+
+      if (state.selectedDate.value !== targetDate) {
+        state.dailyInsightsStatusMessage.value =
+          '整理期间已切换到其他日期，时间轴事件结果已丢弃。'
+        return
+      }
+
+      state.dailyInsightsStatusMessage.value = recordResult.recorded
+        ? '已记录到时间轴。'
+        : '今天没有整理出值得记录的事件，已跳过。'
+    } catch (error) {
+      if (state.selectedDate.value === targetDate) {
+        state.dailyInsightsStatusMessage.value =
+          error instanceof Error ? error.message : '时间轴事件整理失败，请稍后重试。'
+      }
+    } finally {
+      state.isRecordingTimelineEvent.value = false
     }
   }
 

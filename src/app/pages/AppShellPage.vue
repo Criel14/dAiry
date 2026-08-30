@@ -69,6 +69,7 @@ const {
   isJournalHeatmapEnabled,
   isJournalReady,
   isRebuildingProfile,
+  isRecordingTimelineEvent,
   isSavingAiConfig,
   isSavingDayStartHour,
   isSavingEntry,
@@ -217,7 +218,7 @@ onBeforeUnmount(() => {
           :today-date="todayText"
           :workspace-path="workspacePath"
           :is-heatmap-enabled="isJournalHeatmapEnabled"
-          :disabled="isGeneratingDailyInsights"
+          :disabled="isGeneratingDailyInsights || isRecordingTimelineEvent"
           @update:model-value="handleSelectDate"
         />
 
