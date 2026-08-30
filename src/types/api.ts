@@ -55,7 +55,12 @@ import type {
   WorkspaceSelectionResult,
   WorkspaceStringListInput,
 } from './workspace'
-import type { TimelineYearData, RebuildTimelineProgress } from './timeline'
+import type {
+  TimelineYearData,
+  RebuildTimelineProgress,
+  AddTimelineDayEventInput,
+  AddTimelineDayEventResult,
+} from './timeline'
 import type { McpPreferenceInput, McpRuntimeStatus } from './mcp'
 import type { RightPanel } from './ui'
 import type {
@@ -145,6 +150,9 @@ export interface DairyApi {
   onTimelineRebuildProgress: (
     listener: (progress: RebuildTimelineProgress) => void,
   ) => () => void
+  addTimelineDayEvent: (
+    input: AddTimelineDayEventInput,
+  ) => Promise<AddTimelineDayEventResult>
   listBillsByMonth: (input: BillsListMonthInput) => Promise<Bill[]>
   listBillsByYear: (input: BillsListYearInput) => Promise<Bill[]>
   listBillsYears: (input: BillsCategoryQuery) => Promise<string[]>

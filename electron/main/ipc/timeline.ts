@@ -2,7 +2,11 @@ import { ipcMain } from 'electron'
 import { IPC_CHANNELS } from '../constants'
 import type { TimelineYearData } from '../../../src/types/timeline'
 import { readTimelineYear, writeTimelineYear } from '../timeline/service'
-import { rebuildTimelineYear, cancelTimelineRebuild } from '../timeline/ai'
+import {
+  rebuildTimelineYear,
+  cancelTimelineRebuild,
+  addTimelineDayEvent,
+} from '../timeline/ai'
 
 let activeRebuildYear: number | null = null
 
@@ -43,7 +47,7 @@ export function registerTimelineIpcHandlers() {
 
         const data: TimelineYearData = {
           year,
-          version: 1,
+          version: 2,
           generatedAt: new Date().toISOString(),
           events: result.events,
         }
@@ -67,6 +71,17 @@ export function registerTimelineIpcHandlers() {
       cancelTimelineRebuild(activeRebuildYear)
     }
   })
+
+  ipcMain.handle(
+    IPC_CHANNELS.addTimelineDayEvent,
+    async (_event, input: { workspacePath: string; date: string }) => {
+      if (typeof input?.workspacePath !== 'string' || !input.workspacePath.trim()) {
+        throw new Error('工作区路径无效。')
+      }
+
+      return addTimelineDayEvent(input.workspacePath, input.date)
+    },
+  )
 }
 
 function workspacePathOrThrow(workspacePath: unknown): string {

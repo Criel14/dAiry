@@ -60,6 +60,7 @@ export const IPC_CHANNELS = {
   rebuildTimeline: 'timeline:rebuild',
   cancelTimelineRebuild: 'timeline:cancel-rebuild',
   timelineRebuildProgress: 'timeline:rebuild-progress',
+  addTimelineDayEvent: 'timeline:add-day-event',
   // bills
   listBillsByMonth: 'bills:list-month',
   listBillsByYear: 'bills:list-year',
