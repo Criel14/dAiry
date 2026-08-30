@@ -18,6 +18,7 @@ interface DailyInsightsPayload {
   summary?: unknown
   tags?: unknown
   mood?: unknown
+  timelineWorthy?: unknown
 }
 
 interface EnsureDailyInsightsInput extends GenerateDailyInsightsInput {
@@ -85,6 +86,7 @@ function normalizeDailyInsights(
     mood,
     existingTags,
     newTags,
+    timelineWorthy: typeof payload.timelineWorthy === 'boolean' ? payload.timelineWorthy : false,
   }
 }
 

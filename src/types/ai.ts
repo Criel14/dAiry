@@ -51,6 +51,7 @@ export interface GenerateDailyInsightsResult {
   mood: number
   existingTags: string[]
   newTags: string[]
+  timelineWorthy: boolean
 }
 
 export interface RecentDaySummary {
