@@ -322,9 +322,18 @@ export async function extractTimelineEventForDay(
     throw new Error('请先在设置页保存当前 provider 的 API Key。')
   }
 
-  const { body } = await readJournalDocument(
-    resolveJournalEntryFilePath(workspacePath, date),
-  )
+  let body: string
+  try {
+    const document = await readJournalDocument(
+      resolveJournalEntryFilePath(workspacePath, date),
+    )
+    body = document.body
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      throw new Error('当天还没有写日记，无法整理时间轴事件。')
+    }
+    throw error
+  }
 
   if (!body.trim()) {
     throw new Error('当天还没有写日记，无法整理时间轴事件。')
