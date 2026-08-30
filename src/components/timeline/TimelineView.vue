@@ -59,7 +59,7 @@ const MONTH_LABELS = [
     <template v-if="monthGroups.length === 0">
       <div class="timeline-empty-state">
         <h3>{{ year }} 年暂无事件</h3>
-        <p>在左侧点击"重新整理本年度时间轴"让 AI 自动提取事件</p>
+        <p>在左侧点击"重新整理本年度时间轴"让 AI 自动提取事件；日常写日记后点击"自动整理"，AI 判断当天值得记录时也可经确认写入时间轴。</p>
       </div>
     </template>
 

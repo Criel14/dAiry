@@ -524,7 +524,7 @@ export function useAppShellJournal(state: AppShellState) {
 
       if (state.selectedDate.value !== targetDate) {
         state.dailyInsightsStatusMessage.value =
-          '整理期间已切换到其他日期，时间轴事件已跳过。'
+          '已记录到时间轴。整理期间已切换到其他日期，本次结果以原日期为准。'
         return
       }
 
