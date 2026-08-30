@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { writeJournalEntryFull } from '../journal/write-flow'
+import { addTimelineDayEvent } from '../timeline/ai'
 import { generateRangeReport, getRangeReport } from '../report'
 import { resolveTargetReportId, validateReportRange } from '../report/range'
 import { resolveWorkspacePath, toErrorResult, toJsonTextResult } from './helpers'
@@ -24,7 +25,7 @@ export function registerWriteTools(server: McpServer) {
     {
       title: '撰写日记（完整写入）',
       description:
-        '把用户口述的正文真实写入 dAiry 日记（journal/YYYY/MM/YYYY-MM-DD.md），随后由 dAiry 主进程 AI 自动生成总结、标签与心情并回填，并异步维护用户画像与时间轴。这是写操作，会真实落盘；调用前务必与用户确认日期、天气、地点与写入模式。',
+        '把用户口述的正文真实写入 dAiry 日记（journal/YYYY/MM/YYYY-MM-DD.md），随后由 dAiry 主进程 AI 自动生成总结、标签与心情并回填，并异步维护用户画像。返回值包含 timelineWorthy（今天是否有值得记录到时间轴的大事件）；若为 true，请先向用户确认，再调用 dairy_record_timeline_event 记录到时间轴。这是写操作，会真实落盘；调用前务必与用户确认日期、天气、地点与写入模式。',
       inputSchema: {
         date: z.string().describe('日记日期，格式 YYYY-MM-DD'),
         body: z.string().describe('日记正文，保留用户原文语气与段落，不做润色'),
@@ -54,6 +55,27 @@ export function registerWriteTools(server: McpServer) {
           mode,
           organize,
         })
+        return toJsonTextResult(result)
+      } catch (error) {
+        return toErrorResult(error)
+      }
+    },
+  )
+
+  server.registerTool(
+    'dairy_record_timeline_event',
+    {
+      title: '记录单日时间轴事件',
+      description:
+        '为指定日期整理并记录一条时间轴事件：AI 读取该天日记全文、近 7 天日记全文，以及用户画像/补充知识（若有），生成事件标题与简要内容，写入该年时间轴（同一天已有事件则覆盖更新）。会消耗一轮 AI 调用，调用前务必与用户确认。',
+      inputSchema: {
+        date: z.string().describe('日记日期，格式 YYYY-MM-DD'),
+      },
+    },
+    async ({ date }) => {
+      try {
+        const workspacePath = await resolveWorkspacePath()
+        const result = await addTimelineDayEvent(workspacePath, date)
         return toJsonTextResult(result)
       } catch (error) {
         return toErrorResult(error)
