@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { ChevronDown, ChevronUp, FileText } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, FileText, Pencil, Trash2 } from 'lucide-vue-next'
 import type { TimelineEvent } from '../../types/timeline'
 
 const props = defineProps<{
@@ -46,24 +46,26 @@ const detailText = computed(() => {
           v-for="d in event.diaryDates"
           :key="d"
           class="timeline-card-diary-link"
+          :title="d"
           @click.stop="emit('jumpToDiary', d)"
         >
-          <FileText class="link-icon" />
-          {{ d }}
+          <FileText class="link-icon" aria-hidden="true" />
         </button>
         <button
           class="timeline-card-diary-link"
           type="button"
+          title="编辑"
           @click.stop="emit('openEditEvent', event)"
         >
-          编辑
+          <Pencil class="link-icon" aria-hidden="true" />
         </button>
         <button
           class="timeline-card-diary-link timeline-card-diary-link--danger"
           type="button"
+          title="删除"
           @click.stop="emit('deleteEvent', event)"
         >
-          删除
+          <Trash2 class="link-icon" aria-hidden="true" />
         </button>
       </div>
     </div>
