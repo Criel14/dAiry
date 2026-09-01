@@ -10,6 +10,8 @@ import { loadPrompt } from '../ai/prompt-loader'
 import { readJournalDocument } from '../journal/document'
 import { readUserProfile } from '../profile/profile-service'
 import {
+  mergeEvents,
+  normalizeBatchEvents,
   readTimelineYear,
   stripLegacyDateEnd,
   upsertEventForDate,
@@ -17,8 +19,7 @@ import {
 } from './service'
 
 interface ExtractResult {
-  newEvents: TimelineEvent[]
-  updatedEvents: Array<{ id: string; dateEnd?: string | null; detail?: string }>
+  events: Array<{ date: string; title: string; detail: string }>
 }
 
 function extractJsonObject(rawText: string): ExtractResult {
@@ -96,7 +97,7 @@ function buildBatches(start: dayjs.Dayjs, end: dayjs.Dayjs): Array<{ start: stri
 
   while (cursor.isBefore(end) || cursor.isSame(end, 'day')) {
     const batchStart = cursor.format('YYYY-MM-DD')
-    const batchEnd = cursor.add(2, 'day')
+    const batchEnd = cursor.add(6, 'day')
     batches.push({
       start: batchStart,
       end: batchEnd.isAfter(end) ? end.format('YYYY-MM-DD') : batchEnd.format('YYYY-MM-DD'),
@@ -112,7 +113,7 @@ export async function rebuildTimelineYear(
   year: number,
   onProgress: (progress: { weekLabel: string; current: number; total: number }) => void,
 ): Promise<{ events: TimelineEvent[]; diaryBatchCount: number } | null> {
-  const allEvents: TimelineEvent[] = []
+  let allEvents: TimelineEvent[] = []
   const start = dayjs(`${year}-01-01`)
   const end = dayjs(`${year}-12-31`)
 
@@ -181,17 +182,8 @@ export async function rebuildTimelineYear(
     onProgress({ weekLabel: `${batchStart} ~ ${batchEnd}`, current: completedCount, total: totalBatches })
     console.log(`[timeline] ${year} 年批次 ${batchStart} ~ ${batchEnd}：${bodies.length} 篇日记，等待 AI 提取事件。`)
 
-    const existingEventsBlock =
-      allEvents.length > 0
-        ? '当前已有事件：\n' +
-          allEvents
-            .map((e) => `- id: ${e.id}, title: ${e.title}, date: ${e.date}`)
-            .join('\n')
-        : ''
-
     const userPrompt = [
       `正在重建 ${year} 年时间轴，当前批次：${batchStart} ~ ${batchEnd}`,
-      existingEventsBlock,
       supplement.trim() ? `补充知识：\n${supplement.trim()}` : '',
       ...bodies,
     ]
@@ -228,19 +220,8 @@ export async function rebuildTimelineYear(
 
     const result = extractJsonObject(responseText)
 
-    for (const event of result.newEvents) {
-      const exists = allEvents.some((e) => e.id === event.id)
-      if (!exists) {
-        allEvents.push(event)
-      }
-    }
-
-    for (const update of result.updatedEvents) {
-      const idx = allEvents.findIndex((e) => e.id === update.id)
-      if (idx !== -1) {
-        if (update.detail !== undefined) allEvents[idx].detail = update.detail
-      }
-    }
+    const batchEvents = normalizeBatchEvents(result.events)
+    allEvents = mergeEvents(allEvents, batchEvents)
   }
 
   __timelineCancelTokens.delete(year)

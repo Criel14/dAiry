@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { TimelineEvent } from '../../src/types/timeline'
 import {
   mergeEvents,
+  normalizeBatchEvents,
   stripLegacyDateEnd,
   upsertEventForDate,
 } from '../../electron/main/timeline/service'
@@ -75,6 +76,48 @@ describe('upsertEventForDate', () => {
     expect(result.events[0].detail).toBe('新详情')
     expect(existing).toHaveLength(1)
     expect(existing[0].title).toBe('旧标题')
+  })
+})
+
+describe('normalizeBatchEvents', () => {
+  it('creates events with main-process generated ids and diaryDates', () => {
+    const result = normalizeBatchEvents([
+      { date: '2026-03-15', title: '完成项目文档', detail: '写完文档并通过评审。' },
+      { date: '2026-03-20', title: '公司周年庆活动', detail: '下午全员参加。' },
+    ])
+
+    expect(result).toEqual([
+      {
+        id: 'evt_20260315_001',
+        date: '2026-03-15',
+        title: '完成项目文档',
+        detail: '写完文档并通过评审。',
+        diaryDates: ['2026-03-15'],
+      },
+      {
+        id: 'evt_20260320_001',
+        date: '2026-03-20',
+        title: '公司周年庆活动',
+        detail: '下午全员参加。',
+        diaryDates: ['2026-03-20'],
+      },
+    ])
+  })
+
+  it('keeps only the last event when the same date appears multiple times', () => {
+    const result = normalizeBatchEvents([
+      { date: '2026-03-15', title: '旧事件', detail: '旧详情' },
+      { date: '2026-03-15', title: '新事件', detail: '新详情' },
+    ])
+
+    expect(result).toHaveLength(1)
+    expect(result[0].title).toBe('新事件')
+    expect(result[0].detail).toBe('新详情')
+    expect(result[0].id).toBe('evt_20260315_001')
+  })
+
+  it('returns empty array for empty input', () => {
+    expect(normalizeBatchEvents([])).toEqual([])
   })
 })
 

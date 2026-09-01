@@ -89,3 +89,23 @@ export function upsertEventForDate(
     created: true,
   }
 }
+
+// 批量整理（全量重建）产出归一化：id 由主进程生成（evt_{YYYYMMDD}_001），
+// diaryDates 固定为 [date]；按日期去重，同一天重复时取最后一条，一天最多一个。
+export function normalizeBatchEvents(
+  raw: Array<{ date: string; title: string; detail: string }>,
+): TimelineEvent[] {
+  const eventMap = new Map<string, TimelineEvent>()
+
+  for (const item of raw) {
+    eventMap.set(item.date, {
+      id: `evt_${item.date.replace(/-/g, '')}_001`,
+      date: item.date,
+      title: item.title,
+      detail: item.detail,
+      diaryDates: [item.date],
+    })
+  }
+
+  return Array.from(eventMap.values())
+}
