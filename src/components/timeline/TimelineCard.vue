@@ -41,7 +41,7 @@ const detailText = computed(() => {
 
     <div v-if="isExpanded" class="timeline-card-detail">
       <p class="timeline-card-detail-text">{{ detailText }}</p>
-      <div v-if="event.diaryDates.length > 0" class="timeline-card-links">
+      <div class="timeline-card-links">
         <button
           v-for="d in event.diaryDates"
           :key="d"
@@ -51,17 +51,15 @@ const detailText = computed(() => {
           <FileText class="link-icon" />
           {{ d }}
         </button>
-      </div>
-      <div class="timeline-card-actions">
         <button
-          class="timeline-card-action"
+          class="timeline-card-diary-link"
           type="button"
           @click.stop="emit('openEditEvent', event)"
         >
           编辑
         </button>
         <button
-          class="timeline-card-action timeline-card-action--danger"
+          class="timeline-card-diary-link timeline-card-diary-link--danger"
           type="button"
           @click.stop="emit('deleteEvent', event)"
         >
