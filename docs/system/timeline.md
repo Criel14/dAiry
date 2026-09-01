@@ -5,7 +5,7 @@
 时间轴按年展示用户的人生事件（项目、旅行、学习等），由 AI 从日记中提取。支持年度全量重建和确认制单日事件记录，数据以 JSON 文件存储在工作区下。
 
 ```
-时间轴面板   → 点击"重新整理本年度" → 全量重建（3天一批次）
+时间轴面板   → 点击"重新整理本年度" → 全量重建（7天一批次、逐日判定）
 自动整理     → generateDailyInsights 判定 timelineWorthy → 用户确认 → 记录单日事件
 ```
 
@@ -46,8 +46,8 @@ JSON 结构：
 
 ```
 TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
-  → 按 3 天一批次遍历选中年份全年日记
-  → 每批调用 AI 提取事件
+  → 按 7 天一批次遍历选中年份全年日记
+  → 每批 AI 逐天判定是否值得记录，值得的日期生成单事件
   → 汇总全部事件后落盘
 ```
 
@@ -55,6 +55,7 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 - 目标年份由侧边栏年份选择器决定，不固定为当前年份
 - 全量覆盖式重建，每次重写整个年度文件
+- 逐天判定：AI 对每天独立判断是否值得记录到时间轴（宁缺毋滥），值得的日期产出一条事件，一天最多一个；id 由主进程生成（`evt_{YYYYMMDD}_001`），不由 AI 生成
 - 支持取消（当前批次完成后停止，已处理的事件不保留）
 - 支持进度推送（`当前批次 ~ 结束日期`，`current/total`）
 - 未找到该年份任何日记时不落盘，返回 `skipped` 由前端提示，避免覆盖已有数据
@@ -103,20 +104,20 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 函数：`rebuildTimelineYear`（`electron/main/timeline/ai.ts:110`），用户点击"重新整理本年度时间轴"触发。
 
-按 **3 天一批次**循环调用 LLM，每批次 **user prompt** 包含：
+按 **7 天一批次**循环调用 LLM，每批次 **user prompt** 包含：
 
 | 块 | 内容 | 来源 |
 |----|------|------|
 | 重建说明 | `正在重建 {year} 年时间轴，当前批次：{start} ~ {end}` | — |
-| 当前已有事件 | `- id/ title/ date` 列表 | 前面批次已累积提取的事件 |
 | 补充知识 | `<workspace>/.dairy/supplement.md` 正文（可选） | 用户在设置页编辑 |
-| 该批次日记 | `## {date}\n{body}` × 1~3 篇 | `<workspace>/journal/` 对应日期的 Markdown body |
+| 该批次日记 | `## {date}\n{body}` × 1~7 篇 | `<workspace>/journal/` 对应日期的 Markdown body |
 
 **特点：**
 
 - 系统 prompt 每批次重新加载，修改 prompt 文件可即时生效
+- AI 逐天独立判定当天是否值得记录（值得：公司大活动、家人来访、旅行、重大决定、里程碑事件、重要聚会等；不值得：日常琐事，宁缺毋滥），值得的日期产出一条事件，一天最多一个
 - AI 调用带递增超时重试：首次 `max(用户配置, 120s)`，失败后每次 +60s（120s → 180s → 240s），最多 3 次尝试；仅对超时/网络/5xx 错误重试，其余错误立即失败
-- `newEvents` 以 `id` 去重后追加，`updatedEvents` 逐条匹配更新 `detail`
+- `events` 经 `normalizeBatchEvents` 归一化（主进程生成 id、按日期去重取最后一条）后以 `id` 为键合并进全年事件
 - 支持取消：当前批次完成后返回 `null`，已处理事件不落盘
 
 > 全量重建提示词的调整（仅时间点、去时间段）留待后续版本，当前重建产出的事件在写入前统一剥离 `dateEnd` 字段，展示为时间点。
@@ -138,8 +139,9 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 ```json
 {
-  "newEvents": [{ "id": "...", "date": "...", "dateEnd": null, "title": "...", "detail": "...", "diaryDates": [...] }],
-  "updatedEvents": [{ "id": "...", "dateEnd": "...", "detail": "..." }]
+  "events": [
+    { "date": "2026-03-15", "title": "...", "detail": "..." }
+  ]
 }
 ```
 
@@ -147,7 +149,7 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 ## 四、合并逻辑
 
-全量重建使用 `mergeEvents(existing, incoming)`：以 `id` 为键去重，incoming 覆盖 existing，重建后按 `id` 去重追加 `newEvents`、逐条匹配更新 `updatedEvents` 的 `detail`。
+全量重建使用 `mergeEvents(existing, incoming)`：以 `id` 为键去重，incoming 覆盖 existing。每批 `events` 先经 `normalizeBatchEvents` 归一化（主进程生成 `evt_{YYYYMMDD}_001` id、`diaryDates` 固定为 `[date]`、按日期去重取最后一条）再合并，保证一天最多一个事件。
 
 单日事件记录使用 `upsertEventForDate`：同一天已有事件则覆盖 `title/detail`（保留原 id），否则新增一条 id 为 `evt_{YYYYMMDD}_001` 的事件，一天最多一条。
 
@@ -175,9 +177,10 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 | `addTimelineDayEvent` | `electron/main/timeline/ai.ts:394` | 单日事件入口：提取 → 读取/初始化年度数据 → upsert → 写回（IPC 与 MCP 共用） |
 | `extractJsonObject` | `electron/main/timeline/ai.ts:24` | 4 层容错解析 LLM 返回的 JSON（仅供全量重建使用） |
 | `fixUnescapedStrings` | `electron/main/timeline/ai.ts:67` | 修复 JSON 中未转义的换行和引号（仅供全量重建使用） |
-| `rebuildTimelineYear` | `electron/main/timeline/ai.ts:110` | 全量重建：3 天一批次循环调用 LLM |
-| `buildBatches` | `electron/main/timeline/ai.ts:93` | 按 3 天一批次分割全年日期 |
+| `rebuildTimelineYear` | `electron/main/timeline/ai.ts:110` | 全量重建：7 天一批次循环调用 LLM，逐天判定 |
+| `buildBatches` | `electron/main/timeline/ai.ts:93` | 按 7 天一批次分割全年日期 |
 | `cancelTimelineRebuild` | `electron/main/timeline/ai.ts:253` | 取消重建 |
+| `normalizeBatchEvents` | `electron/main/timeline/service.ts:95` | 批量事件归一化：主进程生成 id、`diaryDates` 固定、按日期去重取最后一条 |
 | `stripLegacyDateEnd` | `electron/main/timeline/service.ts:12` | 读取/重建写入前剥离旧 `dateEnd` 字段，降级为时间点事件 |
 | `readTimelineYear` | `electron/main/timeline/service.ts:17` | 从 `<workspace>/timeline/{year}.json` 读取（自动剥离 `dateEnd`） |
 | `writeTimelineYear` | `electron/main/timeline/service.ts:32` | 写入 `<workspace>/timeline/{year}.json` |

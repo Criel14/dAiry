@@ -168,6 +168,7 @@ AI 约束：
 - AI 自动维护 `<workspace>/.dairy/user-profile.md` 用户画像：仅在用户点击“自动整理”成功后异步触发（日更 + 每隔 `ai.profileRefreshIntervalDays` 天全量刷新，刷新时间戳存 `workspace.json` 的 `lastProfileRefresh`）；画像文件不存在时日更自动从零创建初始画像（首次自动播种，无需手动生成）；画像对前端透明，不暴露查看入口；画像失败只记日志，绝不影响日总结返回；报告链路补做 insight 不触发画像
 - 设置页提供"重新整理用户画像"：扫描全部日记按月迭代重建画像，全成功才写盘并更新 `lastProfileRefresh`；重建期间自动画像维护跳过；preload 暴露重建/取消/进度三个 API，但画像内容仍不经过 IPC
 - 时间轴仅支持时间点事件（无时间段）；单日事件在"自动整理"判定 `timelineWorthy` 且用户确认后经 `timeline:add-day-event` 提取落盘（同一天覆盖更新，一天最多一条），`dairy_write_entry` 不自动触发时间轴提取，仅透传 `timelineWorthy` 供外部确认后调用 `dairy_record_timeline_event`
+- 时间轴批量整理（"重新整理 X 年时间轴"）按 7 天一批次调用 AI 逐天判定是否值得记录，值得的日期生成单事件（一天最多一个、id 由主进程生成），全量覆盖整年；不值得的日期即使此前有事件也会被清掉，属于全量重建语义
 
 Git 约束：
 
