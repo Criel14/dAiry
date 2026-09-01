@@ -71,6 +71,18 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
   - 用户取消：跳过，不落任何数据
   - 用户确认：调用 `timeline:add-day-event`，主进程提取事件（同步等待结果），落盘后提示"已记录到时间轴"
 
+### 2.3 手动增删改（弹窗表单）
+
+时间线事件支持用户手动新增、编辑与删除，保持"同一天最多一个事件"的全局约束：
+
+- **新增**：时间线页头部右侧「添加事件」按钮 → 弹窗表单（日期/标题/详情）→ 保存
+- **编辑**：展开事件卡片 → 「编辑」按钮 → 弹窗表单回填 → 保存
+- **删除**：展开事件卡片 → 「删除」按钮 → 主进程原生确认框 → 删除并刷新
+- **冲突规则**：新增或编辑改日期时，若目标日期已有其他事件，主进程拒绝并返回中文错误，前端弹窗内红字提示"当天已有事件，请换个日期"
+- **diaryDates 派生**：手动事件 `diaryDates` 固定为 `[date]`（由日期派生，不设独立关联字段），编辑改日期时同步更新；卡片内跳转日记按钮保留
+
+底层走三个 IPC 通道（`timeline:create-event` / `timeline:update-event` / `timeline:delete-event`），主进程复用 `addManualEvent` / `updateTimelineEvent` / `removeTimelineEvent` 纯函数（`electron/main/timeline/service.ts`）校验冲突与写盘。
+
 ---
 
 ## 三、AI 调用细节
@@ -186,6 +198,9 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 | `writeTimelineYear` | `electron/main/timeline/service.ts:32` | 写入 `<workspace>/timeline/{year}.json` |
 | `mergeEvents` | `electron/main/timeline/service.ts:43` | 以 `id` 为键合并事件，incoming 覆盖 existing（全量重建使用） |
 | `upsertEventForDate` | `electron/main/timeline/service.ts:60` | 单日事件 upsert：同一天覆盖更新，否则新增 `evt_{YYYYMMDD}_001` |
+| `addManualEvent` | `electron/main/timeline/service.ts:119` | 手动新增：同一天已有事件拒绝（conflict），否则新增 |
+| `updateTimelineEvent` | `electron/main/timeline/service.ts:140` | 手动编辑：按 id 更新，改日期时排除自身检查冲突 |
+| `removeTimelineEvent` | `electron/main/timeline/service.ts:170` | 手动删除：按 id 移除 |
 | `loadPrompt` | `electron/main/ai/prompt-loader.ts` | 加载 `timelineExtractSystem` / `timelineEventExtractSystem` 系统 prompt |
 | `getRecentDailySummaries` | `electron/main/ai/journal-ai-service.ts` | 获取最近 N 天日记的 summary |
 | `readSupplement` | `electron/main/ai/context.ts` | 读取 `<workspace>/.dairy/supplement.md` |
@@ -197,6 +212,9 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 | `getTimeline` | `timeline:get` | renderer→main |
 | `rebuildTimeline` | `timeline:rebuild` | renderer→main |
 | `addTimelineDayEvent` | `timeline:add-day-event` | renderer→main |
+| `createTimelineEvent` | `timeline:create-event` | renderer→main |
+| `updateTimelineEvent` | `timeline:update-event` | renderer→main |
+| `deleteTimelineEvent` | `timeline:delete-event` | renderer→main |
 | `cancelTimelineRebuild` | `timeline:cancel-rebuild` | renderer→main |
 | `timelineRebuildProgress` | `timeline:rebuild-progress` | main→renderer |
 
@@ -204,6 +222,9 @@ Preload 暴露 API（`electron/preload.ts:115-138`）：
 - `window.dairy.getTimeline({ workspacePath, year })`
 - `window.dairy.rebuildTimeline({ workspacePath, year })` → `Promise<{ skipped: boolean }>`，`skipped` 表示该年份无日记未落盘
 - `window.dairy.addTimelineDayEvent({ workspacePath, date })` → `Promise<{ recorded: boolean; reason?: 'empty'; event? }>`
+- `window.dairy.createTimelineEvent({ workspacePath, date, title, detail })` → `Promise<{ ok, reason?, event? }>`
+- `window.dairy.updateTimelineEvent({ workspacePath, id, date, title, detail })` → `Promise<{ ok, reason?, event? }>`
+- `window.dairy.deleteTimelineEvent({ workspacePath, id })` → `Promise<{ ok, reason? }>`
 - `window.dairy.cancelTimelineRebuild()`
 - `window.dairy.onTimelineRebuildProgress(listener)`
 
@@ -215,6 +236,7 @@ Preload 暴露 API（`electron/preload.ts:115-138`）：
 - **时间轴文件是纯粹派生数据**：时间轴维护不回写原始日记 `.md`
 - **首次记录自动建文件**：单日事件记录时年度文件不存在则以空事件列表初始化，无需手动生成
 - **单日事件记录**：同一天覆盖更新，一天最多一条
+- **手动增删改**：与 AI 链路共用"一天最多一个"约束；新增或编辑改日期冲突时主进程拒绝，不覆盖已有事件
 - **全量重建全成功才落盘**：取消则已处理事件不保留
 - **目标年份由用户选择决定**：重建年份来自侧边栏选中年份，不固定为当前年份
 - **无日记年份不落盘**：全年无日记时跳过写入并提示，避免清空已有数据
