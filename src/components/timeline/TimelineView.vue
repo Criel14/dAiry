@@ -21,6 +21,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   jumpToDiary: [date: string]
+  openEditEvent: [event: TimelineEvent]
+  deleteEvent: [event: TimelineEvent]
 }>()
 
 const monthGroups = computed(() => {
@@ -88,6 +90,8 @@ const MONTH_LABELS = [
               :event="event"
               :color="event.color"
               @jump-to-diary="date => emit('jumpToDiary', date)"
+              @open-edit-event="event => emit('openEditEvent', event)"
+              @delete-event="event => emit('deleteEvent', event)"
             />
           </div>
         </div>

@@ -1,0 +1,137 @@
+.event-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--overlay-scrim);
+  backdrop-filter: blur(2px);
+}
+
+.event-modal-card {
+  width: min(420px, calc(100vw - 3rem));
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-modal);
+}
+
+.event-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.6rem;
+}
+
+.event-modal-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.event-modal-close {
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-subtle);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.event-modal-close:hover {
+  background: var(--color-surface-hover-soft);
+  color: var(--color-text-main);
+}
+
+.event-modal-body {
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.5rem 1.25rem 1rem;
+}
+
+.event-form-row {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.event-form-label {
+  font-size: 0.84rem;
+  color: var(--color-text-subtle);
+}
+
+.event-field-input {
+  min-height: 2.5rem;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-main);
+  outline: none;
+  font-size: 0.92rem;
+  font-family: inherit;
+}
+
+.event-field-input:focus {
+  border-color: var(--color-border-strong);
+}
+
+.event-field-textarea {
+  min-height: 6rem;
+  padding: 0.6rem 0.85rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.event-form-error {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--color-text-danger);
+}
+
+.event-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 0.8rem 1.25rem 1.1rem;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.event-modal-button {
+  min-height: 2.3rem;
+  padding: 0 1.1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.event-modal-button--ghost {
+  background: var(--color-surface);
+  color: var(--color-text-subtle);
+}
+
+.event-modal-button--ghost:hover {
+  background: var(--color-surface-hover-soft);
+  border-color: var(--color-border-strong);
+}
+
+.event-modal-button--primary {
+  background: var(--color-accent-soft);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-main);
+  font-weight: 600;
+}
+
+.event-modal-button--primary:hover {
+  background: var(--color-accent-muted);
+}
+
+.event-modal-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

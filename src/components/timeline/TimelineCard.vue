@@ -10,6 +10,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   jumpToDiary: [date: string]
+  openEditEvent: [event: TimelineEvent]
+  deleteEvent: [event: TimelineEvent]
 }>()
 
 const isExpanded = ref(false)
@@ -48,6 +50,22 @@ const detailText = computed(() => {
         >
           <FileText class="link-icon" />
           {{ d }}
+        </button>
+      </div>
+      <div class="timeline-card-actions">
+        <button
+          class="timeline-card-action"
+          type="button"
+          @click.stop="emit('openEditEvent', event)"
+        >
+          编辑
+        </button>
+        <button
+          class="timeline-card-action timeline-card-action--danger"
+          type="button"
+          @click.stop="emit('deleteEvent', event)"
+        >
+          删除
         </button>
       </div>
     </div>

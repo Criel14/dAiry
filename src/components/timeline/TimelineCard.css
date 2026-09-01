@@ -84,3 +84,32 @@
   width: 0.85rem;
   height: 0.85rem;
 }
+
+.timeline-card-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.timeline-card-action {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-interactive);
+  color: var(--color-text-subtle);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.timeline-card-action:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-main);
+}
+
+.timeline-card-action--danger {
+  color: var(--color-text-danger-soft);
+}
+
+.timeline-card-action--danger:hover {
+  color: var(--color-text-danger);
+}
