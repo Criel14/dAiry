@@ -110,9 +110,16 @@ const {
   isRebuildingTimeline,
   isCancellingTimelineRebuild,
   timelineRebuildProgress,
+  eventModalOpen,
+  editingEvent,
   handleSelectTimelineYear,
   handleRebuildTimeline,
   handleCancelTimelineRebuild,
+  openCreateEventModal,
+  openEditEventModal,
+  closeEventModal,
+  handleEventModalSaved,
+  handleDeleteEvent,
   handleSaveMcpPreference,
   jumpToDiary,
   reportsPanel,
@@ -417,10 +424,17 @@ onBeforeUnmount(() => {
           :timeline-data="timelineData"
           :is-rebuilding="isRebuildingTimeline"
           :rebuild-progress="timelineRebuildProgress"
+          :event-modal-open="eventModalOpen"
+          :editing-event="editingEvent"
           @select-year="handleSelectTimelineYear"
           @rebuild="handleRebuildTimeline"
           @cancel-rebuild="handleCancelTimelineRebuild"
           @jump-to-diary="jumpToDiary"
+          @open-create-event="openCreateEventModal"
+          @open-edit-event="openEditEventModal"
+          @close-event-modal="closeEventModal"
+          @event-modal-saved="handleEventModalSaved"
+          @delete-event="handleDeleteEvent"
         />
       </section>
 
