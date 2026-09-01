@@ -109,3 +109,75 @@ export function normalizeBatchEvents(
 
   return Array.from(eventMap.values())
 }
+
+export type ManualEventWriteResult =
+  | { ok: true; events: TimelineEvent[]; event?: TimelineEvent }
+  | { ok: false; reason: 'conflict' | 'not-found' }
+
+// 手动新增：同一天已有事件则拒绝（保持"一天最多一个"约定），
+// 否则新增一条 id 固定为 evt_{YYYYMMDD}_001 的事件。
+export function addManualEvent(
+  events: TimelineEvent[],
+  draft: { date: string; title: string; detail: string },
+): ManualEventWriteResult {
+  const conflict = events.some((e) => e.date === draft.date)
+  if (conflict) {
+    return { ok: false, reason: 'conflict' }
+  }
+
+  const event: TimelineEvent = {
+    id: `evt_${draft.date.replace(/-/g, '')}_001`,
+    date: draft.date,
+    title: draft.title,
+    detail: draft.detail,
+    diaryDates: [draft.date],
+  }
+
+  return { ok: true, events: [...events, event], event }
+}
+
+// 手动编辑：按 id 定位；改日期时排除自身后检查冲突（同一天最多一个）。
+export function updateTimelineEvent(
+  events: TimelineEvent[],
+  input: { id: string; date: string; title: string; detail: string },
+): ManualEventWriteResult {
+  const index = events.findIndex((e) => e.id === input.id)
+  if (index === -1) {
+    return { ok: false, reason: 'not-found' }
+  }
+
+  const conflict = events.some(
+    (e) => e.id !== input.id && e.date === input.date,
+  )
+  if (conflict) {
+    return { ok: false, reason: 'conflict' }
+  }
+
+  const next = [...events]
+  const event: TimelineEvent = {
+    ...next[index],
+    date: input.date,
+    title: input.title,
+    detail: input.detail,
+    diaryDates: [input.date],
+  }
+  next[index] = event
+
+  return { ok: true, events: next, event }
+}
+
+// 手动删除：按 id 移除，未找到返回 not-found。
+export function removeTimelineEvent(
+  events: TimelineEvent[],
+  id: string,
+): ManualEventWriteResult {
+  const index = events.findIndex((e) => e.id === id)
+  if (index === -1) {
+    return { ok: false, reason: 'not-found' }
+  }
+
+  const next = [...events]
+  next.splice(index, 1)
+
+  return { ok: true, events: next }
+}
