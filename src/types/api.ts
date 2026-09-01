@@ -60,6 +60,10 @@ import type {
   RebuildTimelineProgress,
   AddTimelineDayEventInput,
   AddTimelineDayEventResult,
+  CreateTimelineEventInput,
+  UpdateTimelineEventInput,
+  DeleteTimelineEventInput,
+  TimelineEventWriteResult,
 } from './timeline'
 import type { McpPreferenceInput, McpRuntimeStatus } from './mcp'
 import type { RightPanel } from './ui'
@@ -153,6 +157,9 @@ export interface DairyApi {
   addTimelineDayEvent: (
     input: AddTimelineDayEventInput,
   ) => Promise<AddTimelineDayEventResult>
+  createTimelineEvent: (input: CreateTimelineEventInput) => Promise<TimelineEventWriteResult>
+  updateTimelineEvent: (input: UpdateTimelineEventInput) => Promise<TimelineEventWriteResult>
+  deleteTimelineEvent: (input: DeleteTimelineEventInput) => Promise<TimelineEventWriteResult>
   listBillsByMonth: (input: BillsListMonthInput) => Promise<Bill[]>
   listBillsByYear: (input: BillsListYearInput) => Promise<Bill[]>
   listBillsYears: (input: BillsCategoryQuery) => Promise<string[]>

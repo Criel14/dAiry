@@ -1,7 +1,20 @@
 import { ipcMain } from 'electron'
 import { IPC_CHANNELS } from '../constants'
-import type { TimelineYearData, AddTimelineDayEventInput } from '../../../src/types/timeline'
-import { readTimelineYear, writeTimelineYear } from '../timeline/service'
+import type {
+  TimelineYearData,
+  AddTimelineDayEventInput,
+  CreateTimelineEventInput,
+  UpdateTimelineEventInput,
+  DeleteTimelineEventInput,
+  TimelineEventWriteResult,
+} from '../../../src/types/timeline'
+import {
+  addManualEvent,
+  readTimelineYear,
+  removeTimelineEvent,
+  updateTimelineEvent,
+  writeTimelineYear,
+} from '../timeline/service'
 import {
   rebuildTimelineYear,
   cancelTimelineRebuild,
@@ -78,6 +91,109 @@ export function registerTimelineIpcHandlers() {
       return addTimelineDayEvent(workspacePathOrThrow(input.workspacePath), input.date)
     },
   )
+
+  ipcMain.handle(
+    IPC_CHANNELS.createTimelineEvent,
+    async (_event, input: CreateTimelineEventInput): Promise<TimelineEventWriteResult> => {
+      const workspacePath = workspacePathOrThrow(input.workspacePath)
+      const date = assertDateInput(input.date)
+
+      const year = Number.parseInt(date.split('-')[0], 10)
+      const existingData = readTimelineYear(workspacePath, year) ?? {
+        year,
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        events: [],
+      }
+
+      const result = addManualEvent(existingData.events, {
+        date,
+        title: input.title.trim(),
+        detail: input.detail.trim(),
+      })
+
+      if (!result.ok) {
+        return result
+      }
+
+      writeTimelineYear(workspacePath, {
+        ...existingData,
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        events: result.events,
+      })
+
+      return result
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.updateTimelineEvent,
+    async (_event, input: UpdateTimelineEventInput): Promise<TimelineEventWriteResult> => {
+      const workspacePath = workspacePathOrThrow(input.workspacePath)
+      const date = assertDateInput(input.date)
+
+      const year = Number.parseInt(date.split('-')[0], 10)
+      const existingData = readTimelineYear(workspacePath, year)
+      if (!existingData) {
+        return { ok: false, reason: 'not-found' }
+      }
+
+      const result = updateTimelineEvent(existingData.events, {
+        id: input.id,
+        date,
+        title: input.title.trim(),
+        detail: input.detail.trim(),
+      })
+
+      if (!result.ok) {
+        return result
+      }
+
+      writeTimelineYear(workspacePath, {
+        ...existingData,
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        events: result.events,
+      })
+
+      return result
+    },
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.deleteTimelineEvent,
+    async (_event, input: DeleteTimelineEventInput): Promise<TimelineEventWriteResult> => {
+      const workspacePath = workspacePathOrThrow(input.workspacePath)
+
+      const year = Number.parseInt(input.id.replace(/^evt_(\d{4}).*$/, '$1'), 10)
+      const existingData = readTimelineYear(workspacePath, year)
+      if (!existingData) {
+        return { ok: false, reason: 'not-found' }
+      }
+
+      const result = removeTimelineEvent(existingData.events, input.id)
+      if (!result.ok) {
+        return result
+      }
+
+      writeTimelineYear(workspacePath, {
+        ...existingData,
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        events: result.events,
+      })
+
+      return result
+    },
+  )
+}
+
+function assertDateInput(date: unknown): string {
+  if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error('日期无效，格式应为 YYYY-MM-DD。')
+  }
+  return date
 }
 
 function workspacePathOrThrow(workspacePath: unknown): string {

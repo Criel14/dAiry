@@ -116,6 +116,9 @@ const dairyApi: DairyApi = {
   rebuildTimeline: (input) => ipcRenderer.invoke(IPC_CHANNELS.rebuildTimeline, input),
   cancelTimelineRebuild: () => ipcRenderer.invoke(IPC_CHANNELS.cancelTimelineRebuild),
   addTimelineDayEvent: (input) => ipcRenderer.invoke(IPC_CHANNELS.addTimelineDayEvent, input),
+  createTimelineEvent: (input) => ipcRenderer.invoke(IPC_CHANNELS.createTimelineEvent, input),
+  updateTimelineEvent: (input) => ipcRenderer.invoke(IPC_CHANNELS.updateTimelineEvent, input),
+  deleteTimelineEvent: (input) => ipcRenderer.invoke(IPC_CHANNELS.deleteTimelineEvent, input),
   onTimelineRebuildProgress: (listener) => {
     const wrappedListener = (
       _event: Electron.IpcRendererEvent,

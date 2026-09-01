@@ -29,3 +29,29 @@ export interface AddTimelineDayEventResult {
   reason?: 'empty'
   event?: TimelineEvent
 }
+
+export interface CreateTimelineEventInput {
+  workspacePath: string
+  date: string
+  title: string
+  detail: string
+}
+
+export interface UpdateTimelineEventInput {
+  workspacePath: string
+  id: string
+  date: string
+  title: string
+  detail: string
+}
+
+export interface DeleteTimelineEventInput {
+  workspacePath: string
+  id: string
+}
+
+export interface TimelineEventWriteResult {
+  ok: boolean
+  reason?: 'conflict' | 'not-found'
+  event?: TimelineEvent
+}
