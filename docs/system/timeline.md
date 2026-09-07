@@ -101,7 +101,7 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 |----|------|------|
 | 业务日期 | `{YYYY-MM-DD}` | 当天日期 |
 | 近 7 天日记全文 | `## {date}\n{body}` × 7 | 昨天往前 7 天，每篇截断约 2000 字保护 |
-| 用户画像 | `user-profile-{year}.md` 正文 | 文件存在且非空才拼 |
+| 用户画像 | `user-profile-{year}.md` 正文 | `readUserProfile()` 读业务日期所属年份，文件不存在返回空 → 非空才拼 |
 | 补充知识 | `<workspace>/.dairy/supplement.md` 正文 | 非空才拼 |
 | 当日日记 | Markdown body（不含 frontmatter） | 当天正文，为空则直接报错 |
 
@@ -114,7 +114,7 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 ### 3.2 全量重建模式
 
-函数：`rebuildTimelineYear`（`electron/main/timeline/ai.ts:110`），用户点击"重新整理本年度时间轴"触发。
+函数：`rebuildTimelineYear`（`electron/main/timeline/ai.ts:111`），用户点击"重新整理本年度时间轴"触发。
 
 按 **7 天一批次**循环调用 LLM，每批次 **user prompt** 包含：
 
@@ -136,7 +136,7 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 ### 3.3 LLM 返回值解析（全量重建）
 
-全量重建使用 `extractJsonObject`（`electron/main/timeline/ai.ts:24`）解析，4 层容错：
+全量重建使用 `extractJsonObject`（`electron/main/timeline/ai.ts:25`）解析，4 层容错：
 
 | 层 | 策略 |
 |----|------|
@@ -185,13 +185,13 @@ TimelineSidebar → rebuildTimeline(workspacePath, selectedYear)
 
 | 函数 | 文件 | 说明 |
 |------|------|------|
-| `extractTimelineEventForDay` | `electron/main/timeline/ai.ts:305` | 单日事件提取：拼装 prompt 调用 LLM，返回 `{ title, detail }` |
-| `addTimelineDayEvent` | `electron/main/timeline/ai.ts:394` | 单日事件入口：提取 → 读取/初始化年度数据 → upsert → 写回（IPC 与 MCP 共用） |
-| `extractJsonObject` | `electron/main/timeline/ai.ts:24` | 4 层容错解析 LLM 返回的 JSON（仅供全量重建使用） |
-| `fixUnescapedStrings` | `electron/main/timeline/ai.ts:67` | 修复 JSON 中未转义的换行和引号（仅供全量重建使用） |
-| `rebuildTimelineYear` | `electron/main/timeline/ai.ts:110` | 全量重建：7 天一批次循环调用 LLM，逐天判定 |
-| `buildBatches` | `electron/main/timeline/ai.ts:93` | 按 7 天一批次分割全年日期 |
-| `cancelTimelineRebuild` | `electron/main/timeline/ai.ts:253` | 取消重建 |
+| `extractTimelineEventForDay` | `electron/main/timeline/ai.ts:286` | 单日事件提取：拼装 prompt 调用 LLM，返回 `{ title, detail }` |
+| `addTimelineDayEvent` | `electron/main/timeline/ai.ts:375` | 单日事件入口：提取 → 读取/初始化年度数据 → upsert → 写回（IPC 与 MCP 共用） |
+| `extractJsonObject` | `electron/main/timeline/ai.ts:25` | 4 层容错解析 LLM 返回的 JSON（仅供全量重建使用） |
+| `fixUnescapedStrings` | `electron/main/timeline/ai.ts:68` | 修复 JSON 中未转义的换行和引号（仅供全量重建使用） |
+| `rebuildTimelineYear` | `electron/main/timeline/ai.ts:111` | 全量重建：7 天一批次循环调用 LLM，逐天判定 |
+| `buildBatches` | `electron/main/timeline/ai.ts:94` | 按 7 天一批次分割全年日期 |
+| `cancelTimelineRebuild` | `electron/main/timeline/ai.ts:234` | 取消重建 |
 | `normalizeBatchEvents` | `electron/main/timeline/service.ts:95` | 批量事件归一化：主进程生成 id、`diaryDates` 固定、按日期去重取最后一条 |
 | `stripLegacyDateEnd` | `electron/main/timeline/service.ts:12` | 读取/重建写入前剥离旧 `dateEnd` 字段，降级为时间点事件 |
 | `readTimelineYear` | `electron/main/timeline/service.ts:17` | 从 `<workspace>/timeline/{year}.json` 读取（自动剥离 `dateEnd`） |

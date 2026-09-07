@@ -5,7 +5,7 @@
 用户画像是从日记内容中持续提炼的个人特征档案，以 Markdown 文件存储在工作区元数据目录下。画像维护全程由主进程执行，对前端透明（不暴露查看入口），失败只记日志不影响日记写作主流程。
 
 ```
-自动整理成功 → 画像解析 + 日更 + 全量刷新检查 → user-profile-YYYY.md
+自动整理成功（应用内 / 写日记链路）→ 画像解析 + 日更 + 全量刷新检查 → user-profile-YYYY.md
 设置页按钮   → 智能缺口重建               → user-profile-YYYY.md
 新年首次日更 → 复制上年画像为种子           → user-profile-YYYY.md
 存量迁移     → user-profile.md → user-profile-YYYY.md
@@ -13,8 +13,13 @@
 
 画像消费方：
 
-- **MCP 只读工具**（`dairy_read_profile`，经 `memory/retrieval.ts` 返回最新年份画像 + supplement）
-- **区间报告总结**（`report-ai-service.ts` 两轮 user prompt 均注入当年画像，优先级低于区间事实）
+- **MCP 只读工具**（`dairy_read_profile`，经 `memory/retrieval.ts:202` 返回最新年份画像 + supplement）
+- **区间报告总结**（`report-ai-service.ts` 焦点选日与成文两轮 user prompt 均注入当年画像，优先级低于区间事实）
+- **时间轴单日事件提取**（`timeline/ai.ts` 的 `extractTimelineEventForDay`，IPC 确认记录与 MCP `dairy_record_timeline_event` 共用；画像非空才拼）
+
+画像非消费方：
+
+- **日级自动整理（日总结）不使用画像**：`generateDailyInsights` 的 AI 输入只含近 N 天摘要与 supplement，不含画像。画像与日整理是"单向产出"关系——整理成功才反向触发画像维护，画像不会回流影响日整理
 
 ---
 
@@ -61,15 +66,27 @@
 
 ### 2.2 增量日更（自动）
 
-每次用户点击"自动整理"成功后异步触发：
+每次自动整理成功后异步触发，共两条等价入口，内部均 `void runProfileMaintenance(...)`（不阻塞返回，失败只记日志）：
 
 ```
-journal.ts: generateDailyInsights 返回后
-  → void runProfileMaintenance({ workspacePath, date, body })
-    → updateUserProfileDaily()
+入口 A：应用内"自动整理"
+  ipc/journal.ts: generateDailyInsights 返回后
+    → runProfileMaintenance({ workspacePath, date, body })
+
+入口 B：MCP 写日记（dairy_write_entry，应用写入流 write-flow，organize 默认 true）
+  journal/write-flow.ts: writeJournalEntryFull 中 organize 成功后
+    → runProfileMaintenance({ workspacePath, date, body })
 ```
 
-**流程：**
+**触发边界：**
+
+- 入口 A 的整理结果仅回填前端草稿（不自动落盘），入口 B 的整理结果会真实回填 frontmatter，两条入口都会触发画像维护
+- 仅 `organize: true`（默认）且整理成功才触发；应用内普通正文/元信息保存（`saveJournalEntryBody` / `saveJournalEntryMetadata`）不触发
+- 报告链路补做日级 insight（`hydrateMissingDailyInsights`）不触发
+- 时间轴记录不触发
+- 触发后画像维护与整理结果互不影响（异步 + 失败静默）
+
+**流程（`runProfileMaintenance` → `updateUserProfileDaily`）：**
 
 1. 读取当前画像 + 最近 N 天日记摘要（`dailyContextDays` 配置）
 2. 加载 `profile-daily-update.system.md` prompt
@@ -128,10 +145,10 @@ Month 3: AI([system], [profile2 + month3 日记])      → profile3
 ...
 ```
 
-3. 每篇正文截断 2200 字，单月总预算 60K 字符
-4. AI 调用 temperature=0.3，首次超时 `max(用户配置, 120s)`，失败后递增 +60s 重试一次（共 2 次尝试），仅对超时/网络/5xx 错误重试
-5. 全部成功 → 写盘 + 更新 `lastProfileRefresh`
-6. 任一月份失败 → 整体抛错，之前处理月份的进展不保留
+5. 每篇正文截断 2200 字，单月总预算 60K 字符
+6. AI 调用 temperature=0.3，首次超时 `max(用户配置, 120s)`，失败后递增 +60s 重试一次（共 2 次尝试），仅对超时/网络/5xx 错误重试
+7. 全部成功 → 写盘 + 更新 `lastProfileRefresh`
+8. 任一月份失败 → 整体抛错，之前处理月份的进展不保留
 
 **进度推送：**
 
@@ -165,18 +182,18 @@ cancelUserProfileRebuild()
 
 ### 3.1 增量日更 — user prompt 拼装
 
-函数：`buildDailyUpdatePrompt`（`profile-service.ts:93`）。
+函数：`buildDailyUpdatePrompt`（`profile-service.ts:130`）。
 
 | 块 | 内容 | 来源 |
 |----|------|------|
 | 业务日期 | `YYYY-MM-DD` | 当天日期 |
 | 前 N 天摘要 | `- {date}: 摘要: {summary} \| 心情: {mood} \| 标签: {tags}` | `getRecentDailySummaries()`，默认最近 7 天 frontmatter |
-| 当前画像 | 完整 Markdown 画像（或 `（当前画像为空，请创建初始画像）`） | `<workspace>/.dairy/user-profile.md` |
+| 当前画像 | 完整 Markdown 画像（或 `（当前画像为空，请创建初始画像）`） | `readUserProfile(year)` → `<workspace>/.dairy/user-profile/user-profile-YYYY.md`；日更前 `resolveProfileForYear` 已保证文件存在，仍失败则按空画像从零创建 |
 | 当日正文 | 截断至 2200 字的日记 body | 编辑器内存中的当天内容 |
 
 ### 3.2 全量刷新 — user prompt 拼装
 
-函数：`buildFullRefreshPrompt`（`profile-service.ts:107`）。
+函数：`buildFullRefreshPrompt`（`profile-service.ts:144`）。
 
 | 块 | 内容 | 来源 |
 |----|------|------|
@@ -186,7 +203,7 @@ cancelUserProfileRebuild()
 
 ### 3.3 手动重建 — user prompt 拼装
 
-函数：`buildRebuildPrompt`（`profile-rebuild.ts:135`），逐月迭代调用。
+函数：`buildRebuildPrompt`（`profile-rebuild.ts:143`），逐月迭代调用。
 
 | 块 | 内容 | 来源 |
 |----|------|------|
@@ -198,7 +215,7 @@ cancelUserProfileRebuild()
 
 ### 3.4 AI 输出归一化
 
-AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）剥除可能的 ` ```markdown ` 代码围栏，再全量覆写 `user-profile-YYYY.md`。画像内部不使用 JSON，不做结构校验。
+AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:97`）剥除可能的 ` ```markdown ` 代码围栏，再全量覆写 `user-profile-YYYY.md`。画像内部不使用 JSON，不做结构校验。
 
 ---
 
@@ -206,14 +223,15 @@ AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）
 
 | 函数 | 文件 |
 |------|------|
-| `runProfileMaintenance` | `electron/main/profile/profile-service.ts` |
-| `resolveProfileForYear` | `electron/main/profile/profile-service.ts` |
-| `updateUserProfileDaily` | `electron/main/profile/profile-service.ts` |
-| `refreshUserProfileFull` | `electron/main/profile/profile-service.ts:223` |
-| `rebuildUserProfile` | `electron/main/profile/profile-rebuild.ts:159` |
-| `cancelUserProfileRebuild` | `electron/main/profile/profile-rebuild.ts:34` |
-| `normalizeProfileMarkdown` | `electron/main/profile/profile-service.ts:60` |
-| `createProfileAiClient` | `electron/main/profile/profile-service.ts:174` |
+| `runProfileMaintenance` | `electron/main/profile/profile-service.ts:318` |
+| `resolveProfileForYear` | `electron/main/profile/profile-service.ts:62` |
+| `updateUserProfileDaily` | `electron/main/profile/profile-service.ts:211` |
+| `shouldRunFullRefresh` | `electron/main/profile/profile-service.ts:297` |
+| `refreshUserProfileFull` | `electron/main/profile/profile-service.ts:248` |
+| `rebuildUserProfile` | `electron/main/profile/profile-rebuild.ts:188` |
+| `cancelUserProfileRebuild` | `electron/main/profile/profile-rebuild.ts:42` |
+| `normalizeProfileMarkdown` | `electron/main/profile/profile-service.ts:97` |
+| `createAiChatClient` | `electron/main/ai/provider-factory.ts:151`（AI 客户端工厂，画像三场景共用） |
 
 ---
 
@@ -229,3 +247,4 @@ AI 返回 Markdown 后，`normalizeProfileMarkdown`（`profile-service.ts:60`）
 - 重建期间自动维护直接跳过（`isProfileRebuildRunning` 互斥锁）
 - `normalizeProfileMarkdown` 剥除 AI 可能包裹的代码围栏后写入
 - 画像写入使用 `writeFile` 全量覆盖，不做 diff/merge
+- **画像不回流入日整理**：`generateDailyInsights`（日总结）不读取画像，上下文仅含近 N 天摘要与 supplement；画像只作为区间报告与时间轴单日提取的背景输入

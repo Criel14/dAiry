@@ -16,8 +16,9 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 ```
 用户点击"自动整理" → window.dairy.generateDailyInsights(input)
-→ ipc.ts:309 → generateDailyInsights()
+→ ipc/journal.ts（generateDailyInsights IPC handler）
 → ai/journal-ai-service.ts
+→ 返回成功后异步触发画像维护（runProfileMaintenance，见 user-profile.md）
 ```
 
 ### 处理流程
@@ -45,7 +46,7 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 系统 Prompt：`electron/main/ai/prompts/daily-organize.system.md`，核心指令：根据日记正文生成 summary（中文 20-40 字/英文 12-24 词，平实克制）、tags（3-8 个，优先复用工作区标签，禁止宽泛词如"生活""日记"）、mood（-5~5，有详细分值语义定义）。
 
-**User prompt 由 4 块拼接（`buildDailyInsightsPrompt`，`journal-ai-service.ts:106`）：**
+**User prompt 由 4 块拼接（`buildDailyInsightsPrompt`，`journal-ai-service.ts:109`）：**
 
 | 块 | 内容 | 来源 |
 |----|------|------|
@@ -66,7 +67,8 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 ### 注意
 
-- **不关联历史日记**：只看当天正文 + 既有标签，不自动引用前几天的内容
+- **近 N 天摘要仅作背景**：上下文会带最近 `dailyContextDays` 天的日记摘要与 supplement，但系统 prompt 明确要求 summary/tags/mood 以当天正文为准，摘要不直接决定整理结果
+- **不注入用户画像**：日整理不读取 `user-profile-*.md`（画像由整理成功后异步反向维护，不会回流影响日整理）；长期背景只来自 supplement.md
 - **不自动落盘**
 
 ---
@@ -77,7 +79,7 @@ dAiry 有两类 AI 总结：**日总结（自动整理）** 和 **区间总结�
 
 ```
 用户选择月/年/自定义区间 → 点击"生成报告" → window.dairy.generateRangeReport(input)
-→ ipc.ts:313 → generateRangeReport()
+→ ipc/report.ts（generateRangeReport IPC handler）
 → report/index.ts
 ```
 

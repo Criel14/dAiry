@@ -106,7 +106,8 @@ workspace/
     weather.json
     locations.json
     bill-categories.json
-    user-profile.md
+    user-profile/
+      user-profile-YYYY.md
     supplement.md
 ```
 
@@ -165,8 +166,8 @@ AI 约束：
 - 生成区间报告时，允许补做缺失的日级 insight；补做成功后回填该日记的 frontmatter（`summary`/`tags`/`mood`，`updatedAt` 刷新）并同步元索引，失败只记 warning，绝不影响报告生成；补做与回填不触发画像/时间轴维护
 - 区间总结采用多轮对话（主进程内会话）：轮 1 全量 digest 选焦点日（无 thinking，失败回退均匀分桶启发式），轮 2 焦点日全文成文（thinking，超时下限 180s）；每轮递增超时重试，失败回退本地统计文案
 - 日总结会附带最近 N 天（`config.json` 的 `ai.dailyContextDays`）的日记摘要作为上下文
-- AI 自动维护 `<workspace>/.dairy/user-profile.md` 用户画像：仅在用户点击“自动整理”成功后异步触发（日更 + 每隔 `ai.profileRefreshIntervalDays` 天全量刷新，刷新时间戳存 `workspace.json` 的 `lastProfileRefresh`）；画像文件不存在时日更自动从零创建初始画像（首次自动播种，无需手动生成）；画像对前端透明，不暴露查看入口；画像失败只记日志，绝不影响日总结返回；报告链路补做 insight 不触发画像
-- 设置页提供"重新整理用户画像"：扫描全部日记按月迭代重建画像，全成功才写盘并更新 `lastProfileRefresh`；重建期间自动画像维护跳过；preload 暴露重建/取消/进度三个 API，但画像内容仍不经过 IPC
+- AI 自动维护 `<workspace>/.dairy/user-profile/user-profile-YYYY.md` 用户画像（按年归档，当前年份为活跃文件，过往年份自动归档不修改；存量单文件 `user-profile.md` 在首次维护时自动迁移并删除）：在自动整理成功后异步触发（两条入口：应用内"自动整理"、MCP `dairy_write_entry` 且 `organize` 成功），流程为日更 + 每隔 `ai.profileRefreshIntervalDays` 天全量刷新，刷新时间戳存 `workspace.json` 的 `lastProfileRefresh`；画像文件不存在时日更自动从零创建初始画像（首次自动播种），新年首次维护自动复制上年画像作种子；画像对前端透明，不暴露查看入口；画像失败只记日志，绝不影响日总结返回；普通保存、报告链路补做 insight、时间轴记录都不触发画像；日总结输入不使用画像（只含近 N 天摘要与 supplement），画像仅作区间报告与时间轴单日提取的背景上下文
+- 设置页提供"重新整理用户画像"：以最近归档年份画像为种子、从归档年份次年 1 月起按月迭代重建缺口年份（无归档则从头扫描所有月份），全成功才写盘并更新 `lastProfileRefresh`，重建期间自动画像维护跳过；preload 暴露重建/取消/进度三个 API，但画像内容仍不经过 IPC
 - 时间轴仅支持时间点事件（无时间段）；单日事件在"自动整理"判定 `timelineWorthy` 且用户确认后经 `timeline:add-day-event` 提取落盘（同一天覆盖更新，一天最多一条），`dairy_write_entry` 不自动触发时间轴提取，仅透传 `timelineWorthy` 供外部确认后调用 `dairy_record_timeline_event`
 - 时间轴批量整理（"重新整理 X 年时间轴"）按 7 天一批次调用 AI 逐天判定是否值得记录，值得的日期生成单事件（一天最多一个、id 由主进程生成），全量覆盖整年；不值得的日期即使此前有事件也会被清掉，属于全量重建语义
 
