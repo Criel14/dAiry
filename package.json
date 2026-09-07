@@ -23,6 +23,7 @@
     "lucide-vue-next": "^1.0.0",
     "markdown-it": "^14.1.1",
     "nodemailer": "^8.0.7",
+    "pinyin-pro": "^3.29.3",
     "vue": "^3.4.21"
   },
   "devDependencies": {

@@ -58,8 +58,10 @@ const props = defineProps<{
   workspaceTags: string[]
   workspaceWeatherOptions: string[]
   workspaceLocationOptions: string[]
-  isSavingWorkspaceLibraries: boolean
-  workspaceLibrariesSaveMessage: string
+  isSavingWeatherLocationLibraries: boolean
+  weatherLocationLibrariesSaveMessage: string
+  isSavingTagLibrary: boolean
+  tagLibrarySaveMessage: string
   aiSettingsStatus: AiSettingsStatus
   isSavingAiConfig: boolean
   aiSaveMessage: string
@@ -95,9 +97,9 @@ const emit = defineEmits<{
     },
   ]
   'update:frontmatterVisibility': [value: FrontmatterVisibilityConfig]
-  saveWorkspaceLibraries: [
+  saveTagLibrary: [value: { tags: string[] }]
+  saveWeatherLocationLibraries: [
     value: {
-      tags: string[]
       weatherOptions: string[]
       locationOptions: string[]
     },
@@ -224,9 +226,12 @@ function openDebugPanel() {
         :workspace-tags="props.workspaceTags"
         :workspace-weather-options="props.workspaceWeatherOptions"
         :workspace-location-options="props.workspaceLocationOptions"
-        :is-saving-workspace-libraries="props.isSavingWorkspaceLibraries"
-        :workspace-libraries-save-message="props.workspaceLibrariesSaveMessage"
-        @save-workspace-libraries="emit('saveWorkspaceLibraries', $event)"
+        :is-saving-weather-location-libraries="props.isSavingWeatherLocationLibraries"
+        :weather-location-libraries-save-message="props.weatherLocationLibrariesSaveMessage"
+        :is-saving-tag-library="props.isSavingTagLibrary"
+        :tag-library-save-message="props.tagLibrarySaveMessage"
+        @save-weather-location-libraries="emit('saveWeatherLocationLibraries', $event)"
+        @save-tag-library="emit('saveTagLibrary', $event)"
       />
 
       <SettingsMcpSection

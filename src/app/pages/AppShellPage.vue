@@ -47,7 +47,8 @@ const {
   handleSaveAll,
   handleSaveEntry,
   handleSaveMetadata,
-  handleSaveWorkspaceLibraries,
+  handleSaveTagLibrary,
+  handleSaveWeatherLocationLibraries,
   handleSelectDate,
   handleShiftSelectedDate,
   handleUpdateEmailNotificationEnabled,
@@ -79,10 +80,11 @@ const {
   isSavingMcp,
   isSavingMetadata,
   isSavingNotification,
+  isSavingTagLibrary,
   isSavingTheme,
+  isSavingWeatherLocationLibraries,
   isSavingWindowCloseBehavior,
   isSavingWindowZoomFactor,
-  isSavingWorkspaceLibraries,
   isSelectedDateToday,
   loadEntryForDate,
   launchOnStartupEnabled,
@@ -134,13 +136,14 @@ const {
   isSavingSupplement,
   theme,
   themeSaveMessage,
+  tagLibrarySaveMessage,
   todayText,
   viewState,
+  weatherLocationLibrariesSaveMessage,
   windowCloseBehavior,
   windowCloseBehaviorSaveMessage,
   windowZoomFactor,
   windowZoomFactorSaveMessage,
-  workspaceLibrariesSaveMessage,
   workspaceLocationOptions,
   workspacePath,
   workspaceTags,
@@ -364,8 +367,10 @@ onBeforeUnmount(() => {
         :workspace-tags="workspaceTags"
         :workspace-weather-options="workspaceWeatherOptions"
         :workspace-location-options="workspaceLocationOptions"
-        :is-saving-workspace-libraries="isSavingWorkspaceLibraries"
-        :workspace-libraries-save-message="workspaceLibrariesSaveMessage"
+        :is-saving-weather-location-libraries="isSavingWeatherLocationLibraries"
+        :weather-location-libraries-save-message="weatherLocationLibrariesSaveMessage"
+        :is-saving-tag-library="isSavingTagLibrary"
+        :tag-library-save-message="tagLibrarySaveMessage"
         :ai-settings-status="aiSettingsStatus"
         :is-saving-ai-config="isSavingAiConfig"
         :ai-save-message="aiSaveMessage"
@@ -389,7 +394,8 @@ onBeforeUnmount(() => {
         @update:notification-reminder-time="handleUpdateNotificationReminderTime"
         @save-email-notification-configuration="handleSaveEmailNotificationConfiguration"
         @update:frontmatter-visibility="handleUpdateFrontmatterVisibility"
-        @save-workspace-libraries="handleSaveWorkspaceLibraries"
+        @save-weather-location-libraries="handleSaveWeatherLocationLibraries"
+        @save-tag-library="handleSaveTagLibrary"
         @save-ai-configuration="handleSaveAiConfiguration"
         @save-supplement="handleSaveSupplement"
         :is-rebuilding-profile="isRebuildingProfile"

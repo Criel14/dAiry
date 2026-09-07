@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { groupTagsByLetter } from './tagGrouping'
 
 const props = defineProps<{
   modelValue: string[]
@@ -8,6 +9,7 @@ const props = defineProps<{
   addButtonAriaLabel?: string
   removeAriaLabelPrefix?: string
   disabled?: boolean
+  groupByLetter?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -42,6 +44,14 @@ function normalizeTagList(tags: string[]) {
 }
 
 const currentTags = ref<string[]>(normalizeTagList(props.modelValue))
+
+const tagGroups = computed(() => {
+  if (!props.groupByLetter) {
+    return []
+  }
+
+  return groupTagsByLetter(currentTags.value)
+})
 
 watch(
   () => props.modelValue,
@@ -134,45 +144,96 @@ function handleSuggestionPointerDown(tag: string) {
 
 <template>
   <div class="tag-input">
-    <div class="tag-list">
-      <span v-for="tag in currentTags" :key="tag" class="tag-chip">
-        <span>{{ tag }}</span>
+    <template v-if="groupByLetter">
+      <div class="tag-list">
         <button
-          class="tag-chip-remove"
+          v-if="!isInputVisible"
+          class="tag-add-button"
           type="button"
           :disabled="disabled"
-          :aria-label="`${removeAriaLabelPrefix} ${tag}`"
-          @click="removeTag(tag)"
+          :aria-label="addButtonAriaLabel"
+          @click="showInput"
         >
-          ×
+          +
         </button>
-      </span>
 
-      <button
-        v-if="!isInputVisible"
-        class="tag-add-button"
-        type="button"
-        :disabled="disabled"
-        :aria-label="addButtonAriaLabel"
-        @click="showInput"
-      >
-        +
-      </button>
+        <input
+          v-else
+          ref="inputRef"
+          v-model="tagInputValue"
+          class="tag-input-inline"
+          type="text"
+          :placeholder="inputPlaceholder"
+          :disabled="disabled"
+          spellcheck="false"
+          @keydown.enter.prevent="commitTag(tagInputValue)"
+          @keydown.esc.prevent="hideInput"
+          @blur="handleInputBlur"
+        />
+      </div>
 
-      <input
-        v-else
-        ref="inputRef"
-        v-model="tagInputValue"
-        class="tag-input-inline"
-        type="text"
-        :placeholder="inputPlaceholder"
-        :disabled="disabled"
-        spellcheck="false"
-        @keydown.enter.prevent="commitTag(tagInputValue)"
-        @keydown.esc.prevent="hideInput"
-        @blur="handleInputBlur"
-      />
-    </div>
+      <div v-if="tagGroups.length > 0" class="tag-groups">
+        <section v-for="group in tagGroups" :key="group.letter" class="tag-group">
+          <h4 class="tag-group-letter">{{ group.letter }}</h4>
+          <div class="tag-list">
+            <span v-for="tag in group.items" :key="tag" class="tag-chip">
+              <span>{{ tag }}</span>
+              <button
+                class="tag-chip-remove"
+                type="button"
+                :disabled="disabled"
+                :aria-label="`${removeAriaLabelPrefix} ${tag}`"
+                @click="removeTag(tag)"
+              >
+                ×
+              </button>
+            </span>
+          </div>
+        </section>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="tag-list">
+        <span v-for="tag in currentTags" :key="tag" class="tag-chip">
+          <span>{{ tag }}</span>
+          <button
+            class="tag-chip-remove"
+            type="button"
+            :disabled="disabled"
+            :aria-label="`${removeAriaLabelPrefix} ${tag}`"
+            @click="removeTag(tag)"
+          >
+            ×
+          </button>
+        </span>
+
+        <button
+          v-if="!isInputVisible"
+          class="tag-add-button"
+          type="button"
+          :disabled="disabled"
+          :aria-label="addButtonAriaLabel"
+          @click="showInput"
+        >
+          +
+        </button>
+
+        <input
+          v-else
+          ref="inputRef"
+          v-model="tagInputValue"
+          class="tag-input-inline"
+          type="text"
+          :placeholder="inputPlaceholder"
+          :disabled="disabled"
+          spellcheck="false"
+          @keydown.enter.prevent="commitTag(tagInputValue)"
+          @keydown.esc.prevent="hideInput"
+          @blur="handleInputBlur"
+        />
+      </div>
+    </template>
 
     <div v-if="isInputVisible" class="tag-composer">
       <div v-if="filteredSuggestions.length > 0" class="tag-suggestion-list">

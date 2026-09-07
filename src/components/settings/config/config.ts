@@ -37,8 +37,11 @@ export interface WindowCloseBehaviorOption {
   label: string
 }
 
-export interface WorkspaceLibrariesValue {
+export interface TagLibraryValue {
   tags: string[]
+}
+
+export interface WeatherLocationLibrariesValue {
   weatherOptions: string[]
   locationOptions: string[]
 }

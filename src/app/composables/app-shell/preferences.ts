@@ -318,8 +318,33 @@ export function useAppShellPreferences(
     }
   }
 
-  async function handleSaveWorkspaceLibraries(input: {
-    tags: string[]
+  async function handleSaveTagLibrary(input: { tags: string[] }) {
+    if (!state.workspacePath.value) {
+      return
+    }
+
+    state.isSavingTagLibrary.value = true
+    state.tagLibrarySaveMessage.value = ''
+
+    try {
+      const normalizedTags = normalizeStringList(input.tags)
+
+      const nextTags = await window.dairy.setWorkspaceTags({
+        workspacePath: state.workspacePath.value,
+        items: normalizedTags,
+      })
+
+      state.workspaceTags.value = nextTags
+      state.tagLibrarySaveMessage.value = '标签词库已保存。'
+    } catch (error) {
+      state.tagLibrarySaveMessage.value =
+        error instanceof Error ? error.message : '保存标签词库失败，请稍后重试。'
+    } finally {
+      state.isSavingTagLibrary.value = false
+    }
+  }
+
+  async function handleSaveWeatherLocationLibraries(input: {
     weatherOptions: string[]
     locationOptions: string[]
   }) {
@@ -327,19 +352,14 @@ export function useAppShellPreferences(
       return
     }
 
-    state.isSavingWorkspaceLibraries.value = true
-    state.workspaceLibrariesSaveMessage.value = ''
+    state.isSavingWeatherLocationLibraries.value = true
+    state.weatherLocationLibrariesSaveMessage.value = ''
 
     try {
-      const normalizedTags = normalizeStringList(input.tags)
       const normalizedWeatherOptions = normalizeStringList(input.weatherOptions)
       const normalizedLocationOptions = normalizeStringList(input.locationOptions)
 
-      const [nextTags, nextWeatherOptions, nextLocationOptions] = await Promise.all([
-        window.dairy.setWorkspaceTags({
-          workspacePath: state.workspacePath.value,
-          items: normalizedTags,
-        }),
+      const [nextWeatherOptions, nextLocationOptions] = await Promise.all([
         window.dairy.setWorkspaceWeatherOptions({
           workspacePath: state.workspacePath.value,
           items: normalizedWeatherOptions,
@@ -350,21 +370,21 @@ export function useAppShellPreferences(
         }),
       ])
 
-      state.workspaceTags.value = nextTags
       state.workspaceWeatherOptions.value = nextWeatherOptions
       state.workspaceLocationOptions.value = nextLocationOptions
-      state.workspaceLibrariesSaveMessage.value = '候选词库已保存。'
+      state.weatherLocationLibrariesSaveMessage.value = '天气与地点词库已保存。'
     } catch (error) {
-      state.workspaceLibrariesSaveMessage.value =
-        error instanceof Error ? error.message : '保存候选词库失败，请稍后重试。'
+      state.weatherLocationLibrariesSaveMessage.value =
+        error instanceof Error ? error.message : '保存天气与地点词库失败，请稍后重试。'
     } finally {
-      state.isSavingWorkspaceLibraries.value = false
+      state.isSavingWeatherLocationLibraries.value = false
     }
   }
 
   return {
     handleSaveMcpPreference,
-    handleSaveWorkspaceLibraries,
+    handleSaveTagLibrary,
+    handleSaveWeatherLocationLibraries,
     handleSaveEmailNotificationConfiguration,
     handleUpdateDayStartHour,
     handleUpdateEmailNotificationEnabled,

@@ -150,7 +150,8 @@ export function useAppShellState() {
   const frontmatterVisibilitySaveMessage = ref('')
   const windowCloseBehaviorSaveMessage = ref('')
   const launchOnStartupSaveMessage = ref('')
-  const workspaceLibrariesSaveMessage = ref('')
+  const weatherLocationLibrariesSaveMessage = ref('')
+  const tagLibrarySaveMessage = ref('')
   const aiSaveMessage = ref('')
   const supplementSaveMessage = ref('')
   const mcpSaveMessage = ref('')
@@ -167,7 +168,8 @@ export function useAppShellState() {
   const isSavingFrontmatterVisibility = ref(false)
   const isSavingWindowCloseBehavior = ref(false)
   const isSavingLaunchOnStartup = ref(false)
-  const isSavingWorkspaceLibraries = ref(false)
+  const isSavingWeatherLocationLibraries = ref(false)
+  const isSavingTagLibrary = ref(false)
   const isSavingAiConfig = ref(false)
   const isSavingSupplement = ref(false)
   const isSavingMcp = ref(false)
@@ -322,10 +324,11 @@ export function useAppShellState() {
     isSavingMetadata,
     isSavingNotification,
     isSavingSupplement,
+    isSavingTagLibrary,
     isSavingTheme,
+    isSavingWeatherLocationLibraries,
     isSavingWindowCloseBehavior,
     isSavingWindowZoomFactor,
-    isSavingWorkspaceLibraries,
     isSelectedDateToday,
     lastSavedAt,
     launchOnStartupEnabled,
@@ -349,16 +352,17 @@ export function useAppShellState() {
     statusMessage,
     supplementDocument,
     supplementSaveMessage,
+    tagLibrarySaveMessage,
     theme,
     themeSaveMessage,
     todayText,
     updateTimeTick,
     viewState,
+    weatherLocationLibrariesSaveMessage,
     windowCloseBehavior,
     windowCloseBehaviorSaveMessage,
     windowZoomFactor,
     windowZoomFactorSaveMessage,
-    workspaceLibrariesSaveMessage,
     workspaceLocationOptions,
     workspacePath,
     workspaceTags,

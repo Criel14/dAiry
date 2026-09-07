@@ -3,6 +3,38 @@
   gap: 0.75rem;
 }
 
+.tag-groups {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.tag-group {
+  position: relative;
+  display: grid;
+  gap: 0.55rem;
+  padding-top: 0.65rem;
+}
+
+.tag-group::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0.25rem;
+  right: 0.25rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-border-soft) 55%, transparent);
+  border-radius: 1px;
+}
+
+.tag-group-letter {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+}
+
 .tag-list {
   display: flex;
   gap: 0.55rem;
