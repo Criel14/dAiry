@@ -14,6 +14,9 @@ let currentNotificationConfig: NotificationConfig = {
 }
 let lastReminderDateKey = ''
 const REPOSITORY_URL = 'https://github.com/Criel14/dAiry'
+// 睡眠/挂起期间 setTimeout 不会执行，唤醒后到期的回调会补触发；
+// 超过该容差即视为"错过本次提醒时刻"，不再补发，直接重排下一次
+const REMINDER_MISSED_WINDOW_MS = 10 * 60 * 1000
 
 function clearReminderTimer() {
   if (!reminderTimer) {
@@ -200,10 +203,16 @@ function scheduleNextReminder() {
   }
 
   const nextReminderDate = getNextReminderDate(currentNotificationConfig)
-  const delay = Math.max(nextReminderDate.getTime() - Date.now(), 1_000)
+  const scheduledFor = nextReminderDate.getTime()
+  const delay = Math.max(scheduledFor - Date.now(), 1_000)
 
   reminderTimer = setTimeout(async () => {
     reminderTimer = null
+
+    if (Date.now() - scheduledFor > REMINDER_MISSED_WINDOW_MS) {
+      scheduleNextReminder()
+      return
+    }
 
     const now = new Date()
     const todayKey = formatDateKey(now)
