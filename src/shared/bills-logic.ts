@@ -355,8 +355,9 @@ export function applyCategoryRenameToBill(
 //   update：仍匹配 → 仅"新贡献 − 旧贡献"（total 不变）；能排进窗口则替换，
 //           排序位置到达/超出窗口末位则移出窗口；不再匹配 → 移除 + total−1 + 减旧贡献
 //   delete：移除 + total−1 + 减旧贡献
-// 空窗口直接插入（"无匹配 → 首条命中"场景；排序位置到达/超出窗口末位时一律不插入，
-// 保证 offset = records.length 续取不漏不重）。
+// 插入规则：排序位置到达/超出窗口末位时一律不插入（保证 offset = records.length 续取不漏不重）；
+// 空窗口（0 条已加载）仅在 create/duplicate 且原匹配集为空（total === 0）、或 update 且原窗口
+// 覆盖全部匹配（total === records.length）时直接插入——否则留给补位/查看更多带回。
 // needsRefill = 发生了净移除（移除且未补回）且 total > records.length，调用方应补位取 1 条。
 export function applyBillsMutation(
   window: BillsSearchWindow,
@@ -374,9 +375,10 @@ export function applyBillsMutation(
     return true
   }
 
-  // 返回是否插入；"排序位置到达/超出窗口末位"（空窗口除外）视为未进窗
-  function tryInsert(bill: Bill): boolean {
+  // 返回是否插入；"排序位置到达/超出窗口末位"（且空窗口未获放行）视为未进窗
+  function tryInsert(bill: Bill, canPushIntoEmpty: boolean): boolean {
     if (records.length === 0) {
+      if (!canPushIntoEmpty) return false
       records.push(bill)
       return true
     }
@@ -418,7 +420,7 @@ export function applyBillsMutation(
     const nextContribution = billSearchContribution(categories, mutation.bill)
     income += nextContribution.income - previousContribution.income
     expense += nextContribution.expense - previousContribution.expense
-    const inserted = tryInsert(mutation.bill)
+    const inserted = tryInsert(mutation.bill, window.total === window.records.length)
     return {
       window: { records, total, income, expense },
       needsRefill: removed && !inserted && total > records.length,
@@ -434,6 +436,6 @@ export function applyBillsMutation(
   total += 1
   income += contribution.income
   expense += contribution.expense
-  tryInsert(mutation.bill)
+  tryInsert(mutation.bill, window.total === 0)
   return { window: { records, total, income, expense }, needsRefill: false }
 }

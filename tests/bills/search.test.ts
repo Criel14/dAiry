@@ -362,4 +362,84 @@ describe('applyBillsMutation', () => {
     expect(result.window.income).toBe(0)
     expect(result.needsRefill).toBe(true)
   })
+
+  it('does not re-insert an edited record when the window emptied and more matches remain', () => {
+    const only = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const state = makeWindow([only], 3, 0, 9000)
+    const updated = makeBill({ id: 1, date: '2020-01-01', amountCents: -2000, category: '餐饮', note: '鼠标' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: only, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records).toEqual([])
+    expect(result.window.total).toBe(3)
+    expect(result.window.expense).toBe(10000)
+    expect(result.needsRefill).toBe(true)
+  })
+
+  it('keeps the edited record when the window held the whole match set', () => {
+    const only = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const state = makeWindow([only], 1, 0, 1000)
+    const updated = makeBill({ id: 1, date: '2020-01-01', amountCents: -2000, category: '餐饮', note: '鼠标' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: only, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1])
+    expect(result.window.total).toBe(1)
+    expect(result.window.expense).toBe(2000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('does not push a new matching record into an empty window while other matches are unloaded', () => {
+    const state = makeWindow([], 2, 0, 5000)
+    const created = makeBill({ id: 1, date: '2020-01-01', amountCents: -3000, category: '购物', note: '旧鼠标' })
+
+    const result = applyBillsMutation(state, { kind: 'create', bill: created }, CATEGORIES, KEY)
+
+    expect(result.window.records).toEqual([])
+    expect(result.window.total).toBe(3)
+    expect(result.window.expense).toBe(8000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('inserts by same-date id tie-break on create', () => {
+    const existing = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标垫' })
+    const state = makeWindow([existing], 2, 0, 7000)
+    const created = makeBill({ id: 2, date: '2026-08-01', amountCents: -500, category: '购物', note: '鼠标' })
+
+    const result = applyBillsMutation(state, { kind: 'create', bill: created }, CATEGORIES, KEY)
+
+    expect(result.window.records.map((record) => record.id)).toEqual([2, 1])
+    expect(result.window.total).toBe(3)
+    expect(result.window.expense).toBe(7500)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('applies income and expense deltas when an edit flips the sign', () => {
+    const expense = makeBill({ id: 1, date: '2026-08-01', amountCents: -5000, category: '餐饮', note: '鼠标' })
+    const state = makeWindow([expense], 1, 0, 5000)
+    const income = makeBill({ id: 1, date: '2026-08-01', amountCents: 3000, category: '工资', note: '鼠标' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: expense, bill: income },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1])
+    expect(result.window.total).toBe(1)
+    expect(result.window.income).toBe(3000)
+    expect(result.window.expense).toBe(0)
+    expect(result.needsRefill).toBe(false)
+  })
 })
