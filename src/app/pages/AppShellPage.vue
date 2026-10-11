@@ -16,6 +16,7 @@ import BillsPanel from '../../components/bills/components/BillsPanel/BillsPanel.
 import WorkspacePanel from '../../components/workspace/components/WorkspacePanel/WorkspacePanel.vue'
 import ActivityBar from '../components/ActivityBar/ActivityBar.vue'
 import type { RightPanel } from '../../types/ui'
+import type { BillsCategoryChange, BillsSavedPayload } from '../../types/bills'
 import { SETTINGS_SECTIONS } from '../../components/settings/config/config'
 import { useAppShell } from '../composables/useAppShell'
 
@@ -167,10 +168,11 @@ function handleActivitySelect(panel: RightPanel) {
 }
 
 const billsSidebarRefreshTick = ref(0)
+const billsPanelRef = ref<InstanceType<typeof BillsPanel> | null>(null)
 
-function handleBillsRecordSaved() {
+function handleBillsRecordSaved(payload: BillsSavedPayload) {
   billsSidebarRefreshTick.value += 1
-  void billsPanel.handleRecordSaved()
+  void billsPanel.handleRecordSaved(payload)
 }
 
 function handleBillsRecordDeleted() {
@@ -178,12 +180,53 @@ function handleBillsRecordDeleted() {
   void billsPanel.handleDeleteFromModal()
 }
 
-function handleBillsCategoriesChanged() {
+function handleBillsCategoriesChanged(change: BillsCategoryChange) {
   billsSidebarRefreshTick.value += 1
-  void billsPanel.handleCategoriesChanged()
+  void billsPanel.handleCategoriesChanged(change)
+}
+
+// 周期类导航退出搜索（事件回调里调用：点当前已选月份这类"同值"动作也要退出）
+function handleBillsSelectMonth(value: string) {
+  billsPanel.exitSearch()
+  billsPanel.selectedMonth.value = value
+}
+
+function handleBillsSelectYear(value: number) {
+  billsPanel.exitSearch()
+  billsPanel.selectedYear.value = value
+}
+
+function handleBillsSelectStatsMode(value: 'month' | 'year') {
+  billsPanel.exitSearch()
+  billsPanel.statsMode.value = value
+}
+
+function handleBillsActiveTab(value: 'detail' | 'stats') {
+  if (value === 'stats') {
+    billsPanel.exitSearch()
+  }
+  billsPanel.activeTab.value = value
+}
+
+function handleBillsDetailMonthFilter(value: 'all' | string) {
+  billsPanel.exitSearch()
+  billsPanel.detailMonthFilter.value = value
 }
 
 function handleGlobalKeydown(event: KeyboardEvent) {
+  if (rightPanel.value === 'bills') {
+    const isFindShortcut =
+      (event.ctrlKey || event.metaKey) &&
+      !event.altKey &&
+      !event.shiftKey &&
+      event.key.toLowerCase() === 'f'
+    if (isFindShortcut) {
+      event.preventDefault()
+      billsPanelRef.value?.focusSearchInput()
+    }
+    return
+  }
+
   if (rightPanel.value !== 'journal') {
     return
   }
@@ -289,9 +332,9 @@ onBeforeUnmount(() => {
           :is-exporting="billsPanel.isExporting.value"
           :status-message="billsPanel.sidebarStatusMessage.value"
           :refresh-tick="billsSidebarRefreshTick"
-          @update:selected-month="billsPanel.selectedMonth.value = $event"
-          @update:selected-year="billsPanel.selectedYear.value = $event"
-          @update:stats-mode="billsPanel.statsMode.value = $event"
+          @update:selected-month="handleBillsSelectMonth"
+          @update:selected-year="handleBillsSelectYear"
+          @update:stats-mode="handleBillsSelectStatsMode"
           @category-changed="handleBillsCategoriesChanged"
           @export="billsPanel.handleExportExcel"
         />
@@ -446,6 +489,7 @@ onBeforeUnmount(() => {
 
       <BillsPanel
         v-else-if="rightPanel === 'bills'"
+        ref="billsPanelRef"
         :has-workspace="billsPanel.hasWorkspace.value"
         :workspace-path="workspacePath"
         :day-start-hour="dayStartHour"
@@ -467,15 +511,28 @@ onBeforeUnmount(() => {
         :status-message="billsPanel.statusMessage.value"
         :modal-state="billsPanel.modalState.value"
         :scroll-target-date="billsPanel.scrollTargetDate.value"
+        :search-input="billsPanel.searchInput.value"
+        :search-keyword="billsPanel.searchKeyword.value"
+        :search-records="billsPanel.searchWindow.value.records"
+        :search-total="billsPanel.searchWindow.value.total"
+        :search-income="billsPanel.searchWindow.value.income"
+        :search-expense="billsPanel.searchWindow.value.expense"
+        :is-search-loading="billsPanel.isSearchLoading.value"
+        :is-search-loading-more="billsPanel.isSearchLoadingMore.value"
+        :search-error-message="billsPanel.searchErrorMessage.value"
+        @update:search-input="billsPanel.searchInput.value = $event"
+        @search-submit="billsPanel.submitSearch"
+        @search-clear="billsPanel.exitSearch"
+        @search-load-more="billsPanel.loadMoreSearch"
+        @update:active-tab="handleBillsActiveTab"
+        @update:detail-month-filter="handleBillsDetailMonthFilter"
+        @record-saved="handleBillsRecordSaved"
         @jump-to-detail="billsPanel.handleChartJump"
         @scroll-target-consumed="billsPanel.scrollTargetDate.value = null"
-        @update:active-tab="billsPanel.activeTab.value = $event"
-        @update:detail-month-filter="billsPanel.detailMonthFilter.value = $event"
         @update:category-filter="billsPanel.categoryFilter.value = $event"
         @open-create="billsPanel.openCreateModal"
         @open-edit="billsPanel.openEditModal"
         @close-modal="billsPanel.closeModal"
-        @record-saved="handleBillsRecordSaved"
         @deleted="handleBillsRecordDeleted"
         @load-more="billsPanel.loadMoreMonths"
       />

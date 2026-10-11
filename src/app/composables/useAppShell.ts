@@ -23,6 +23,13 @@ export function useAppShell() {
   const ai = useAppShellAi(state)
   const billsPanel = useBillsPanel(state.workspacePath)
 
+  // 离开记账页（含通知点击、托盘菜单等所有导航路径）一律退出备注搜索
+  watch(state.rightPanel, (value) => {
+    if (value !== 'bills') {
+      billsPanel.exitSearch()
+    }
+  })
+
   let removeWindowZoomListener: (() => void) | null = null
   let removeMainPanelNavigationListener: (() => void) | null = null
   let removeProfileRebuildProgressListener: (() => void) | null = null

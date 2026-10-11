@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, watch } from 'vue'
-import { Plus } from 'lucide-vue-next'
-import type { Bill, BillCategory, BillsWindowTotal } from '../../../../types/bills'
+import { computed, nextTick, ref, watch } from 'vue'
+import { Plus, Search, X } from 'lucide-vue-next'
+import type { Bill, BillCategory, BillsSavedPayload, BillsWindowTotal } from '../../../../types/bills'
 import type { BillsChartJumpPayload } from '../../../../types/bills'
 import type { BillsModalState } from '../../composables/useBillsPanel'
 import {
@@ -10,6 +10,7 @@ import {
   formatPlainCents,
   groupBillsByDay,
   resolveCategory,
+  splitNoteByKeyword,
 } from '../../composables/useBillsPanel'
 import { iconForName } from '../../bills-icons'
 import AppSelect from '../../../shared/AppSelect/AppSelect.vue'
@@ -39,16 +40,29 @@ const props = defineProps<{
   statusMessage: string
   modalState: BillsModalState
   scrollTargetDate: string | null
+  searchInput: string
+  searchKeyword: string
+  searchRecords: Bill[]
+  searchTotal: number
+  searchIncome: number
+  searchExpense: number
+  isSearchLoading: boolean
+  isSearchLoadingMore: boolean
+  searchErrorMessage: string
 }>()
 
 const emit = defineEmits<{
   'update:activeTab': [value: 'detail' | 'stats']
   'update:detailMonthFilter': [value: 'all' | string]
   'update:categoryFilter': [value: string]
+  'update:searchInput': [value: string]
+  'search-submit': []
+  'search-clear': []
+  'search-load-more': []
   openCreate: []
   openEdit: [bill: Bill]
   closeModal: []
-  'record-saved': []
+  'record-saved': [payload: BillsSavedPayload]
   deleted: []
   'load-more': []
   'jump-to-detail': [payload: BillsChartJumpPayload]
@@ -57,7 +71,20 @@ const emit = defineEmits<{
 
 const WEEK_NAMES = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
 
-const detailGroups = computed(() => groupBillsByDay(props.renderedRecords))
+const isSearching = computed(() => props.searchKeyword !== '')
+const searchRemaining = computed(() => Math.max(0, props.searchTotal - props.searchRecords.length))
+const hasMoreSearch = computed(() => isSearching.value && searchRemaining.value > 0)
+const displayedGroups = computed(() =>
+  groupBillsByDay(isSearching.value ? props.searchRecords : props.renderedRecords),
+)
+const showDayList = computed(() =>
+  isSearching.value
+    ? !props.isSearchLoading && props.searchErrorMessage === '' && props.searchRecords.length > 0
+    : hasAnyRecords.value,
+)
+const showSearchEnterHint = computed(
+  () => props.searchInput.trim() !== '' && props.searchInput.trim() !== props.searchKeyword,
+)
 const detailSummary = computed(() => aggregateRecords(props.filteredRecords, props.categories))
 const hasAnyRecords = computed(() => props.filteredRecords.length > 0)
 
@@ -114,6 +141,49 @@ function formatAmount(record: Bill): string {
   return type === 'transfer' ? formatPlainCents(record.amountCents) : formatCents(record.amountCents)
 }
 
+const searchInputElement = ref<HTMLInputElement | null>(null)
+
+function dayLabelWithYear(date: string) {
+  const [year] = date.split('-').map(Number)
+  const label = dayLabel(date)
+  return year === new Date().getFullYear() ? label : `${year}年${label}`
+}
+
+function dayLabelFor(date: string) {
+  return isSearching.value ? dayLabelWithYear(date) : dayLabel(date)
+}
+
+function noteSegments(note: string) {
+  return isSearching.value
+    ? splitNoteByKeyword(note, props.searchKeyword)
+    : [{ text: note, hit: false }]
+}
+
+function onSearchInput(event: Event) {
+  emit('update:searchInput', (event.target as HTMLInputElement).value)
+}
+
+function handleSearchEnter(event: KeyboardEvent) {
+  if (event.isComposing) return
+  emit('search-submit')
+}
+
+function handleSearchEscape(event: KeyboardEvent) {
+  if (event.isComposing) return
+  emit('search-clear')
+}
+
+// Ctrl+F 聚焦入口：非明细 tab 或记账弹窗打开时不动作
+function focusSearchInput() {
+  if (props.activeTab !== 'detail' || props.modalState.open) return
+  const input = searchInputElement.value
+  if (!input) return
+  input.focus()
+  input.select()
+}
+
+defineExpose({ focusSearchInput })
+
 watch(
   () => props.scrollTargetDate,
   (target) => {
@@ -158,16 +228,55 @@ watch(
             统计
           </button>
         </div>
-        <button v-if="activeTab === 'detail'" class="add-button" type="button" @click="emit('openCreate')">
-          <Plus class="add-button-icon" aria-hidden="true" />
-          记一笔
-        </button>
+        <div class="bills-toolbar-tail">
+          <div v-if="activeTab === 'detail'" class="search-field">
+            <Search class="search-field-icon" aria-hidden="true" />
+            <input
+              ref="searchInputElement"
+              class="search-input"
+              type="text"
+              placeholder="全局搜索"
+              aria-label="全局搜索备注"
+              :value="searchInput"
+              @input="onSearchInput"
+              @keydown.enter="handleSearchEnter"
+              @keydown.esc="handleSearchEscape"
+            />
+            <span v-if="showSearchEnterHint" class="search-enter-hint" aria-hidden="true">⏎</span>
+            <button
+              v-if="searchInput !== ''"
+              class="search-clear"
+              type="button"
+              aria-label="清除搜索"
+              @click="emit('search-clear')"
+            >
+              <X class="search-clear-icon" aria-hidden="true" />
+            </button>
+          </div>
+          <button v-if="activeTab === 'detail'" class="add-button" type="button" @click="emit('openCreate')">
+            <Plus class="add-button-icon" aria-hidden="true" />
+            记一笔
+          </button>
+        </div>
       </header>
 
       <p v-if="statusMessage" class="bills-status">{{ statusMessage }}</p>
 
       <template v-if="activeTab === 'detail'">
-        <div class="summary-bar">
+        <div v-if="isSearching" class="summary-bar summary-bar--search">
+          <span v-if="isSearchLoading">搜索「{{ searchKeyword }}」 · 搜索中…</span>
+          <span v-else>
+            <span class="search-chip">搜索「{{ searchKeyword }}」</span>
+            全部时间 · 共
+            <strong>{{ searchTotal }}</strong>
+            笔 · 支出
+            <span class="summary-expense">{{ formatPlainCents(searchExpense) }}</span>
+            · 收入
+            <span class="summary-income">{{ formatPlainCents(searchIncome) }}</span>
+          </span>
+          <button class="summary-clear" type="button" @click="emit('search-clear')">清除</button>
+        </div>
+        <div v-else class="summary-bar">
           <span>
             {{ detailPeriodText }} · 共
             <strong>{{ detailSummary.count }}</strong>
@@ -193,7 +302,14 @@ watch(
           </div>
         </div>
 
-        <div v-if="!hasAnyRecords" class="placeholder-box">
+        <div v-if="isSearching && isSearchLoading" class="placeholder-box">正在搜索…</div>
+        <div v-else-if="isSearching && searchErrorMessage" class="placeholder-box">
+          {{ searchErrorMessage }}
+        </div>
+        <div v-else-if="isSearching && searchRecords.length === 0" class="placeholder-box">
+          没有找到包含「{{ searchKeyword }}」的账单
+        </div>
+        <div v-else-if="!isSearching && !hasAnyRecords" class="placeholder-box">
           {{ categoryFilter
             ? '该分类下暂无账单记录'
             : statsMode === 'year'
@@ -201,10 +317,10 @@ watch(
               : '本月暂无账单记录' }}
         </div>
 
-        <div v-else class="day-list">
-          <article v-for="[date, records] in detailGroups" :key="date" class="day-card" :data-date="date">
+        <div v-if="showDayList" class="day-list">
+          <article v-for="[date, records] in displayedGroups" :key="date" class="day-card" :data-date="date">
             <header class="day-header">
-              <span class="day-date">{{ dayLabel(date) }}</span>
+              <span class="day-date">{{ dayLabelFor(date) }}</span>
               <span class="day-sum">
                 <span class="sum-expense">支出 {{ formatPlainCents(daySummary(records).expense) }}</span>
                 <span class="sum-income">收入 {{ formatPlainCents(daySummary(records).income) }}</span>
@@ -226,7 +342,13 @@ watch(
               </span>
               <div class="record-body">
                 <span class="record-category">{{ record.category }}</span>
-                <span v-if="record.note" class="record-note">{{ record.note }}</span>
+                <span v-if="record.note" class="record-note">
+                  <span
+                    v-for="(segment, index) in noteSegments(record.note)"
+                    :key="index"
+                    :class="{ 'note-hit': segment.hit }"
+                  >{{ segment.text }}</span>
+                </span>
               </div>
               <span class="record-amount" :class="amountClass(record)">
                 {{ formatAmount(record) }}
@@ -235,12 +357,15 @@ watch(
           </article>
 
           <button
-            v-if="hasMoreMonths"
+            v-if="isSearching ? hasMoreSearch : hasMoreMonths"
             class="load-more-button"
             type="button"
-            @click="emit('load-more')"
+            :disabled="isSearching && isSearchLoadingMore"
+            @click="isSearching ? emit('search-load-more') : emit('load-more')"
           >
-            查看更多（剩余 {{ remainingMonthCount }} 个月）
+            {{ isSearching
+              ? (isSearchLoadingMore ? '加载中…' : `查看更多（剩余 ${searchRemaining} 笔）`)
+              : `查看更多（剩余 ${remainingMonthCount} 个月）` }}
           </button>
         </div>
       </template>
@@ -264,7 +389,7 @@ watch(
       :workspace-path="workspacePath"
       :day-start-hour="dayStartHour"
       @close="emit('closeModal')"
-      @saved="emit('record-saved')"
+      @saved="emit('record-saved', $event)"
       @deleted="emit('deleted')"
     />
   </section>
