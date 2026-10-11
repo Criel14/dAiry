@@ -556,7 +556,7 @@ describe('applyBillsMutation', () => {
     expect(result.needsRefill).toBe(false)
   })
 
-  it('keeps totals untouched when a transfer record is deleted', () => {
+  it('keeps income and expense untouched when a transfer record is deleted', () => {
     const fund = makeBill({ id: 5, date: '2026-08-05', amountCents: -200000, category: '理财', note: '鼠标基金' })
     const state = makeWindow([fund], 2, 0, 500)
 
@@ -565,7 +565,7 @@ describe('applyBillsMutation', () => {
     expect(result.window.total).toBe(1)
     expect(result.window.expense).toBe(500)
     expect(result.window.income).toBe(0)
-    expect(result.needsRefill).toBe(false)
+    expect(result.needsRefill).toBe(true)
   })
 })
 ```
