@@ -22,6 +22,8 @@ export const IPC_CHANNELS = {
   setWindowDirtyState: 'app:set-window-dirty-state',
   setMcpPreference: 'app:set-mcp-preference',
   getMcpRuntimeStatus: 'app:get-mcp-runtime-status',
+  getUpdateCheckState: 'app:get-update-check-state',
+  updateCheckStateChanged: 'app:update-check-state-changed',
   openExternalLink: 'app:open-external-link',
   openDevTools: 'app:open-dev-tools',
   showMessageBox: 'app:show-message-box',

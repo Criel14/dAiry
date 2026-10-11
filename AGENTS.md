@@ -58,6 +58,7 @@
 - Frontmatter 元信息编辑：`weather`、`location`、`mood`、`summary`、`tags`
 - 手动保存、快捷保存、未保存保护
 - 关闭窗口时可配置为直接退出或最小化到系统托盘
+- 设置-关于：应用启动时自动检查 GitHub Release 更新（对比版本号，仅展示状态与跳转链接，不自动下载）
 - “自动整理”生成 `summary + tags`，但默认只回填前端草稿
 - 区间报告生成、历史列表读取、JSON 落盘
 - 报告 section：`stats`、`heatmap`、`moodTrend`、`tagCloud`、`highlights`、`locationPatterns`、`timePatterns`

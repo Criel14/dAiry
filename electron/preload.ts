@@ -109,6 +109,33 @@ const dairyApi: DairyApi = {
   setWindowDirtyState: (input) => ipcRenderer.invoke(IPC_CHANNELS.setWindowDirtyState, input),
   setMcpPreference: (input) => ipcRenderer.invoke(IPC_CHANNELS.setMcpPreference, input),
   getMcpRuntimeStatus: () => ipcRenderer.invoke(IPC_CHANNELS.getMcpRuntimeStatus),
+  getUpdateCheckState: () => ipcRenderer.invoke(IPC_CHANNELS.getUpdateCheckState),
+  onUpdateCheckStateChanged: (listener) => {
+    const wrappedListener = (
+      _event: Electron.IpcRendererEvent,
+      payload: { status?: unknown; latestVersion?: unknown } | undefined,
+    ) => {
+      const status = payload?.status
+
+      if (
+        status === 'checking' ||
+        status === 'up-to-date' ||
+        status === 'update-available' ||
+        status === 'failed'
+      ) {
+        listener({
+          status,
+          latestVersion: typeof payload?.latestVersion === 'string' ? payload.latestVersion : null,
+        })
+      }
+    }
+
+    ipcRenderer.on(IPC_CHANNELS.updateCheckStateChanged, wrappedListener)
+
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.updateCheckStateChanged, wrappedListener)
+    }
+  },
   openExternalLink: (input) => ipcRenderer.invoke(IPC_CHANNELS.openExternalLink, input),
   openDevTools: () => ipcRenderer.invoke(IPC_CHANNELS.openDevTools),
   showMessageBox: (input) => ipcRenderer.invoke(IPC_CHANNELS.showMessageBox, input),

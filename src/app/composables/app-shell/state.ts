@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 import type { AiSettingsStatus, SupplementDocument, UserProfileRebuildProgress } from '../../../types/ai'
 import type { McpRuntimeStatus } from '../../../types/mcp'
+import type { UpdateCheckState } from '../../../types/update'
 import type {
   AppTheme,
   EmailNotificationSecretStatus,
@@ -48,6 +49,13 @@ export function createDefaultMcpRuntimeStatus(): McpRuntimeStatus {
     status: 'stopped',
     port: null,
     errorMessage: null,
+  }
+}
+
+export function createDefaultUpdateCheckState(): UpdateCheckState {
+  return {
+    status: 'checking',
+    latestVersion: null,
   }
 }
 
@@ -196,6 +204,7 @@ export function useAppShellState() {
   const mcpEnabled = ref(false)
   const mcpPort = ref(9123)
   const mcpRuntimeStatus = ref<McpRuntimeStatus>(createDefaultMcpRuntimeStatus())
+  const updateCheckState = ref<UpdateCheckState>(createDefaultUpdateCheckState())
   const lastSavedAt = ref<string | null>(null)
   const activeSettingsSectionId = ref<SettingsSectionId>('appearance')
   const isReportExportMode =
@@ -356,6 +365,7 @@ export function useAppShellState() {
     theme,
     themeSaveMessage,
     todayText,
+    updateCheckState,
     updateTimeTick,
     viewState,
     weatherLocationLibrariesSaveMessage,

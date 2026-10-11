@@ -1,6 +1,10 @@
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue'
+import type { UpdateCheckState, UpdateCheckStatus } from '../../../types/update'
+
+const props = defineProps<{
   appVersion: string
+  updateCheckState: UpdateCheckState
   repositoryUrl: string
   feedbackEmail: string
 }>()
@@ -9,7 +13,19 @@ const emit = defineEmits<{
   openRepository: []
   openFeedbackEmail: []
   openDebugPanel: []
+  openReleases: []
 }>()
+
+const UPDATE_CHECK_STATUS_TEXT: Record<UpdateCheckStatus, string> = {
+  checking: '正在检查更新，',
+  'up-to-date': '当前已是最新版本，',
+  'update-available': '存在可用的新版本，',
+  failed: '检查更新失败，',
+}
+
+const updateCheckStatusText = computed(
+  () => UPDATE_CHECK_STATUS_TEXT[props.updateCheckState.status],
+)
 </script>
 
 <template>
@@ -22,7 +38,11 @@ const emit = defineEmits<{
 
       <div class="about-version-card">
         <strong class="about-version-value">{{ appVersion }}</strong>
-        <p class="panel-description">不支持检查更新，访问代码仓库以查看更新信息。</p>
+        <p class="panel-description">
+          <strong class="about-update-status">{{ updateCheckStatusText }}</strong>请访问
+          <button class="about-inline-link" type="button" @click="emit('openReleases')">github release</button>
+          查看版本信息
+        </p>
       </div>
     </section>
 

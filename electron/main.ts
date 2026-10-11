@@ -4,6 +4,7 @@ import { registerIpcHandlers } from './main/ipc'
 import { applyLaunchOnStartup } from './main/launch-on-startup'
 import { startMcpServer, stopMcpServer } from './main/mcp'
 import { configureDiaryReminder, disposeDiaryReminder } from './main/notification'
+import { startUpdateCheck } from './main/update/service'
 import {
   createMainWindow,
   getMainWindow,
@@ -44,5 +45,7 @@ if (!gotTheLock) {
       void startMcpServer(config.mcp.port)
     }
     await createMainWindow()
+    // 更新检查失败只体现在关于页状态上，不阻塞启动
+    void startUpdateCheck()
   })
 }

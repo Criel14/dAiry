@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import packageJson from '../../../../package.json'
 import type { AiSettings, AiSettingsStatus, SupplementDocument, UserProfileRebuildProgress } from '../../../types/ai'
 import type { McpRuntimeStatus } from '../../../types/mcp'
+import type { UpdateCheckState } from '../../../types/update'
 import type {
   AppTheme,
   EmailNotificationConfig,
@@ -77,6 +78,7 @@ const props = defineProps<{
   mcpRuntimeStatus: McpRuntimeStatus
   isSavingMcp: boolean
   mcpSaveMessage: string
+  updateCheckState: UpdateCheckState
   activeSectionId: SettingsSectionId
 }>()
 
@@ -117,6 +119,7 @@ const emit = defineEmits<{
 
 const appVersion = packageJson.version ?? '0.0.0'
 const repositoryUrl = 'https://github.com/Criel14/dAiry'
+const releasesUrl = `${repositoryUrl}/releases/latest`
 const feedbackEmail = 'chencriel@qq.com'
 
 const activeSection = computed<SettingsSectionItem>(() => {
@@ -125,6 +128,10 @@ const activeSection = computed<SettingsSectionItem>(() => {
 
 function openRepository() {
   void window.dairy.openExternalLink({ url: repositoryUrl })
+}
+
+function openReleases() {
+  void window.dairy.openExternalLink({ url: releasesUrl })
 }
 
 function openFeedbackEmail() {
@@ -247,9 +254,11 @@ function openDebugPanel() {
       <SettingsAboutSection
         v-else
         :app-version="appVersion"
+        :update-check-state="props.updateCheckState"
         :repository-url="repositoryUrl"
         :feedback-email="feedbackEmail"
         @open-repository="openRepository"
+        @open-releases="openReleases"
         @open-feedback-email="openFeedbackEmail"
         @open-debug-panel="openDebugPanel"
       />

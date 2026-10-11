@@ -33,6 +33,7 @@ export function useAppShell() {
   let removeWindowZoomListener: (() => void) | null = null
   let removeMainPanelNavigationListener: (() => void) | null = null
   let removeProfileRebuildProgressListener: (() => void) | null = null
+  let removeUpdateCheckStateListener: (() => void) | null = null
   let removeSystemThemeListener: (() => void) | null = null
   let boundaryTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -92,6 +93,14 @@ export function useAppShell() {
     scheduleDayBoundary()
   })
 
+  async function refreshUpdateCheckState() {
+    try {
+      state.updateCheckState.value = await window.dairy.getUpdateCheckState()
+    } catch {
+      // 状态查询失败不打断启动流程，保留当前展示
+    }
+  }
+
   onMounted(async () => {
     if (state.isReportExportMode) {
       return
@@ -108,6 +117,9 @@ export function useAppShell() {
         state.profileRebuildProgress.value = progress
       },
     )
+    removeUpdateCheckStateListener = window.dairy.onUpdateCheckStateChanged((nextState) => {
+      state.updateCheckState.value = nextState
+    })
     removeSystemThemeListener = observeSystemThemeChange(() => {
       if (state.theme.value === 'system') {
         applyThemePreference(state.theme.value)
@@ -116,6 +128,7 @@ export function useAppShell() {
     window.addEventListener('keydown', journal.handleWindowKeydown)
     await journal.bootstrapApp()
     void preferences.refreshMcpRuntimeStatus()
+    void refreshUpdateCheckState()
     scheduleDayBoundary()
     document.addEventListener('visibilitychange', handleVisibilityChange)
   })
@@ -131,6 +144,8 @@ export function useAppShell() {
     removeMainPanelNavigationListener = null
     removeProfileRebuildProgressListener?.()
     removeProfileRebuildProgressListener = null
+    removeUpdateCheckStateListener?.()
+    removeUpdateCheckStateListener = null
     removeSystemThemeListener?.()
     removeSystemThemeListener = null
     clearBoundaryTimer()

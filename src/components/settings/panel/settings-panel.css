@@ -273,6 +273,11 @@
   font-weight: 600;
 }
 
+.about-update-status {
+  color: var(--color-text-strong-subtle);
+  font-weight: 600;
+}
+
 .about-action-row {
   display: flex;
   justify-content: flex-start;
@@ -351,6 +356,27 @@
 }
 
 .about-link-button:focus-visible {
+  outline: 2px solid var(--color-glass-accent-90);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.about-inline-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-warm);
+  text-decoration: underline;
+  text-decoration-color: var(--color-glass-text-warm-35);
+  text-underline-offset: 3px;
+}
+
+.about-inline-link:hover {
+  color: var(--color-text-accent);
+  text-decoration-color: var(--color-glass-text-accent-60);
+}
+
+.about-inline-link:focus-visible {
   outline: 2px solid var(--color-glass-accent-90);
   outline-offset: 3px;
   border-radius: 4px;

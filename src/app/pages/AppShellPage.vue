@@ -139,6 +139,7 @@ const {
   themeSaveMessage,
   tagLibrarySaveMessage,
   todayText,
+  updateCheckState,
   viewState,
   weatherLocationLibrariesSaveMessage,
   windowCloseBehavior,
@@ -425,6 +426,7 @@ onBeforeUnmount(() => {
         :mcp-runtime-status="mcpRuntimeStatus"
         :is-saving-mcp="isSavingMcp"
         :mcp-save-message="mcpSaveMessage"
+        :update-check-state="updateCheckState"
         :active-section-id="activeSettingsSectionId"
         @update:theme="handleUpdateTheme"
         @update:window-zoom-factor="handleUpdateWindowZoomFactor"

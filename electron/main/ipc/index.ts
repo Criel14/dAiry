@@ -5,6 +5,7 @@ import { registerMcpIpcHandlers } from './mcp'
 import { registerProfileIpcHandlers } from './profile'
 import { registerReportIpcHandlers } from './report'
 import { registerTimelineIpcHandlers } from './timeline'
+import { registerUpdateIpcHandlers } from './update'
 import { registerWorkspaceIpcHandlers } from './workspace'
 
 export function registerIpcHandlers() {
@@ -15,5 +16,6 @@ export function registerIpcHandlers() {
   registerReportIpcHandlers()
   registerTimelineIpcHandlers()
   registerMcpIpcHandlers()
+  registerUpdateIpcHandlers()
   registerBillsIpcHandlers()
 }

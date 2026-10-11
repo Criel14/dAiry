@@ -67,6 +67,7 @@ import type {
 } from './timeline'
 import type { McpPreferenceInput, McpRuntimeStatus } from './mcp'
 import type { RightPanel } from './ui'
+import type { UpdateCheckState } from './update'
 import type {
   Bill,
   BillCategory,
@@ -144,6 +145,8 @@ export interface DairyApi {
   setWindowDirtyState: (input: WindowDirtyStateInput) => Promise<void>
   setMcpPreference: (input: McpPreferenceInput) => Promise<AppConfig>
   getMcpRuntimeStatus: () => Promise<McpRuntimeStatus>
+  getUpdateCheckState: () => Promise<UpdateCheckState>
+  onUpdateCheckStateChanged: (listener: (state: UpdateCheckState) => void) => () => void
   openExternalLink: (input: OpenExternalLinkInput) => Promise<void>
   openDevTools: () => Promise<void>
   showMessageBox: (input: ShowMessageBoxInput) => Promise<number>
