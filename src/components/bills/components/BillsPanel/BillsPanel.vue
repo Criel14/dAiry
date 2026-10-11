@@ -173,9 +173,10 @@ function handleSearchEscape(event: KeyboardEvent) {
   emit('search-clear')
 }
 
-// Ctrl+F 聚焦入口：非明细 tab 或记账弹窗打开时不动作
+// Ctrl+F 聚焦入口：非明细 tab、记账弹窗、其他模态遮罩（如分类重命名）打开时不动作
 function focusSearchInput() {
   if (props.activeTab !== 'detail' || props.modalState.open) return
+  if (document.querySelector('.modal-overlay, .rename-overlay')) return
   const input = searchInputElement.value
   if (!input) return
   input.focus()

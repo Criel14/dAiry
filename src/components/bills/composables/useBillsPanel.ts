@@ -179,7 +179,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   }
 
   async function submitSearch() {
-    if (!workspacePath.value || isSearchLoading.value) return
+    if (!workspacePath.value) return
     const keyword = searchInput.value.trim()
     if (!keyword) {
       exitSearch()
@@ -459,11 +459,9 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     modalState.value = { open: false, editing: null }
   }
 
-  async function handleRecordSaved(payload?: BillsSavedPayload) {
+  async function handleRecordSaved(payload: BillsSavedPayload) {
     closeModal()
-    if (payload) {
-      applySearchMutation(payload)
-    }
+    applySearchMutation(payload)
     await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 
