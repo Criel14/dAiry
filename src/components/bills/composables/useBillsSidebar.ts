@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import dayjs from 'dayjs'
-import type { BillCategory, BillType } from '../../../types/bills'
+import type { BillCategory, BillsCategoryChange, BillType } from '../../../types/bills'
 import { BILL_TYPE_LABELS, BILL_TYPES } from '../../../types/bills'
 import { getReadableErrorMessage } from '../../../utils/error'
 import { confirmDialog } from '../../../shared/dialog'
@@ -21,7 +21,7 @@ export type BillsSidebarEmits = {
   'update:selectedMonth': [value: string]
   'update:selectedYear': [value: number]
   'update:statsMode': [value: 'month' | 'year']
-  categoryChanged: []
+  categoryChanged: [change: BillsCategoryChange]
   export: []
 }
 
@@ -171,7 +171,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
       })
       newCategoryName.value = ''
       categoryError.value = ''
-      emit('categoryChanged')
+      emit('categoryChanged', { kind: 'create', type: categoryPanelTab.value, name })
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '创建分类失败')
     } finally {
@@ -202,7 +202,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
         newName,
       })
       renameState.value = null
-      emit('categoryChanged')
+      emit('categoryChanged', { kind: 'rename', type: state.type, oldName: state.name, newName: newName.trim() })
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '重命名分类失败')
       renameState.value = null
@@ -227,7 +227,7 @@ export function useBillsSidebar(props: BillsSidebarProps, emit: BillsSidebarEmit
         type,
         name,
       })
-      emit('categoryChanged')
+      emit('categoryChanged', { kind: 'delete', type, name })
     } catch (error) {
       categoryError.value = getReadableErrorMessage(error, '删除分类失败')
     } finally {

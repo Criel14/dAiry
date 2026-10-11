@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import type { BillCategory, BillType } from '../../../../types/bills'
+import type { BillCategory, BillsSavedPayload, BillType } from '../../../../types/bills'
 import { BILL_TYPE_LABELS } from '../../../../types/bills'
 import { getReadableErrorMessage } from '../../../../utils/error'
 import { getJournalDateText } from '../../../../shared/date-utils'
@@ -18,7 +18,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  saved: []
+  saved: [payload: BillsSavedPayload]
   deleted: []
 }>()
 
@@ -135,24 +135,26 @@ async function handleSubmit() {
   isSaving.value = true
   try {
     if (props.modalState.editing) {
-      await window.dairy.updateBill({
+      const previous = props.modalState.editing
+      const bill = await window.dairy.updateBill({
         workspacePath: props.workspacePath,
-        id: props.modalState.editing.id,
+        id: previous.id,
         date: form.date,
         amountCents,
         category: form.category,
         note: form.note.trim(),
       })
+      emit('saved', { kind: 'update', previous, bill })
     } else {
-      await window.dairy.createBill({
+      const bill = await window.dairy.createBill({
         workspacePath: props.workspacePath,
         date: form.date,
         amountCents,
         category: form.category,
         note: form.note.trim(),
       })
+      emit('saved', { kind: 'create', bill })
     }
-    emit('saved')
   } catch (error) {
     errorMessage.value = getReadableErrorMessage(error, '保存失败')
   } finally {
@@ -186,14 +188,14 @@ async function handleDuplicate() {
 
   isSaving.value = true
   try {
-    await window.dairy.createBill({
+    const bill = await window.dairy.createBill({
       workspacePath: props.workspacePath,
       date: getJournalDateText(props.dayStartHour),
       amountCents,
       category: form.category,
       note: form.note.trim(),
     })
-    emit('saved')
+    emit('saved', { kind: 'duplicate', bill })
   } catch (error) {
     errorMessage.value = getReadableErrorMessage(error, '复制失败')
   } finally {
