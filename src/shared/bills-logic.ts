@@ -279,13 +279,18 @@ export function lastRecordedDateOfMonth(records: Bill[], year: string, month: st
 export const BILLS_SEARCH_PAGE_SIZE = 30
 
 // 备注是否包含关键词（keyword 视为已 trim；空关键词返回 false）。
-// 不区分大小写（ASCII），镜像 SQLite LIKE 默认行为，保证就地计算与服务端结果一致。
+// 仅 ASCII 不区分大小写，镜像 SQLite LIKE 默认行为，保证就地计算与服务端结果一致。
 export function billMatchesKeyword(note: string, keyword: string): boolean {
   if (!keyword) return false
-  return note.toLowerCase().includes(keyword.toLowerCase())
+  return foldAsciiLower(note).includes(foldAsciiLower(keyword))
 }
 
-// 命中词切分（高亮渲染用）：非正则、按 indexOf 顺序、大小写不敏感命中但保留原文，
+// 仅折叠 ASCII A-Z，镜像 SQLite LIKE 的默认大小写语义（不折叠其他 Unicode 字母）
+function foldAsciiLower(value: string): string {
+  return value.replace(/[A-Z]/g, (char) => String.fromCharCode(char.charCodeAt(0) + 32))
+}
+
+// 命中词切分（高亮渲染用）：非正则、按 indexOf 顺序、仅 ASCII 大小写不敏感命中但保留原文，
 // 多处命中全部切出；keyword 为空时整体一段（hit=false）。
 export function splitNoteByKeyword(
   note: string,
@@ -295,8 +300,8 @@ export function splitNoteByKeyword(
     return [{ text: note, hit: false }]
   }
 
-  const lowerNote = note.toLowerCase()
-  const lowerKeyword = keyword.toLowerCase()
+  const lowerNote = foldAsciiLower(note)
+  const lowerKeyword = foldAsciiLower(keyword)
   const segments: Array<{ text: string; hit: boolean }> = []
   let index = 0
 
@@ -355,9 +360,9 @@ export function applyCategoryRenameToBill(
 //   update：仍匹配 → 仅"新贡献 − 旧贡献"（total 不变）；能排进窗口则替换，
 //           排序位置到达/超出窗口末位则移出窗口；不再匹配 → 移除 + total−1 + 减旧贡献
 //   delete：移除 + total−1 + 减旧贡献
-// 插入规则：排序位置到达/超出窗口末位时一律不插入（保证 offset = records.length 续取不漏不重）；
-// 空窗口（0 条已加载）仅在 create/duplicate 且原匹配集为空（total === 0）、或 update 且原窗口
-// 覆盖全部匹配（total === records.length）时直接插入——否则留给补位/查看更多带回。
+// 插入规则：排序位置到达/超出窗口末位时不插入（保证 offset = records.length 续取不漏不重）；
+// 窗口覆盖全部匹配（total === records.length）时允许空窗插入与末尾追加——
+// 否则留给补位/查看更多带回。
 // needsRefill = 发生了净移除（移除且未补回）且 total > records.length，调用方应补位取 1 条。
 export function applyBillsMutation(
   window: BillsSearchWindow,
@@ -375,10 +380,11 @@ export function applyBillsMutation(
     return true
   }
 
-  // 返回是否插入；"排序位置到达/超出窗口末位"（且空窗口未获放行）视为未进窗
-  function tryInsert(bill: Bill, canPushIntoEmpty: boolean): boolean {
+  // 返回是否插入；"排序位置到达/超出窗口末位"仅在窗口未覆盖全部匹配时视为未进窗
+  // （窗口覆盖全部匹配时可以安全地追加到末尾，前缀与日边界仍成立）
+  function tryInsert(bill: Bill, windowCoversAllMatches: boolean): boolean {
     if (records.length === 0) {
-      if (!canPushIntoEmpty) return false
+      if (!windowCoversAllMatches) return false
       records.push(bill)
       return true
     }
@@ -386,7 +392,11 @@ export function applyBillsMutation(
       (record) => bill.date > record.date || (bill.date === record.date && bill.id > record.id),
     )
     const insertAt = index === -1 ? records.length : index
-    if (insertAt >= records.length) return false
+    if (insertAt === records.length) {
+      if (!windowCoversAllMatches) return false
+      records.push(bill)
+      return true
+    }
     records.splice(insertAt, 0, bill)
     return true
   }
@@ -436,6 +446,6 @@ export function applyBillsMutation(
   total += 1
   income += contribution.income
   expense += contribution.expense
-  tryInsert(mutation.bill, window.total === 0)
+  tryInsert(mutation.bill, window.total === window.records.length)
   return { window: { records, total, income, expense }, needsRefill: false }
 }

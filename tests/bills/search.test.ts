@@ -40,6 +40,13 @@ describe('billMatchesKeyword', () => {
     expect(billMatchesKeyword('mouse', 'MOUSE')).toBe(true)
   })
 
+  it('folds only ASCII letters, mirroring SQLite LIKE', () => {
+    expect(billMatchesKeyword('MOUse 蓝牙版', 'mouse')).toBe(true)
+    expect(billMatchesKeyword('ＭＯＵＳＥ', 'mouse')).toBe(false)
+    expect(billMatchesKeyword('CAFÉ', 'café')).toBe(false)
+    expect(billMatchesKeyword('CAFE', 'cafe')).toBe(true)
+  })
+
   it('returns false for empty keyword or empty note', () => {
     expect(billMatchesKeyword('鼠标', '')).toBe(false)
     expect(billMatchesKeyword('', '鼠标')).toBe(false)
@@ -78,6 +85,10 @@ describe('splitNoteByKeyword', () => {
       { text: ' ', hit: false },
       { text: 'mouse', hit: true },
     ])
+  })
+
+  it('does not fold non-ASCII letters while splitting', () => {
+    expect(splitNoteByKeyword('CAFÉ', 'café')).toEqual([{ text: 'CAFÉ', hit: false }])
   })
 
   it('returns one non-hit segment when keyword is empty or nothing matches', () => {
@@ -189,6 +200,38 @@ describe('applyBillsMutation', () => {
     expect(result.window.records.map((record) => record.id)).toEqual([1])
     expect(result.window.total).toBe(1)
     expect(result.window.expense).toBe(5000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('appends a new matching record when the window already holds every match', () => {
+    const existing = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标垫' })
+    const state = makeWindow([existing], 1, 0, 1000)
+    const created = makeBill({ id: 2, date: '2020-01-01', amountCents: -3000, category: '购物', note: '旧鼠标' })
+
+    const result = applyBillsMutation(state, { kind: 'create', bill: created }, CATEGORIES, KEY)
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1, 2])
+    expect(result.window.total).toBe(2)
+    expect(result.window.expense).toBe(4000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('appends an edited record that sorts last when every match is already loaded', () => {
+    const top = makeBill({ id: 2, date: '2026-08-10', amountCents: -5000, category: '购物', note: '鼠标' })
+    const bottom = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标垫' })
+    const state = makeWindow([top, bottom], 2, 0, 6000)
+    const updated = makeBill({ id: 2, date: '2020-01-01', amountCents: -3000, category: '购物', note: '旧鼠标' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: top, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1, 2])
+    expect(result.window.total).toBe(2)
+    expect(result.window.expense).toBe(4000)
     expect(result.needsRefill).toBe(false)
   })
 
