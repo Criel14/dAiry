@@ -101,6 +101,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 | `renameBillCategory` | `bills:update-category` | 重命名分类 | `BillCategory[]`（全量） |
 | `deleteBillCategory` | `bills:delete-category` | 删除分类 | `BillCategory[]`（全量） |
 | `exportBillsExcel` | `bills:export-excel` | 导出 Excel | `BillsExportResult` |
+| `searchBills` | `bills:search` | 备注全历史搜索（分页 + 全量统计，日边界对齐） | `BillsSearchResult` |
 
 `listBillsYears`/`listBillsMonths` 是轻量查询，供侧栏月份/年份网格的「有数据」高亮标记，不返回记录本身。
 
@@ -117,6 +118,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 | `listBillsYears` | `service.ts:72` | `SELECT DISTINCT substr(date,1,4)` |
 | `listBillsMonthsOfYear` | `service.ts:83` | 年份正则校验 + `WHERE date LIKE 'YYYY-%'` |
 | `getAllBills` | `service.ts:98` | 全量（供导出），日期升序 |
+| `searchBills` | `service.ts`（新增） | `note LIKE` 搜索：`iterate` 流式汇总 + `LIMIT/OFFSET` 分页 + 日边界对齐；空关键词抛错，limit 夹取 1–100 |
 | `createBill` | `service.ts:107` | 校验 + INSERT + 回查 |
 | `updateBill` | `service.ts:123` | 校验 + UPDATE + 回查 |
 | `deleteBill` | `service.ts:144` | 按 id 删除 |
@@ -217,6 +219,15 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 - 月份网格 `picker-cell--has-data`、年份网格（`YearPickerGrid` 的 `hasDataYears`）高亮有数据的周期
 - 高亮查询失败静默降级，不影响选择器使用
 
+### 5.5 备注搜索（useBillsPanel）
+
+- 状态：`searchInput`（未提交输入）、`searchKeyword`（空=非搜索态）、`searchWindow`（records/total/income/expense，分）、`isSearchLoading`、`isSearchLoadingMore`、`searchErrorMessage`，全部异步响应带 `searchSequence` 序列号守卫
+- 提交与退出：回车提交（`isComposing` 守卫）、空内容回车退出；Esc/✕/摘要条「清除」退出；切统计 tab、周期导航（月份/年份/月度-年度/年度月份筛选/回到本月）、离开记账页（`rightPanel` 过渡 watcher，覆盖通知/托盘导航）、切换工作区均退出；退出即清输入，浏览状态不动
+- 分页：首批 30 条，「查看更多（剩余 N 笔）」按 `offset = 已加载条数` 追加；取数按日边界对齐（同一天记录不跨批切开，日期组小计始终完整）
+- 就地更新：弹窗保存/删除/复制不重查数据库，`applyBillsMutation` 就地更新窗口并维护全量统计（统计恒定镜像匹配集；`total−1` 仅发生在删除或改到不再匹配）；净移除且仍有未加载时以 `limit=1` 补位
+- 分类变更：重命名对已加载结果就地改名（与主进程 SQL 同规则）；增删改任何变更后静默刷新一次全量统计
+- Ctrl+F：仅账单页生效；`handleGlobalKeydown` 的 bills 分支 `preventDefault` 后调用 `BillsPanel.focusSearchInput()`（非明细 tab / 弹窗打开时不聚焦）
+
 ---
 
 ## 六、前端组件结构
@@ -224,9 +235,9 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 | 组件 | 职责 |
 |------|------|
 | `BillsSidebar.vue` | 侧栏：月度/年度 tab、月份网格（高亮）、`YearPickerGrid`（年份网格）、分类管理（tab + 增删改）、导出 Excel 按钮 |
-| `BillsPanel.vue` | 主区：明细/统计 tab、summary-bar（期间汇总 + 月份/分类筛选）、记一笔按钮 |
+| `BillsPanel.vue` | 主区：明细/统计 tab、summary-bar（期间汇总 + 月份/分类筛选）、记一笔按钮；明细工具栏含全局搜索框与搜索态结果区 |
 | `BillsCharts.vue` | 统计图表（ECharts，见 5.3） |
-| `BillsRecordModal.vue` | 录入/编辑模态框：类型 tab、日期、金额、分类下拉、备注；编辑态可删除 |
+| `BillsRecordModal.vue` | 录入/编辑模态框：类型 tab、日期、金额、分类下拉、备注；编辑态可删除；`saved` 事件携带 `BillsSavedPayload`（create/duplicate/update） |
 | `BillsRenameModal.vue` | 分类重命名模态框（输入框预填原名单选、Enter 确认、Esc/遮罩关闭） |
 | `BillsCategorySelect.vue` | 分类下拉：图标/颜色/分组/可清除，Teleport 自适应弹出 |
 | `AppSelect.vue` | 通用下拉（`src/components/shared/`）：`{ label, value, icon?, color?, group? }` 选项模型，设置页与记账共用 |
@@ -256,7 +267,7 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 
 ## 八、测试
 
-`tests/bills/`（vitest，共 67 用例）：
+`tests/bills/`（vitest，共 101 用例）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -264,6 +275,7 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 | `window.test.ts` | 窗口期推导（跨年）、支出/收入总额、月份过滤、闰年、全年日期序列 |
 | `export.test.ts` | `buildBillsWorkbook` 按年分 sheet/排序/空数据 |
 | `smoke.test.ts` | 冒烟 |
+| `search.test.ts` | `billMatchesKeyword` / `splitNoteByKeyword` / `billSearchContribution` / `applyCategoryRenameToBill` / `applyBillsMutation` |
 
 约定：better-sqlite3 为 Electron ABI 编译产物，Node 环境（vitest）不可加载，**db 层与 service 层不写单测**；可测逻辑下沉到 `src/shared/bills-logic.ts`。
 
@@ -279,6 +291,7 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 | `listBillsYears` / `listBillsMonthsOfYear` | `electron/main/bills/service.ts:72/83` | 数据标记查询 |
 | `createBill` / `updateBill` / `deleteBill` | `electron/main/bills/service.ts:107/123/144` | CRUD |
 | `updateCategory` | `electron/main/bills/service.ts:156` | 重命名分类 + 同步历史账单 |
+| `searchBills` | `electron/main/bills/service.ts` | 备注全历史搜索（分页 + 全量统计 + 日边界对齐） |
 | `getBillCategories` / `saveBillCategories` | `electron/main/bills/categories.ts:23/39` | 分类库读写 |
 | `createBillCategory` / `renameBillCategory` / `deleteBillCategory` | `electron/main/bills/categories.ts:66/93/120` | 分类增删改 |
 | `buildBillsWorkbook` / `exportBillsExcel` | `electron/main/bills/export.ts:7/44` | Excel 导出 |
@@ -286,6 +299,8 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 | `buildMonthWindow` / `buildYearWindow` | `src/shared/bills-logic.ts:135/151` | 窗口期推导 |
 | `expenseTotal` / `incomeTotal` | `src/shared/bills-logic.ts:156/166` | 支出总额 / 收入总额 |
 | `filterBillsByMonth` / `isLeapYear` / `buildDailyAxis` | `src/shared/bills-logic.ts:197/224/228` | 月份过滤 / 闰年 / 全年日期序列 |
+| `billMatchesKeyword` / `splitNoteByKeyword` / `billSearchContribution` | `src/shared/bills-logic.ts` | 关键词匹配 / 切分高亮 / 贡献口径 |
+| `applyCategoryRenameToBill` / `applyBillsMutation` | `src/shared/bills-logic.ts` | 分类改名 / 窗口就地更新 |
 | `useBillsPanel` | `src/components/bills/composables/useBillsPanel.ts:29` | 面板状态与数据加载 |
 | `useBillsSidebar` | `src/components/bills/composables/useBillsSidebar.ts:37` | 侧栏状态、数据标记、分类管理 |
 | `registerBillsIpcHandlers` | `electron/main/ipc/bills.ts:27` | IPC 注册入口 |
