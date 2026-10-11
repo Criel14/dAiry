@@ -271,3 +271,78 @@ export function lastRecordedDateOfMonth(records: Bill[], year: string, month: st
   }
   return latest
 }
+
+// ===== 备注搜索 =====
+
+export const BILLS_SEARCH_PAGE_SIZE = 30
+
+// 备注是否包含关键词（keyword 视为已 trim；空关键词返回 false）。
+// 不区分大小写（ASCII），镜像 SQLite LIKE 默认行为，保证就地计算与服务端结果一致。
+export function billMatchesKeyword(note: string, keyword: string): boolean {
+  if (!keyword) return false
+  return note.toLowerCase().includes(keyword.toLowerCase())
+}
+
+// 命中词切分（高亮渲染用）：非正则、按 indexOf 顺序、大小写不敏感命中但保留原文，
+// 多处命中全部切出；keyword 为空时整体一段（hit=false）。
+export function splitNoteByKeyword(
+  note: string,
+  keyword: string,
+): Array<{ text: string; hit: boolean }> {
+  if (!keyword) {
+    return [{ text: note, hit: false }]
+  }
+
+  const lowerNote = note.toLowerCase()
+  const lowerKeyword = keyword.toLowerCase()
+  const segments: Array<{ text: string; hit: boolean }> = []
+  let index = 0
+
+  while (true) {
+    const found = lowerNote.indexOf(lowerKeyword, index)
+    if (found === -1) break
+    if (found > index) {
+      segments.push({ text: note.slice(index, found), hit: false })
+    }
+    segments.push({ text: note.slice(found, found + keyword.length), hit: true })
+    index = found + keyword.length
+  }
+
+  if (index < note.length) {
+    segments.push({ text: note.slice(index), hit: false })
+  }
+
+  return segments.length > 0 ? segments : [{ text: note, hit: false }]
+}
+
+// 单条记录的收支贡献（分）。与 aggregateRecords 完全同口径：
+// resolveCategory 后 transfer → { 0, 0 }；否则正数计入 income、负数计入 expense（正数分）。
+export function billSearchContribution(
+  categories: BillCategory[],
+  bill: Bill,
+): { income: number; expense: number } {
+  const resolved = resolveCategory(categories, bill.amountCents, bill.category)
+  if (resolved.type === 'transfer') {
+    return { income: 0, expense: 0 }
+  }
+  return bill.amountCents > 0
+    ? { income: bill.amountCents, expense: 0 }
+    : { income: 0, expense: -bill.amountCents }
+}
+
+// 分类重命名对单条记录的改写，规则与主进程 updateCategory 的 SQL 一致：
+//   transfer: category === oldName → 改写
+//   expense : category === oldName && amountCents < 0 → 改写
+//   income  : category === oldName && amountCents > 0 → 改写
+// 不满足则原样返回（返回同一引用）。
+export function applyCategoryRenameToBill(
+  bill: Bill,
+  rename: { type: BillType; oldName: string; newName: string },
+): Bill {
+  if (bill.category !== rename.oldName) return bill
+  const shouldRename =
+    rename.type === 'transfer' ||
+    (rename.type === 'expense' && bill.amountCents < 0) ||
+    (rename.type === 'income' && bill.amountCents > 0)
+  return shouldRename ? { ...bill, category: rename.newName } : bill
+}
