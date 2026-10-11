@@ -2,12 +2,18 @@ import { describe, expect, it } from 'vitest'
 import {
   BILLS_SEARCH_PAGE_SIZE,
   aggregateRecords,
+  applyBillsMutation,
   applyCategoryRenameToBill,
   billMatchesKeyword,
   billSearchContribution,
   splitNoteByKeyword,
 } from '../../src/shared/bills-logic'
-import { BUILTIN_CATEGORIES, type Bill, type BillCategory } from '../../src/types/bills'
+import {
+  BUILTIN_CATEGORIES,
+  type Bill,
+  type BillCategory,
+  type BillsSearchWindow,
+} from '../../src/types/bills'
 
 const CATEGORIES: BillCategory[] = BUILTIN_CATEGORIES
 
@@ -164,5 +170,196 @@ describe('applyCategoryRenameToBill', () => {
 describe('BILLS_SEARCH_PAGE_SIZE', () => {
   it('is 30', () => {
     expect(BILLS_SEARCH_PAGE_SIZE).toBe(30)
+  })
+})
+
+function makeWindow(records: Bill[], total: number, income = 0, expense = 0): BillsSearchWindow {
+  return { records, total, income, expense }
+}
+
+const KEY = '鼠标'
+
+describe('applyBillsMutation', () => {
+  it('inserts the first match into an empty window', () => {
+    const state = makeWindow([], 0)
+    const created = makeBill({ id: 1, date: '2026-08-10', amountCents: -5000, note: '手撕鸡' })
+
+    const result = applyBillsMutation(state, { kind: 'create', bill: created }, CATEGORIES, '手撕鸡')
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1])
+    expect(result.window.total).toBe(1)
+    expect(result.window.expense).toBe(5000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('inserts a new matching record at the top and counts it (duplicate)', () => {
+    const existing = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标垫' })
+    const state = makeWindow([existing], 1, 0, 1000)
+    const created = makeBill({ id: 2, date: '2026-08-10', amountCents: -5000, category: '购物', note: '新鼠标' })
+
+    const result = applyBillsMutation(state, { kind: 'duplicate', bill: created }, CATEGORIES, KEY)
+
+    expect(result.window.records.map((record) => record.id)).toEqual([2, 1])
+    expect(result.window.total).toBe(2)
+    expect(result.window.expense).toBe(6000)
+    expect(result.window.income).toBe(0)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('keeps stats mirroring the match set when the new record sorts beyond the window tail', () => {
+    const tail = makeBill({ id: 9, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标垫' })
+    const state = makeWindow([tail], 5, 0, 10000)
+    const created = makeBill({ id: 3, date: '2020-01-01', amountCents: -2000, category: '购物', note: '旧鼠标' })
+
+    const result = applyBillsMutation(state, { kind: 'create', bill: created }, CATEGORIES, KEY)
+
+    expect(result.window.records.map((record) => record.id)).toEqual([9])
+    expect(result.window.total).toBe(6)
+    expect(result.window.expense).toBe(12000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('ignores a new record that does not match the keyword', () => {
+    const state = makeWindow([makeBill({ id: 1, note: '鼠标垫' })], 1, 0, 1000)
+    const created = makeBill({ id: 2, note: '机械键盘' })
+
+    const result = applyBillsMutation(state, { kind: 'create', bill: created }, CATEGORIES, KEY)
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1])
+    expect(result.window.total).toBe(1)
+    expect(result.window.expense).toBe(1000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('replaces an edited record still inside the window and applies only the contribution delta', () => {
+    const top = makeBill({ id: 2, date: '2026-08-10', amountCents: -5000, category: '购物', note: '鼠标' })
+    const bottom = makeBill({ id: 1, date: '2026-08-01', amountCents: -1000, category: '餐饮', note: '鼠标垫' })
+    const state = makeWindow([top, bottom], 2, 0, 6000)
+    const updated = makeBill({ id: 2, date: '2026-08-03', amountCents: -3000, category: '购物', note: '降价鼠标' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: top, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([2, 1])
+    expect(result.window.total).toBe(2)
+    expect(result.window.expense).toBe(4000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('removes an edited record that sorts beyond the window tail but keeps the total', () => {
+    const top = makeBill({ id: 5, date: '2026-08-05', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const edited = makeBill({ id: 1, date: '2026-08-01', amountCents: -2000, category: '购物', note: '鼠标' })
+    const state = makeWindow([top, edited], 10, 0, 20000)
+    const updated = makeBill({ id: 1, date: '2020-01-01', amountCents: -3000, category: '购物', note: '鼠标' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: edited, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([5])
+    expect(result.window.total).toBe(10)
+    expect(result.window.expense).toBe(21000)
+    expect(result.needsRefill).toBe(true)
+  })
+
+  it('removes an edited record that no longer matches and decrements the total', () => {
+    const top = makeBill({ id: 5, date: '2026-08-05', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const edited = makeBill({ id: 1, date: '2026-08-01', amountCents: -2000, category: '购物', note: '鼠标垫' })
+    const state = makeWindow([top, edited], 2, 0, 3000)
+    const updated = makeBill({ id: 1, date: '2026-08-01', amountCents: -2000, category: '购物', note: '改成了键盘' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous: edited, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([5])
+    expect(result.window.total).toBe(1)
+    expect(result.window.expense).toBe(1000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('inserts a matching edited record when its previous version was not in the window (defensive)', () => {
+    const shown = makeBill({ id: 5, date: '2026-08-05', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const state = makeWindow([shown], 3, 0, 9000)
+    const previous = makeBill({ id: 7, date: '2026-07-01', amountCents: -4000, category: '购物', note: '鼠标垫' })
+    const updated = makeBill({ id: 7, date: '2026-08-09', amountCents: -4000, category: '购物', note: '鼠标垫' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([7, 5])
+    expect(result.window.total).toBe(3)
+    expect(result.window.expense).toBe(9000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('decrements stats when a non-displayed record is edited out of the match set (defensive)', () => {
+    const shown = makeBill({ id: 5, date: '2026-08-05', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const state = makeWindow([shown], 3, 0, 9000)
+    const previous = makeBill({ id: 7, date: '2026-07-01', amountCents: -4000, category: '购物', note: '鼠标垫' })
+    const updated = makeBill({ id: 7, date: '2026-07-01', amountCents: -4000, category: '购物', note: '键盘垫' })
+
+    const result = applyBillsMutation(
+      state,
+      { kind: 'update', previous, bill: updated },
+      CATEGORIES,
+      KEY,
+    )
+
+    expect(result.window.records.map((record) => record.id)).toEqual([5])
+    expect(result.window.total).toBe(2)
+    expect(result.window.expense).toBe(5000)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('removes a deleted record, decrements totals and asks for a refill when more remain', () => {
+    const first = makeBill({ id: 5, date: '2026-08-05', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const second = makeBill({ id: 1, date: '2026-08-01', amountCents: -2000, category: '购物', note: '鼠标垫' })
+    const state = makeWindow([first, second], 10, 0, 12000)
+
+    const result = applyBillsMutation(state, { kind: 'delete', bill: first }, CATEGORIES, KEY)
+
+    expect(result.window.records.map((record) => record.id)).toEqual([1])
+    expect(result.window.total).toBe(9)
+    expect(result.window.expense).toBe(11000)
+    expect(result.needsRefill).toBe(true)
+  })
+
+  it('does not ask for a refill when nothing is left to load', () => {
+    const only = makeBill({ id: 5, date: '2026-08-05', amountCents: -1000, category: '餐饮', note: '鼠标' })
+    const state = makeWindow([only], 1, 0, 1000)
+
+    const result = applyBillsMutation(state, { kind: 'delete', bill: only }, CATEGORIES, KEY)
+
+    expect(result.window.records).toEqual([])
+    expect(result.window.total).toBe(0)
+    expect(result.window.expense).toBe(0)
+    expect(result.needsRefill).toBe(false)
+  })
+
+  it('keeps income and expense untouched when a transfer record is deleted', () => {
+    const fund = makeBill({ id: 5, date: '2026-08-05', amountCents: -200000, category: '理财', note: '鼠标基金' })
+    const state = makeWindow([fund], 2, 0, 500)
+
+    const result = applyBillsMutation(state, { kind: 'delete', bill: fund }, CATEGORIES, KEY)
+
+    expect(result.window.total).toBe(1)
+    expect(result.window.expense).toBe(500)
+    expect(result.window.income).toBe(0)
+    expect(result.needsRefill).toBe(true)
   })
 })

@@ -130,6 +130,31 @@ export interface BillsQueryResult {
   records: BillQueryRecord[]
 }
 
+// ===== 备注搜索 =====
+
+// 搜索态已加载窗口（渲染层状态，纯逻辑复用）
+export interface BillsSearchWindow {
+  records: Bill[]
+  total: number
+  income: number
+  expense: number
+}
+
+// 弹窗保存结果（BillsRecordModal → BillsPanel → AppShell → useBillsPanel）
+export type BillsSavedPayload =
+  | { kind: 'create'; bill: Bill }
+  | { kind: 'duplicate'; bill: Bill }
+  | { kind: 'update'; previous: Bill; bill: Bill }
+
+// 搜索态下要应用的就地变更（= 保存类 + 删除）
+export type BillsSearchMutation = BillsSavedPayload | { kind: 'delete'; bill: Bill }
+
+// 侧栏分类变更（用于重命名的就地改名与统计刷新）
+export type BillsCategoryChange =
+  | { kind: 'create'; type: BillType; name: string }
+  | { kind: 'rename'; type: BillType; oldName: string; newName: string }
+  | { kind: 'delete'; type: BillType; name: string }
+
 export const BILL_TYPES: BillType[] = ['expense', 'income', 'transfer']
 
 export const BILL_TYPE_LABELS: Record<BillType, string> = {

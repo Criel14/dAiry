@@ -5,6 +5,8 @@ import {
   type BillCategory,
   type BillQueryRecord,
   type BillType,
+  type BillsSearchMutation,
+  type BillsSearchWindow,
 } from '../types/bills'
 
 export interface ResolvedCategory {
@@ -345,4 +347,93 @@ export function applyCategoryRenameToBill(
     (rename.type === 'expense' && bill.amountCents < 0) ||
     (rename.type === 'income' && bill.amountCents > 0)
   return shouldRename ? { ...bill, category: rename.newName } : bill
+}
+
+// 就地应用一次变更到搜索窗口（渲染层"操作后不重查"的核心）。
+// 统计恒定镜像匹配集：命中/失配决定 total 与收支增量，窗口只影响 records。
+//   create / duplicate：命中 → total+1、按贡献累加（无论是否进窗）；能排进窗口则插入
+//   update：仍匹配 → 仅"新贡献 − 旧贡献"（total 不变）；能排进窗口则替换，
+//           排序位置到达/超出窗口末位则移出窗口；不再匹配 → 移除 + total−1 + 减旧贡献
+//   delete：移除 + total−1 + 减旧贡献
+// 空窗口直接插入（"无匹配 → 首条命中"场景；排序位置到达/超出窗口末位时一律不插入，
+// 保证 offset = records.length 续取不漏不重）。
+// needsRefill = 发生了净移除（移除且未补回）且 total > records.length，调用方应补位取 1 条。
+export function applyBillsMutation(
+  window: BillsSearchWindow,
+  mutation: BillsSearchMutation,
+  categories: BillCategory[],
+  keyword: string,
+): { window: BillsSearchWindow; needsRefill: boolean } {
+  const records = [...window.records]
+  let { total, income, expense } = window
+
+  function removeById(id: number): boolean {
+    const index = records.findIndex((record) => record.id === id)
+    if (index === -1) return false
+    records.splice(index, 1)
+    return true
+  }
+
+  // 返回是否插入；"排序位置到达/超出窗口末位"（空窗口除外）视为未进窗
+  function tryInsert(bill: Bill): boolean {
+    if (records.length === 0) {
+      records.push(bill)
+      return true
+    }
+    const index = records.findIndex(
+      (record) => bill.date > record.date || (bill.date === record.date && bill.id > record.id),
+    )
+    const insertAt = index === -1 ? records.length : index
+    if (insertAt >= records.length) return false
+    records.splice(insertAt, 0, bill)
+    return true
+  }
+
+  if (mutation.kind === 'delete') {
+    const contribution = billSearchContribution(categories, mutation.bill)
+    const removed = removeById(mutation.bill.id)
+    total -= 1
+    income -= contribution.income
+    expense -= contribution.expense
+    return {
+      window: { records, total, income, expense },
+      needsRefill: removed && total > records.length,
+    }
+  }
+
+  if (mutation.kind === 'update') {
+    const previousContribution = billSearchContribution(categories, mutation.previous)
+    const removed = removeById(mutation.previous.id)
+
+    if (!billMatchesKeyword(mutation.bill.note, keyword)) {
+      total -= 1
+      income -= previousContribution.income
+      expense -= previousContribution.expense
+      return {
+        window: { records, total, income, expense },
+        needsRefill: removed && total > records.length,
+      }
+    }
+
+    const nextContribution = billSearchContribution(categories, mutation.bill)
+    income += nextContribution.income - previousContribution.income
+    expense += nextContribution.expense - previousContribution.expense
+    const inserted = tryInsert(mutation.bill)
+    return {
+      window: { records, total, income, expense },
+      needsRefill: removed && !inserted && total > records.length,
+    }
+  }
+
+  // create / duplicate
+  if (!billMatchesKeyword(mutation.bill.note, keyword)) {
+    return { window: { records, total, income, expense }, needsRefill: false }
+  }
+
+  const contribution = billSearchContribution(categories, mutation.bill)
+  total += 1
+  income += contribution.income
+  expense += contribution.expense
+  tryInsert(mutation.bill)
+  return { window: { records, total, income, expense }, needsRefill: false }
 }
