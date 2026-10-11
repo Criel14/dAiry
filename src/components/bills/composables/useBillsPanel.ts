@@ -154,6 +154,9 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
   // ===== 备注搜索 =====
 
+  // 实时搜索防抖时长（对齐 VS Code searchOnType 的默认手感）
+  const SEARCH_DEBOUNCE_MS = 300
+
   const searchInput = ref('')
   const searchKeyword = ref('')
   const searchWindow = ref<BillsSearchWindow>({ records: [], total: 0, income: 0, expense: 0 })
@@ -162,13 +165,23 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   const searchErrorMessage = ref('')
   // 搜索相关异步响应的竞态守卫（沿用 loadSequence 模式）
   let searchSequence = 0
+  // 实时搜索防抖计时器：输入停止 SEARCH_DEBOUNCE_MS 后触发搜索
+  let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+
+  function clearSearchDebounce() {
+    if (searchDebounceTimer !== null) {
+      clearTimeout(searchDebounceTimer)
+      searchDebounceTimer = null
+    }
+  }
 
   function resetSearchWindow() {
     searchWindow.value = { records: [], total: 0, income: 0, expense: 0 }
   }
 
-  // 退出搜索（幂等）：清关键词/输入/窗口/加载态；浏览状态（月份/年度/筛选）保持不动
+  // 退出搜索（幂等）：清防抖计时器、关键词/输入/窗口/加载态；浏览状态（月份/年度/筛选）保持不动
   function exitSearch() {
+    clearSearchDebounce()
     searchSequence += 1
     searchKeyword.value = ''
     searchInput.value = ''
@@ -178,16 +191,12 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     searchErrorMessage.value = ''
   }
 
-  async function submitSearch() {
+  // 执行一次新搜索（重置为第一批）。不清空旧结果：响应返回前保留现有列表，
+  // 避免实时输入过程中列表反复卸载/重建造成闪烁。
+  async function runSearch(keyword: string) {
     if (!workspacePath.value) return
-    const keyword = searchInput.value.trim()
-    if (!keyword) {
-      exitSearch()
-      return
-    }
 
     searchKeyword.value = keyword
-    resetSearchWindow()
     searchErrorMessage.value = ''
     isSearchLoading.value = true
     isSearchLoadingMore.value = false
@@ -216,6 +225,36 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
       }
     }
   }
+
+  // 输入变化（实时搜索）：清空 → 立即退出；否则防抖后搜索。
+  // 关键词与当前结果一致且无错误时跳过，避免无谓的窗口重置与请求。
+  function scheduleSearch() {
+    clearSearchDebounce()
+    const keyword = searchInput.value.trim()
+    if (!keyword) {
+      exitSearch()
+      return
+    }
+    if (keyword === searchKeyword.value && searchErrorMessage.value === '') return
+    searchDebounceTimer = setTimeout(() => {
+      searchDebounceTimer = null
+      void runSearch(keyword)
+    }, SEARCH_DEBOUNCE_MS)
+  }
+
+  // 回车：跳过防抖立即搜索；失败后可回车重试
+  function submitSearch() {
+    clearSearchDebounce()
+    const keyword = searchInput.value.trim()
+    if (!keyword) {
+      exitSearch()
+      return
+    }
+    if (keyword === searchKeyword.value && searchErrorMessage.value === '') return
+    void runSearch(keyword)
+  }
+
+  watch(searchInput, scheduleSearch)
 
   async function loadMoreSearch() {
     if (!workspacePath.value || !searchKeyword.value) return

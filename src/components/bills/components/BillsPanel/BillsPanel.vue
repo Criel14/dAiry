@@ -79,11 +79,8 @@ const displayedGroups = computed(() =>
 )
 const showDayList = computed(() =>
   isSearching.value
-    ? !props.isSearchLoading && props.searchErrorMessage === '' && props.searchRecords.length > 0
+    ? props.searchErrorMessage === '' && props.searchRecords.length > 0
     : hasAnyRecords.value,
-)
-const showSearchEnterHint = computed(
-  () => props.searchInput.trim() !== '' && props.searchInput.trim() !== props.searchKeyword,
 )
 const detailSummary = computed(() => aggregateRecords(props.filteredRecords, props.categories))
 const hasAnyRecords = computed(() => props.filteredRecords.length > 0)
@@ -159,7 +156,20 @@ function noteSegments(note: string) {
     : [{ text: note, hit: false }]
 }
 
+// 输入法组合期间不提交中间文本（避免用拼音串触发搜索），组合结束后再提交最终文本
+let isComposing = false
+
+function handleSearchCompositionStart() {
+  isComposing = true
+}
+
+function handleSearchCompositionEnd(event: CompositionEvent) {
+  isComposing = false
+  emit('update:searchInput', (event.target as HTMLInputElement).value)
+}
+
 function onSearchInput(event: Event) {
+  if (isComposing || (event as InputEvent).isComposing) return
   emit('update:searchInput', (event.target as HTMLInputElement).value)
 }
 
@@ -240,10 +250,11 @@ watch(
               aria-label="全局搜索备注"
               :value="searchInput"
               @input="onSearchInput"
+              @compositionstart="handleSearchCompositionStart"
+              @compositionend="handleSearchCompositionEnd"
               @keydown.enter="handleSearchEnter"
               @keydown.esc="handleSearchEscape"
             />
-            <span v-if="showSearchEnterHint" class="search-enter-hint" aria-hidden="true">⏎</span>
             <button
               v-if="searchInput !== ''"
               class="search-clear"
@@ -303,11 +314,13 @@ watch(
           </div>
         </div>
 
-        <div v-if="isSearching && isSearchLoading" class="placeholder-box">正在搜索…</div>
-        <div v-else-if="isSearching && searchErrorMessage" class="placeholder-box">
+        <div v-if="isSearching && searchErrorMessage" class="placeholder-box">
           {{ searchErrorMessage }}
         </div>
-        <div v-else-if="isSearching && searchRecords.length === 0" class="placeholder-box">
+        <div v-else-if="isSearching && isSearchLoading && searchRecords.length === 0" class="placeholder-box">
+          正在搜索…
+        </div>
+        <div v-else-if="isSearching && !isSearchLoading && searchRecords.length === 0" class="placeholder-box">
           没有找到包含「{{ searchKeyword }}」的账单
         </div>
         <div v-else-if="!isSearching && !hasAnyRecords" class="placeholder-box">

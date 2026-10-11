@@ -409,15 +409,6 @@
   color: var(--color-text-soft);
 }
 
-.search-enter-hint {
-  padding: 0.1rem 0.35rem;
-  border-radius: 6px;
-  background: var(--color-surface-status);
-  color: var(--color-text-subtle);
-  font-size: 0.75rem;
-  flex: none;
-}
-
 .search-clear {
   display: inline-flex;
   align-items: center;
