@@ -2,12 +2,12 @@
 
 ## 概览
 
-记账功能管理用户的日常收支流水：录入/编辑/删除账单、按分类管理、月度/年度明细浏览、统计图表与 Excel 导出。账单数据存储在 `<workspace>/bills/bills.db`（SQLite），分类库存储在 `<workspace>/.dairy/bill-categories.json`。
+记账功能管理用户的日常收支流水：录入/编辑/删除账单、按分类管理、月度/年度明细浏览、备注全局搜索、统计图表与 Excel 导出。账单数据存储在 `<workspace>/bills/bills.db`（SQLite），分类库存储在 `<workspace>/.dairy/bill-categories.json`。
 
 ```
 BillsSidebar（侧栏：月度/年度切换 + 分类管理 + 导出）
 BillsPanel（主区：明细 tab + 统计 tab）
-  ├─ 明细：按天分组列表 + 分类/月份筛选
+  ├─ 明细：按天分组列表 + 分类/月份筛选 + 全局备注搜索
   └─ 统计：统计卡 + 环形图 + 柱状图 + 折线图 + 窗口对比图
         │
         ▼
@@ -18,7 +18,7 @@ window.dairy.*（preload）→ IPC（bills:*）→ service → SQLite / 分类 J
 
 - 本地 Markdown 与账单无关，账单是独立的 SQLite 数据，两者互不影响
 - 金额以「分」整数存储（`amount_cents`），支出为负数、收入为正数；UI 显示保留 2 位小数
-- **统计在前端聚合**：主进程只提供原始记录查询，所有汇总/图表数据由渲染进程计算
+- **统计在前端聚合**：常规浏览中主进程只提供原始记录查询，汇总/图表数据由渲染进程计算；备注搜索的全量摘要（笔数/收支）由主进程流式聚合，避免物化全量行
 - 分类解析采用「符号优先 + 名字兜底」三步匹配，删除分类不改写历史账单
 
 ---
@@ -46,12 +46,11 @@ CREATE TABLE bills (
 CREATE INDEX idx_bills_date ON bills(date);
 ```
 
-连接管理：
+连接管理（操作即开即关，不在内存缓存连接）：
 
-- 连接缓存 `Map<workspacePath, Database>`（`db.ts:65`）
-- `getBillsDatabase`（`db.ts:67`）：文件不存在返回 `null`（读取场景返回空数组）
-- `ensureBillsDatabase`（`db.ts:83`）：不存在则创建（首次写账单时调用）
-- `closeBillsDatabase`（`db.ts:94`）：关闭并移除缓存
+- `openBillsDatabase`（`db.ts:30`）：按需创建 `bills/` 目录、打开库并执行 schema 迁移
+- `withBillsDatabase`（`db.ts:66`）：打开 → 执行 → 关闭（写入路径）
+- `withExistingBillsDatabase`（`db.ts:79`）：库文件不存在时返回 `null`（读取场景返回空），存在时同 `withBillsDatabase`
 
 ### 1.2 分类库
 
@@ -85,7 +84,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 
 ## 二、IPC 链路
 
-通道常量：`src/shared/ipc-channels.ts:62-74` → preload 桥接（`electron/preload.ts:137-148`）→ handler（`electron/main/ipc/bills.ts`）→ service。
+通道常量：`src/shared/ipc-channels.ts:67-80` → preload 桥接（`electron/preload.ts:142-154`）→ handler（`electron/main/ipc/bills.ts:32`）→ service。
 
 | 通道常量 | 通道值 | 用途 | 返回值 |
 |----------|--------|------|--------|
@@ -113,15 +112,16 @@ CREATE INDEX idx_bills_date ON bills(date);
 
 | 函数 | 位置 | 说明 |
 |------|------|------|
-| `listBillsByMonth` | `service.ts:42` | `WHERE date LIKE 'YYYY-MM-%'`，倒序 |
-| `listBillsByYear` | `service.ts:57` | `WHERE date LIKE 'YYYY-%'`，倒序 |
-| `listBillsYears` | `service.ts:72` | `SELECT DISTINCT substr(date,1,4)` |
-| `listBillsMonthsOfYear` | `service.ts:83` | 年份正则校验 + `WHERE date LIKE 'YYYY-%'` |
-| `getAllBills` | `service.ts:98` | 全量（供导出），日期升序 |
-| `searchBills` | `service.ts`（新增） | `note LIKE` 搜索：`iterate` 流式汇总 + `LIMIT/OFFSET` 分页 + 日边界对齐；空关键词抛错，limit 夹取 1–100 |
-| `createBill` | `service.ts:107` | 校验 + INSERT + 回查 |
-| `updateBill` | `service.ts:123` | 校验 + UPDATE + 回查 |
-| `deleteBill` | `service.ts:144` | 按 id 删除 |
+| `listBillsByMonth` | `service.ts:55` | `WHERE date LIKE 'YYYY-MM-%'`，倒序 |
+| `listBillsByYear` | `service.ts:70` | `WHERE date LIKE 'YYYY-%'`，倒序 |
+| `listBillsYears` | `service.ts:85` | `SELECT DISTINCT substr(date,1,4)` |
+| `listBillsMonthsOfYear` | `service.ts:96` | 年份正则校验 + `WHERE date LIKE 'YYYY-%'` |
+| `getAllBills` | `service.ts:113` | 全量（供导出），日期升序 |
+| `queryBills` | `service.ts:165` | 区间查询（MCP `dairy_bills_query`）：分类/类型/备注关键词筛选 + 聚合统计，明细超 limit 截断 |
+| `searchBills` | `service.ts:208` | `note LIKE` 搜索：`iterate` 流式汇总 + `LIMIT/OFFSET` 分页 + 日边界对齐；空关键词抛错，limit 夹取 1–100 |
+| `createBill` | `service.ts:261` | 校验 + INSERT + 回查 |
+| `updateBill` | `service.ts:280` | 校验 + UPDATE + 回查 |
+| `deleteBill` | `service.ts:303` | 按 id 删除 |
 
 写操作校验（`normalizeRecordInput` + `assertCategoryExists`）：
 
@@ -146,7 +146,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 
 ### 4.1 分类解析（三步匹配）
 
-`resolveCategory`（`src/shared/bills-logic.ts:29`）：
+`resolveCategory`（`src/shared/bills-logic.ts:31`）：
 
 1. 按「金额符号对应类型 + 分类名」精确匹配
 2. 按分类名兜底匹配（如 transfer 的「理财」记录，金额符号不定）
@@ -154,7 +154,7 @@ CREATE INDEX idx_bills_date ON bills(date);
 
 ### 4.2 重命名语义（同步历史账单）
 
-重命名分类（`service.ts:156` `updateCategory`）会**同步改写历史账单**：
+重命名分类（`service.ts:313` `updateCategory`）会**同步改写历史账单**：
 
 - 先更新分类库 JSON（含全部校验，失败时不动数据库）
 - 再 `UPDATE bills` 按类型精确匹配：
@@ -190,9 +190,9 @@ CREATE INDEX idx_bills_date ON bills(date);
 - `statsRecords` = 统计视图数据源（月度/年度二选一）
 - 所有加载带自增序列号防竞态（快速切换时旧响应不覆盖新数据）
 
-### 5.2 窗口对比数据（`reloadWindowTotals`，`useBillsPanel.ts:236`）
+### 5.2 窗口对比数据（`reloadWindowTotals`，`useBillsPanel.ts:447`）
 
-「近6个月/近6年支出对比」与「近6个月/近6年收入对比」图的数据来源：前端**并行调用** 6 次 `listBillsByMonth`/`listBillsByYear`，再用 `expenseTotal`/`incomeTotal` 聚合每期支出与收入总额，同一次请求同时产出两份统计。这是修复过的逻辑——早期版本误用当月记录计算窗口导致前 5 个月恒为 0。
+「近6个月/近6年支出对比」与「近6个月/近6年收入对比」图的数据来源：前端**并行调用** 6 次 `listBillsByMonth`/`listBillsByYear`，再用 `expenseTotal`/`incomeTotal` 聚合每期支出与收入总额，同一次请求同时产出两份统计。
 
 - 月度窗口：`buildMonthWindow(selectedMonth, 6)`（含跨年）
 - 年度窗口：`buildYearWindow(selectedYear, 6)`
@@ -224,6 +224,7 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 - 状态：`searchInput`（输入框文字，防抖后自动提交）、`searchKeyword`（最近一次提交的关键词，空=非搜索态）、`searchWindow`（records/total/income/expense，分）、`isSearchLoading`、`isSearchLoadingMore`、`searchErrorMessage`，全部异步响应带 `searchSequence` 序列号守卫；另有非响应式防抖计时器 `searchDebounceTimer`（300ms）
 - 触发与退出：输入即搜（`watch(searchInput)` + 300ms 防抖；关键词未变且无错误时跳过重搜；输入法组合结束后才提交）；输入清空（含纯空格）立即退出；回车=跳过防抖立即搜索（失败可重试）；Esc/✕/摘要条「清除」退出；切统计 tab、周期导航（月份/年份/月度-年度/年度月份筛选/回到本月）、离开记账页（`rightPanel` 过渡 watcher，覆盖通知/托盘导航）、切换工作区均退出；退出即清输入，浏览状态不动
 - 加载态：新搜索保留旧结果直至响应返回（仅窗口为空时显示「正在搜索…」），避免输入过程中列表闪烁
+- 摘要口径：`共 N 笔 / 支出 / 收入` 恒为全部匹配口径（主进程全量统计），与已加载窗口无关
 - 分页：首批 30 条，「查看更多（剩余 N 笔）」按 `offset = 已加载条数` 追加；取数按日边界对齐（同一天记录不跨批切开，日期组小计始终完整）
 - 就地更新：弹窗保存/删除/复制不重查数据库，`applyBillsMutation` 就地更新窗口并维护全量统计（统计恒定镜像匹配集；`total−1` 仅发生在删除或改到不再匹配）；净移除且仍有未加载时以 `limit=1` 补位
 - 分类变更：重命名对已加载结果就地改名（与主进程 SQL 同规则）；增删改任何变更后静默刷新一次全量统计
@@ -268,7 +269,7 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 
 ## 八、测试
 
-`tests/bills/`（vitest，共 101 用例）：
+`tests/bills/`（vitest，共 105 用例）：
 
 | 文件 | 覆盖 |
 |------|------|
@@ -287,30 +288,31 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 | 函数 | 文件 | 说明 |
 |------|------|------|
 | `openBillsDatabase` / `migrate` | `electron/main/bills/db.ts:30/45` | 打开库 + schema v1 迁移 |
-| `getBillsDatabase` / `ensureBillsDatabase` | `electron/main/bills/db.ts:67/83` | 读取/创建连接（带缓存） |
-| `listBillsByMonth` / `listBillsByYear` | `electron/main/bills/service.ts:42/57` | 月度/年度查询 |
-| `listBillsYears` / `listBillsMonthsOfYear` | `electron/main/bills/service.ts:72/83` | 数据标记查询 |
-| `createBill` / `updateBill` / `deleteBill` | `electron/main/bills/service.ts:107/123/144` | CRUD |
-| `updateCategory` | `electron/main/bills/service.ts:156` | 重命名分类 + 同步历史账单 |
-| `searchBills` | `electron/main/bills/service.ts` | 备注全历史搜索（分页 + 全量统计 + 日边界对齐） |
+| `withBillsDatabase` / `withExistingBillsDatabase` | `electron/main/bills/db.ts:66/79` | 操作即开即关（写/读），不在内存缓存连接 |
+| `listBillsByMonth` / `listBillsByYear` | `electron/main/bills/service.ts:55/70` | 月度/年度查询 |
+| `listBillsYears` / `listBillsMonthsOfYear` | `electron/main/bills/service.ts:85/96` | 数据标记查询 |
+| `queryBills` | `electron/main/bills/service.ts:165` | 区间查询（MCP `dairy_bills_query`） |
+| `searchBills` | `electron/main/bills/service.ts:208` | 备注全历史搜索（分页 + 全量统计 + 日边界对齐） |
+| `createBill` / `updateBill` / `deleteBill` | `electron/main/bills/service.ts:261/280/303` | CRUD |
+| `updateCategory` | `electron/main/bills/service.ts:313` | 重命名分类 + 同步历史账单 |
 | `getBillCategories` / `saveBillCategories` | `electron/main/bills/categories.ts:23/39` | 分类库读写 |
 | `createBillCategory` / `renameBillCategory` / `deleteBillCategory` | `electron/main/bills/categories.ts:66/93/120` | 分类增删改 |
 | `buildBillsWorkbook` / `exportBillsExcel` | `electron/main/bills/export.ts:7/44` | Excel 导出 |
-| `resolveCategory` / `aggregateRecords` | `src/shared/bills-logic.ts:29/66` | 分类解析 / 收支聚合 |
-| `buildMonthWindow` / `buildYearWindow` | `src/shared/bills-logic.ts:135/151` | 窗口期推导 |
-| `expenseTotal` / `incomeTotal` | `src/shared/bills-logic.ts:156/166` | 支出总额 / 收入总额 |
-| `filterBillsByMonth` / `isLeapYear` / `buildDailyAxis` | `src/shared/bills-logic.ts:197/224/228` | 月份过滤 / 闰年 / 全年日期序列 |
-| `billMatchesKeyword` / `splitNoteByKeyword` / `billSearchContribution` | `src/shared/bills-logic.ts` | 关键词匹配 / 切分高亮 / 贡献口径 |
-| `applyCategoryRenameToBill` / `applyBillsMutation` | `src/shared/bills-logic.ts` | 分类改名 / 窗口就地更新 |
-| `useBillsPanel` | `src/components/bills/composables/useBillsPanel.ts:29` | 面板状态与数据加载 |
-| `useBillsSidebar` | `src/components/bills/composables/useBillsSidebar.ts:37` | 侧栏状态、数据标记、分类管理 |
-| `registerBillsIpcHandlers` | `electron/main/ipc/bills.ts:27` | IPC 注册入口 |
+| `resolveCategory` / `aggregateRecords` | `src/shared/bills-logic.ts:31/68` | 分类解析 / 收支聚合 |
+| `buildMonthWindow` / `buildYearWindow` | `src/shared/bills-logic.ts:137/153` | 窗口期推导 |
+| `expenseTotal` / `incomeTotal` | `src/shared/bills-logic.ts:158/168` | 支出总额 / 收入总额 |
+| `filterBillsByMonth` / `isLeapYear` / `buildDailyAxis` | `src/shared/bills-logic.ts:199/226/230` | 月份过滤 / 闰年 / 全年日期序列 |
+| `billMatchesKeyword` / `splitNoteByKeyword` / `billSearchContribution` | `src/shared/bills-logic.ts:283/295/327` | 关键词匹配 / 切分高亮 / 贡献口径 |
+| `applyCategoryRenameToBill` / `applyBillsMutation` | `src/shared/bills-logic.ts:345/367` | 分类改名 / 窗口就地更新 |
+| `useBillsPanel` | `src/components/bills/composables/useBillsPanel.ts:45` | 面板状态与数据加载 |
+| `useBillsSidebar` | `src/components/bills/composables/useBillsSidebar.ts:38` | 侧栏状态、数据标记、分类管理 |
+| `registerBillsIpcHandlers` | `electron/main/ipc/bills.ts:32` | IPC 注册入口 |
 
 ---
 
 ## 十、架构约束
 
-- **统计在前端聚合**：主进程只提供原始记录查询，汇总计算在渲染进程/共享纯逻辑完成
+- **统计在前端聚合**：常规浏览中主进程只提供原始记录查询，汇总计算在渲染进程/共享纯逻辑完成；备注搜索的全量摘要由主进程流式聚合（见 5.5）
 - **分类名为快照**：账单表冗余存储分类名，展示经三步匹配解析，兜底「其他」
 - **删除不改写历史**：删除分类只动分类库，历史账单按符号兜底；重建同名分类可自动恢复
 - **重命名同步历史**：重命名分类时按类型精确改写历史账单，避免误改同名分类

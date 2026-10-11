@@ -62,7 +62,7 @@
 - 区间报告生成、历史列表读取、JSON 落盘
 - 报告 section：`stats`、`heatmap`、`moodTrend`、`tagCloud`、`highlights`、`locationPatterns`、`timePatterns`
 - 报告 PNG 导出：专用导出页面 + 主进程截图链路
-- 记账：月度明细/统计视图、录入编辑删除、分类库（内置+自定义）、导出 Excel（sheet 按年份）
+- 记账：月度明细/统计视图、录入编辑删除、分类库（内置+自定义）、备注全局搜索、导出 Excel（sheet 按年份）
 
 当前优先级：
 
@@ -73,7 +73,7 @@
 
 ## 4. 架构边界
 
-- 渲染进程负责 UI、编辑、预览、交互态状态（记账：记账 UI 与统计聚合）
+- 渲染进程负责 UI、编辑、预览、交互态状态（记账：记账 UI 与统计聚合；备注搜索的全量摘要在主进程流式聚合）
 - 主进程负责文件读写、配置、AI、Git、报告生成、导出（记账：账单读写（SQLite）、分类库、Excel 导出）
 - `preload` 只暴露最小且明确的 API，保持可审计
 - 本地 Markdown 是唯一事实源，报告 JSON 和导出 PNG 都是派生物
@@ -134,7 +134,7 @@ tags: []
 - 记账数据存 `<workspace>/bills/bills.db`（SQLite，better-sqlite3 原生模块，打包需 asarUnpack 与 electron-builder install-app-deps）
 - 分类库存 `<workspace>/.dairy/bill-categories.json`（物理删除，历史账单按金额符号兜底到对应类型「其他」样式）
 - 金额以「分」整数存储（amount_cents），UI 显示保留 2 位小数
-- 记账统计在前端聚合（list-year + 分类解析三步匹配），transfer 类型（理财等）不计入收支统计
+- 记账常规统计在前端聚合（list-year + 分类解析三步匹配）；备注搜索的全量摘要由主进程流式聚合，transfer 类型（理财等）不计入收支统计
 - better-sqlite3 为 Electron ABI 编译产物，Node 环境（vitest）不可直接加载；db 层不写单测，纯逻辑在 src/shared/bills-logic.ts 可测
 
 配置分层：
