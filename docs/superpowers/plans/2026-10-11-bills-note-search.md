@@ -811,7 +811,7 @@ export async function searchBills(input: BillsSearchInput): Promise<BillsSearchR
       .prepare(
         "SELECT * FROM bills WHERE note LIKE ? ESCAPE '\\' ORDER BY date DESC, id DESC LIMIT ? OFFSET ?",
       )
-      .all(like, limit + 1, offset) as BillRow[]
+      .all(like, limit + 1, offset) as import('./db').BillRow[]
     const records = rows.slice(0, limit).map(mapRowToBill)
 
     // 3) 日边界对齐：探测条与最后一条同日时，继续补齐该日剩余匹配记录
