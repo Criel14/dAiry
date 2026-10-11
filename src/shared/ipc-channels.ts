@@ -77,4 +77,5 @@ export const IPC_CHANNELS = {
   exportBillsExcel: 'bills:export-excel',
   listBillsYears: 'bills:list-years',
   listBillsMonths: 'bills:list-months',
+  searchBills: 'bills:search',
 } as const

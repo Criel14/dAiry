@@ -80,6 +80,8 @@ import type {
   BillsListYearInput,
   BillsRecordInput,
   BillsRenameCategoryInput,
+  BillsSearchInput,
+  BillsSearchResult,
   BillsUpdateInput,
 } from './bills'
 
@@ -164,6 +166,7 @@ export interface DairyApi {
   listBillsByYear: (input: BillsListYearInput) => Promise<Bill[]>
   listBillsYears: (input: BillsCategoryQuery) => Promise<string[]>
   listBillsMonths: (input: BillsListMonthsInput) => Promise<string[]>
+  searchBills: (input: BillsSearchInput) => Promise<BillsSearchResult>
   createBill: (input: BillsRecordInput) => Promise<Bill>
   updateBill: (input: BillsUpdateInput) => Promise<Bill>
   deleteBill: (input: BillsDeleteInput) => Promise<void>

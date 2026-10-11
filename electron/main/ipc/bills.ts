@@ -9,6 +9,7 @@ import type {
   BillsListYearInput,
   BillsRecordInput,
   BillsRenameCategoryInput,
+  BillsSearchInput,
   BillsUpdateInput,
 } from '../../../src/types/bills'
 import { IPC_CHANNELS } from '../constants'
@@ -23,6 +24,7 @@ import {
   listBillsMonthsOfYear,
   listBillsYears,
   removeCategory,
+  searchBills,
   updateBill,
   updateCategory,
 } from '../bills/service'
@@ -40,6 +42,7 @@ export function registerBillsIpcHandlers() {
   ipcMain.handle(IPC_CHANNELS.listBillsMonths, (_event, input: BillsListMonthsInput) =>
     listBillsMonthsOfYear(input),
   )
+  ipcMain.handle(IPC_CHANNELS.searchBills, (_event, input: BillsSearchInput) => searchBills(input))
   ipcMain.handle(IPC_CHANNELS.createBill, (_event, input: BillsRecordInput) => createBill(input))
   ipcMain.handle(IPC_CHANNELS.updateBill, (_event, input: BillsUpdateInput) => updateBill(input))
   ipcMain.handle(IPC_CHANNELS.deleteBill, (_event, input: BillsDeleteInput) => deleteBill(input))

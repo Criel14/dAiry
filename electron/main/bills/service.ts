@@ -11,6 +11,8 @@ import type {
   BillsQueryResult,
   BillsRecordInput,
   BillsRenameCategoryInput,
+  BillsSearchInput,
+  BillsSearchResult,
   BillsUpdateInput,
 } from '../../../src/types/bills'
 import {
@@ -25,6 +27,7 @@ import {
   assertValidAmountCents,
   assertValidDate,
   assertValidNote,
+  billSearchContribution,
   filterBillsByType,
   resolveCategory,
   toBillQueryRecord,
@@ -200,6 +203,59 @@ export async function queryBills(input: BillsQueryInput): Promise<BillsQueryResu
     limit: input.limit,
     records: matched.slice(0, input.limit).map(toBillQueryRecord),
   }
+}
+
+export async function searchBills(input: BillsSearchInput): Promise<BillsSearchResult> {
+  const keyword = input.keyword.trim()
+  if (!keyword) {
+    throw new Error('搜索关键词不能为空。')
+  }
+
+  const offset = Math.max(0, Math.floor(input.offset))
+  const limit = Math.min(Math.max(1, Math.floor(input.limit)), 100)
+  const like = `%${escapeLikeKeyword(keyword)}%`
+
+  const categories = await getBillCategories(input.workspacePath)
+
+  const result = withExistingBillsDatabase(input.workspacePath, (db) => {
+    // 1) 全量汇总：流式遍历匹配行，不物化大数组。
+    //    iterate 必须在后续查询之前耗尽（for 循环会完整消费）。
+    let total = 0
+    let income = 0
+    let expense = 0
+    const summaryRows = db
+      .prepare("SELECT * FROM bills WHERE note LIKE ? ESCAPE '\\' ORDER BY date DESC, id DESC")
+      .iterate(like)
+    for (const row of summaryRows) {
+      const contribution = billSearchContribution(categories, mapRowToBill(row as import('./db').BillRow))
+      total += 1
+      income += contribution.income
+      expense += contribution.expense
+    }
+
+    // 2) 取页：多取 1 条做探测
+    const rows = db
+      .prepare(
+        "SELECT * FROM bills WHERE note LIKE ? ESCAPE '\\' ORDER BY date DESC, id DESC LIMIT ? OFFSET ?",
+      )
+      .all(like, limit + 1, offset) as import('./db').BillRow[]
+    const records = rows.slice(0, limit).map(mapRowToBill)
+
+    // 3) 日边界对齐：探测条与最后一条同日时，继续补齐该日剩余匹配记录
+    let probe = rows.length > limit ? rows[limit] : undefined
+    while (probe && records.length > 0 && probe.date === records[records.length - 1].date) {
+      records.push(mapRowToBill(probe))
+      probe = db
+        .prepare(
+          "SELECT * FROM bills WHERE note LIKE ? ESCAPE '\\' AND date = ? AND id < ? ORDER BY id DESC LIMIT 1",
+        )
+        .get(like, probe.date, probe.id) as import('./db').BillRow | undefined
+    }
+
+    return { records, total, income, expense }
+  })
+
+  return result ?? { records: [], total: 0, income: 0, expense: 0 }
 }
 
 export async function createBill(input: BillsRecordInput): Promise<Bill> {

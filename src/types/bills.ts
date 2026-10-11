@@ -132,6 +132,20 @@ export interface BillsQueryResult {
 
 // ===== 备注搜索 =====
 
+export interface BillsSearchInput {
+  workspacePath: string
+  keyword: string
+  offset: number
+  limit: number
+}
+
+export interface BillsSearchResult {
+  records: Bill[] // 当前页（已按日边界对齐）
+  total: number // 全部匹配数
+  income: number // 全量口径，分（transfer 不计）
+  expense: number // 全量口径，分
+}
+
 // 搜索态已加载窗口（渲染层状态，纯逻辑复用）
 export interface BillsSearchWindow {
   records: Bill[]
