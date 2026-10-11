@@ -221,8 +221,9 @@ ECharts 6 按需注册（Bar/Line/Pie + Grid/Legend/Tooltip + CanvasRenderer）�
 
 ### 5.5 备注搜索（useBillsPanel）
 
-- 状态：`searchInput`（未提交输入）、`searchKeyword`（空=非搜索态）、`searchWindow`（records/total/income/expense，分）、`isSearchLoading`、`isSearchLoadingMore`、`searchErrorMessage`，全部异步响应带 `searchSequence` 序列号守卫
-- 提交与退出：回车提交（`isComposing` 守卫）、空内容回车退出；Esc/✕/摘要条「清除」退出；切统计 tab、周期导航（月份/年份/月度-年度/年度月份筛选/回到本月）、离开记账页（`rightPanel` 过渡 watcher，覆盖通知/托盘导航）、切换工作区均退出；退出即清输入，浏览状态不动
+- 状态：`searchInput`（输入框文字，防抖后自动提交）、`searchKeyword`（最近一次提交的关键词，空=非搜索态）、`searchWindow`（records/total/income/expense，分）、`isSearchLoading`、`isSearchLoadingMore`、`searchErrorMessage`，全部异步响应带 `searchSequence` 序列号守卫；另有非响应式防抖计时器 `searchDebounceTimer`（300ms）
+- 触发与退出：输入即搜（`watch(searchInput)` + 300ms 防抖；关键词未变且无错误时跳过重搜；输入法组合结束后才提交）；输入清空（含纯空格）立即退出；回车=跳过防抖立即搜索（失败可重试）；Esc/✕/摘要条「清除」退出；切统计 tab、周期导航（月份/年份/月度-年度/年度月份筛选/回到本月）、离开记账页（`rightPanel` 过渡 watcher，覆盖通知/托盘导航）、切换工作区均退出；退出即清输入，浏览状态不动
+- 加载态：新搜索保留旧结果直至响应返回（仅窗口为空时显示「正在搜索…」），避免输入过程中列表闪烁
 - 分页：首批 30 条，「查看更多（剩余 N 笔）」按 `offset = 已加载条数` 追加；取数按日边界对齐（同一天记录不跨批切开，日期组小计始终完整）
 - 就地更新：弹窗保存/删除/复制不重查数据库，`applyBillsMutation` 就地更新窗口并维护全量统计（统计恒定镜像匹配集；`total−1` 仅发生在删除或改到不再匹配）；净移除且仍有未加载时以 `limit=1` 补位
 - 分类变更：重命名对已加载结果就地改名（与主进程 SQL 同规则）；增删改任何变更后静默刷新一次全量统计

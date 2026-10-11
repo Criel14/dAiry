@@ -1,7 +1,7 @@
 # 记账备注搜索设计（全局搜索）
 
 日期：2026-10-11
-状态：已确认（2026-10-11，reviewer 复核后定稿；实施计划见 `docs/superpowers/plans/2026-10-11-bills-note-search.md`）
+状态：已确认（2026-10-11，reviewer 复核后定稿；实施计划见 `docs/superpowers/plans/2026-10-11-bills-note-search.md`；2026-10-11 修订为实时搜索，见 §十一）
 
 ## 背景与目标
 
@@ -10,7 +10,7 @@
 1. **忘了哪一年/哪个月买的**——例如"前段时间买了个鼠标，忘了多少钱"，想靠一个词把账找出来；
 2. **复用旧账快速记一笔**——例如"上次吃了手撕鸡，这次懒得打字"，想找到上次那条，用现有的「复制到今天」快速记一笔。
 
-两者都是"记得一个词、不记得时间"的跨期检索，因此搜索必须覆盖**全部历史**，而不是只看当前列表。目标：在**不新增页面**的前提下，给「明细」tab 加一个常驻搜索框，回车后在原位把列表切换成跨年结果列表；结果直接复用现有记账行的交互（点击打开编辑弹窗，含「复制到今天」）。
+两者都是"记得一个词、不记得时间"的跨期检索，因此搜索必须覆盖**全部历史**，而不是只看当前列表。目标：在**不新增页面**的前提下，给「明细」tab 加一个常驻搜索框，输入即在原位把列表切换成跨年结果列表（防抖 300ms）；结果直接复用现有记账行的交互（点击打开编辑弹窗，含「复制到今天」）。
 
 ## 一、非目标（明确不做）
 
@@ -28,7 +28,7 @@
 | # | 决策 |
 |---|------|
 | 1 | 入口：明细 tab 工具栏常驻搜索框，placeholder「全局搜索」；统计 tab 不显示 |
-| 2 | **回车才搜**（非输入即搜）；Esc / ✕ / 摘要条「清除」退出；搜索态下回车空内容也退出 |
+| 2 | **输入即搜**（防抖 300ms，输入法组合结束后提交；VS Code 风格）；回车=立即搜索（失败可重试）；输入清空即退出；Esc / ✕ / 摘要条「清除」退出；不显示 `⏎` 提示 |
 | 3 | 搜索范围：全部时间；只匹配备注（子串，trim、ASCII 不区分大小写）；命中词高亮 |
 | 4 | 搜索时隐藏"月份筛选 / 分类筛选"（周期过滤与全时间搜索不同维度），退出后原样恢复 |
 | 5 | 分页：首批 30 条，「查看更多（剩余 N 笔）」+30；记录按"日边界对齐"（日期组小计永远完整） |
@@ -47,19 +47,17 @@
 [明细 | 统计] … [🔍 ______ ⏎ ✕] [＋ 记一笔]
 ```
 
-- 搜索框结构：容器 `.search-field`（`margin-left:auto` 靠右）+ `Search` 图标（lucide）+ `<input>` + 两个尾缀：
-  - `⏎` 提示：仅当"输入了文字且与已提交关键词不同"时显示（纯提示，不可点击）；
-  - `✕` 清除钮：输入非空时显示。
+- 搜索框结构：容器 `.search-field`（`margin-left:auto` 靠右）+ `Search` 图标（lucide）+ `<input>` + `✕` 清除钮（输入非空时显示）。
 - 宽度约 220–240px；视觉沿用主题 token（与 `AppSelect`、`.add-button` 同一套变量），深色主题自适应。
 
 ### 3.2 提交与退出
 
 | 触发 | 行为 |
 |------|------|
-| 输入后按回车（非输入法组合中） | 提交搜索：进入搜索态、加载第一页 |
-| 输入法组合中的回车 | 不提交（判断 `KeyboardEvent.isComposing`） |
-| 搜索态下回车（输入为空/纯空格） | 退出搜索 |
-| 重复回车同一关键词 | 重新搜索（结果重置回第一批） |
+| 输入文字（停止输入 300ms 后） | 自动搜索：进入搜索态、加载第一页；关键词与当前结果一致且无错误时不重复触发 |
+| 输入法组合中 | 不提交中间文本；组合结束后提交最终文本并按防抖搜索（`compositionstart/end` + `KeyboardEvent.isComposing` 双守卫） |
+| 输入清空（含纯空格） | 立即退出搜索（不等防抖） |
+| 回车（非输入法组合中） | 跳过防抖立即搜索当前输入；关键词已是当前结果且无错误时无操作；失败后可回车重试 |
 | Esc（焦点在搜索框内） | 清空输入并退出搜索 |
 | ✕ 按钮 | 清空输入并退出搜索（未搜索时仅清输入） |
 | 摘要条「清除」 | 退出搜索 |
@@ -68,7 +66,7 @@
 | 侧栏点月份 / 年份 / 「回到本月」/ 月度-年度切换 / 年度内月份筛选 | 退出搜索，并进入该周期普通浏览；**点当前已选中的月份同样退出**（动作本身代表浏览意图） |
 | 切换工作区 | 退出搜索（整页数据重置） |
 
-实现要点：退出动作统一收敛为 `exitSearch()`。周期类导航由 AppShell 在**事件回调里调用**（不用 watch——同值点击不会触发）；"离开记账页"用 `rightPanel` 过渡 watcher 统一兜底（见 4.6）。退出时同步清空输入框未提交文字。
+实现要点：退出动作统一收敛为 `exitSearch()`。输入即搜由 `watch(searchInput)` + 300ms 防抖实现（关键词未变且无错误时跳过）；周期类导航由 AppShell 在**事件回调里调用**（不用 watch——同值点击不会触发）；"离开记账页"用 `rightPanel` 过渡 watcher 统一兜底（见 4.6）。退出时同步清空输入框未提交文字。
 
 ### 3.3 搜索态界面
 
@@ -80,7 +78,7 @@
   - 日期组标题：当年显示 `M月D日 星期X`（现状不变）；**非当年加年份前缀** `YYYY年M月D日 星期X`（跨年检索需要）
   - 备注命中词高亮（大小写不敏感命中，显示原文；多处命中多处高亮）
 - **加载 / 空 / 错误态**：
-  - 首次或重搜加载中：列表区占位「正在搜索…」
+  - 首次搜索（窗口为空）加载中：列表区占位「正在搜索…」；已有旧结果时保留显示直至响应返回，避免实时输入过程中列表闪烁
   - 无结果：占位「没有找到包含「关键词」的账单」
   - 失败：列表区显示可读错误（复用 `getReadableErrorMessage`），保留关键词与输入，可回车重试
 - **查看更多**：底部居中按钮，文案 `查看更多（剩余 {N} 笔）`；点击后按钮变为「加载中…」且禁用；加载更多不改变列表已展示内容、不跳滚动位置。新搜索提交后列表滚动回顶部。
@@ -272,13 +270,22 @@ export function applyBillsMutation(
 | `isSearchLoadingMore: Ref<boolean>` | 「查看更多」加载中 |
 | `searchErrorMessage: Ref<string>` | 搜索失败文案（与普通 `statusMessage` 隔离） |
 | `searchSequence`（非响应式计数器） | 所有搜索相关异步响应的竞态守卫（沿用现有 `loadSequence` 模式） |
+| `searchDebounceTimer`（非响应式） | 实时搜索防抖计时器（300ms；输入停止后触发搜索） |
 
 新增函数：
 
 ```ts
-async function submitSearch(): Promise<void>
-// trim 输入；空 → exitSearch()；否则 searchKeyword=kw、清空窗口、loading、
-// fetch(offset=0, limit=30)；带序列号守卫；响应更新窗口与统计。
+function scheduleSearch(): void
+// 输入变化触发（watch searchInput）：trim 空 → exitSearch()；关键词与当前结果
+// 一致且无错误 → 跳过；否则重置 300ms 防抖计时器，到期 runSearch。
+
+async function runSearch(keyword: string): Promise<void>
+// searchKeyword=kw、loading、序列号守卫；fetch(offset=0, limit=30)；
+// 响应更新窗口与统计；不清空旧 records（保留至响应返回，避免列表闪烁）。
+
+function submitSearch(): void
+// 回车触发：清防抖计时器并立即 runSearch（失败后可重试）；
+// 空 → exitSearch()；关键词已是当前结果且无错误 → 无操作。
 
 async function loadMoreSearch(): Promise<void>
 // 守卫：非搜索态 / 加载中 / 剩余=0 直接返回；
@@ -334,7 +341,7 @@ function applySearchMutation(mutation: BillsSearchMutation): void
 
 - 结果区渲染复用 `groupBillsByDay`、行样式、`openEdit`；备注用 `splitNoteByKeyword` 渲染高亮。
 - 日期标题函数：`dayLabelForSearch(date)`——非当年加 `YYYY年` 前缀（当年与现有 `dayLabel` 一致）。
-- 输入框：`v-model` 走 `update:searchInput`；`@keydown.enter` 显式处理（`isComposing` 守卫）→ `emit('search-submit')`；`@keydown.esc` → `emit('search-clear')`。
+- 输入框：`:value` + `@input` 走 `update:searchInput`（`compositionstart/end` 与 `isComposing` 双守卫，组合期间不提交中间文本，组合结束提交最终文本）；`@keydown.enter` 显式处理（`isComposing` 守卫）→ `emit('search-submit')`（立即搜索）；`@keydown.esc` → `emit('search-clear')`。
 - `defineExpose({ focusSearchInput })`：守卫（非明细 tab / `modalState.open` 不动作）→ `input.focus(); input.select()`。
 - 新搜索提交成功后滚动容器回到顶部（定位实际滚动元素；沿用 `scrollIntoView` 的现有用法定位方式）。
 
@@ -355,7 +362,7 @@ function applySearchMutation(mutation: BillsSearchMutation): void
 
 ### 4.7 样式
 
-- `BillsPanel.css` 新增：`.search-field` / `.search-input` / `.search-clear` / `.search-enter-hint` / `.summary-bar--search` / `.search-chip` / `.note-hit`。
+- `BillsPanel.css` 新增：`.search-field` / `.search-input` / `.search-clear` / `.summary-bar--search` / `.search-chip` / `.note-hit`。
 - 一律使用主题 token（与 `.summary-bar`、`.add-button`、`AppSelect` 同源变量）；深色主题走同一套变量，不新增特判。
 - 搜索结果列表复用现有 `.day-list` / `.day-card` / `.record-row` 样式，不另起一套。
 
@@ -384,11 +391,11 @@ function applySearchMutation(mutation: BillsSearchMutation): void
 
 ### 6.2 手工验收清单
 
-1. 搜「手撕鸡」回车 → 高亮结果、全量统计；Esc 回到原月份普通列表。
+1. 输入「手撕鸡」（防抖后自动出结果；输入法组合中不触发）→ 高亮结果、全量统计；Esc 回到原月份普通列表。
 2. 忘年份场景：命中记录分布在不同年份，日期标题带年份。
 3. Ctrl+F：账单页聚焦并全选；写日记页/设置页无反应；统计 tab 无反应；弹窗打开时无反应。
 4. 退出触发逐项：切统计、切页面（含从通知点击 / 托盘菜单离开后再返回）、点月份、点年份、「回到本月」、月度/年度切换、年度月份筛选、点当前已选月份、切工作区 → 均退出且浏览状态保留。
-5. 搜索态回车空内容退出；输入未提交文字随切换被清掉。
+5. 清空输入自动退出；输入文字随切换被清掉。
 6. 结果点开 →「复制到今天」→ 弹窗关、新记录出现在结果顶部、其余原位、滚动不动。
 7. 编辑到不再含关键词 → 该条消失、从后面补一条；删除 → 消失、补位、统计减。
 8. 「查看更多」：剩余数递减、按钮 loading 态、同日记录不跨批切开。
@@ -427,3 +434,12 @@ function applySearchMutation(mutation: BillsSearchMutation): void
 1. **统计口径恒定镜像匹配集**（3.5 / 4.4）：命中但未进入窗口的变更也计入统计；"仍匹配但移出窗口"的编辑 total 不变、只应用贡献差额；`total−1` 仅适用于删除或改到不再匹配。
 2. **页面导航退出覆盖所有路径**（3.2 / 4.6）：通知点击与托盘菜单经 `navigateMainPanel` 直接改 `rightPanel`，不走 `handleActivitySelect`；改为在 `useAppShell.ts` 用 `rightPanel` 过渡 watcher 统一兜底。
 3. **分类变更后的统计一致性**（3.7 / 4.5）：分类增删改会改变 `resolveCategory` 的解析口径（如删除自定义 transfer 分类后记录回退为按符号计收支），搜索态下任何分类变更都要在分类重载后静默刷新一次全量统计。
+
+## 十一、修订记录（2026-10-11，实时搜索）
+
+首个实现按「回车才搜」落地后，参照 VS Code 搜索体验迭代为实时搜索，正文相关小节已同步修订：
+
+1. **输入即搜**：输入停止 300ms（防抖）自动搜索；输入法组合期间不提交中间文本，组合结束后再防抖提交。
+2. **回车重定义**：跳过防抖立即搜索；失败后可回车重试；同一关键词已是当前结果时无操作（不再「重新搜索重置回第一批」）。
+3. **`⏎` 提示移除**；输入清空（含纯空格）立即退出搜索。
+4. **加载态改进**：新搜索保留旧结果直至响应返回，仅窗口为空时显示「正在搜索…」，避免输入过程中列表闪烁。
