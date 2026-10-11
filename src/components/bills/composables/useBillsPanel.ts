@@ -1,9 +1,21 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import dayjs from 'dayjs'
-import type { Bill, BillCategory, BillsChartJumpPayload, BillsWindowTotal } from '../../../types/bills'
+import type {
+  Bill,
+  BillCategory,
+  BillsCategoryChange,
+  BillsChartJumpPayload,
+  BillsSavedPayload,
+  BillsSearchMutation,
+  BillsSearchWindow,
+  BillsWindowTotal,
+} from '../../../types/bills'
 import { getReadableErrorMessage } from '../../../utils/error'
 import {
   aggregateRecords,
+  applyBillsMutation,
+  applyCategoryRenameToBill,
+  BILLS_SEARCH_PAGE_SIZE,
   buildMonthWindow,
   buildYearWindow,
   expenseTotal,
@@ -13,6 +25,7 @@ import {
   incomeTotal,
   resolveCategory,
   sliceLatestMonths,
+  splitNoteByKeyword,
 } from '../../../shared/bills-logic'
 import { confirmDialog } from '../../../shared/dialog'
 
@@ -139,6 +152,163 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     statsMode.value === 'month' ? monthRecords.value : yearRecords.value,
   )
 
+  // ===== 备注搜索 =====
+
+  const searchInput = ref('')
+  const searchKeyword = ref('')
+  const searchWindow = ref<BillsSearchWindow>({ records: [], total: 0, income: 0, expense: 0 })
+  const isSearchLoading = ref(false)
+  const isSearchLoadingMore = ref(false)
+  const searchErrorMessage = ref('')
+  // 搜索相关异步响应的竞态守卫（沿用 loadSequence 模式）
+  let searchSequence = 0
+
+  function resetSearchWindow() {
+    searchWindow.value = { records: [], total: 0, income: 0, expense: 0 }
+  }
+
+  // 退出搜索（幂等）：清关键词/输入/窗口/加载态；浏览状态（月份/年度/筛选）保持不动
+  function exitSearch() {
+    searchSequence += 1
+    searchKeyword.value = ''
+    searchInput.value = ''
+    resetSearchWindow()
+    isSearchLoading.value = false
+    isSearchLoadingMore.value = false
+    searchErrorMessage.value = ''
+  }
+
+  async function submitSearch() {
+    if (!workspacePath.value || isSearchLoading.value) return
+    const keyword = searchInput.value.trim()
+    if (!keyword) {
+      exitSearch()
+      return
+    }
+
+    searchKeyword.value = keyword
+    resetSearchWindow()
+    searchErrorMessage.value = ''
+    isSearchLoading.value = true
+    isSearchLoadingMore.value = false
+    const current = ++searchSequence
+
+    try {
+      const result = await window.dairy.searchBills({
+        workspacePath: workspacePath.value,
+        keyword,
+        offset: 0,
+        limit: BILLS_SEARCH_PAGE_SIZE,
+      })
+      if (current !== searchSequence) return
+      searchWindow.value = {
+        records: result.records,
+        total: result.total,
+        income: result.income,
+        expense: result.expense,
+      }
+    } catch (error) {
+      if (current !== searchSequence) return
+      searchErrorMessage.value = getReadableErrorMessage(error, '搜索失败')
+    } finally {
+      if (current === searchSequence) {
+        isSearchLoading.value = false
+      }
+    }
+  }
+
+  async function loadMoreSearch() {
+    if (!workspacePath.value || !searchKeyword.value) return
+    if (isSearchLoading.value || isSearchLoadingMore.value) return
+    if (searchWindow.value.total <= searchWindow.value.records.length) return
+
+    const current = searchSequence
+    isSearchLoadingMore.value = true
+    try {
+      const result = await window.dairy.searchBills({
+        workspacePath: workspacePath.value,
+        keyword: searchKeyword.value,
+        offset: searchWindow.value.records.length,
+        limit: BILLS_SEARCH_PAGE_SIZE,
+      })
+      if (current !== searchSequence) return
+      // 追加并直接采用响应中的全量统计（顺带修正任何漂移）
+      searchWindow.value = {
+        records: [...searchWindow.value.records, ...result.records],
+        total: result.total,
+        income: result.income,
+        expense: result.expense,
+      }
+    } catch {
+      // 加载更多失败静默：保持已加载列表，用户可再次点击重试
+    } finally {
+      if (current === searchSequence) {
+        isSearchLoadingMore.value = false
+      }
+    }
+  }
+
+  async function refillSearchWindow() {
+    if (!workspacePath.value || !searchKeyword.value || isSearchLoadingMore.value) return
+
+    const current = searchSequence
+    isSearchLoadingMore.value = true
+    try {
+      const result = await window.dairy.searchBills({
+        workspacePath: workspacePath.value,
+        keyword: searchKeyword.value,
+        offset: searchWindow.value.records.length,
+        limit: 1,
+      })
+      if (current !== searchSequence) return
+      searchWindow.value = {
+        ...searchWindow.value,
+        records: [...searchWindow.value.records, ...result.records],
+        total: result.total,
+        income: result.income,
+        expense: result.expense,
+      }
+    } catch {
+      // 补位失败静默：窗口暂时少一条，offset 不变式不受影响
+    } finally {
+      if (current === searchSequence) {
+        isSearchLoadingMore.value = false
+      }
+    }
+  }
+
+  async function refreshSearchSummary() {
+    if (!workspacePath.value || !searchKeyword.value) return
+
+    const current = searchSequence
+    try {
+      const result = await window.dairy.searchBills({
+        workspacePath: workspacePath.value,
+        keyword: searchKeyword.value,
+        offset: searchWindow.value.records.length,
+        limit: 1,
+      })
+      if (current !== searchSequence) return
+      searchWindow.value = {
+        ...searchWindow.value,
+        total: result.total,
+        income: result.income,
+        expense: result.expense,
+      }
+    } catch {
+      // 统计刷新失败静默：下次取数时修正
+    }
+  }
+
+  function applySearchMutation(mutation: BillsSearchMutation) {
+    if (!searchKeyword.value) return
+    const next = applyBillsMutation(searchWindow.value, mutation, categories.value, searchKeyword.value)
+    searchWindow.value = next.window
+    if (next.needsRefill) {
+      void refillSearchWindow()
+    }
+  }
+
   watch(
     workspacePath,
     () => {
@@ -173,6 +343,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
   })
 
   async function handleWorkspaceChange() {
+    exitSearch()
     if (!workspacePath.value) {
       monthRecords.value = []
       yearRecords.value = []
@@ -288,8 +459,11 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     modalState.value = { open: false, editing: null }
   }
 
-  async function handleRecordSaved() {
+  async function handleRecordSaved(payload?: BillsSavedPayload) {
     closeModal()
+    if (payload) {
+      applySearchMutation(payload)
+    }
     await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 
@@ -300,6 +474,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
 
     try {
       await window.dairy.deleteBill({ workspacePath: workspacePath.value, id: bill.id })
+      applySearchMutation({ kind: 'delete', bill })
       await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '删除账单失败')
@@ -316,14 +491,25 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     try {
       await window.dairy.deleteBill({ workspacePath: workspacePath.value, id: bill.id })
       closeModal()
+      applySearchMutation({ kind: 'delete', bill })
       await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
     } catch (error) {
       statusMessage.value = getReadableErrorMessage(error, '删除账单失败')
     }
   }
 
-  async function handleCategoriesChanged() {
+  async function handleCategoriesChanged(change?: BillsCategoryChange) {
     await loadCategories()
+    if (searchKeyword.value) {
+      if (change?.kind === 'rename') {
+        searchWindow.value = {
+          ...searchWindow.value,
+          records: searchWindow.value.records.map((bill) => applyCategoryRenameToBill(bill, change)),
+        }
+      }
+      // 分类增删改会改变 resolveCategory 的解析口径，必须静默刷新全量统计
+      void refreshSearchSummary()
+    }
     await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 
@@ -352,6 +538,7 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     closeModal,
     detailMonthFilter,
     detailRecords,
+    exitSearch,
     filteredRecords,
     handleCategoriesChanged,
     handleChartJump,
@@ -363,7 +550,10 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     hasWorkspace,
     isLoading,
     isExporting,
+    isSearchLoading,
+    isSearchLoadingMore,
     loadMoreMonths,
+    loadMoreSearch,
     modalState,
     monthRecords,
     openCreateModal,
@@ -373,10 +563,15 @@ export function useBillsPanel(workspacePath: Ref<string | null>) {
     selectedMonth,
     selectedYear,
     scrollTargetDate,
+    searchErrorMessage,
+    searchInput,
+    searchKeyword,
+    searchWindow,
     sidebarStatusMessage,
     statsMode,
     statsRecords,
     statusMessage,
+    submitSearch,
     windowTotals,
     yearRecords,
   }
@@ -401,4 +596,4 @@ export function groupBillsByDay(records: Bill[]): Array<[string, Bill[]]> {
   return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]))
 }
 
-export { aggregateRecords, formatCents, formatPlainCents, resolveCategory }
+export { aggregateRecords, formatCents, formatPlainCents, resolveCategory, splitNoteByKeyword }
