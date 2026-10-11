@@ -893,7 +893,7 @@ git commit -m "feat(bills): 新增 bills:search IPC 链路与 service"
 - Produces（composable 导出，Task 6 使用）:
   - 状态：`searchInput`、`searchKeyword`、`searchWindow`、`isSearchLoading`、`isSearchLoadingMore`、`searchErrorMessage`
   - 函数：`submitSearch()`、`loadMoreSearch()`、`exitSearch()`
-  - 变更的既有函数：`handleRecordSaved(payload)`、`handleDeleteFromModal()`、`handleDeleteRecord(bill)`、`handleCategoriesChanged(change?)`、`handleWorkspaceChange()`
+  - 变更的既有函数：`handleRecordSaved(payload?)`、`handleDeleteFromModal()`、`handleDeleteRecord(bill)`、`handleCategoriesChanged(change?)`、`handleWorkspaceChange()`
   - 末尾 re-export 增加 `splitNoteByKeyword`（Task 6 的组件从本文件导入）
 
 - [ ] **Step 1: 调整 import 与 re-export**
@@ -1087,9 +1087,11 @@ export { aggregateRecords, formatCents, formatPlainCents, resolveCategory, split
 `handleRecordSaved`（先就地更新，再并行重载浏览数据）：
 
 ```ts
-  async function handleRecordSaved(payload: BillsSavedPayload) {
+  async function handleRecordSaved(payload?: BillsSavedPayload) {
     closeModal()
-    applySearchMutation(payload)
+    if (payload) {
+      applySearchMutation(payload)
+    }
     await Promise.all([reloadMonthRecords(), reloadYearRecords(), reloadWindowTotals()])
   }
 ```
@@ -1126,7 +1128,7 @@ export { aggregateRecords, formatCents, formatPlainCents, resolveCategory, split
 - [ ] **Step 5: 类型检查**
 
 Run: `npm run typecheck`
-Expected: 无错误（Task 6 之前没有调用方，属正常）
+Expected: 无错误（payload 的生产链在 Task 5、调用侧在 Task 6 接通；本任务参数暂为可选 `payload?: BillsSavedPayload` + 守卫，避免中间态 typecheck 破坏——裁定见台账 Task 4 Ruling）
 
 - [ ] **Step 6: 提交**
 
